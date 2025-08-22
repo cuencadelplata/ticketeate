@@ -26,10 +26,10 @@ Permite la vizualización de eventos, la compra de entradas mediante una cola co
 ## Equipos de trabajos:
 
  Equipo A:
--Cabrera Ivan
--Flores Joaquin
--Magallanes Rodrigo
--Ojeda Augusto
+- Cabrera Ivan
+- Flores Joaquin
+- Magallanes Rodrigo
+- Ojeda Augusto
 
 Equipo B:
 - Alfonso Enzo
@@ -43,7 +43,7 @@ Equipo C:
 - Serafini Maximo
 - Fagundez Gabriel
 
-  Equipo D:
+Equipo D:
 - Cano Candela
 - Gomez sierra Lourdes
 - Marturet Carla
