@@ -22,3 +22,29 @@ Permite la vizualización de eventos, la compra de entradas mediante una cola co
 - Turborepo
 - React
 - Tailwind
+
+## Equipos de trabajos:
+
+ Equipo A:
+-Cabrera Ivan
+-Flores Joaquin
+-Magallanes Rodrigo
+-Ojeda Augusto
+
+Equipo B:
+- Alfonso Enzo
+- Evin Linder Jeuel
+- Rosales Ignacio
+- Serrano Santiago
+
+Equipo C:
+- Sabugo Uriel
+- Medula Nicolas
+- Serafini Maximo
+- Fagundez Gabriel
+
+  Equipo D:
+- Cano Candela
+- Gomez sierra Lourdes
+- Marturet Carla
+- Quiroz Juan Martin
