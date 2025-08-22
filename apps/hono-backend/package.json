@@ -1,0 +1,30 @@
+{
+  "name": "@ticketeate/hono-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch dev.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "deploy": "npm run build && serverless deploy",
+    "deploy:dev": "npm run build && serverless deploy --stage dev",
+    "deploy:prod": "npm run build && serverless deploy --stage production",
+    "lint": "eslint src",
+    "check-types": "tsc --noEmit",
+    "test": "echo 'No tests configured yet'"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.0.0",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@repo/eslint-config": "workspace:*",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.0",
+    "tsx": "^4.0.0",
+    "typescript": "5.9.2"
+  }
+}

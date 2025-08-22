@@ -1,0 +1,21 @@
+{
+  "name": "@repo/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./base.json",
+  "scripts": {
+    "lint": "echo 'No linting needed for config package'",
+    "check-types": "echo 'No types to check for config package'",
+    "test": "echo 'No tests needed for config package'"
+  },
+  "exports": {
+    ".": "./base.json",
+    "./base": "./base.json",
+    "./nextjs": "./nextjs.json",
+    "./react-library": "./react-library.json"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
