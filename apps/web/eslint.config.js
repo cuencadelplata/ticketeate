@@ -1,42 +1,44 @@
-const { config } = require("@repo/eslint-config");
-const tseslint = require("@typescript-eslint/eslint-plugin");
-const tsparser = require("@typescript-eslint/parser");
-const reactPlugin = require("eslint-plugin-react");
-const reactHooksPlugin = require("eslint-plugin-react-hooks");
+const { FlatCompat } = require('@eslint/eslintrc');
+
+const compat = new FlatCompat();
 
 module.exports = [
-  ...config,
   {
-    ignores: [".next/**", "node_modules/**", "dist/**"],
+    ignores: [
+      '.next/**/*',
+      'dist/**/*', 
+      'build/**/*',
+      'node_modules/**/*',
+      'out/**/*',
+      '.vercel/**/*',
+      'coverage/**/*',
+      '*.config.js',
+      '*.config.mjs',
+      '*.config.ts',
+      '*.config.tsx'
+    ],
   },
+  ...compat.extends('next/core-web-vitals'),
   {
-    files: ["**/*.{ts,tsx}"],
-    languageOptions: {
-      parser: tsparser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        React: "readonly",
-        JSX: "readonly",
-        Request: "readonly",
-        Response: "readonly",
-      },
-    },
-    plugins: {
-      "@typescript-eslint": tseslint,
-      react: reactPlugin,
-      "react-hooks": reactHooksPlugin,
-    },
     rules: {
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
+      'no-undef': 'off',
+      'no-console': 'off',
+      'no-unused-vars': 'warn',
+    },
+    languageOptions: {
+      globals: {
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        fetch: 'readonly',
+        EventSource: 'readonly',
+        Blob: 'readonly',
+        document: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        TextEncoder: 'readonly',
+        ReadableStream: 'readonly',
+      },
     },
   },
 ];
