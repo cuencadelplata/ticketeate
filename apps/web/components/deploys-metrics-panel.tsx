@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -144,7 +150,9 @@ export function DeploysMetricsPanel() {
           <CardContent className="p-8">
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2 text-muted-foreground">Cargando métricas...</span>
+              <span className="ml-2 text-muted-foreground">
+                Cargando métricas...
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -175,7 +183,9 @@ export function DeploysMetricsPanel() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Métricas de Deployments</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Métricas de Deployments
+          </h1>
           <p className="text-muted-foreground">
             Monitoreo en tiempo real del rendimiento y estado de deployments
           </p>
@@ -189,11 +199,15 @@ export function DeploysMetricsPanel() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deployments</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Deployments
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeData.summary.totalDeployments}</div>
+            <div className="text-2xl font-bold">
+              {safeData.summary.totalDeployments}
+            </div>
             <p className="text-xs text-muted-foreground">
               Total de deployments realizados
             </p>
@@ -206,7 +220,9 @@ export function DeploysMetricsPanel() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeData.summary.successRate}</div>
+            <div className="text-2xl font-bold">
+              {safeData.summary.successRate}
+            </div>
             <p className="text-xs text-muted-foreground">
               Porcentaje de deployments exitosos
             </p>
@@ -215,11 +231,15 @@ export function DeploysMetricsPanel() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tiempo de Respuesta</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tiempo de Respuesta
+            </CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeData.summary.avgResponseTime}</div>
+            <div className="text-2xl font-bold">
+              {safeData.summary.avgResponseTime}
+            </div>
             <p className="text-xs text-muted-foreground">
               Tiempo promedio de respuesta
             </p>
@@ -232,7 +252,9 @@ export function DeploysMetricsPanel() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeData.summary.avgUptime}</div>
+            <div className="text-2xl font-bold">
+              {safeData.summary.avgUptime}
+            </div>
             <p className="text-xs text-muted-foreground">
               Disponibilidad promedio del servicio
             </p>
@@ -251,9 +273,7 @@ export function DeploysMetricsPanel() {
           <Card>
             <CardHeader>
               <CardTitle>Métricas de Deployments</CardTitle>
-              <CardDescription>
-                Tasa de éxito y fallos por día
-              </CardDescription>
+              <CardDescription>Tasa de éxito y fallos por día</CardDescription>
             </CardHeader>
             <CardContent>
               {safeData.deploymentMetrics.length > 0 ? (
@@ -449,7 +469,11 @@ export function DeploysMetricsPanel() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge
-                            variant={deployment.status === 'success' ? 'default' : 'destructive'}
+                            variant={
+                              deployment.status === 'success'
+                                ? 'default'
+                                : 'destructive'
+                            }
                           >
                             {deployment.status}
                           </Badge>
