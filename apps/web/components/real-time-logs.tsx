@@ -159,12 +159,14 @@ export function RealTimeLogs() {
   };
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('es-ES', {
+    const date = new Date(timestamp);
+    const timeString = date.toLocaleTimeString('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      fractionalSecondDigits: 3,
     });
+    const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+    return `${timeString}.${milliseconds}`;
   };
 
   useEffect(() => {

@@ -1,22 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
 import {
   LineChart,
   Line,
@@ -26,6 +15,7 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
 } from 'recharts';
 import {
   TrendingUp,
@@ -113,47 +103,14 @@ export function DeploysMetricsPanel() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-primary" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'failed':
-        return <XCircle className="h-4 w-4 text-destructive" />;
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'building':
-        return <Clock className="h-4 w-4 text-accent animate-spin" />;
+        return <Clock className="h-4 w-4 text-yellow-500 animate-spin" />;
       default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />;
+        return <Activity className="h-4 w-4 text-gray-500" />;
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'success':
-        return (
-          <Badge
-            variant="default"
-            className="bg-primary text-primary-foreground"
-          >
-            Exitoso
-          </Badge>
-        );
-      case 'failed':
-        return <Badge variant="destructive">Fallido</Badge>;
-      case 'building':
-        return (
-          <Badge
-            variant="secondary"
-            className="bg-accent text-accent-foreground"
-          >
-            Construyendo
-          </Badge>
-        );
-      default:
-        return <Badge variant="secondary">Desconocido</Badge>;
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
   };
 
   const formatDate = (dateString: string) => {
@@ -174,108 +131,118 @@ export function DeploysMetricsPanel() {
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
+      year: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  const safeData = {
-    deploymentMetrics: data?.deploymentMetrics || [],
-    performanceMetrics: data?.performanceMetrics || [],
-    recentDeployments: data?.recentDeployments || [],
-    summary: {
-      totalDeployments: data?.summary?.totalDeployments || 0,
-      successRate: data?.summary?.successRate || '0',
-      avgResponseTime: data?.summary?.avgResponseTime || '0',
-      avgUptime: data?.summary?.avgUptime || '0',
-    },
-  };
-
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <RefreshCw className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
-        <p className="text-muted-foreground">Cargando métricas...</p>
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2 text-muted-foreground">Cargando métricas...</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="text-center py-8">
-        <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-        <p className="text-destructive mb-2">Error al cargar métricas</p>
-        <p className="text-sm text-muted-foreground mb-4">{error}</p>
-        <Button variant="outline" onClick={fetchMetrics}>
-          Reintentar
-        </Button>
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <p className="text-destructive mb-2">Error al cargar métricas</p>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button onClick={fetchMetrics}>Reintentar</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
+  const safeData = data;
+
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Métricas de Deployments</h1>
+          <p className="text-muted-foreground">
+            Monitoreo en tiempo real del rendimiento y estado de deployments
+          </p>
+        </div>
+        <Button onClick={fetchMetrics} disabled={loading}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Actualizar
+        </Button>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deploys</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Deployments</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {safeData.summary.totalDeployments}
-            </div>
-            <p className="text-xs text-muted-foreground">Últimos 30 días</p>
+            <div className="text-2xl font-bold">{safeData.summary.totalDeployments}</div>
+            <p className="text-xs text-muted-foreground">
+              Total de deployments realizados
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tasa de Éxito</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {safeData.summary.successRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">Promedio mensual</p>
+            <div className="text-2xl font-bold">{safeData.summary.successRate}</div>
+            <p className="text-xs text-muted-foreground">
+              Porcentaje de deployments exitosos
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tiempo Respuesta
-            </CardTitle>
-            <Zap className="h-4 w-4 text-accent" />
+            <CardTitle className="text-sm font-medium">Tiempo de Respuesta</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {safeData.summary.avgResponseTime}ms
-            </div>
-            <p className="text-xs text-muted-foreground">Promedio mensual</p>
+            <div className="text-2xl font-bold">{safeData.summary.avgResponseTime}</div>
+            <p className="text-xs text-muted-foreground">
+              Tiempo promedio de respuesta
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Uptime</CardTitle>
-            <CheckCircle className="h-4 w-4 text-primary" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {safeData.summary.avgUptime}%
-            </div>
-            <p className="text-xs text-muted-foreground">Disponibilidad</p>
+            <div className="text-2xl font-bold">{safeData.summary.avgUptime}</div>
+            <p className="text-xs text-muted-foreground">
+              Disponibilidad promedio del servicio
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts and Deployments */}
       <Tabs defaultValue="deployments" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="deployments">Deploys</TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="deployments">Deployments</TabsTrigger>
           <TabsTrigger value="performance">Rendimiento</TabsTrigger>
           <TabsTrigger value="history">Historial</TabsTrigger>
         </TabsList>
@@ -283,26 +250,14 @@ export function DeploysMetricsPanel() {
         <TabsContent value="deployments" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Métricas de Deployment</CardTitle>
+              <CardTitle>Métricas de Deployments</CardTitle>
               <CardDescription>
-                Deploys exitosos vs fallidos en los últimos 30 días
+                Tasa de éxito y fallos por día
               </CardDescription>
             </CardHeader>
             <CardContent>
               {safeData.deploymentMetrics.length > 0 ? (
-                <ChartContainer
-                  config={{
-                    successful: {
-                      label: 'Exitosos',
-                      color: 'hsl(var(--primary))',
-                    },
-                    failed: {
-                      label: 'Fallidos',
-                      color: 'hsl(var(--destructive))',
-                    },
-                  }}
-                  className="h-[300px]"
-                >
+                <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={safeData.deploymentMetrics}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -316,7 +271,7 @@ export function DeploysMetricsPanel() {
                         }
                       />
                       <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Tooltip />
                       <Area
                         type="monotone"
                         dataKey="successful"
@@ -335,7 +290,7 @@ export function DeploysMetricsPanel() {
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   No hay datos de deployment disponibles
@@ -356,15 +311,7 @@ export function DeploysMetricsPanel() {
               </CardHeader>
               <CardContent>
                 {safeData.performanceMetrics.length > 0 ? (
-                  <ChartContainer
-                    config={{
-                      responseTime: {
-                        label: 'Tiempo de Respuesta (ms)',
-                        color: 'hsl(var(--accent))',
-                      },
-                    }}
-                    className="h-[200px]"
-                  >
+                  <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={safeData.performanceMetrics}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -378,7 +325,7 @@ export function DeploysMetricsPanel() {
                           }
                         />
                         <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Tooltip />
                         <Line
                           type="monotone"
                           dataKey="responseTime"
@@ -388,7 +335,7 @@ export function DeploysMetricsPanel() {
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </ChartContainer>
+                  </div>
                 ) : (
                   <div className="h-[200px] flex items-center justify-center text-muted-foreground">
                     No hay datos de rendimiento disponibles
@@ -399,22 +346,14 @@ export function DeploysMetricsPanel() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Uptime</CardTitle>
+                <CardTitle>Uptime del Servicio</CardTitle>
                 <CardDescription>
                   Disponibilidad del servicio (%)
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {safeData.performanceMetrics.length > 0 ? (
-                  <ChartContainer
-                    config={{
-                      uptime: {
-                        label: 'Uptime (%)',
-                        color: 'hsl(var(--primary))',
-                      },
-                    }}
-                    className="h-[200px]"
-                  >
+                  <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={safeData.performanceMetrics}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -428,7 +367,7 @@ export function DeploysMetricsPanel() {
                           }
                         />
                         <YAxis domain={[99, 100]} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Tooltip />
                         <Line
                           type="monotone"
                           dataKey="uptime"
@@ -438,7 +377,7 @@ export function DeploysMetricsPanel() {
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </ChartContainer>
+                  </div>
                 ) : (
                   <div className="h-[200px] flex items-center justify-center text-muted-foreground">
                     No hay datos de uptime disponibles
@@ -502,23 +441,33 @@ export function DeploysMetricsPanel() {
                               {deployment.status !== 'building' && (
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  {formatDuration(deployment.duration)}
+                                  {deployment.duration}s
                                 </div>
                               )}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {getStatusBadge(deployment.status)}
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink className="h-4 w-4" />
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={deployment.status === 'success' ? 'default' : 'destructive'}
+                          >
+                            {deployment.status}
+                          </Badge>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a
+                              href={`https://github.com/vercel/next.js/commit/${deployment.commit}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
                           </Button>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      No hay deployments recientes disponibles
+                      No hay deployments recientes
                     </div>
                   )}
                 </div>
