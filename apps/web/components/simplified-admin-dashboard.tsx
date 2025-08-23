@@ -9,7 +9,6 @@ import { GitBranch, Server } from 'lucide-react';
 export function SimplifiedAdminDashboard() {
   const [activeTab, setActiveTab] = useState('deploys');
 
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 px-24">

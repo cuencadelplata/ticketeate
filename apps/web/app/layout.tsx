@@ -6,8 +6,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
-  description:
-    'La plataforma más completa para la gestión de eventos',
+  description: 'La plataforma más completa para la gestión de eventos',
 };
 
 export default function RootLayout({

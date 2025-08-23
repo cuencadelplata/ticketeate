@@ -71,7 +71,9 @@ export async function GET(request: NextRequest) {
     // Filter deploys by environment
     let filteredDeploys = mockDeploys;
     if (environment !== 'all') {
-      filteredDeploys = mockDeploys.filter(deploy => deploy.environment === environment);
+      filteredDeploys = mockDeploys.filter(
+        deploy => deploy.environment === environment
+      );
     }
 
     // Calculate pagination
