@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Plus, Trash2, ChevronRight, ChevronLeft, PencilLine } from 'lucide-react';
+import { Users, Plus, Trash2, ChevronRight, ChevronLeft, PencilLine, Infinity as InfinityIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -133,7 +133,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
             }}
             className="border-stone-600 bg-transparent text-stone-100 hover:bg-[#1A1A1A]"
           >
-            <Infinity className="mr-2 h-4 w-4" />
+            <InfinityIcon className="mr-2 h-4 w-4" />
             Eliminar límite
           </Button>
         </div>

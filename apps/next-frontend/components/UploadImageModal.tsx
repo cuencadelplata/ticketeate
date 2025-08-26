@@ -1,6 +1,7 @@
 import React, { useState, useRef, DragEvent, useEffect } from 'react';
 import { Search, Upload, History, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface UploadImageModalProps {
   onClose: () => void;
