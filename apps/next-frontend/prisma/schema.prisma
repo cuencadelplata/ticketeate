@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime?
+  location      String?
+  capacity      Int?
+  access        String   @default("PUBLIC") // PUBLIC, PRIVATE
+  pricingType   String   @default("FREE")  // FREE, PAID
+  imageUrl      String?
+  producerId    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relaciones
+  tickets       Ticket[]
+  ticketOptions TicketOption[]
+  
+  @@map("events")
+}
+
+model Ticket {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String?
+  status    String   @default("AVAILABLE") // AVAILABLE, SOLD, USED
+  createdAt DateTime @default(now())
+  
+  // Relaciones
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("tickets")
+}
+
+model TicketOption {
+  id          String   @id @default(cuid())
+  eventId     String
+  name        String
+  description String?
+  price       Decimal  @default(0)
+  quantity    Int
+  createdAt   DateTime @default(now())
+  
+  // Relaciones
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("ticket_options")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("users")
+}

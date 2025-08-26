@@ -11,7 +11,7 @@
     "lint": {
       "dependsOn": ["^lint"],
       "cache": true,
-      "inputs": ["$TURBO_DEFAULT$", "src/**/*.ts", "src/**/*.tsx"]
+      "inputs": ["$TURBO_DEFAULT$", "src/**/*.ts", "src/**/*.tsx", "!**/.next/**", "!**/dist/**", "!**/build/**", "!**/node_modules/**"]
     },
     "test": {
       "dependsOn": ["^test"],
