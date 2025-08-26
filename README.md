@@ -1,6 +1,12 @@
-# Ticketeate
-
+<div align="center">
+<picture>
+  <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-ticketeate.png" width="50%" height="50%">
+  
+</picture>
 Accede a tus eventos favoritos de manera fácil y segura.
+</div>
+
+<div align="left">
 
 ## Descripción
 
@@ -128,3 +134,5 @@ Los workflows se ejecutan automáticamente en:
 - **Push** a `main`, `master`, `develop`
 - **Pull Requests** a `main`, `master`, `develop`
 - **Pre-commit** en cada commit
+
+</div>
