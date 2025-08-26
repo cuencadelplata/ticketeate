@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Plus, Trash2, ChevronRight, ChevronLeft, PencilLine, Infinity as InfinityIcon } from 'lucide-react';
+import {
+  Users,
+  Plus,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+  PencilLine,
+  Infinity as InfinityIcon,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
