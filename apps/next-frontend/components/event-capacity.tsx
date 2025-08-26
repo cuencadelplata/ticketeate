@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Plus, Trash2, ChevronRight, ChevronLeft, Infinity, PencilLine } from 'lucide-react';
+import { Users, Plus, Trash2, ChevronRight, ChevronLeft, PencilLine } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
