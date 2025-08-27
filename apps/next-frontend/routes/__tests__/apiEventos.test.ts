@@ -298,12 +298,63 @@ describe('listarEventos', () => {
         fechaInicio: 'asc',
       },
     });
-    expect(mockPrisma.evento.count).toHaveBeenCalledWith({
-      where: { estado: 'activo' },
+          expect(mockPrisma.evento.count).toHaveBeenCalledWith({
+        where: { estado: 'activo' },
+      });
     });
-  });
 
-  describe('obtenerDetalleEvento', () => {
+    it('debería manejar paginación con valores por defecto', async () => {
+      // Arrange
+      const mockEventos = [
+        {
+          id: '1',
+          titulo: 'Evento Default',
+          descripcion: 'Evento con paginación por defecto',
+          fechaInicio: new Date('2024-02-01'),
+          fechaFin: new Date('2024-02-01'),
+          ubicacion: 'Default Location',
+          precio: 25,
+          capacidad: 20,
+          disponibles: 20,
+          estado: 'activo' as const,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          categoria: { id: 'default', nombre: 'Default' },
+          imagenes: []
+        }
+      ];
+
+      mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+      mockPrisma.evento.count.mockResolvedValue(1);
+
+      // Act - sin especificar paginación
+      const resultado = await listarEventos({ pagina: 1, limite: 10 });
+
+      // Assert
+      expect(resultado.datos).toEqual(mockEventos);
+      expect(resultado.paginacion).toEqual({
+        pagina: 1,
+        limite: 10,
+        total: 1,
+        totalPaginas: 1
+      });
+    });
+
+    it('debería lanzar error cuando falla la consulta a base de datos', async () => {
+      // Arrange
+      const error = new Error('Database connection failed');
+      mockPrisma.evento.findMany.mockRejectedValue(error);
+
+      const paginacion = { pagina: 1, limite: 10 };
+
+      // Act & Assert
+      await expect(listarEventos(paginacion)).rejects.toThrow(
+        'Error interno del servidor al obtener eventos'
+      );
+      expect(console.error).toHaveBeenCalledWith('Error al listar eventos:', error);
+    });
+
+    describe('obtenerDetalleEvento', () => {
     it('debería retornar detalle de evento específico exitosamente', async () => {
       // Arrange
       const eventoId = 'evento123';
@@ -372,16 +423,16 @@ describe('listarEventos', () => {
       expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
         where: {
           id: eventoId,
-          estado: 'activo'
+          estado: 'activo',
         },
         include: {
           categoria: true,
           imagenes: {
             orderBy: {
-              esPrincipal: 'desc'
-            }
-          }
-        }
+              esPrincipal: 'desc',
+            },
+          },
+        },
       });
     });
   });
@@ -395,7 +446,7 @@ describe('listarEventos', () => {
 
       mockPrisma.evento.findUnique.mockResolvedValueOnce({
         id: eventoId,
-        capacidad: capacidad
+        capacidad: capacidad,
       });
       mockPrisma.reserva.count.mockResolvedValueOnce(reservasConfirmadas);
 
@@ -406,13 +457,13 @@ describe('listarEventos', () => {
       expect(resultado).toBe(35); // 50 - 15 = 35
       expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
         where: { id: eventoId },
-        select: { capacidad: true }
+        select: { capacidad: true },
       });
       expect(mockPrisma.reserva.count).toHaveBeenCalledWith({
         where: {
           eventoId: eventoId,
-          estado: 'confirmada'
-        }
+          estado: 'confirmada',
+        },
       });
     });
 
@@ -429,7 +480,7 @@ describe('listarEventos', () => {
       expect(resultado).toBe(0);
       expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
         where: { id: eventoId },
-        select: { capacidad: true }
+        select: { capacidad: true },
       });
       expect(console.error).toHaveBeenCalledWith('Error al calcular disponibilidad:', error);
     });
@@ -442,7 +493,7 @@ describe('listarEventos', () => {
 
       mockPrisma.evento.findUnique.mockResolvedValueOnce({
         id: eventoId,
-        capacidad: capacidad
+        capacidad: capacidad,
       });
       mockPrisma.reserva.count.mockResolvedValueOnce(reservasConfirmadas);
 

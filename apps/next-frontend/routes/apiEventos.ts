@@ -66,25 +66,25 @@ export async function listarEventos(
 
     // Construir filtros de consulta
     const where: any = {
-      estado: 'activo' // Solo eventos activos
+      estado: 'activo', // Solo eventos activos
     };
 
     if (filtros?.fechaInicio) {
       where.fechaInicio = {
-        gte: filtros.fechaInicio
+        gte: filtros.fechaInicio,
       };
     }
 
     if (filtros?.fechaFin) {
       where.fechaFin = {
-        lte: filtros.fechaFin
+        lte: filtros.fechaFin,
       };
     }
 
     if (filtros?.ubicacion) {
       where.ubicacion = {
         contains: filtros.ubicacion,
-        mode: 'insensitive'
+        mode: 'insensitive',
       };
     }
 
@@ -108,15 +108,15 @@ export async function listarEventos(
         where,
         include: {
           categoria: true,
-          imagenes: true
+          imagenes: true,
         },
         skip,
         take: limite,
         orderBy: {
-          fechaInicio: 'asc'
-        }
+          fechaInicio: 'asc',
+        },
       }),
-      prisma.evento.count({ where })
+      prisma.evento.count({ where }),
     ]);
 
     const totalPaginas = Math.ceil(total / limite);
@@ -127,8 +127,8 @@ export async function listarEventos(
         pagina,
         limite,
         total,
-        totalPaginas
-      }
+        totalPaginas,
+      },
     };
   } catch (error) {
     console.error('Error al listar eventos:', error);
@@ -142,16 +142,16 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
     const evento = await prisma.evento.findUnique({
       where: {
         id: id,
-        estado: 'activo' // Solo eventos activos
+        estado: 'activo', // Solo eventos activos
       },
       include: {
         categoria: true,
         imagenes: {
           orderBy: {
-            esPrincipal: 'desc' // Imagen principal primero
-          }
-        }
-      }
+            esPrincipal: 'desc', // Imagen principal primero
+          },
+        },
+      },
     });
 
     if (!evento) {
@@ -163,7 +163,7 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
 
     return {
       ...evento,
-      disponibles
+      disponibles,
     };
   } catch (error) {
     console.error('Error al obtener detalle del evento:', error);
@@ -179,7 +179,7 @@ export async function calcularDisponibilidad(eventoId: string): Promise<number> 
   try {
     const evento = await prisma.evento.findUnique({
       where: { id: eventoId },
-      select: { capacidad: true }
+      select: { capacidad: true },
     });
 
     if (!evento) {
@@ -189,8 +189,8 @@ export async function calcularDisponibilidad(eventoId: string): Promise<number> 
     const reservasConfirmadas = await prisma.reserva.count({
       where: {
         eventoId: eventoId,
-        estado: 'confirmada'
-      }
+        estado: 'confirmada',
+      },
     });
 
     return Math.max(0, evento.capacidad - reservasConfirmadas);
