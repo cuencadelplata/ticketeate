@@ -9,6 +9,8 @@ pnpm-debug.log*
 dist/
 build/
 
+.vscode/
+
 # Environment variables
 .env
 .env.local
