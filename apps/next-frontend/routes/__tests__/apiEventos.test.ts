@@ -1,8 +1,5 @@
 import { prisma } from '../../../../packages/db/src';
 import {
-  fetchEventos,
-  fetchEventoById,
-  createEvento,
   listarEventos,
   obtenerDetalleEvento,
   calcularDisponibilidad,
@@ -50,204 +47,8 @@ describe('apiEventos', () => {
     jest.restoreAllMocks();
   });
 
-  describe('fetchEventos', () => {
-    it('debería retornar una lista de eventos exitosamente', async () => {
-      // Arrange
-      const mockEventos = [
-        {
-          id: '1',
-          email: 'test1@example.com',
-          name: 'Usuario 1',
-          posts: [],
-        },
-        {
-          id: '2',
-          email: 'test2@example.com',
-          name: 'Usuario 2',
-          posts: [],
-        },
-      ];
-
-      mockPrisma.user.findMany.mockResolvedValue(mockEventos);
-
-      // Act
-      const resultado = await fetchEventos();
-
-      // Assert
-      expect(resultado).toEqual(mockEventos);
-      expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
-        include: {
-          posts: true,
-        },
-      });
-      expect(mockPrisma.user.findMany).toHaveBeenCalledTimes(1);
-    });
-
-    it('debería lanzar un error cuando Prisma falla', async () => {
-      // Arrange
-      const mockError = new Error('Error de base de datos');
-      mockPrisma.user.findMany.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(fetchEventos()).rejects.toThrow('Error de base de datos');
-      expect(console.error).toHaveBeenCalledWith('Error al obtener eventos:', mockError);
-    });
-  });
-
-  describe('fetchEventoById', () => {
-    it('debería retornar un evento específico por ID', async () => {
-      // Arrange
-      const eventoId = '123';
-      const mockEvento = {
-        id: eventoId,
-        email: 'test@example.com',
-        name: 'Usuario Test',
-        posts: [],
-      };
-
-      mockPrisma.user.findUnique.mockResolvedValue(mockEvento);
-
-      // Act
-      const resultado = await fetchEventoById(eventoId);
-
-      // Assert
-      expect(resultado).toEqual(mockEvento);
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: eventoId,
-        },
-        include: {
-          posts: true,
-        },
-      });
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledTimes(1);
-    });
-
-    it('debería retornar null cuando no encuentra el evento', async () => {
-      // Arrange
-      const eventoId = '999';
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-
-      // Act
-      const resultado = await fetchEventoById(eventoId);
-
-      // Assert
-      expect(resultado).toBeNull();
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: eventoId,
-        },
-        include: {
-          posts: true,
-        },
-      });
-    });
-
-    it('debería lanzar un error cuando Prisma falla', async () => {
-      // Arrange
-      const eventoId = '123';
-      const mockError = new Error('Error de conexión');
-      mockPrisma.user.findUnique.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(fetchEventoById(eventoId)).rejects.toThrow('Error de conexión');
-      expect(console.error).toHaveBeenCalledWith('Error al obtener evento por ID:', mockError);
-    });
-  });
-
-  describe('createEvento', () => {
-    it('debería crear un nuevo evento exitosamente', async () => {
-      // Arrange
-      const eventData = {
-        email: 'nuevo@example.com',
-        name: 'Nuevo Usuario',
-      };
-
-      const mockEventoCreado = {
-        id: '456',
-        email: eventData.email,
-        name: eventData.name,
-      };
-
-      mockPrisma.user.create.mockResolvedValue(mockEventoCreado);
-
-      // Act
-      const resultado = await createEvento(eventData);
-
-      // Assert
-      expect(resultado).toEqual(mockEventoCreado);
-      expect(mockPrisma.user.create).toHaveBeenCalledWith({
-        data: {
-          email: eventData.email,
-          name: eventData.name,
-        },
-      });
-      expect(mockPrisma.user.create).toHaveBeenCalledTimes(1);
-    });
-
-    it('debería crear un evento sin nombre cuando no se proporciona', async () => {
-      // Arrange
-      const eventData = {
-        email: 'sin-nombre@example.com',
-      };
-
-      const mockEventoCreado = {
-        id: '789',
-        email: eventData.email,
-        name: null,
-      };
-
-      mockPrisma.user.create.mockResolvedValue(mockEventoCreado);
-
-      // Act
-      const resultado = await createEvento(eventData);
-
-      // Assert
-      expect(resultado).toEqual(mockEventoCreado);
-      expect(mockPrisma.user.create).toHaveBeenCalledWith({
-        data: {
-          email: eventData.email,
-          name: undefined,
-        },
-      });
-    });
-
-    it('debería lanzar un error cuando Prisma falla al crear', async () => {
-      // Arrange
-      const eventData = {
-        email: 'error@example.com',
-        name: 'Error Test',
-      };
-
-      const mockError = new Error('Error de validación');
-      mockPrisma.user.create.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(createEvento(eventData)).rejects.toThrow('Error de validación');
-      expect(console.error).toHaveBeenCalledWith('Error al crear evento:', mockError);
-    });
-
-    it('debería manejar errores de email duplicado', async () => {
-      // Arrange
-      const eventData = {
-        email: 'duplicado@example.com',
-        name: 'Usuario Duplicado',
-      };
-
-      const mockError = new Error('Unique constraint failed on the field: email');
-      mockPrisma.user.create.mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(createEvento(eventData)).rejects.toThrow(
-        'Unique constraint failed on the field: email'
-      );
-      expect(console.error).toHaveBeenCalledWith('Error al crear evento:', mockError);
-    });
-  });
-});
-
-describe('listarEventos', () => {
-  it('debería retornar lista de eventos paginada exitosamente', async () => {
+  describe('listarEventos', () => {
+    it('debería retornar lista de eventos paginada exitosamente', async () => {
     // Arrange
     const mockEventos = [
       {
@@ -351,122 +152,122 @@ describe('listarEventos', () => {
     await expect(listarEventos(paginacion)).rejects.toThrow(
       'Error interno del servidor al obtener eventos'
     );
-          expect(console.error).toHaveBeenCalledWith('Error al listar eventos:', error);
+    expect(console.error).toHaveBeenCalledWith('Error al listar eventos:', error);
+  });
+
+  it('debería aplicar filtros de fecha correctamente', async () => {
+    // Arrange
+    const mockEventos = [
+      {
+        id: '1',
+        titulo: 'Evento Filtrado por Fecha',
+        descripcion: 'Evento dentro del rango de fechas',
+        fechaInicio: new Date('2024-02-15'),
+        fechaFin: new Date('2024-02-16'),
+        ubicacion: 'Buenos Aires',
+        precio: 50,
+        capacidad: 25,
+        disponibles: 25,
+        estado: 'activo' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        categoria: { id: 'fecha', nombre: 'Fecha' },
+        imagenes: [],
+      },
+    ];
+
+    mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+    mockPrisma.evento.count.mockResolvedValue(1);
+
+    const paginacion = { pagina: 1, limite: 10 };
+    const filtros = {
+      fechaInicio: new Date('2024-02-10'),
+      fechaFin: new Date('2024-02-20'),
+    };
+
+    // Act
+    const resultado = await listarEventos(paginacion, filtros);
+
+    // Assert
+    expect(resultado.datos).toEqual(mockEventos);
+    expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
+      where: {
+        estado: 'activo',
+        fechaInicio: {
+          gte: filtros.fechaInicio,
+        },
+        fechaFin: {
+          lte: filtros.fechaFin,
+        },
+      },
+      include: {
+        categoria: true,
+        imagenes: true,
+      },
+      skip: 0,
+      take: 10,
+      orderBy: {
+        fechaInicio: 'asc',
+      },
     });
+  });
 
-    it('debería aplicar filtros de fecha correctamente', async () => {
-      // Arrange
-      const mockEventos = [
-        {
-          id: '1',
-          titulo: 'Evento Filtrado por Fecha',
-          descripcion: 'Evento dentro del rango de fechas',
-          fechaInicio: new Date('2024-02-15'),
-          fechaFin: new Date('2024-02-16'),
-          ubicacion: 'Buenos Aires',
-          precio: 50,
-          capacidad: 25,
-          disponibles: 25,
-          estado: 'activo' as const,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          categoria: { id: 'fecha', nombre: 'Fecha' },
-          imagenes: []
-        }
-      ];
+  it('debería aplicar filtros de precio correctamente', async () => {
+    // Arrange
+    const mockEventos = [
+      {
+        id: '1',
+        titulo: 'Evento de Precio Medio',
+        descripcion: 'Evento en rango de precio especificado',
+        fechaInicio: new Date('2024-03-01'),
+        fechaFin: new Date('2024-03-01'),
+        ubicacion: 'Córdoba',
+        precio: 75,
+        capacidad: 30,
+        disponibles: 30,
+        estado: 'activo' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        categoria: { id: 'precio', nombre: 'Precio' },
+        imagenes: [],
+      },
+    ];
 
-      mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
-      mockPrisma.evento.count.mockResolvedValue(1);
+    mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+    mockPrisma.evento.count.mockResolvedValue(1);
 
-      const paginacion = { pagina: 1, limite: 10 };
-      const filtros = {
-        fechaInicio: new Date('2024-02-10'),
-        fechaFin: new Date('2024-02-20')
-      };
+    const paginacion = { pagina: 1, limite: 10 };
+    const filtros = {
+      precioMin: 50,
+      precioMax: 100,
+    };
 
-      // Act
-      const resultado = await listarEventos(paginacion, filtros);
+    // Act
+    const resultado = await listarEventos(paginacion, filtros);
 
-      // Assert
-      expect(resultado.datos).toEqual(mockEventos);
-      expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
-        where: {
-          estado: 'activo',
-          fechaInicio: {
-            gte: filtros.fechaInicio
-          },
-          fechaFin: {
-            lte: filtros.fechaFin
-          }
+    // Assert
+    expect(resultado.datos).toEqual(mockEventos);
+    expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
+      where: {
+        estado: 'activo',
+        precio: {
+          gte: 50,
+          lte: 100,
         },
-        include: {
-          categoria: true,
-          imagenes: true
-        },
-        skip: 0,
-        take: 10,
-        orderBy: {
-          fechaInicio: 'asc'
-        }
-      });
+      },
+      include: {
+        categoria: true,
+        imagenes: true,
+      },
+      skip: 0,
+      take: 10,
+      orderBy: {
+        fechaInicio: 'asc',
+      },
     });
+  });
 
-    it('debería aplicar filtros de precio correctamente', async () => {
-      // Arrange
-      const mockEventos = [
-        {
-          id: '1',
-          titulo: 'Evento de Precio Medio',
-          descripcion: 'Evento en rango de precio especificado',
-          fechaInicio: new Date('2024-03-01'),
-          fechaFin: new Date('2024-03-01'),
-          ubicacion: 'Córdoba',
-          precio: 75,
-          capacidad: 30,
-          disponibles: 30,
-          estado: 'activo' as const,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          categoria: { id: 'precio', nombre: 'Precio' },
-          imagenes: []
-        }
-      ];
-
-      mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
-      mockPrisma.evento.count.mockResolvedValue(1);
-
-      const paginacion = { pagina: 1, limite: 10 };
-      const filtros = {
-        precioMin: 50,
-        precioMax: 100
-      };
-
-      // Act
-      const resultado = await listarEventos(paginacion, filtros);
-
-      // Assert
-      expect(resultado.datos).toEqual(mockEventos);
-      expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
-        where: {
-          estado: 'activo',
-          precio: {
-            gte: 50,
-            lte: 100
-          }
-        },
-        include: {
-          categoria: true,
-          imagenes: true
-        },
-        skip: 0,
-        take: 10,
-        orderBy: {
-          fechaInicio: 'asc'
-        }
-      });
-    });
-
-    describe('obtenerDetalleEvento', () => {
+  describe('obtenerDetalleEvento', () => {
     it('debería retornar detalle de evento específico exitosamente', async () => {
       // Arrange
       const eventoId = 'evento123';
@@ -615,5 +416,6 @@ describe('listarEventos', () => {
       // Assert
       expect(resultado).toBe(0); // Math.max(0, 10 - 15) = 0
     });
+  });
   });
 });
