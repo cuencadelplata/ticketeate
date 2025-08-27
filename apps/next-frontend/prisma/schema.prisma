@@ -68,3 +68,56 @@ model User {
   
   @@map("users")
 }
+
+/// Nuevos modelos basados en el diagrama: reservas, pagos, entradas, logs_eventos
+
+model Reserva {
+  id             Int        @id @default(autoincrement()) @map("id_reserva")
+  id_usuario     Int
+  id_evento      Int
+  id_fecha       Int?
+  id_categoria   Int?
+  cantidad       Int
+  estado         String
+  fecha_reserva  DateTime   @default(now())
+
+  pagos          Pago[]
+  entradas       Entrada[]
+
+  @@map("reservas")
+}
+
+model Pago {
+  id          Int       @id @default(autoincrement()) @map("id_pago")
+  reservaId   Int       @map("id_reserva")
+  metodo_pago String
+  monto_total Decimal
+  estado      String
+  fecha_pago  DateTime  @default(now())
+
+  reserva     Reserva   @relation(fields: [reservaId], references: [id])
+
+  @@map("pagos")
+}
+
+model Entrada {
+  id         Int      @id @default(autoincrement()) @map("id_entrada")
+  reservaId  Int      @map("id_reserva")
+  codigo_qr  String
+  estado     String
+
+  reserva    Reserva  @relation(fields: [reservaId], references: [id])
+
+  @@map("entradas")
+}
+
+model LogEvento {
+  id        Int      @id @default(autoincrement()) @map("id_log")
+  id_evento Int
+  id_usuario Int
+  accion    String
+  detalle   String?
+  fecha     DateTime @default(now())
+
+  @@map("logs_eventos")
+}
