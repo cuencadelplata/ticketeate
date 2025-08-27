@@ -175,7 +175,7 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
 }
 
 // Función auxiliar para calcular disponibilidad en tiempo real
-async function calcularDisponibilidad(eventoId: string): Promise<number> {
+export async function calcularDisponibilidad(eventoId: string): Promise<number> {
   try {
     const evento = await prisma.evento.findUnique({
       where: { id: eventoId },

@@ -34,6 +34,16 @@ describe('apiEventos', () => {
     jest.clearAllMocks();
     // Mock console.error para evitar logs en los tests
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    // Reset all mocks to ensure clean state
+    mockPrisma.evento.findMany.mockReset();
+    mockPrisma.evento.findUnique.mockReset();
+    mockPrisma.evento.count.mockReset();
+    mockPrisma.reserva.count.mockReset();
+    // Clear mock implementations
+    mockPrisma.evento.findMany.mockClear();
+    mockPrisma.evento.findUnique.mockClear();
+    mockPrisma.evento.count.mockClear();
+    mockPrisma.reserva.count.mockClear();
   });
 
   afterEach(() => {
@@ -313,8 +323,8 @@ describe('listarEventos', () => {
         categoria: { id: 'cat3', nombre: 'Festival' },
         imagenes: [
           { id: 'img1', url: '/imagen1.jpg', alt: 'Imagen principal', esPrincipal: true },
-          { id: 'img2', url: '/imagen2.jpg', alt: 'Imagen secundaria', esPrincipal: false }
-        ]
+          { id: 'img2', url: '/imagen2.jpg', alt: 'Imagen secundaria', esPrincipal: false },
+        ],
       };
 
       mockPrisma.evento.findUnique.mockResolvedValue(mockEvento);
@@ -326,8 +336,39 @@ describe('listarEventos', () => {
       // Assert
       expect(resultado).toEqual({
         ...mockEvento,
-        disponibles: 80 // 100 capacidad - 20 reservas = 80 disponibles
+        disponibles: 80, // 100 capacidad - 20 reservas = 80 disponibles
       });
+      expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
+        where: {
+          id: eventoId,
+          estado: 'activo',
+        },
+        include: {
+          categoria: true,
+          imagenes: {
+            orderBy: {
+              esPrincipal: 'desc',
+            },
+          },
+        },
+      });
+      expect(mockPrisma.reserva.count).toHaveBeenCalledWith({
+        where: {
+          eventoId: eventoId,
+          estado: 'confirmada',
+        },
+      });
+    });
+
+    it('debería lanzar error cuando evento no existe en obtenerDetalleEvento', async () => {
+      // Arrange
+      const eventoId = 'evento-inexistente';
+      mockPrisma.evento.findUnique.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(obtenerDetalleEvento(eventoId)).rejects.toThrow(
+        'Evento no encontrado o no disponible'
+      );
       expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
         where: {
           id: eventoId,
@@ -342,12 +383,74 @@ describe('listarEventos', () => {
           }
         }
       });
+    });
+  });
+
+  describe('calcularDisponibilidad', () => {
+    it('debería calcular disponibilidad correctamente', async () => {
+      // Arrange
+      const eventoId = 'evento456';
+      const capacidad = 50;
+      const reservasConfirmadas = 15;
+
+      mockPrisma.evento.findUnique.mockResolvedValueOnce({
+        id: eventoId,
+        capacidad: capacidad
+      });
+      mockPrisma.reserva.count.mockResolvedValueOnce(reservasConfirmadas);
+
+      // Act
+      const resultado = await calcularDisponibilidad(eventoId);
+
+      // Assert
+      expect(resultado).toBe(35); // 50 - 15 = 35
+      expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
+        where: { id: eventoId },
+        select: { capacidad: true }
+      });
       expect(mockPrisma.reserva.count).toHaveBeenCalledWith({
         where: {
           eventoId: eventoId,
           estado: 'confirmada'
         }
       });
+    });
+
+    it('debería manejar errores de base de datos en calcularDisponibilidad', async () => {
+      // Arrange
+      const eventoId = 'evento-error';
+      const error = new Error('Database connection error');
+      mockPrisma.evento.findUnique.mockRejectedValueOnce(error);
+
+      // Act
+      const resultado = await calcularDisponibilidad(eventoId);
+
+      // Assert
+      expect(resultado).toBe(0);
+      expect(mockPrisma.evento.findUnique).toHaveBeenCalledWith({
+        where: { id: eventoId },
+        select: { capacidad: true }
+      });
+      expect(console.error).toHaveBeenCalledWith('Error al calcular disponibilidad:', error);
+    });
+
+    it('debería retornar 0 cuando hay más reservas que capacidad', async () => {
+      // Arrange
+      const eventoId = 'evento789';
+      const capacidad = 10;
+      const reservasConfirmadas = 15; // Más reservas que capacidad
+
+      mockPrisma.evento.findUnique.mockResolvedValueOnce({
+        id: eventoId,
+        capacidad: capacidad
+      });
+      mockPrisma.reserva.count.mockResolvedValueOnce(reservasConfirmadas);
+
+      // Act
+      const resultado = await calcularDisponibilidad(eventoId);
+
+      // Assert
+      expect(resultado).toBe(0); // Math.max(0, 10 - 15) = 0
     });
   });
 });
