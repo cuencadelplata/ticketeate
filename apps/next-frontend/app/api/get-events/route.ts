@@ -1,4 +1,9 @@
-import { prisma } from '../../../packages/db/src';
+// No se puede importar el módulo '../../../packages/db/src' porque no se encuentra o no tiene declaraciones de tipo correspondientes.
+// Puedes comentar o eliminar la línea de importación para evitar el error de compilación.
+
+import { prisma } from '@/lib/prisma';
+
+// import { prisma } from '../../../packages/db/src';
 
 // Tipos TypeScript para la API de eventos
 export interface Evento {
