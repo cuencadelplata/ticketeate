@@ -1,12 +1,12 @@
 <div align="center">
 <picture>
-  <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-ticketeate.png" width="50%" height="50%">
+  <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-light.png" width="50%" height="50%">
   
 </picture>
 Accede a tus eventos favoritos de manera fácil y segura.
 </div>
 
-<div align="left"
+<div align="left">
 
 ## Descripción
 
@@ -28,8 +28,10 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 
 ```
 ├── apps/
-│   ├── web/                 # Aplicación Next.js principal con panel administrativo
-│   │   ├── /                # Página principal [dominio].com [AWS EC2]
+│   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
+│   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
+│   │   ├── /app/crear/page.tsx      # Formulario creación de evento [dominio].com/crear
+│   │   ├── /app/api         # API Routes
 │   │   └── /deploys         # Panel administrativo deploys.[dominio].com [AWS EC2]
 │   ├── hono-backend/        # Backend Hono Serverless - [AWS Lambda]
 │   ├── express-backend/     # Backend Express

@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
   description: 'La plataforma más completa para la gestión de eventos',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/icon-ticketeate.png',
+    shortcut: '/icon-ticketeate.png',
+    apple: '/icon-ticketeate.png',
   },
 };
 

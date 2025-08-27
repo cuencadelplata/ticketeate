@@ -14,7 +14,7 @@ export default function Home() {
       <div className="container mx-auto px-6 py-24">
         <div className="space-y-8 pt-12 text-center">
           <div className="flex items-center justify-center">
-            <Image src="/wordmark-ticketeate.png" alt="Ticketeate" width={350} height={200} />
+            <Image src="/wordmark-light.png" alt="Ticketeate" width={350} height={200} />
           </div>
           <div className="flex items-center justify-center">
             <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
