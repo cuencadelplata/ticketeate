@@ -298,28 +298,79 @@ describe('listarEventos', () => {
         fechaInicio: 'asc',
       },
     });
-          expect(mockPrisma.evento.count).toHaveBeenCalledWith({
-        where: { estado: 'activo' },
-      });
+    expect(mockPrisma.evento.count).toHaveBeenCalledWith({
+      where: { estado: 'activo' },
+    });
+  });
+
+  it('debería manejar paginación con valores por defecto', async () => {
+    // Arrange
+    const mockEventos = [
+      {
+        id: '1',
+        titulo: 'Evento Default',
+        descripcion: 'Evento con paginación por defecto',
+        fechaInicio: new Date('2024-02-01'),
+        fechaFin: new Date('2024-02-01'),
+        ubicacion: 'Default Location',
+        precio: 25,
+        capacidad: 20,
+        disponibles: 20,
+        estado: 'activo' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        categoria: { id: 'default', nombre: 'Default' },
+        imagenes: [],
+      },
+    ];
+
+    mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+    mockPrisma.evento.count.mockResolvedValue(1);
+
+    // Act - sin especificar paginación
+    const resultado = await listarEventos({ pagina: 1, limite: 10 });
+
+    // Assert
+    expect(resultado.datos).toEqual(mockEventos);
+    expect(resultado.paginacion).toEqual({
+      pagina: 1,
+      limite: 10,
+      total: 1,
+      totalPaginas: 1,
+    });
+  });
+
+  it('debería lanzar error cuando falla la consulta a base de datos', async () => {
+    // Arrange
+    const error = new Error('Database connection failed');
+    mockPrisma.evento.findMany.mockRejectedValue(error);
+
+    const paginacion = { pagina: 1, limite: 10 };
+
+    // Act & Assert
+    await expect(listarEventos(paginacion)).rejects.toThrow(
+      'Error interno del servidor al obtener eventos'
+    );
+          expect(console.error).toHaveBeenCalledWith('Error al listar eventos:', error);
     });
 
-    it('debería manejar paginación con valores por defecto', async () => {
+    it('debería aplicar filtros de fecha correctamente', async () => {
       // Arrange
       const mockEventos = [
         {
           id: '1',
-          titulo: 'Evento Default',
-          descripcion: 'Evento con paginación por defecto',
-          fechaInicio: new Date('2024-02-01'),
-          fechaFin: new Date('2024-02-01'),
-          ubicacion: 'Default Location',
-          precio: 25,
-          capacidad: 20,
-          disponibles: 20,
+          titulo: 'Evento Filtrado por Fecha',
+          descripcion: 'Evento dentro del rango de fechas',
+          fechaInicio: new Date('2024-02-15'),
+          fechaFin: new Date('2024-02-16'),
+          ubicacion: 'Buenos Aires',
+          precio: 50,
+          capacidad: 25,
+          disponibles: 25,
           estado: 'activo' as const,
           createdAt: new Date(),
           updatedAt: new Date(),
-          categoria: { id: 'default', nombre: 'Default' },
+          categoria: { id: 'fecha', nombre: 'Fecha' },
           imagenes: []
         }
       ];
@@ -327,31 +378,92 @@ describe('listarEventos', () => {
       mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
       mockPrisma.evento.count.mockResolvedValue(1);
 
-      // Act - sin especificar paginación
-      const resultado = await listarEventos({ pagina: 1, limite: 10 });
+      const paginacion = { pagina: 1, limite: 10 };
+      const filtros = {
+        fechaInicio: new Date('2024-02-10'),
+        fechaFin: new Date('2024-02-20')
+      };
+
+      // Act
+      const resultado = await listarEventos(paginacion, filtros);
 
       // Assert
       expect(resultado.datos).toEqual(mockEventos);
-      expect(resultado.paginacion).toEqual({
-        pagina: 1,
-        limite: 10,
-        total: 1,
-        totalPaginas: 1
+      expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
+        where: {
+          estado: 'activo',
+          fechaInicio: {
+            gte: filtros.fechaInicio
+          },
+          fechaFin: {
+            lte: filtros.fechaFin
+          }
+        },
+        include: {
+          categoria: true,
+          imagenes: true
+        },
+        skip: 0,
+        take: 10,
+        orderBy: {
+          fechaInicio: 'asc'
+        }
       });
     });
 
-    it('debería lanzar error cuando falla la consulta a base de datos', async () => {
+    it('debería aplicar filtros de precio correctamente', async () => {
       // Arrange
-      const error = new Error('Database connection failed');
-      mockPrisma.evento.findMany.mockRejectedValue(error);
+      const mockEventos = [
+        {
+          id: '1',
+          titulo: 'Evento de Precio Medio',
+          descripcion: 'Evento en rango de precio especificado',
+          fechaInicio: new Date('2024-03-01'),
+          fechaFin: new Date('2024-03-01'),
+          ubicacion: 'Córdoba',
+          precio: 75,
+          capacidad: 30,
+          disponibles: 30,
+          estado: 'activo' as const,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          categoria: { id: 'precio', nombre: 'Precio' },
+          imagenes: []
+        }
+      ];
+
+      mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+      mockPrisma.evento.count.mockResolvedValue(1);
 
       const paginacion = { pagina: 1, limite: 10 };
+      const filtros = {
+        precioMin: 50,
+        precioMax: 100
+      };
 
-      // Act & Assert
-      await expect(listarEventos(paginacion)).rejects.toThrow(
-        'Error interno del servidor al obtener eventos'
-      );
-      expect(console.error).toHaveBeenCalledWith('Error al listar eventos:', error);
+      // Act
+      const resultado = await listarEventos(paginacion, filtros);
+
+      // Assert
+      expect(resultado.datos).toEqual(mockEventos);
+      expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
+        where: {
+          estado: 'activo',
+          precio: {
+            gte: 50,
+            lte: 100
+          }
+        },
+        include: {
+          categoria: true,
+          imagenes: true
+        },
+        skip: 0,
+        take: 10,
+        orderBy: {
+          fechaInicio: 'asc'
+        }
+      });
     });
 
     describe('obtenerDetalleEvento', () => {
