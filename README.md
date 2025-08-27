@@ -1,6 +1,12 @@
-# Ticketeate
-
+<div align="center">
+<picture>
+  <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-light.png" width="50%" height="50%">
+  
+</picture>
 Accede a tus eventos favoritos de manera fácil y segura.
+</div>
+
+<div align="left">
 
 ## Descripción
 
@@ -16,14 +22,17 @@ Permite la vizualización de eventos, la compra de entradas mediante una cola co
 - Soporte para múltiples métodos de pago
 
 Este es un monorepo construido con Turborepo que contiene múltiples aplicaciones y paquetes.
-Contiene 2 aplicaciones Next.js (Web/Admin) y 3 aplicaciones backend (Express/Hono)
+Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 aplicaciones backend (Express/Hono)
 
 ## Estructura básica
 
 ```
 ├── apps/
-│   ├── web/                 # Aplicación Next.js [dominio].com [AWS EC2]
-│   ├── admin/               # Panel deployments deploys.[dominio].com [AWS EC2]
+│   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
+│   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
+│   │   ├── /app/crear/page.tsx      # Formulario creación de evento [dominio].com/crear
+│   │   ├── /app/api         # API Routes
+│   │   └── /deploys         # Panel administrativo deploys.[dominio].com [AWS EC2]
 │   ├── hono-backend/        # Backend Hono Serverless - [AWS Lambda]
 │   ├── express-backend/     # Backend Express
 │   └── ws-queue/            # Servicio de cola WebSocket - Redis
@@ -127,3 +136,5 @@ Los workflows se ejecutan automáticamente en:
 - **Push** a `main`, `master`, `develop`
 - **Pull Requests** a `main`, `master`, `develop`
 - **Pre-commit** en cada commit
+
+</div>

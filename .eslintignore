@@ -1,0 +1,20 @@
+# Build outputs
+.next/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Generated files
+**/*.d.ts
+**/*.min.js
+**/*.bundle.js
+**/*.chunk.js
+
+# Webpack generated files
+**/.next/static/chunks/
+**/.next/static/development/
+**/.next/static/production/
+**/webpack-*.js

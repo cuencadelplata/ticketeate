@@ -16,7 +16,6 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
-    "lint": "eslint src",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"
   },
