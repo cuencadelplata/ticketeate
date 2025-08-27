@@ -54,3 +54,84 @@ export interface RespuestaPaginada<T> {
     totalPaginas: number;
   };
 }
+
+// Función para listar eventos con paginación
+export async function listarEventos(
+  paginacion: PaginacionParams,
+  filtros?: FiltrosEventos
+): Promise<RespuestaPaginada<Evento>> {
+  try {
+    const { pagina, limite } = paginacion;
+    const skip = (pagina - 1) * limite;
+
+    // Construir filtros de consulta
+    const where: any = {
+      estado: 'activo' // Solo eventos activos
+    };
+
+    if (filtros?.fechaInicio) {
+      where.fechaInicio = {
+        gte: filtros.fechaInicio
+      };
+    }
+
+    if (filtros?.fechaFin) {
+      where.fechaFin = {
+        lte: filtros.fechaFin
+      };
+    }
+
+    if (filtros?.ubicacion) {
+      where.ubicacion = {
+        contains: filtros.ubicacion,
+        mode: 'insensitive'
+      };
+    }
+
+    if (filtros?.categoriaId) {
+      where.categoriaId = filtros.categoriaId;
+    }
+
+    if (filtros?.precioMin !== undefined || filtros?.precioMax !== undefined) {
+      where.precio = {};
+      if (filtros.precioMin !== undefined) {
+        where.precio.gte = filtros.precioMin;
+      }
+      if (filtros.precioMax !== undefined) {
+        where.precio.lte = filtros.precioMax;
+      }
+    }
+
+    // Ejecutar consulta con paginación
+    const [eventos, total] = await Promise.all([
+      prisma.evento.findMany({
+        where,
+        include: {
+          categoria: true,
+          imagenes: true
+        },
+        skip,
+        take: limite,
+        orderBy: {
+          fechaInicio: 'asc'
+        }
+      }),
+      prisma.evento.count({ where })
+    ]);
+
+    const totalPaginas = Math.ceil(total / limite);
+
+    return {
+      datos: eventos,
+      paginacion: {
+        pagina,
+        limite,
+        total,
+        totalPaginas
+      }
+    };
+  } catch (error) {
+    console.error('Error al listar eventos:', error);
+    throw new Error('Error interno del servidor al obtener eventos');
+  }
+}
