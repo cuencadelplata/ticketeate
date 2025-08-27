@@ -5,6 +5,7 @@ export interface User {
   createdAt?: Date;
   updatedAt?: Date;
 }
+//4rdd
 
 export interface Post {
   id: number;
