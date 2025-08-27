@@ -1,5 +1,12 @@
 import { prisma } from '../../../../packages/db/src';
-import { fetchEventos, fetchEventoById, createEvento } from '../apiEventos';
+import {
+  fetchEventos,
+  fetchEventoById,
+  createEvento,
+  listarEventos,
+  obtenerDetalleEvento,
+  calcularDisponibilidad
+} from '../apiEventos';
 
 // Mock Prisma
 jest.mock('../../../../packages/db/src', () => ({
@@ -8,6 +15,14 @@ jest.mock('../../../../packages/db/src', () => ({
       findMany: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),
+    },
+    evento: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      count: jest.fn(),
+    },
+    reserva: {
+      count: jest.fn(),
     },
   },
 }));
@@ -217,6 +232,64 @@ describe('apiEventos', () => {
         'Unique constraint failed on the field: email'
       );
       expect(console.error).toHaveBeenCalledWith('Error al crear evento:', mockError);
+          });
     });
   });
-});
+
+  describe('listarEventos', () => {
+    it('debería retornar lista de eventos paginada exitosamente', async () => {
+      // Arrange
+      const mockEventos = [
+        {
+          id: '1',
+          titulo: 'Evento 1',
+          descripcion: 'Descripción del evento 1',
+          fechaInicio: new Date('2024-02-01'),
+          fechaFin: new Date('2024-02-01'),
+          ubicacion: 'Buenos Aires',
+          precio: 100,
+          capacidad: 50,
+          disponibles: 50,
+          estado: 'activo' as const,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          categoria: { id: 'cat1', nombre: 'Concierto' },
+          imagenes: []
+        }
+      ];
+
+      mockPrisma.evento.findMany.mockResolvedValue(mockEventos);
+      mockPrisma.evento.count.mockResolvedValue(1);
+
+      const paginacion = { pagina: 1, limite: 10 };
+
+      // Act
+      const resultado = await listarEventos(paginacion);
+
+      // Assert
+      expect(resultado).toEqual({
+        datos: mockEventos,
+        paginacion: {
+          pagina: 1,
+          limite: 10,
+          total: 1,
+          totalPaginas: 1
+        }
+      });
+      expect(mockPrisma.evento.findMany).toHaveBeenCalledWith({
+        where: { estado: 'activo' },
+        include: {
+          categoria: true,
+          imagenes: true
+        },
+        skip: 0,
+        take: 10,
+        orderBy: {
+          fechaInicio: 'asc'
+        }
+      });
+      expect(mockPrisma.evento.count).toHaveBeenCalledWith({
+        where: { estado: 'activo' }
+      });
+    });
+  });
