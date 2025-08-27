@@ -42,19 +42,32 @@ export default function ComprarPage() {
       <div style={{ display: 'grid', gap: 12, maxWidth: 420 }}>
         <label>
           Usuario ID
-          <input type="number" value={idUsuario} onChange={(e) => setIdUsuario(parseInt(e.target.value || '0'))} />
+          <input
+            type="number"
+            value={idUsuario}
+            onChange={e => setIdUsuario(parseInt(e.target.value || '0'))}
+          />
         </label>
         <label>
           Evento ID
-          <input type="number" value={idEvento} onChange={(e) => setIdEvento(parseInt(e.target.value || '0'))} />
+          <input
+            type="number"
+            value={idEvento}
+            onChange={e => setIdEvento(parseInt(e.target.value || '0'))}
+          />
         </label>
         <label>
           Cantidad
-          <input type="number" min={1} value={cantidad} onChange={(e) => setCantidad(parseInt(e.target.value || '1'))} />
+          <input
+            type="number"
+            min={1}
+            value={cantidad}
+            onChange={e => setCantidad(parseInt(e.target.value || '1'))}
+          />
         </label>
         <label>
           Método de pago
-          <input value={metodo} onChange={(e) => setMetodo(e.target.value)} />
+          <input value={metodo} onChange={e => setMetodo(e.target.value)} />
         </label>
 
         <button onClick={comprar} disabled={loading}>
@@ -71,5 +84,3 @@ export default function ComprarPage() {
     </div>
   );
 }
-
-
