@@ -100,7 +100,9 @@ export default function UserNav() {
               <User
                 avatarProps={{
                   size: 'sm',
-                  src: user.imageUrl || 'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress
+                  src:
+                    user.imageUrl ||
+                    'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress,
                 }}
                 classNames={{
                   name: 'text-default-600',
