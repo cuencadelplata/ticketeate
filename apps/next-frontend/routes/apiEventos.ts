@@ -135,3 +135,67 @@ export async function listarEventos(
     throw new Error('Error interno del servidor al obtener eventos');
   }
 }
+
+// Función para obtener detalle de un evento específico
+export async function obtenerDetalleEvento(id: string): Promise<Evento> {
+  try {
+    const evento = await prisma.evento.findUnique({
+      where: {
+        id: id,
+        estado: 'activo' // Solo eventos activos
+      },
+      include: {
+        categoria: true,
+        imagenes: {
+          orderBy: {
+            esPrincipal: 'desc' // Imagen principal primero
+          }
+        }
+      }
+    });
+
+    if (!evento) {
+      throw new Error('Evento no encontrado o no disponible');
+    }
+
+    // Calcular disponibilidad en tiempo real
+    const disponibles = await calcularDisponibilidad(evento.id);
+
+    return {
+      ...evento,
+      disponibles
+    };
+  } catch (error) {
+    console.error('Error al obtener detalle del evento:', error);
+    if (error instanceof Error && error.message === 'Evento no encontrado o no disponible') {
+      throw error;
+    }
+    throw new Error('Error interno del servidor al obtener detalle del evento');
+  }
+}
+
+// Función auxiliar para calcular disponibilidad en tiempo real
+async function calcularDisponibilidad(eventoId: string): Promise<number> {
+  try {
+    const evento = await prisma.evento.findUnique({
+      where: { id: eventoId },
+      select: { capacidad: true }
+    });
+
+    if (!evento) {
+      return 0;
+    }
+
+    const reservasConfirmadas = await prisma.reserva.count({
+      where: {
+        eventoId: eventoId,
+        estado: 'confirmada'
+      }
+    });
+
+    return Math.max(0, evento.capacidad - reservasConfirmadas);
+  } catch (error) {
+    console.error('Error al calcular disponibilidad:', error);
+    return 0;
+  }
+}
