@@ -6,7 +6,7 @@
 Accede a tus eventos favoritos de manera fácil y segura.
 </div>
 
-<div align="lef
+<div align="left"
 
 ## Descripción
 

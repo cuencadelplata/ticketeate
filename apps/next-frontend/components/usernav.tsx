@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useClerk } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 
 export const PlusIcon = (props: any) => {
   return (
@@ -73,9 +74,7 @@ export default function UserNav() {
             isBordered
             as="button"
             className="size-8 transition-transform"
-            src={
-              user.imageUrl || 'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress
-            }
+            src={user.imageUrl}
           />
         </DropdownTrigger>
         <DropdownMenu
@@ -101,9 +100,7 @@ export default function UserNav() {
               <User
                 avatarProps={{
                   size: 'sm',
-                  src:
-                    user.imageUrl ||
-                    'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress,
+                  src: user.imageUrl || 'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress
                 }}
                 classNames={{
                   name: 'text-default-600',
