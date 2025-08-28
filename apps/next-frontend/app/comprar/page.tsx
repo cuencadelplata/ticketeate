@@ -182,7 +182,6 @@ export default function ComprarPage() {
     </div>
   );
 }
-
 const styles: Record<string, React.CSSProperties | any> = {
   page: {
     fontFamily: 'Inter, system-ui, Arial, sans-serif',
