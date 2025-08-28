@@ -6,9 +6,7 @@ type SectorKey =
   | 'CAMPO_DELANTERO'
   | 'CAMPO_GENERAL'
   | 'PLATEA_BELGRANO_ALTA'
-  | 'PLATEA_PREF_BAJA'
-  | 'PLATEA_PREF_INFERIOR'
-  | 'PLATEA_PREF_MEDIA';
+
 
 const SECTORES: Record<
   SectorKey,
@@ -17,9 +15,6 @@ const SECTORES: Record<
   CAMPO_DELANTERO: { nombre: 'Campo Delantero', precioDesde: 180000, fee: 27000, numerado: false, color: '#a5d6a7' },
   CAMPO_GENERAL: { nombre: 'Campo General', precioDesde: 85000, fee: 12750, numerado: false, color: '#43a047' },
   PLATEA_BELGRANO_ALTA: { nombre: 'Platea Belgrano Alta', precioDesde: 125000, fee: 18750, numerado: false, color: '#90caf9' },
-  PLATEA_PREF_BAJA: { nombre: 'Platea Preferencial Belgrano Baja', precioDesde: 200000, fee: 30000, numerado: true, color: '#80cbc4' },
-  PLATEA_PREF_INFERIOR: { nombre: 'Platea Preferencial Belgrano Inferior', precioDesde: 200000, fee: 30000, numerado: true, color: '#b39ddb' },
-  PLATEA_PREF_MEDIA: { nombre: 'Platea Preferencial Belgrano Media', precioDesde: 200000, fee: 30000, numerado: true, color: '#ffcc80' },
 };
 
 export default function ComprarPage() {
