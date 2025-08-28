@@ -1,0 +1,13 @@
+# Ignore Next build and static files
+.next/
+.next/**
+
+# Ignore build artifacts
+dist/
+build/
+node_modules/
+public/build/
+
+# Ignore vendor bundles and temp
+.vscode/
+.DS_Store

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit, PencilLine, Ticket } from 'lucide-react';
+import { PencilLine, Ticket } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,13 +15,14 @@ interface EventTicketProps {
   onTicketChange: (ticketInfo: { type: 'free' | 'paid'; price?: number }) => void;
 }
 
-export default function EventTicket({ onTicketChange }: EventTicketProps) {
-  const [ticketType, setTicketType] = useState<'free' | 'paid'>('free');
+export default function EventTicket({ onTicketChange: _onTicketChange }: EventTicketProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConnectStripe = () => {
     // Aquí iría la lógica para conectar con Stripe
     setIsOpen(false);
+    // call the prop with a default value to indicate no changes
+    _onTicketChange?.({ type: 'free' });
   };
 
   return (

@@ -5,7 +5,6 @@ import {
   Users,
   Plus,
   Trash2,
-  ChevronRight,
   ChevronLeft,
   PencilLine,
   Infinity as InfinityIcon,
@@ -103,8 +102,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
     );
   };
 
-  const totalSpecificCapacity = ticketTypes.reduce((sum, ticket) => sum + ticket.capacity, 0);
-  const isOverCapacity = !isUnlimited && totalSpecificCapacity > Number(capacity);
+  // totalSpecificCapacity intentionally omitted as it's not used currently
 
   const renderBasicCapacityDialog = () => (
     <>

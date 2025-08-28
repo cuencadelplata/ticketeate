@@ -1,4 +1,4 @@
-export default function InvitadosPage({ params }: { params: { id: string } }) {
+export default function InvitadosPage() {
   return (
     <div>
       <h2>Lista de Invitados</h2>

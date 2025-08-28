@@ -16,7 +16,7 @@ export function DateSelect({ value, onChange }: DateSelectProps) {
     return format(date, 'EEE, d MMM', { locale: es });
   };
 
-  const currentMonth = value ? format(value, 'MMMM', { locale: es }) : '';
+  // currentMonth removed (unused)
 
   return (
     <Popover>
