@@ -2,19 +2,26 @@
 
 import { useMemo, useState } from 'react';
 
-type SectorKey =
-  | 'CAMPO_DELANTERO'
-  | 'CAMPO_GENERAL'
-  | 'PLATEA_BELGRANO_ALTA'
-
+type SectorKey = 'Entrada_General' | 'Entrada_VIP';
 
 const SECTORES: Record<
   SectorKey,
   { nombre: string; precioDesde: number; fee?: number; numerado: boolean; color: string }
 > = {
-  CAMPO_DELANTERO: { nombre: 'Campo Delantero', precioDesde: 180000, fee: 27000, numerado: false, color: '#a5d6a7' },
-  CAMPO_GENERAL: { nombre: 'Campo General', precioDesde: 85000, fee: 12750, numerado: false, color: '#43a047' },
-  PLATEA_BELGRANO_ALTA: { nombre: 'Platea Belgrano Alta', precioDesde: 125000, fee: 18750, numerado: false, color: '#90caf9' },
+  Entrada_General: {
+    nombre: 'Entrada General',
+    precioDesde: 85000,
+    fee: 12000,
+    numerado: false,
+    color: '#a5d6a7',
+  },
+  Entrada_VIP: {
+    nombre: 'Entrada V.I.P',
+    precioDesde: 180000,
+    fee: 27000,
+    numerado: true,
+    color: '#43a047',
+  },
 };
 
 export default function ComprarPage() {
@@ -27,14 +34,25 @@ export default function ComprarPage() {
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [sector, setSector] = useState<SectorKey>('CAMPO_GENERAL');
+  const [sector, setSector] = useState<SectorKey>('Entrada_General');
 
+  const formatARS = (n: number) =>
+    n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+
+  // Texto como en la lista (“Desde $ … + $ …”)
   const precioTexto = useMemo(() => {
     const s = SECTORES[sector];
     const base = s.precioDesde.toLocaleString('es-AR');
     const fee = s.fee ? s.fee.toLocaleString('es-AR') : '0';
     return `Desde $ ${base}${s.fee ? ` + $ ${fee},00` : ''}`;
   }, [sector]);
+
+  // Precio unitario (base + fee) y total según cantidad
+  const { precioUnitario, total } = useMemo(() => {
+    const s = SECTORES[sector];
+    const unit = s.precioDesde + (s.fee || 0);
+    return { precioUnitario: unit, total: unit * cantidad };
+  }, [sector, cantidad]);
 
   const comprar = async () => {
     setLoading(true);
@@ -53,7 +71,7 @@ export default function ComprarPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
-      setResultado({ ...data, ui_sector: SECTORES[sector].nombre });
+      setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -66,7 +84,7 @@ export default function ComprarPage() {
       <aside style={styles.sidebar}>
         <div style={styles.sidebarHeader}>
           <span style={{ fontWeight: 700, color: '#000' }}>Seleccionar sector</span>
-          <button style={styles.clearBtn} onClick={() => setSector('CAMPO_GENERAL')}>
+          <button style={styles.clearBtn} onClick={() => setSector('Entrada_General')}>
             Limpiar selección
           </button>
         </div>
@@ -102,7 +120,7 @@ export default function ComprarPage() {
           })}
         </div>
 
-        {/* Bloque de compra (inputs uno debajo del otro) */}
+        {/* Bloque de compra */}
         <div style={styles.checkout}>
           <div style={styles.block}>
             <label style={styles.labelMini}>Cantidad</label>
@@ -132,14 +150,24 @@ export default function ComprarPage() {
             </select>
           </div>
 
+          {/* Info seleccion */}
           <div style={styles.totalLine}>
             <div>
               <div style={styles.totalLabel}>Sector</div>
               <div style={styles.totalValue}>{SECTORES[sector].nombre}</div>
             </div>
             <div>
-              <div style={styles.totalLabel}>Precio</div>
-              <div style={styles.totalValue}>{precioTexto}</div>
+              <div style={styles.totalLabel}>Precio unitario</div>
+              <div style={styles.totalValue}>{formatARS(precioUnitario)}</div>
+            </div>
+          </div>
+
+          {/* TOTAL calculado */}
+          <div style={styles.grandTotal}>
+            <div style={{ fontWeight: 600, color: '#000' }}>Total a pagar</div>
+            <div style={{ fontWeight: 800, fontSize: 18 }}>{formatARS(total)}</div>
+            <div style={{ fontSize: 12, color: '#555' }}>
+              {cantidad} × {formatARS(precioUnitario)}
             </div>
           </div>
 
@@ -170,6 +198,8 @@ const styles: Record<string, React.CSSProperties | any> = {
     borderRadius: 12,
     boxShadow: '0 4px 14px rgba(0,0,0,.06)',
     width: 600,
+    height: '88vh',
+    maxHeight: '88vh',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -188,8 +218,7 @@ const styles: Record<string, React.CSSProperties | any> = {
     cursor: 'pointer',
     fontWeight: 600,
   },
-
-  list: { overflowY: 'auto', maxHeight: 340, padding: 8 },
+  list: { flex: 1, overflowY: 'auto', padding: 8 },
   card: {
     display: 'grid',
     gridTemplateColumns: '24px 1fr auto',
@@ -204,14 +233,22 @@ const styles: Record<string, React.CSSProperties | any> = {
   },
   cardActive: { outline: '2px solid #4c8bf5', background: '#f2f7ff' },
   cardLeft: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  colorDot: { width: 14, height: 14, borderRadius: 4, border: '1px solid rgba(0,0,0,.12)', display: 'inline-block' },
+  colorDot: { width: 14, height: 14, borderRadius: 4, border: '1px solid rgba(0,0,0,.12)' },
   cardBody: { display: 'flex', flexDirection: 'column' },
   cardTitle: { fontWeight: 700, color: '#000' },
   cardPrice: { fontSize: 13, color: '#000', marginTop: 2 },
   cardMeta: { fontSize: 12, color: '#000', marginTop: 2 },
   radio: { width: 16, height: 16 },
 
-  checkout: { padding: 16, borderTop: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: 14 },
+  checkout: {
+    marginTop: 'auto',
+    padding: 16,
+    borderTop: '1px solid #eee',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
+    background: '#fff',
+  },
   block: { display: 'flex', flexDirection: 'column' },
   labelMini: { fontSize: 12, color: '#000', marginBottom: 6 },
   input: {
@@ -222,7 +259,6 @@ const styles: Record<string, React.CSSProperties | any> = {
     background: '#fafafa',
     color: '#000',
   },
-
   totalLine: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -236,11 +272,24 @@ const styles: Record<string, React.CSSProperties | any> = {
   totalLabel: { fontSize: 12, color: '#000' },
   totalValue: { fontSize: 15, fontWeight: 700, color: '#000' },
 
+  // Estilo para el TOTAL
+  grandTotal: {
+    marginTop: 8,
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1px dashed #cfd8dc',
+    background: '#f8fafc',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+
   buyBtn: {
     padding: '14px',
     fontSize: '1rem',
     color: '#fff',
-    backgroundColor: '#0032A0', // '#0  07BFF',
+    backgroundColor: '#007BFF',
     border: 'none',
     borderRadius: 8,
     cursor: 'pointer',
@@ -248,5 +297,12 @@ const styles: Record<string, React.CSSProperties | any> = {
   },
 
   error: { color: 'tomato', fontSize: '0.9rem', textAlign: 'center' as const },
-  result: { whiteSpace: 'pre-wrap' as const, background: '#111', color: '#eee', padding: '12px', borderRadius: 8, fontSize: '0.9rem' },
+  result: {
+    whiteSpace: 'pre-wrap' as const,
+    background: '#111',
+    color: '#eee',
+    padding: '12px',
+    borderRadius: 8,
+    fontSize: '0.9rem',
+  },
 };
