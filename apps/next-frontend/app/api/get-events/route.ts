@@ -120,15 +120,18 @@ export async function listarEventos(
       prisma.evento.count({ where }),
     ]);
 
-  // Calcular disponibilidad para cada evento en paralelo
-  const eventosTyped: any[] = eventos as any[];
-  const disponiblesArr = await Promise.all(eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id)));
+    // Calcular disponibilidad para cada evento en paralelo
+    const eventosTyped: any[] = eventos as any[];
+    const disponiblesArr = await Promise.all(
+      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id))
+    );
 
-  const datos: Evento[] = eventosTyped.map((ev: any, idx: number) => ({
+    const datos: Evento[] = eventosTyped.map((ev: any, idx: number) => ({
       id: ev.id,
       titulo: ev.titulo,
       descripcion: ev.descripcion,
-      fechaInicio: ev.fechaInicio instanceof Date ? ev.fechaInicio.toISOString() : String(ev.fechaInicio),
+      fechaInicio:
+        ev.fechaInicio instanceof Date ? ev.fechaInicio.toISOString() : String(ev.fechaInicio),
       fechaFin: ev.fechaFin instanceof Date ? ev.fechaFin.toISOString() : String(ev.fechaFin),
       ubicacion: ev.ubicacion,
       precio: ev.precio,
@@ -188,8 +191,12 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
       id: evento.id,
       titulo: evento.titulo,
       descripcion: evento.descripcion,
-      fechaInicio: evento.fechaInicio instanceof Date ? evento.fechaInicio.toISOString() : String(evento.fechaInicio),
-      fechaFin: evento.fechaFin instanceof Date ? evento.fechaFin.toISOString() : String(evento.fechaFin),
+      fechaInicio:
+        evento.fechaInicio instanceof Date
+          ? evento.fechaInicio.toISOString()
+          : String(evento.fechaInicio),
+      fechaFin:
+        evento.fechaFin instanceof Date ? evento.fechaFin.toISOString() : String(evento.fechaFin),
       ubicacion: evento.ubicacion,
       precio: evento.precio,
       capacidad: evento.capacidad,
@@ -197,8 +204,14 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
       categoria: evento.categoria,
       imagenes: evento.imagenes || [],
       estado: evento.estado,
-      createdAt: evento.createdAt instanceof Date ? evento.createdAt.toISOString() : String(evento.createdAt),
-      updatedAt: evento.updatedAt instanceof Date ? evento.updatedAt.toISOString() : String(evento.updatedAt),
+      createdAt:
+        evento.createdAt instanceof Date
+          ? evento.createdAt.toISOString()
+          : String(evento.createdAt),
+      updatedAt:
+        evento.updatedAt instanceof Date
+          ? evento.updatedAt.toISOString()
+          : String(evento.updatedAt),
     };
 
     return mapped;
@@ -260,14 +273,18 @@ export async function GET(request: NextRequest) {
     const limite = Number(params.get('limit') ?? params.get('limite') ?? '10');
 
     const filtros: FiltrosEventos = {};
-    if (params.get('fechaInicio')) filtros.fechaInicio = new Date(params.get('fechaInicio') as string);
+    if (params.get('fechaInicio'))
+      filtros.fechaInicio = new Date(params.get('fechaInicio') as string);
     if (params.get('fechaFin')) filtros.fechaFin = new Date(params.get('fechaFin') as string);
     if (params.get('ubicacion')) filtros.ubicacion = params.get('ubicacion') as string;
     if (params.get('categoriaId')) filtros.categoriaId = params.get('categoriaId') as string;
     if (params.get('precioMin')) filtros.precioMin = Number(params.get('precioMin'));
     if (params.get('precioMax')) filtros.precioMax = Number(params.get('precioMax'));
 
-    const resultado = await listarEventos({ pagina: Math.max(1, pagina), limite: Math.max(1, limite) }, filtros);
+    const resultado = await listarEventos(
+      { pagina: Math.max(1, pagina), limite: Math.max(1, limite) },
+      filtros
+    );
     return NextResponse.json(resultado);
   } catch (error) {
     console.error('Error en GET /api/get-events:', error);

@@ -222,12 +222,12 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {locations.map(location => (
               <LocationCard
-                  key={location.location}
-                  _loc={location.location}
-                  name={location.name}
-                  eventCount={location.eventCount}
-                  onSelect={() => handleLocationFilter(location.name)}
-                />
+                key={location.location}
+                _loc={location.location}
+                name={location.name}
+                eventCount={location.eventCount}
+                onSelect={() => handleLocationFilter(location.name)}
+              />
             ))}
           </div>
         </div>

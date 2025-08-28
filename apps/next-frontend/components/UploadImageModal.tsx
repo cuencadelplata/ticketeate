@@ -104,7 +104,7 @@ const uploadToSupabase = async (): Promise<string | null> => {
   try {
     // Por ahora, devolvemos null para usar el fallback local
     // TODO: Implementar subida real a Supabase
-  console.log('Supabase upload not implemented yet, using local fallback');
+    console.log('Supabase upload not implemented yet, using local fallback');
     return null;
   } catch (error) {
     console.error('Error uploading to Supabase:', error);
@@ -169,14 +169,14 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
 
   const handleFiles = async (files: FileList) => {
     const uploadedFile = files[0];
-      if (!uploadedFile) return;
+    if (!uploadedFile) return;
 
-      if (uploadedFile.size > 5 * 1024 * 1024) {
+    if (uploadedFile.size > 5 * 1024 * 1024) {
       toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
       return;
     }
 
-      if (!uploadedFile.type.startsWith('image/')) {
+    if (!uploadedFile.type.startsWith('image/')) {
       toast.error('Por favor, selecciona un archivo de imagen válido.');
       return;
     }
@@ -184,12 +184,12 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
     setIsUploading(true);
 
     try {
-  // Subir a Supabase Storage
-  const imageUrl = await uploadToSupabase();
+      // Subir a Supabase Storage
+      const imageUrl = await uploadToSupabase();
 
       if (imageUrl) {
         // Guardar en la biblioteca
-          const newImage: UserImage = {
+        const newImage: UserImage = {
           id: Date.now().toString(),
           url: imageUrl,
           name: uploadedFile.name,
@@ -224,7 +224,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
             onSelectImage(result);
           }
         };
-  reader.readAsDataURL(uploadedFile);
+        reader.readAsDataURL(uploadedFile);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -240,17 +240,17 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
 
       // Fallback: usar base64 para preview local
       const reader = new FileReader();
-        reader.onload = e => {
-          const result = e.target?.result;
-          if (typeof result === 'string') {
-            // Guardar también las imágenes base64 en la biblioteca
-            const newImage: UserImage = {
-              id: Date.now().toString(),
-              url: result,
-              name: uploadedFile.name,
-              uploadedAt: new Date().toISOString(),
-              size: uploadedFile.size,
-            };
+      reader.onload = e => {
+        const result = e.target?.result;
+        if (typeof result === 'string') {
+          // Guardar también las imágenes base64 en la biblioteca
+          const newImage: UserImage = {
+            id: Date.now().toString(),
+            url: result,
+            name: uploadedFile.name,
+            uploadedAt: new Date().toISOString(),
+            size: uploadedFile.size,
+          };
 
           saveImageToLibrary(newImage);
           setUserImages(getUserImages());
@@ -258,7 +258,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
           onSelectImage(result);
         }
       };
-  reader.readAsDataURL(uploadedFile);
+      reader.readAsDataURL(uploadedFile);
     } finally {
       setIsUploading(false);
     }

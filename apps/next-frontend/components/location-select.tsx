@@ -29,7 +29,6 @@ export const animals = [
 ];
 
 export default function locationSelect() {
-
   return (
     <div>
       <Autocomplete

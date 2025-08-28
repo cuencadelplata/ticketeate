@@ -21,8 +21,8 @@ export default function EventTicket({ onTicketChange: _onTicketChange }: EventTi
   const handleConnectStripe = () => {
     // Aquí iría la lógica para conectar con Stripe
     setIsOpen(false);
-  // call the prop with a default value to indicate no changes
-  _onTicketChange?.({ type: 'free' });
+    // call the prop with a default value to indicate no changes
+    _onTicketChange?.({ type: 'free' });
   };
 
   return (
