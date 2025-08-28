@@ -75,9 +75,9 @@ export function useCreateEvent() {
 
       return response.json();
     },
-    onSuccess: (newEvent) => {
+    onSuccess: newEvent => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      
+
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
           return [...oldEvents, newEvent];
@@ -85,7 +85,7 @@ export function useCreateEvent() {
         return [newEvent];
       });
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Error al crear evento:', error);
     },
   });
@@ -96,7 +96,13 @@ export function useUpdateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, eventData }: { id: string; eventData: Partial<CreateEventData> }): Promise<Event> => {
+    mutationFn: async ({
+      id,
+      eventData,
+    }: {
+      id: string;
+      eventData: Partial<CreateEventData>;
+    }): Promise<Event> => {
       const response = await fetch(`/api/events/${id}`, {
         method: 'PUT',
         headers: {
@@ -112,10 +118,10 @@ export function useUpdateEvent() {
 
       return response.json();
     },
-    onSuccess: (updatedEvent) => {
+    onSuccess: updatedEvent => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id] });
-      
+
       queryClient.setQueryData(['events', updatedEvent.id], updatedEvent);
     },
   });
@@ -138,7 +144,7 @@ export function useDeleteEvent() {
     },
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      
+
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
           return oldEvents.filter(event => event.id !== deletedId);

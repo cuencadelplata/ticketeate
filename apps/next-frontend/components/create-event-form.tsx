@@ -96,7 +96,7 @@ export default function CreateEventForm() {
   }
 
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  
+
   // Hook de TanStack Query para crear eventos
   const createEventMutation = useCreateEvent();
 
@@ -156,21 +156,21 @@ export default function CreateEventForm() {
     const [endHour, endMinute] = endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
-          const eventData = {
-        name: eventName,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        access: selected.toUpperCase(),
-        location: location.address,
-        description,
-        pricingType: ticketInfo.type.toUpperCase(),
-        capacity: capacityInfo.unlimited ? null : capacityInfo.limit || null,
-        imageUrl: coverImage || undefined,
-      };
+    const eventData = {
+      name: eventName,
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+      access: selected.toUpperCase(),
+      location: location.address,
+      description,
+      pricingType: ticketInfo.type.toUpperCase(),
+      capacity: capacityInfo.unlimited ? null : capacityInfo.limit || null,
+      imageUrl: coverImage || undefined,
+    };
 
     // Usar TanStack Query para crear el evento
     createEventMutation.mutate(eventData, {
-      onSuccess: (event) => {
+      onSuccess: event => {
         // Mostrar mensaje de éxito
         toast.success('¡Evento creado exitosamente!', {
           description: `${event.name} ha sido creado y está listo para compartir.`,
@@ -186,7 +186,7 @@ export default function CreateEventForm() {
         setStartTime('00:00');
         setEndTime('00:00');
       },
-      onError: (error) => {
+      onError: error => {
         toast.error(error.message || 'Error al crear el evento');
       },
     });
@@ -267,10 +267,10 @@ export default function CreateEventForm() {
 
                 <Dropdown placement="bottom-end" className="bg-stone-900">
                   <DropdownTrigger asChild>
-                                         <Button
-                       size="sm"
-                       className="flex items-center !rounded-md !border !border-stone-700 bg-stone-850 bg-opacity-60 text-sm font-medium"
-                     >
+                    <Button
+                      size="sm"
+                      className="bg-stone-850 flex items-center !rounded-md !border !border-stone-700 bg-opacity-60 text-sm font-medium"
+                    >
                       {visibilityOptions[selected].icon}
                       {visibilityOptions[selected].label}
                       <ChevronDown className="h-7 w-7" />
@@ -288,29 +288,29 @@ export default function CreateEventForm() {
                     style={{ width: '300px', maxHeight: '350px' }}
                     className="bg-stone-900 p-0"
                   >
-                                         {Object.entries(visibilityOptions).map(
-                       ([key, { label, description, icon }], index) => (
-                         <DropdownItem 
-                           key={key} 
-                           className={`!rounded-md !border-0 bg-stone-900 hover:bg-stone-800 px-3 py-3 transition-colors ${
-                             index > 0 ? 'mt-1' : ''
-                           }`}
-                         >
-                           <div className="flex items-start">
-                             {icon &&
-                               React.cloneElement(icon, {
-                                 className: 'w-4 h-4 mr-2 flex-shrink-0 self-center',
-                               })}
-                             <div className="flex flex-col">
-                               <span className="font-medium">{label}</span>
-                               <span className="text-sm leading-tight text-stone-400">
-                                 {description}
-                               </span>
-                             </div>
-                           </div>
-                         </DropdownItem>
-                       )
-                     )}
+                    {Object.entries(visibilityOptions).map(
+                      ([key, { label, description, icon }], index) => (
+                        <DropdownItem
+                          key={key}
+                          className={`!rounded-md !border-0 bg-stone-900 px-3 py-3 transition-colors hover:bg-stone-800 ${
+                            index > 0 ? 'mt-1' : ''
+                          }`}
+                        >
+                          <div className="flex items-start">
+                            {icon &&
+                              React.cloneElement(icon, {
+                                className: 'w-4 h-4 mr-2 flex-shrink-0 self-center',
+                              })}
+                            <div className="flex flex-col">
+                              <span className="font-medium">{label}</span>
+                              <span className="text-sm leading-tight text-stone-400">
+                                {description}
+                              </span>
+                            </div>
+                          </div>
+                        </DropdownItem>
+                      )
+                    )}
                   </DropdownMenu>
                 </Dropdown>
               </div>
@@ -355,14 +355,14 @@ export default function CreateEventForm() {
                 </CardContent>
               </Card>
 
-                             <Button
-                 onClick={handleCreateEvent}
-                 size="md"
-                 className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
-                 disabled={createEventMutation.isPending}
-               >
-                 {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
-               </Button>
+              <Button
+                onClick={handleCreateEvent}
+                size="md"
+                className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
+                disabled={createEventMutation.isPending}
+              >
+                {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
+              </Button>
             </div>
           </div>
         </div>
