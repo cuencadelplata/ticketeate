@@ -32,3 +32,5 @@ pnpm-lock.yaml
 
 # build outputs
 dist/
+# clerk configuration (can include secrets)
+/.clerk/
