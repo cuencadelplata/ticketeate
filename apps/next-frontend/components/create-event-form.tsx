@@ -285,10 +285,10 @@ export default function CreateEventForm() {
 
                 <Dropdown placement="bottom-end" className="bg-stone-900">
                   <DropdownTrigger asChild>
-                    <Button
-                      size="sm"
-                      className="flex items-center border-1 bg-stone-900 bg-opacity-60 text-sm font-medium"
-                    >
+                                         <Button
+                       size="sm"
+                       className="flex items-center !rounded-md !border !border-stone-700 bg-stone-850 bg-opacity-60 text-sm font-medium"
+                     >
                       {visibilityOptions[selected].icon}
                       {visibilityOptions[selected].label}
                       <ChevronDown className="h-7 w-7" />
@@ -306,24 +306,29 @@ export default function CreateEventForm() {
                     style={{ width: '300px', maxHeight: '350px' }}
                     className="bg-stone-900 p-0"
                   >
-                    {Object.entries(visibilityOptions).map(
-                      ([key, { label, description, icon }]) => (
-                        <DropdownItem key={key} className="bg-stone-900 px-2 py-2">
-                          <div className="flex items-start">
-                            {icon &&
-                              React.cloneElement(icon, {
-                                className: 'w-4 h-4 mr-2 flex-shrink-0 self-center',
-                              })}
-                            <div className="flex flex-col">
-                              <span>{label}</span>
-                              <span className="text-sm leading-tight text-stone-500">
-                                {description}
-                              </span>
-                            </div>
-                          </div>
-                        </DropdownItem>
-                      )
-                    )}
+                                         {Object.entries(visibilityOptions).map(
+                       ([key, { label, description, icon }], index) => (
+                         <DropdownItem 
+                           key={key} 
+                           className={`!rounded-md !border-0 bg-stone-900 hover:bg-stone-800 px-3 py-3 transition-colors ${
+                             index > 0 ? 'mt-1' : ''
+                           }`}
+                         >
+                           <div className="flex items-start">
+                             {icon &&
+                               React.cloneElement(icon, {
+                                 className: 'w-4 h-4 mr-2 flex-shrink-0 self-center',
+                               })}
+                             <div className="flex flex-col">
+                               <span className="font-medium">{label}</span>
+                               <span className="text-sm leading-tight text-stone-400">
+                                 {description}
+                               </span>
+                             </div>
+                           </div>
+                         </DropdownItem>
+                       )
+                     )}
                   </DropdownMenu>
                 </Dropdown>
               </div>
