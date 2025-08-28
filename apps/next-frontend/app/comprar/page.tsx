@@ -245,7 +245,7 @@ const styles: Record<string, React.CSSProperties | any> = {
     padding: '14px',
     fontSize: '1rem',
     color: '#fff',
-    backgroundColor: '#007BFF',
+    backgroundColor: '#0032A0', // '#0  07BFF',
     border: 'none',
     borderRadius: 8,
     cursor: 'pointer',
