@@ -26,6 +26,7 @@ import EventCapacity from './event-capacity';
 import EventDescription from './event-description';
 import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'sonner';
+import { useCreateEvent } from '@/hooks/use-events';
 
 interface TicketType {
   id: string;
@@ -94,8 +95,10 @@ export default function CreateEventForm() {
     });
   }
 
-  const [isCreating, setIsCreating] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  
+  // Hook de TanStack Query para crear eventos
+  const createEventMutation = useCreateEvent();
 
   // check auth
   useEffect(() => {
@@ -128,11 +131,6 @@ export default function CreateEventForm() {
   }, [hasCheckedAuth]);
 
   const handleCreateEvent = async () => {
-    // Por ahora, permitir crear eventos sin autenticación para testing
-    // TODO: Restaurar verificación de autenticación cuando Supabase esté configurado
-
-    // Verificar si hay un usuario "autenticado" (simulado o real)
-
     // Validaciones
     if (!eventName.trim()) {
       toast.error('Por favor ingresa un nombre para el evento');
@@ -149,19 +147,16 @@ export default function CreateEventForm() {
       return;
     }
 
-    setIsCreating(true);
+    // Combinar fecha y hora
+    const startDateTime = new Date(startDate);
+    const [startHour, startMinute] = startTime.split(':');
+    startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
 
-    try {
-      // Combinar fecha y hora
-      const startDateTime = new Date(startDate);
-      const [startHour, startMinute] = startTime.split(':');
-      startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+    const endDateTime = new Date(endDate);
+    const [endHour, endMinute] = endTime.split(':');
+    endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
-      const endDateTime = new Date(endDate);
-      const [endHour, endMinute] = endTime.split(':');
-      endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
-
-      const eventData = {
+          const eventData = {
         name: eventName,
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
@@ -169,45 +164,32 @@ export default function CreateEventForm() {
         location: location.address,
         description,
         pricingType: ticketInfo.type.toUpperCase(),
-        capacity: capacityInfo.unlimited ? null : capacityInfo.limit,
-        imageUrl: coverImage,
+        capacity: capacityInfo.unlimited ? null : capacityInfo.limit || null,
+        imageUrl: coverImage || undefined,
       };
 
-      const response = await fetch('/api/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      });
+    // Usar TanStack Query para crear el evento
+    createEventMutation.mutate(eventData, {
+      onSuccess: (event) => {
+        // Mostrar mensaje de éxito
+        toast.success('¡Evento creado exitosamente!', {
+          description: `${event.name} ha sido creado y está listo para compartir.`,
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al crear el evento');
-      }
-
-      const event = await response.json();
-
-      // Mostrar mensaje de éxito
-      toast.success('¡Evento creado exitosamente!', {
-        description: `${event.name} ha sido creado y está listo para compartir.`,
-      });
-
-      // Limpiar formulario
-      setEventName('');
-      setDescription('');
-      setCoverImage(null);
-      setLocation(null);
-      setStartDate(new Date());
-      setEndDate(new Date());
-      setStartTime('00:00');
-      setEndTime('00:00');
-    } catch (error) {
-      console.error('Error creating event:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al crear el evento');
-    } finally {
-      setIsCreating(false);
-    }
+        // Limpiar formulario
+        setEventName('');
+        setDescription('');
+        setCoverImage(null);
+        setLocation(null);
+        setStartDate(new Date());
+        setEndDate(new Date());
+        setStartTime('00:00');
+        setEndTime('00:00');
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error al crear el evento');
+      },
+    });
   };
 
   if (!isLoaded) {
@@ -373,14 +355,14 @@ export default function CreateEventForm() {
                 </CardContent>
               </Card>
 
-              <Button
-                onClick={handleCreateEvent}
-                size="md"
-                className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
-                disabled={isCreating}
-              >
-                {isCreating ? 'Creando evento...' : 'Crear evento'}
-              </Button>
+                             <Button
+                 onClick={handleCreateEvent}
+                 size="md"
+                 className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
+                 disabled={createEventMutation.isPending}
+               >
+                 {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
+               </Button>
             </div>
           </div>
         </div>
