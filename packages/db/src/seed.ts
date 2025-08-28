@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clean up existing data
-  await prisma.post.deleteMany();
+  await prisma.event.deleteMany();
   await prisma.user.deleteMany();
 
   // Create a user
@@ -16,18 +16,20 @@ async function main() {
   });
 
   // Create some posts
-  await prisma.post.createMany({
+  await prisma.event.createMany({
     data: [
       {
-        title: 'First Post',
-        content: 'This is my first post!',
-        published: true,
+        name: 'First Event',
+        description: 'This is my first event!',
+        startDate: new Date(),
+        endDate: new Date(),
         authorId: user.id,
       },
       {
-        title: 'Second Post',
-        content: 'This is my second post!',
-        published: false,
+        name: 'Second Event',
+        description: 'This is my second event!',
+        startDate: new Date(),
+        endDate: new Date(),
         authorId: user.id,
       },
     ],
