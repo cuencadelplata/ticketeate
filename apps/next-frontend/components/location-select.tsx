@@ -29,7 +29,6 @@ export const animals = [
 ];
 
 export default function locationSelect() {
-  const variants = ['flat', 'bordered', 'underlined', 'faded'];
 
   return (
     <div>

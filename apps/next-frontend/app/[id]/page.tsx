@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
-export default async function EventoPage({ params }: { params: { id: string } }) {
+export default async function EventoPage() {
   return <div>ruta dinámica eventos</div>;
 }

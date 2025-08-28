@@ -8,7 +8,6 @@ import {
   Settings,
   Share2,
   BarChart3,
-  MessageCircle,
   Info,
 } from 'lucide-react';
 import Link from 'next/link';

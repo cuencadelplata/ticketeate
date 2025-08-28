@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 export default async function Layout({
   children,
   params,
@@ -7,7 +5,7 @@ export default async function Layout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  await params;
 
   return (
     <div>

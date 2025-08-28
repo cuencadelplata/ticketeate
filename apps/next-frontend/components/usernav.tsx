@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useClerk } from '@clerk/nextjs';
-import { currentUser } from '@clerk/nextjs/server';
+// server-only currentUser import intentionally omitted in client component
 
 export const PlusIcon = (props: any) => {
   return (

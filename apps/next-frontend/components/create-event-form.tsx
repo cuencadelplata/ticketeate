@@ -13,7 +13,6 @@ import {
 
 import { Navbar } from './navbar';
 import { Lock } from 'lucide-react';
-import { DateFormatter } from '@internationalized/date';
 
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import React from 'react';
@@ -72,14 +71,7 @@ export default function CreateEventForm() {
 
   const [location, setLocation] = useState<EventLocationData | null>(null);
 
-  const formatter = new DateFormatter('es-ES', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
+  // Date formatter intentionally not used in this component
 
   const [description, setDescription] = useState('');
   const [ticketInfo, setTicketInfo] = useState<{

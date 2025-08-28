@@ -16,9 +16,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import Link from 'next/link';
 import { locations } from '../../data/locations';
-import { Card } from '@heroui/react';
+// Card import removed because it's unused
 import { toast } from 'sonner';
 
 type PublicEvent = {
@@ -223,12 +222,12 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {locations.map(location => (
               <LocationCard
-                key={location.location}
-                location={location.location}
-                name={location.name}
-                eventCount={location.eventCount}
-                onSelect={() => handleLocationFilter(location.name)}
-              />
+                  key={location.location}
+                  _loc={location.location}
+                  name={location.name}
+                  eventCount={location.eventCount}
+                  onSelect={() => handleLocationFilter(location.name)}
+                />
             ))}
           </div>
         </div>
@@ -376,13 +375,12 @@ function EventCard({ event }: EventCardProps) {
 }
 
 interface LocationCardProps {
-  location: string;
   name: string;
   eventCount: string;
   onSelect?: () => void;
 }
 
-function LocationCard({ location, name, eventCount, onSelect }: LocationCardProps) {
+function LocationCard({ name, eventCount, onSelect }: LocationCardProps) {
   return (
     <div onClick={onSelect} className="block">
       <div className="cursor-pointer rounded-lg bg-[#1a1f2e] p-6 transition-all hover:bg-[#252a3a]">

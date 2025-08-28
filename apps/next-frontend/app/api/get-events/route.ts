@@ -1,17 +1,13 @@
-// No se puede importar el módulo '../../../packages/db/src' porque no se encuentra o no tiene declaraciones de tipo correspondientes.
-// Puedes comentar o eliminar la línea de importación para evitar el error de compilación.
-
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-// import { prisma } from '../../../packages/db/src';
 
 // Tipos TypeScript para la API de eventos
 export interface Evento {
   id: string;
   titulo: string;
   descripcion: string;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: string; // ISO
+  fechaFin: string; // ISO
   ubicacion: string;
   precio: number;
   capacidad: number;
@@ -19,8 +15,8 @@ export interface Evento {
   categoria: Categoria;
   imagenes: ImagenEvento[];
   estado: 'activo' | 'cancelado' | 'completado';
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
 }
 
 export interface Categoria {
@@ -124,10 +120,31 @@ export async function listarEventos(
       prisma.evento.count({ where }),
     ]);
 
+  // Calcular disponibilidad para cada evento en paralelo
+  const eventosTyped: any[] = eventos as any[];
+  const disponiblesArr = await Promise.all(eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id)));
+
+  const datos: Evento[] = eventosTyped.map((ev: any, idx: number) => ({
+      id: ev.id,
+      titulo: ev.titulo,
+      descripcion: ev.descripcion,
+      fechaInicio: ev.fechaInicio instanceof Date ? ev.fechaInicio.toISOString() : String(ev.fechaInicio),
+      fechaFin: ev.fechaFin instanceof Date ? ev.fechaFin.toISOString() : String(ev.fechaFin),
+      ubicacion: ev.ubicacion,
+      precio: ev.precio,
+      capacidad: ev.capacidad,
+      disponibles: disponiblesArr[idx] ?? 0,
+      categoria: ev.categoria,
+      imagenes: ev.imagenes || [],
+      estado: ev.estado,
+      createdAt: ev.createdAt instanceof Date ? ev.createdAt.toISOString() : String(ev.createdAt),
+      updatedAt: ev.updatedAt instanceof Date ? ev.updatedAt.toISOString() : String(ev.updatedAt),
+    }));
+
     const totalPaginas = Math.ceil(total / limite);
 
     return {
-      datos: eventos,
+      datos,
       paginacion: {
         pagina,
         limite,
@@ -144,9 +161,10 @@ export async function listarEventos(
 // Función para obtener detalle de un evento específico
 export async function obtenerDetalleEvento(id: string): Promise<Evento> {
   try {
-    const evento = await prisma.evento.findUnique({
+    // Usar findFirst para poder filtrar por estado además del id
+    const evento = await prisma.evento.findFirst({
       where: {
-        id: id,
+        id,
         estado: 'activo', // Solo eventos activos
       },
       include: {
@@ -166,10 +184,24 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
     // Calcular disponibilidad en tiempo real
     const disponibles = await calcularDisponibilidad(evento.id);
 
-    return {
-      ...evento,
+    const mapped: Evento = {
+      id: evento.id,
+      titulo: evento.titulo,
+      descripcion: evento.descripcion,
+      fechaInicio: evento.fechaInicio instanceof Date ? evento.fechaInicio.toISOString() : String(evento.fechaInicio),
+      fechaFin: evento.fechaFin instanceof Date ? evento.fechaFin.toISOString() : String(evento.fechaFin),
+      ubicacion: evento.ubicacion,
+      precio: evento.precio,
+      capacidad: evento.capacidad,
       disponibles,
+      categoria: evento.categoria,
+      imagenes: evento.imagenes || [],
+      estado: evento.estado,
+      createdAt: evento.createdAt instanceof Date ? evento.createdAt.toISOString() : String(evento.createdAt),
+      updatedAt: evento.updatedAt instanceof Date ? evento.updatedAt.toISOString() : String(evento.updatedAt),
     };
+
+    return mapped;
   } catch (error) {
     console.error('Error al obtener detalle del evento:', error);
     if (error instanceof Error && error.message === 'Evento no encontrado o no disponible') {
@@ -202,5 +234,43 @@ export async function calcularDisponibilidad(eventoId: string): Promise<number> 
   } catch (error) {
     console.error('Error al calcular disponibilidad:', error);
     return 0;
+  }
+}
+
+// Next.js route handler
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const params = url.searchParams;
+
+    // Si se solicita por id, devolver detalle
+    const id = params.get('id');
+    if (id) {
+      try {
+        const detalle = await obtenerDetalleEvento(id);
+        return NextResponse.json(detalle);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Evento no encontrado';
+        return NextResponse.json({ error: message }, { status: 404 });
+      }
+    }
+
+    // Paginación y filtros
+    const pagina = Number(params.get('page') ?? params.get('pagina') ?? '1');
+    const limite = Number(params.get('limit') ?? params.get('limite') ?? '10');
+
+    const filtros: FiltrosEventos = {};
+    if (params.get('fechaInicio')) filtros.fechaInicio = new Date(params.get('fechaInicio') as string);
+    if (params.get('fechaFin')) filtros.fechaFin = new Date(params.get('fechaFin') as string);
+    if (params.get('ubicacion')) filtros.ubicacion = params.get('ubicacion') as string;
+    if (params.get('categoriaId')) filtros.categoriaId = params.get('categoriaId') as string;
+    if (params.get('precioMin')) filtros.precioMin = Number(params.get('precioMin'));
+    if (params.get('precioMax')) filtros.precioMax = Number(params.get('precioMax'));
+
+    const resultado = await listarEventos({ pagina: Math.max(1, pagina), limite: Math.max(1, limite) }, filtros);
+    return NextResponse.json(resultado);
+  } catch (error) {
+    console.error('Error en GET /api/get-events:', error);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
