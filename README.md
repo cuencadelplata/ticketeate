@@ -1,9 +1,7 @@
 <div align="center">
-<picture>
-  <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-light.png" width="50%" height="50%">
-  
-</picture>
-Accede a tus eventos favoritos de manera fácil y segura.
+  <a href="https://ticketeate.online">
+    <img alt="ticketeate logo" src="apps\next-frontend\public\wordmark-light.png" width="50%" height="50%">
+  </a>
 </div>
 
 <div align="left">
