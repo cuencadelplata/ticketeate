@@ -44,7 +44,7 @@ export function EventCard({ event }: EventCardProps) {
   const categoryLabel = categoryLabels[event.category];
 
   return (
-    <div className="group cursor-pointer overflow-hidden rounded-lg bg-[#1a1f2e] transition-all hover:scale-105 hover:bg-[#252a3a] shadow-lg hover:shadow-xl">
+    <div className="group cursor-pointer overflow-hidden rounded-lg bg-[#1a1f2e] shadow-lg transition-all hover:scale-105 hover:bg-[#252a3a] hover:shadow-xl">
       <div className="relative h-48 overflow-hidden">
         {event.imageUrl ? (
           <Image
@@ -58,14 +58,16 @@ export function EventCard({ event }: EventCardProps) {
             <CategoryIcon className="h-16 w-16 text-white/70" />
           </div>
         )}
-        
+
         {/* Category Badge */}
         <div className="absolute left-4 top-4">
-          <span className={`rounded-full ${categoryColor} px-3 py-1 text-xs font-medium text-white`}>
+          <span
+            className={`rounded-full ${categoryColor} px-3 py-1 text-xs font-medium text-white`}
+          >
             {categoryLabel}
           </span>
         </div>
-        
+
         {/* Price Badge */}
         <div className="absolute right-4 top-4">
           <span className="rounded-full bg-black/70 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
@@ -85,7 +87,7 @@ export function EventCard({ event }: EventCardProps) {
         </div>
 
         {/* Title */}
-        <h3 className="mb-3 line-clamp-2 text-xl font-semibold text-white group-hover:text-green-400 transition-colors">
+        <h3 className="mb-3 line-clamp-2 text-xl font-semibold text-white transition-colors group-hover:text-green-400">
           {event.name}
         </h3>
 
@@ -96,21 +98,17 @@ export function EventCard({ event }: EventCardProps) {
         </div>
 
         {/* Description */}
-        <p className="mb-4 line-clamp-2 text-sm text-gray-300">
-          {event.description}
-        </p>
+        <p className="mb-4 line-clamp-2 text-sm text-gray-300">{event.description}</p>
 
         {/* Footer */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-blue-500">
               <span className="text-xs font-bold text-white">
                 {event.organizer.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="text-sm text-gray-400">
-              {event.organizer}
-            </span>
+            <span className="text-sm text-gray-400">{event.organizer}</span>
           </div>
 
           <div className="flex items-center gap-1 text-sm text-gray-400">

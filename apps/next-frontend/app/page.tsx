@@ -8,7 +8,8 @@ const sampleEvents = [
   {
     id: '1',
     name: 'Fiesta de Verano en la Playa',
-    description: 'Una noche mágica con música electrónica, bebidas tropicales y la mejor vibra del verano. Disfruta del atardecer mientras bailas al ritmo de los mejores DJs.',
+    description:
+      'Una noche mágica con música electrónica, bebidas tropicales y la mejor vibra del verano. Disfruta del atardecer mientras bailas al ritmo de los mejores DJs.',
     date: '15 Dic 2024',
     time: '20:00',
     location: 'Playa del Carmen, Cancún',
@@ -17,12 +18,13 @@ const sampleEvents = [
     price: 'Gratis',
     capacity: 200,
     availableTickets: 150,
-    organizer: 'Beach Club'
+    organizer: 'Beach Club',
   },
   {
     id: '2',
     name: 'Exposición de Arte Contemporáneo',
-    description: 'Descubre las obras más innovadoras de artistas emergentes latinoamericanos. Una experiencia cultural única que combina pintura, escultura y arte digital.',
+    description:
+      'Descubre las obras más innovadoras de artistas emergentes latinoamericanos. Una experiencia cultural única que combina pintura, escultura y arte digital.',
     date: '20 Dic 2024',
     time: '18:00',
     location: 'Museo de Arte Moderno, CDMX',
@@ -31,12 +33,13 @@ const sampleEvents = [
     price: '$150',
     capacity: 100,
     availableTickets: 75,
-    organizer: 'Arte Latino'
+    organizer: 'Arte Latino',
   },
   {
     id: '3',
     name: 'Concierto de Rock Indie',
-    description: 'Las mejores bandas independientes del país se reúnen para una noche épica de rock alternativo. No te pierdas esta experiencia musical única.',
+    description:
+      'Las mejores bandas independientes del país se reúnen para una noche épica de rock alternativo. No te pierdas esta experiencia musical única.',
     date: '22 Dic 2024',
     time: '21:00',
     location: 'Foro Sol, CDMX',
@@ -45,12 +48,13 @@ const sampleEvents = [
     price: '$300',
     capacity: 5000,
     availableTickets: 3200,
-    organizer: 'Rock Nation'
+    organizer: 'Rock Nation',
   },
   {
     id: '4',
     name: 'Networking Empresarial',
-    description: 'Conecta con profesionales de tu industria en un ambiente relajado. Charlas inspiradoras, networking de calidad y oportunidades de negocio.',
+    description:
+      'Conecta con profesionales de tu industria en un ambiente relajado. Charlas inspiradoras, networking de calidad y oportunidades de negocio.',
     date: '25 Dic 2024',
     time: '19:00',
     location: 'Centro de Convenciones, Monterrey',
@@ -59,12 +63,13 @@ const sampleEvents = [
     price: '$200',
     capacity: 150,
     availableTickets: 120,
-    organizer: 'Business Connect'
+    organizer: 'Business Connect',
   },
   {
     id: '5',
     name: 'Festival de Cine Independiente',
-    description: 'Proyecciones de películas independientes nacionales e internacionales. Charlas con directores, talleres de cinematografía y mucho más.',
+    description:
+      'Proyecciones de películas independientes nacionales e internacionales. Charlas con directores, talleres de cinematografía y mucho más.',
     date: '28 Dic 2024',
     time: '17:00',
     location: 'Cineteca Nacional, CDMX',
@@ -73,12 +78,13 @@ const sampleEvents = [
     price: '$100',
     capacity: 300,
     availableTickets: 250,
-    organizer: 'Cine Indie MX'
+    organizer: 'Cine Indie MX',
   },
   {
     id: '6',
     name: 'Concierto de Jazz al Aire Libre',
-    description: 'Disfruta de una velada mágica con los mejores músicos de jazz del país. Música relajante bajo las estrellas en un ambiente íntimo y elegante.',
+    description:
+      'Disfruta de una velada mágica con los mejores músicos de jazz del país. Música relajante bajo las estrellas en un ambiente íntimo y elegante.',
     date: '30 Dic 2024',
     time: '20:30',
     location: 'Jardín Botánico, Guadalajara',
@@ -87,8 +93,8 @@ const sampleEvents = [
     price: '$180',
     capacity: 200,
     availableTickets: 180,
-    organizer: 'Jazz Club'
-  }
+    organizer: 'Jazz Club',
+  },
 ];
 
 export default function Home() {
@@ -126,8 +132,8 @@ export default function Home() {
       </div>
 
       {/* Grilla de Eventos con Filtros */}
-      <EventsGrid 
-        title="Eventos Destacados" 
+      <EventsGrid
+        title="Eventos Destacados"
         subtitle="Descubre los mejores eventos sociales, culturales y musicales de la temporada"
         showFilters={true}
       />
