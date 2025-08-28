@@ -4,31 +4,33 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clean up existing data
-  await prisma.post.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.eventos.deleteMany();
+  await prisma.usuarios.deleteMany();
 
   // Create a user
-  const user = await prisma.user.create({
+  const user = await prisma.usuarios.create({
     data: {
       email: 'user@example.com',
-      name: 'John Doe',
+      nombre: 'John',
+      apellido: 'Doe',
+      password_hash: 'dummy_hash_for_seeding',
     },
   });
 
-  // Create some posts
-  await prisma.post.createMany({
+  // Create some events
+  await prisma.eventos.createMany({
     data: [
       {
-        title: 'First Post',
-        content: 'This is my first post!',
-        published: true,
-        authorId: user.id,
+        titulo: 'First Event',
+        descripcion: 'This is my first event!',
+        fecha_inicio_venta: new Date(),
+        fecha_fin_venta: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
       },
       {
-        title: 'Second Post',
-        content: 'This is my second post!',
-        published: false,
-        authorId: user.id,
+        titulo: 'Second Event',
+        descripcion: 'This is my second event!',
+        fecha_inicio_venta: new Date(),
+        fecha_fin_venta: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
       },
     ],
   });
