@@ -80,52 +80,67 @@ export default function ComprarPage() {
   };
 
   return (
-    <div style={styles.page}>
-      <aside style={styles.sidebar}>
-        <div style={styles.sidebarHeader}>
-          <span style={{ fontWeight: 700, color: "#000" }}>Seleccionar sector</span>
-          <button style={styles.clearBtn} onClick={() => setSector("Entrada_General")}>
+    <div className="min-h-screen bg-[#f5f7fb] text-black flex justify-center p-6">
+      <aside className="w-[600px] h-[88vh] max-h-[88vh] bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <span className="font-bold">Seleccionar sector</span>
+          <button
+            className="text-orange-500 font-semibold hover:underline"
+            onClick={() => setSector("Entrada_General")}
+          >
             Limpiar selección
           </button>
         </div>
 
-        <div style={styles.list}>
+        {/* Lista de sectores */}
+        <div className="flex-1 overflow-y-auto p-2">
           {(Object.keys(SECTORES) as SectorKey[]).map((key) => {
             const s = SECTORES[key];
             const activo = key === sector;
             return (
-              <label key={key} style={{ ...styles.card, ...(activo ? styles.cardActive : {}) }}>
-                <div style={styles.cardLeft}>
-                  <span style={{ ...styles.colorDot, background: s.color }} />
+              <label
+                key={key}
+                className={`grid [grid-template-columns:24px_1fr_auto] gap-3 items-center p-3 rounded-xl border cursor-pointer m-1
+                ${activo ? "bg-blue-50 ring-2 ring-blue-500 border-transparent" : "bg-white border-gray-200"}`}
+              >
+                <div className="flex items-center justify-center">
+                  <span
+                    className="inline-block w-3.5 h-3.5 rounded border border-black/10"
+                    style={{ background: s.color }}
+                  />
                 </div>
-                <div style={styles.cardBody}>
-                  <div style={styles.cardTitle}>{s.nombre}</div>
-                  <div style={styles.cardPrice}>
+
+                <div className="flex flex-col">
+                  <div className="font-bold">{s.nombre}</div>
+                  <div className="text-sm mt-0.5">
                     Desde $ {s.precioDesde.toLocaleString("es-AR")}
                     {s.fee ? ` + $ ${s.fee.toLocaleString("es-AR")},00` : ""}
                   </div>
-                  <div style={styles.cardMeta}>{s.numerado ? "🔢 Numerado" : "🔘 Sin numerar"}</div>
+                  <div className="text-xs mt-0.5">{s.numerado ? "🔢 Numerado" : "🔘 Sin numerar"}</div>
                 </div>
+
                 <input
                   type="radio"
                   name="sector"
                   checked={activo}
                   onChange={() => setSector(key)}
-                  style={styles.radio}
+                  className="w-4 h-4"
                 />
               </label>
             );
           })}
         </div>
 
-        {/* Bloque de compra */}
-        <div style={styles.checkout}>
-          <div style={styles.block}>
-            <label style={styles.labelMini}>Cantidad</label>
+        {/* Checkout */}
+        <div className="mt-auto bg-white border-t border-gray-200 p-4 flex flex-col gap-3">
+          {/* Cantidad */}
+          <div className="flex flex-col">
+            <label className="text-xs mb-1">Cantidad</label>
             <select
               value={String(cantidad)}
               onChange={(e) => setCantidad(parseInt(e.target.value || "1"))}
-              style={styles.input}
+              className="px-3 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {[1, 2, 3, 4, 5].map((n) => (
                 <option key={n} value={n}>
@@ -135,163 +150,59 @@ export default function ComprarPage() {
             </select>
           </div>
 
-          <div style={styles.block}>
-            <label style={styles.labelMini}>Método</label>
-            <select value={metodo} onChange={(e) => setMetodo(e.target.value)} style={styles.input}>
+          {/* Método */}
+          <div className="flex flex-col">
+            <label className="text-xs mb-1">Método</label>
+            <select
+              value={metodo}
+              onChange={(e) => setMetodo(e.target.value)}
+              className="px-3 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="EFECTIVO">Efectivo</option>
               <option value="TARJETA">Tarjeta</option>
               <option value="TRANSFERENCIA">Transferencia</option>
             </select>
           </div>
 
-          {/* Info seleccion */}
-          <div style={styles.totalLine}>
+          {/* Info selección */}
+          <div className="flex items-start justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-3">
             <div>
-              <div style={styles.totalLabel}>Sector</div>
-              <div style={styles.totalValue}>{SECTORES[sector].nombre}</div>
+              <div className="text-xs">Sector</div>
+              <div className="font-bold">{SECTORES[sector].nombre}</div>
             </div>
-            <div>
-              <div style={styles.totalLabel}>Precio unitario</div>
-              <div style={styles.totalValue}>{formatARS(precioUnitario)}</div>
+            <div className="text-right">
+              <div className="text-xs">Precio unitario</div>
+              <div className="font-bold">{formatARS(precioUnitario)}</div>
             </div>
           </div>
 
-          {/* TOTAL calculado */}
-          <div style={styles.grandTotal}>
-            <div style={{ fontWeight: 600, color: "#000" }}>Total a pagar</div>
-            <div style={{ fontWeight: 800, fontSize: 18 }}>{formatARS(total)}</div>
-            <div style={{ fontSize: 12, color: "#555" }}>
-              {cantidad} × {formatARS(precioUnitario)}
+          {/* Total */}
+          <div className="mt-1 border border-dashed border-slate-300 bg-slate-50 rounded-xl px-3 py-3 flex items-center justify-between gap-2">
+            <div className="font-semibold">Total a pagar</div>
+            <div className="text-right">
+              <div className="font-extrabold text-lg">{formatARS(total)}</div>
+              <div className="text-xs text-slate-600">
+                {cantidad} × {formatARS(precioUnitario)}
+              </div>
             </div>
           </div>
 
-          <button onClick={comprar} disabled={loading} style={styles.buyBtn}>
+          <button
+            onClick={comprar}
+            disabled={loading}
+            className="mt-1 inline-flex justify-center items-center px-4 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-60"
+          >
             {loading ? "Comprando..." : "Comprar"}
           </button>
 
-          {error && <p style={styles.error}>{error}</p>}
-          {resultado && <pre style={styles.result}>{JSON.stringify(resultado, null, 2)}</pre>}
+          {error && <p className="text-center text-[0.9rem] text-red-500">{error}</p>}
+          {resultado && (
+            <pre className="whitespace-pre-wrap bg-black text-gray-100 p-3 rounded-lg text-sm">
+              {JSON.stringify(resultado, null, 2)}
+            </pre>
+          )}
         </div>
       </aside>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties | any> = {
-  page: {
-    fontFamily: "Inter, system-ui, Arial, sans-serif",
-    background: "#f5f7fb",
-    minHeight: "100vh",
-    padding: "24px",
-    display: "flex",
-    justifyContent: "center",
-    color: "#000",
-  },
-  sidebar: {
-    background: "#fff",
-    borderRadius: 12,
-    boxShadow: "0 4px 14px rgba(0,0,0,.06)",
-    width: 600,
-    height: "88vh",
-    maxHeight: "88vh",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  sidebarHeader: {
-    padding: "14px 16px",
-    borderBottom: "1px solid #eee",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  clearBtn: {
-    background: "transparent",
-    border: "none",
-    color: "#e67e22",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  list: { flex: 1, overflowY: "auto", padding: 8 },
-  card: {
-    display: "grid",
-    gridTemplateColumns: "24px 1fr auto",
-    gap: 12,
-    alignItems: "center",
-    padding: "12px 10px",
-    borderRadius: 10,
-    border: "1px solid #eee",
-    background: "#fff",
-    margin: 6,
-    cursor: "pointer",
-  },
-  cardActive: { outline: "2px solid #4c8bf5", background: "#f2f7ff" },
-  cardLeft: { display: "flex", alignItems: "center", justifyContent: "center" },
-  colorDot: { width: 14, height: 14, borderRadius: 4, border: "1px solid rgba(0,0,0,.12)" },
-  cardBody: { display: "flex", flexDirection: "column" },
-  cardTitle: { fontWeight: 700, color: "#000" },
-  cardPrice: { fontSize: 13, color: "#000", marginTop: 2 },
-  cardMeta: { fontSize: 12, color: "#000", marginTop: 2 },
-  radio: { width: 16, height: 16 },
-  checkout: {
-    marginTop: "auto",
-    padding: 16,
-    borderTop: "1px solid #eee",
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-    background: "#fff",
-  },
-  block: { display: "flex", flexDirection: "column" },
-  labelMini: { fontSize: 12, color: "#000", marginBottom: 6 },
-  input: {
-    padding: "12px 14px",
-    borderRadius: 8,
-    border: "1px solid #ddd",
-    fontSize: 14,
-    background: "#fafafa",
-    color: "#000",
-  },
-  totalLine: {
-    display: "flex",
-    justifyContent: "space-between",
-    background: "#fafafa",
-    border: "1px solid #eee",
-    borderRadius: 10,
-    padding: "12px 14px",
-    marginTop: 4,
-    color: "#000",
-  },
-  totalLabel: { fontSize: 12, color: "#000" },
-  totalValue: { fontSize: 15, fontWeight: 700, color: "#000" },
-  grandTotal: {
-    marginTop: 8,
-    padding: "12px 14px",
-    borderRadius: 10,
-    border: "1px dashed #cfd8dc",
-    background: "#f8fafc",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  buyBtn: {
-    padding: "14px",
-    fontSize: "1rem",
-    color: "#fff",
-    backgroundColor: "#007BFF",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-    transition: "opacity .2s",
-  },
-  error: { color: "tomato", fontSize: "0.9rem", textAlign: "center" as const },
-  result: {
-    whiteSpace: "pre-wrap" as const,
-    background: "#111",
-    color: "#eee",
-    padding: "12px",
-    borderRadius: 8,
-    fontSize: "0.9rem",
-  },
-};
