@@ -26,6 +26,7 @@ import EventCapacity from './event-capacity';
 import EventDescription from './event-description';
 import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'sonner';
+import { useCreateEvent } from '@/hooks/use-events';
 
 interface TicketType {
   id: string;
@@ -94,8 +95,10 @@ export default function CreateEventForm() {
     });
   }
 
-  const [isCreating, setIsCreating] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+
+  // Hook de TanStack Query para crear eventos
+  const createEventMutation = useCreateEvent();
 
   // check auth
   useEffect(() => {
@@ -128,11 +131,6 @@ export default function CreateEventForm() {
   }, [hasCheckedAuth]);
 
   const handleCreateEvent = async () => {
-    // Por ahora, permitir crear eventos sin autenticación para testing
-    // TODO: Restaurar verificación de autenticación cuando Supabase esté configurado
-
-    // Verificar si hay un usuario "autenticado" (simulado o real)
-
     // Validaciones
     if (!eventName.trim()) {
       toast.error('Por favor ingresa un nombre para el evento');
@@ -149,65 +147,49 @@ export default function CreateEventForm() {
       return;
     }
 
-    setIsCreating(true);
+    // Combinar fecha y hora
+    const startDateTime = new Date(startDate);
+    const [startHour, startMinute] = startTime.split(':');
+    startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
 
-    try {
-      // Combinar fecha y hora
-      const startDateTime = new Date(startDate);
-      const [startHour, startMinute] = startTime.split(':');
-      startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+    const endDateTime = new Date(endDate);
+    const [endHour, endMinute] = endTime.split(':');
+    endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
-      const endDateTime = new Date(endDate);
-      const [endHour, endMinute] = endTime.split(':');
-      endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+    const eventData = {
+      name: eventName,
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+      access: selected.toUpperCase(),
+      location: location.address,
+      description,
+      pricingType: ticketInfo.type.toUpperCase(),
+      capacity: capacityInfo.unlimited ? null : capacityInfo.limit || null,
+      imageUrl: coverImage || undefined,
+    };
 
-      const eventData = {
-        name: eventName,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        access: selected.toUpperCase(),
-        location: location.address,
-        description,
-        pricingType: ticketInfo.type.toUpperCase(),
-        capacity: capacityInfo.unlimited ? null : capacityInfo.limit,
-        imageUrl: coverImage,
-      };
+    // Usar TanStack Query para crear el evento
+    createEventMutation.mutate(eventData, {
+      onSuccess: event => {
+        // Mostrar mensaje de éxito
+        toast.success('¡Evento creado exitosamente!', {
+          description: `${event.name} ha sido creado y está listo para compartir.`,
+        });
 
-      const response = await fetch('/api/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al crear el evento');
-      }
-
-      const event = await response.json();
-
-      // Mostrar mensaje de éxito
-      toast.success('¡Evento creado exitosamente!', {
-        description: `${event.name} ha sido creado y está listo para compartir.`,
-      });
-
-      // Limpiar formulario
-      setEventName('');
-      setDescription('');
-      setCoverImage(null);
-      setLocation(null);
-      setStartDate(new Date());
-      setEndDate(new Date());
-      setStartTime('00:00');
-      setEndTime('00:00');
-    } catch (error) {
-      console.error('Error creating event:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al crear el evento');
-    } finally {
-      setIsCreating(false);
-    }
+        // Limpiar formulario
+        setEventName('');
+        setDescription('');
+        setCoverImage(null);
+        setLocation(null);
+        setStartDate(new Date());
+        setEndDate(new Date());
+        setStartTime('00:00');
+        setEndTime('00:00');
+      },
+      onError: error => {
+        toast.error(error.message || 'Error al crear el evento');
+      },
+    });
   };
 
   if (!isLoaded) {
@@ -287,7 +269,7 @@ export default function CreateEventForm() {
                   <DropdownTrigger asChild>
                     <Button
                       size="sm"
-                      className="flex items-center border-1 bg-stone-900 bg-opacity-60 text-sm font-medium"
+                      className="bg-stone-850 flex items-center !rounded-md !border !border-stone-700 bg-opacity-60 text-sm font-medium"
                     >
                       {visibilityOptions[selected].icon}
                       {visibilityOptions[selected].label}
@@ -307,16 +289,21 @@ export default function CreateEventForm() {
                     className="bg-stone-900 p-0"
                   >
                     {Object.entries(visibilityOptions).map(
-                      ([key, { label, description, icon }]) => (
-                        <DropdownItem key={key} className="bg-stone-900 px-2 py-2">
+                      ([key, { label, description, icon }], index) => (
+                        <DropdownItem
+                          key={key}
+                          className={`!rounded-md !border-0 bg-stone-900 px-3 py-3 transition-colors hover:bg-stone-800 ${
+                            index > 0 ? 'mt-1' : ''
+                          }`}
+                        >
                           <div className="flex items-start">
                             {icon &&
                               React.cloneElement(icon, {
                                 className: 'w-4 h-4 mr-2 flex-shrink-0 self-center',
                               })}
                             <div className="flex flex-col">
-                              <span>{label}</span>
-                              <span className="text-sm leading-tight text-stone-500">
+                              <span className="font-medium">{label}</span>
+                              <span className="text-sm leading-tight text-stone-400">
                                 {description}
                               </span>
                             </div>
@@ -372,9 +359,9 @@ export default function CreateEventForm() {
                 onClick={handleCreateEvent}
                 size="md"
                 className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
-                disabled={isCreating}
+                disabled={createEventMutation.isPending}
               >
-                {isCreating ? 'Creando evento...' : 'Crear evento'}
+                {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
               </Button>
             </div>
           </div>
