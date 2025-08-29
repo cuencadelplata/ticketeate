@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react';
 import { EventCard, Event } from './event-card';
 import { EventFilters, FilterState } from './event-filters';
+import { Check, X } from 'lucide-react';
 
 // Datos de ejemplo para eventos
 const sampleEvents: Event[] = [
@@ -95,6 +96,21 @@ const sampleEvents: Event[] = [
     availableTickets: 180,
     organizer: 'Jazz Club',
   },
+  {
+    id: '7',
+    name: 'Concierto de Jazz al Aire Libre',
+    description:
+      'Disfruta de una velada mágica con los mejores músicos de jazz del país. Música relajante bajo las estrellas en un ambiente íntimo y elegante.',
+    date: '30 Dic 2024',
+    time: '20:30',
+    location: 'Jardín Botánico, Guadalajara',
+    imageUrl: '/api/placeholder/400/300',
+    category: 'musica',
+    price: '$180',
+    capacity: 200,
+    availableTickets: 180,
+    organizer: 'Jazz Club',
+  },
 ];
 
 interface EventsGridProps {
@@ -157,6 +173,9 @@ export function EventsGrid({
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-4xl font-bold text-white">{title}</h2>
           <p className="mx-auto max-w-2xl text-xl text-gray-300">{subtitle}</p>
+        </div>
+        <div className="flex items-center justify-center pb-12">
+          <Check className="bg-red-500 rounded-full w-10 h-10 items-center justify-center" />
         </div>
 
         {/* Filtros */}

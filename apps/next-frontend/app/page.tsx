@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { EventsGrid } from '@/components/events-grid';
 import { CategoryEvents } from '@/components/category-events';
-
+import { Navbar } from '@/components/navbar';
 // Datos de ejemplo para eventos (los mismos que en EventsGrid)
 const sampleEvents = [
   {
@@ -100,6 +100,7 @@ const sampleEvents = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-6 py-24">
         <div className="space-y-8 pt-12 text-center">
           <div className="flex items-center justify-center">
