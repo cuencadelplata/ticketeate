@@ -89,7 +89,9 @@ events.post('/upload-image', async c => {
     }
 
     // Convertir File a Buffer
-    const arrayBuffer = await (file as { arrayBuffer(): Promise<ArrayBuffer> }).arrayBuffer();
+    const arrayBuffer = await (
+      file as { arrayBuffer(): Promise<ArrayBuffer> }
+    ).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Subir imagen a Cloudinary
