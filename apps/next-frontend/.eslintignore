@@ -1,33 +1,13 @@
-# Build outputs
+# Ignore Next build and static files
 .next/
+.next/**
+
+# Ignore build artifacts
 dist/
 build/
-out/
-
-# Dependencies
 node_modules/
+public/build/
 
-# Config files
-*.config.ts
-*.config.js
-tailwind.config.ts
-
-# Generated files
-prisma/
-**/*.d.ts
-
-# Build artifacts
-**/*.min.js
-**/*.bundle.js
-**/*.chunk.js
-
-# TypeScript declaration files
-**/*.d.ts
-
-# Webpack generated files
-.next/static/chunks/
-.next/static/development/
-.next/static/production/
-**/webpack-*.js
-**/*.chunk.js
-**/*.bundle.js
+# Ignore vendor bundles and temp
+.vscode/
+.DS_Store

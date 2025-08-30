@@ -5,8 +5,7 @@
     "dist/**",
     "build/**",
     "node_modules/**",
-    "*.config.js",
-    "*.config.mjs",
-    "*.config.ts"
+    "**/jest.config.js",
+    "**/jest.setup.js"
   ]
 }

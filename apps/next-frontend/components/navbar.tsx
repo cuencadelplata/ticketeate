@@ -1,17 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { Star, Search, Bell } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Bell } from 'lucide-react';
 import Image from 'next/image';
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownSection,
-  DropdownItem,
-  Button,
-  User,
-} from '@heroui/react';
+import { Button } from '@heroui/react';
 import UserNav from './usernav';
 
 export function Navbar() {

@@ -54,6 +54,12 @@ jobs:
       - name: Build database package
         run: pnpm --filter @repo/db build
 
+      - name: Generate Prisma client for Hono backend
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+        working-directory: apps/hono-backend
+        run: npx prisma generate
+
       - name: Run quick checks
         run: |
           echo "🔍 Running quick pre-commit checks..."

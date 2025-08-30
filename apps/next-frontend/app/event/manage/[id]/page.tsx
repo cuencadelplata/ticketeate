@@ -1,16 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getEventoById } from '@/lib/eventos';
 import { Navbar } from '@/components/navbar';
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Settings,
-  Share2,
-  BarChart3,
-  MessageCircle,
-  Info,
-} from 'lucide-react';
+import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

@@ -8,116 +8,184 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Event {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  startDate     DateTime
-  endDate       DateTime?
-  location      String?
-  capacity      Int?
-  access        String   @default("PUBLIC") // PUBLIC, PRIVATE
-  pricingType   String   @default("FREE")  // FREE, PAID
-  imageUrl      String?
-  producerId    String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relaciones
-  tickets       Ticket[]
-  ticketOptions TicketOption[]
-  
-  @@map("events")
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model categorias_entrada {
+  id_categoria     BigInt     @id @default(autoincrement())
+  id_evento        BigInt
+  nombre           String     @db.VarChar(100)
+  precio           Decimal    @db.Decimal(10, 2)
+  stock_total      Int
+  stock_disponible Int
+  max_por_usuario  Int?       @default(4)
+  eventos          eventos    @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+  reservas         reservas[]
 }
 
-model Ticket {
-  id        String   @id @default(cuid())
-  eventId   String
-  userId    String?
-  status    String   @default("AVAILABLE") // AVAILABLE, SOLD, USED
-  createdAt DateTime @default(now())
-  
-  // Relaciones
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  @@map("tickets")
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cola_turnos {
+  id_turno       BigInt       @id @default(autoincrement())
+  id_cola        BigInt
+  id_usuario     BigInt
+  estado         String?      @default("esperando") @db.VarChar(20)
+  posicion       Int
+  fecha_ingreso  DateTime?    @default(now()) @db.Timestamptz(6)
+  fecha_atencion DateTime?    @db.Timestamptz(6)
+  colas_evento   colas_evento @relation(fields: [id_cola], references: [id_cola], onDelete: Cascade, onUpdate: NoAction)
+  usuarios       usuarios     @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model TicketOption {
-  id          String   @id @default(cuid())
-  eventId     String
-  name        String
-  description String?
-  price       Decimal  @default(0)
-  quantity    Int
-  createdAt   DateTime @default(now())
-  
-  // Relaciones
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  @@map("ticket_options")
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model colas_evento {
+  id_cola          BigInt        @id @default(autoincrement())
+  id_evento        BigInt
+  max_concurrentes Int
+  max_usuarios     Int
+  fecha_creacion   DateTime?     @default(now()) @db.Timestamptz(6)
+  cola_turnos      cola_turnos[]
+  eventos          eventos       @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@map("users")
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model entradas {
+  id_entrada BigInt   @id @default(autoincrement())
+  id_reserva BigInt
+  codigo_qr  String   @unique @db.VarChar(255)
+  estado     String?  @default("valida") @db.VarChar(20)
+  reservas   reservas @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade, onUpdate: NoAction)
 }
 
-/// Nuevos modelos basados en el diagrama: reservas, pagos, entradas, logs_eventos
-
-model Reserva {
-  id             Int        @id @default(autoincrement()) @map("id_reserva")
-  id_usuario     Int
-  id_evento      Int
-  id_fecha       Int?
-  id_categoria   Int?
-  cantidad       Int
-  estado         String
-  fecha_reserva  DateTime   @default(now())
-
-  pagos          Pago[]
-  entradas       Entrada[]
-
-  @@map("reservas")
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model estadisticas {
+  id_estadistica       BigInt    @id @default(autoincrement())
+  id_evento            BigInt
+  total_vendidos       Int?      @default(0)
+  total_cancelados     Int?      @default(0)
+  total_ingresos       Decimal?  @default(0) @db.Decimal(12, 2)
+  ultima_actualizacion DateTime? @default(now()) @db.Timestamptz(6)
+  eventos              eventos   @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model Pago {
-  id          Int       @id @default(autoincrement()) @map("id_pago")
-  reservaId   Int       @map("id_reserva")
-  metodo_pago String
-  monto_total Decimal
-  estado      String
-  fecha_pago  DateTime  @default(now())
-
-  reserva     Reserva   @relation(fields: [reservaId], references: [id])
-
-  @@map("pagos")
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model eventos {
+  id_evento          BigInt               @id @default(autoincrement())
+  titulo             String               @db.VarChar(200)
+  descripcion        String?
+  ubicacion          String?              @db.VarChar(255)
+  fecha_creacion     DateTime?            @default(now()) @db.Timestamptz(6)
+  fecha_inicio_venta DateTime             @db.Timestamptz(6)
+  fecha_fin_venta    DateTime             @db.Timestamptz(6)
+  estado             String?              @default("oculto") @db.VarChar(20)
+  categorias_entrada categorias_entrada[]
+  colas_evento       colas_evento[]
+  estadisticas       estadisticas[]
+  fechas_evento      fechas_evento[]
+  imagenes_evento    imagenes_evento[]
+  logs_eventos       logs_eventos[]
+  reservas           reservas[]
 }
 
-model Entrada {
-  id         Int      @id @default(autoincrement()) @map("id_entrada")
-  reservaId  Int      @map("id_reserva")
-  codigo_qr  String
-  estado     String
-
-  reserva    Reserva  @relation(fields: [reservaId], references: [id])
-
-  @@map("entradas")
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model fechas_evento {
+  id_fecha   BigInt     @id @default(autoincrement())
+  id_evento  BigInt
+  fecha_hora DateTime   @db.Timestamptz(6)
+  eventos    eventos    @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+  reservas   reservas[]
 }
 
-model LogEvento {
-  id        Int      @id @default(autoincrement()) @map("id_log")
-  id_evento Int
-  id_usuario Int
-  accion    String
-  detalle   String?
-  fecha     DateTime @default(now())
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model imagenes_evento {
+  id_imagen BigInt  @id @default(autoincrement())
+  id_evento BigInt
+  url       String  @db.VarChar(500)
+  tipo      String? @default("galeria") @db.VarChar(20)
+  eventos   eventos @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+}
 
-  @@map("logs_eventos")
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model logs_eventos {
+  id_log     BigInt    @id @default(autoincrement())
+  id_evento  BigInt
+  id_usuario BigInt?
+  accion     String    @db.VarChar(100)
+  detalle    String?
+  fecha      DateTime? @default(now()) @db.Timestamptz(6)
+  eventos    eventos   @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+  usuarios   usuarios? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pagos {
+  id_pago     BigInt    @id @default(autoincrement())
+  id_reserva  BigInt
+  metodo_pago String    @db.VarChar(50)
+  monto_total Decimal   @db.Decimal(10, 2)
+  estado      String?   @default("pendiente") @db.VarChar(20)
+  fecha_pago  DateTime? @default(now()) @db.Timestamptz(6)
+  reservas    reservas  @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservas {
+  id_reserva         BigInt             @id @default(autoincrement())
+  id_usuario         BigInt
+  id_evento          BigInt
+  id_fecha           BigInt
+  id_categoria       BigInt
+  cantidad           Int
+  estado             String?            @default("pendiente") @db.VarChar(20)
+  fecha_reserva      DateTime?          @default(now()) @db.Timestamptz(6)
+  entradas           entradas[]
+  pagos              pagos[]
+  categorias_entrada categorias_entrada @relation(fields: [id_categoria], references: [id_categoria], onDelete: Cascade, onUpdate: NoAction)
+  eventos            eventos            @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+  fechas_evento      fechas_evento      @relation(fields: [id_fecha], references: [id_fecha], onDelete: Cascade, onUpdate: NoAction)
+  usuarios           usuarios           @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model sesiones {
+  id_sesion        BigInt    @id @default(autoincrement())
+  id_usuario       BigInt
+  token            String    @unique @db.VarChar(255)
+  fecha_inicio     DateTime? @default(now()) @db.Timestamptz(6)
+  fecha_expiracion DateTime  @db.Timestamptz(6)
+  usuarios         usuarios  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model usuarios {
+  id_usuario     BigInt         @id @default(autoincrement())
+  nombre         String         @db.VarChar(100)
+  apellido       String         @db.VarChar(100)
+  email          String         @unique @db.VarChar(150)
+  password_hash  String         @db.VarChar(255)
+  telefono       String?        @db.VarChar(20)
+  rol            String?        @default("usuario") @db.VarChar(20)
+  fecha_registro DateTime?      @default(now()) @db.Timestamptz(6)
+  estado         String?        @default("activo") @db.VarChar(20)
+  clerk_id       String?        @unique @db.VarChar(255)
+  cola_turnos    cola_turnos[]
+  logs_eventos   logs_eventos[]
+  reservas       reservas[]
+  sesiones       sesiones[]
+}
+
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+enum EventoEstado {
+  ACTIVO
+  CANCELADO
+  COMPLETADO
 }

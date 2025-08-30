@@ -96,7 +96,7 @@ export async function getEventosByProductor(productorId: string): Promise<Evento
       },
     });
 
-    return events.map(event => ({
+    return events.map((event: any) => ({
       id: event.id,
       titulo: event.name,
       descripcion: event.description || undefined,
