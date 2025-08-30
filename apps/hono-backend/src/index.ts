@@ -52,6 +52,7 @@ app.notFound(c => {
 
 // Error handler
 app.onError((err, c) => {
+  // eslint-disable-next-line no-console
   console.error('Error:', err);
   return c.json({ error: 'Internal Server Error' }, 500);
 });

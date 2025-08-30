@@ -60,6 +60,7 @@ events.post('/', async c => {
       201
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error creating event:', error);
     return c.json(
       {
@@ -81,7 +82,7 @@ events.post('/upload-image', async c => {
 
     // Usar formData para procesar el archivo
     const formData = await c.req.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file') as unknown as File;
 
     if (!file) {
       return c.json({ error: 'No se proporcionó ninguna imagen' }, 400);
@@ -105,6 +106,7 @@ events.post('/upload-image', async c => {
       userId: auth.userId,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error uploading image:', error);
     return c.json(
       {
@@ -132,6 +134,7 @@ events.get('/', async c => {
       userId: auth.userId,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error getting events:', error);
     return c.json(
       {
@@ -165,6 +168,7 @@ events.get('/:id', async c => {
       userId: auth.userId,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error getting event:', error);
     return c.json(
       {

@@ -1,5 +1,4 @@
 import { prisma } from '../config/prisma';
-import { ImageUploadService, UploadResult } from './image-upload';
 
 export interface CreateEventData {
   titulo: string;
@@ -87,6 +86,7 @@ export class EventService {
 
       return eventoCompleto as EventWithImages;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error creating event:', error);
       throw new Error(
         `Error al crear el evento: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -105,6 +105,7 @@ export class EventService {
 
       return evento as EventWithImages | null;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error getting event:', error);
       throw new Error(
         `Error al obtener el evento: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -112,7 +113,7 @@ export class EventService {
     }
   }
 
-  static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
+  static async getUserEvents(_clerkUserId: string): Promise<EventWithImages[]> {
     try {
       // Por ahora, retornamos todos los eventos
       // En el futuro, podrías agregar una tabla de relación usuario-evento
@@ -127,6 +128,7 @@ export class EventService {
 
       return eventos as EventWithImages[];
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error getting user events:', error);
       throw new Error(
         `Error al obtener los eventos del usuario: ${error instanceof Error ? error.message : 'Unknown error'}`
