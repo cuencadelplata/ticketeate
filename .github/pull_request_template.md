@@ -20,4 +20,3 @@
 - [ ] Improving documentation
 - [ ] Adding or updating UI
 - [ ] Performance - bundle size improvement (if applicable)
-
