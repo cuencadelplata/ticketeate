@@ -204,20 +204,20 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <button className="group flex w-full items-start gap-3 rounded-lg border border-stone-700/50 bg-stone-900/80 p-3 text-left transition-all duration-200 hover:border-stone-600/70 hover:bg-stone-800/60 hover:shadow-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-stone-800/60 group-hover:bg-stone-700/60 transition-colors">
-              <FileText className="h-4 w-4 text-stone-300" />
+          <button className="group flex w-full items-start gap-2 p-2 text-left rounded-md border bg-stone-900 bg-opacity-60 transition-colors hover:bg-stone-800/50">
+            <div className="flex h-4.5 w-4.5 items-center justify-center rounded-md">
+              <FileText className="mt-0.5 h-4 w-4 text-stone-400" />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
               <span className="text-sm font-medium text-stone-100">
                 {description ? 'Descripción del evento' : 'Agregar descripción'}
               </span>
               {description ? (
-                <span className="line-clamp-2 mt-1 text-sm text-stone-400 leading-relaxed">
+                <span className="line-clamp-1 text-sm text-stone-400 leading-relaxed">
                   {description}
                 </span>
               ) : (
-                <span className="mt-1 text-sm text-stone-500">
+                <span className="text-xs text-stone-400">
                   Describe quién debería asistir y de qué trata el evento
                 </span>
               )}
