@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type SectorKey = 'Entrada_General' | 'Entrada_VIP';
 
@@ -25,6 +26,7 @@ const SECTORES: Record<
 };
 
 export default function ComprarPage() {
+  const router = useRouter();
   const [idUsuario] = useState<number>(1);
   const [idEvento] = useState<number>(1);
 
@@ -91,6 +93,7 @@ export default function ComprarPage() {
         setCantidad(1);
         setSector('Entrada_General');
         setMetodo('efectivo');
+        router.push('/'); // Redirigir al menú principal
       }, 3000);
       
     } catch (e: any) {
@@ -293,6 +296,12 @@ export default function ComprarPage() {
                   </div>
                   <div className="mt-3 text-xs text-green-600">
                     Se han generado {cantidad} código(s) QR para tu entrada
+                  </div>
+                  <div className="mt-3 text-xs text-blue-600 font-medium">
+                    ⏱️ Serás redirigido al menú principal en 3 segundos...
+                  </div>
+                  <div className="mt-3 text-xs text-blue-600 font-medium">
+                    ⏱️ Serás redirigido al menú principal en 3 segundos...
                   </div>
                 </div>
               )}
