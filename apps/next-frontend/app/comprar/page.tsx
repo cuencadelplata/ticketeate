@@ -59,33 +59,33 @@ export default function ComprarPage() {
     setError(null);
     setResultado(null);
     setShowSuccess(false);
-    
+
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
     };
-    
+
     console.log('Enviando datos a la API:', datosCompra);
-    
+
     try {
       const res = await fetch('/api/comprar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosCompra),
       });
-      
+
       console.log('Respuesta de la API:', res.status, res.statusText);
-      
+
       const data = await res.json();
       console.log('Datos recibidos:', data);
-      
+
       if (!res.ok) throw new Error(data.error || 'Error');
-      
+
       setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
       setShowSuccess(true);
-      
+
       // Resetear formulario después de 3 segundos
       setTimeout(() => {
         setShowSuccess(false);
@@ -95,7 +95,6 @@ export default function ComprarPage() {
         setMetodo('efectivo');
         router.push('/'); // Redirigir al menú principal
       }, 3000);
-      
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
@@ -144,16 +143,13 @@ export default function ComprarPage() {
             {/* Header fijo */}
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <span className="font-bold">Seleccionar sector</span>
-              <button
-                className="font-semibold text-orange-500 hover:underline"
-                onClick={resetForm}
-              >
+              <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>
                 Limpiar selección
               </button>
             </div>
 
             {/* Lista de sectores con scroll */}
-            <div className="flex-1 overflow-y-auto p-2 max-h-[300px]">
+            <div className="max-h-[300px] flex-1 overflow-y-auto p-2">
               {(Object.keys(SECTORES) as SectorKey[]).map(key => {
                 const s = SECTORES[key];
                 const activo = key === sector;
@@ -203,9 +199,9 @@ export default function ComprarPage() {
             </div>
 
             {/* Checkout fijo en la parte inferior */}
-            <div className="border-t border-gray-200 bg-gray-50 p-4 rounded-b-2xl">
+            <div className="rounded-b-2xl border-t border-gray-200 bg-gray-50 p-4">
               {/* Cantidad */}
-              <div className="flex flex-col mb-3">
+              <div className="mb-3 flex flex-col">
                 <label className="mb-1 text-xs font-medium text-gray-700">Cantidad</label>
                 <select
                   value={String(cantidad)}
@@ -222,7 +218,7 @@ export default function ComprarPage() {
               </div>
 
               {/* Método */}
-              <div className="flex flex-col mb-3">
+              <div className="mb-3 flex flex-col">
                 <label className="mb-1 text-xs font-medium text-gray-700">Método de pago</label>
                 <select
                   value={metodo}
@@ -237,7 +233,7 @@ export default function ComprarPage() {
               </div>
 
               {/* Info selección */}
-              <div className="flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3 mb-3">
+              <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
                 <div>
                   <div className="text-xs text-gray-500">Sector</div>
                   <div className="font-bold">{SECTORES[sector].nombre}</div>
@@ -249,7 +245,7 @@ export default function ComprarPage() {
               </div>
 
               {/* Total */}
-              <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-blue-200 bg-blue-50 px-3 py-3 mb-4">
+              <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border-2 border-blue-200 bg-blue-50 px-3 py-3">
                 <div className="font-semibold text-blue-800">Total a pagar</div>
                 <div className="text-right">
                   <div className="text-lg font-extrabold text-blue-900">{formatARS(total)}</div>
@@ -264,14 +260,14 @@ export default function ComprarPage() {
                 <button
                   onClick={comprar}
                   disabled={loading}
-                  className="w-full inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
                   {loading ? 'Comprando...' : 'Comprar'}
                 </button>
               ) : (
                 <button
                   onClick={resetForm}
-                  className="w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 transition-colors"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition-colors hover:bg-green-700"
                 >
                   Comprar más entradas
                 </button>
@@ -279,17 +275,19 @@ export default function ComprarPage() {
 
               {/* Mensajes de error y éxito */}
               {error && (
-                <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3">
+                <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
                   <p className="text-center text-sm text-red-600">❌ {error}</p>
                 </div>
               )}
-              
+
               {showSuccess && resultado && (
-                <div className="mt-3 rounded-lg bg-green-50 border border-green-200 p-4 text-center">
-                  <div className="text-4xl mb-2">🎉</div>
-                  <h3 className="font-bold text-green-800 text-lg mb-2">¡Compra exitosa!</h3>
-                  <div className="text-sm text-green-700 space-y-1">
-                    <p>✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}</p>
+                <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
+                  <div className="mb-2 text-4xl">🎉</div>
+                  <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
+                  <div className="space-y-1 text-sm text-green-700">
+                    <p>
+                      ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
+                    </p>
                     <p>💰 Total: {formatARS(total)}</p>
                     <p>💳 Método: {metodo}</p>
                     <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
@@ -297,10 +295,10 @@ export default function ComprarPage() {
                   <div className="mt-3 text-xs text-green-600">
                     Se han generado {cantidad} código(s) QR para tu entrada
                   </div>
-                  <div className="mt-3 text-xs text-blue-600 font-medium">
+                  <div className="mt-3 text-xs font-medium text-blue-600">
                     ⏱️ Serás redirigido al menú principal en 3 segundos...
                   </div>
-                  <div className="mt-3 text-xs text-blue-600 font-medium">
+                  <div className="mt-3 text-xs font-medium text-blue-600">
                     ⏱️ Serás redirigido al menú principal en 3 segundos...
                   </div>
                 </div>
