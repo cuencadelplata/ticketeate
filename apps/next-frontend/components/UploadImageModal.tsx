@@ -1,7 +1,7 @@
 import React, { useState, useRef, DragEvent, useEffect } from 'react';
 import { Search, Upload, History, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-// Image import removed because it's not used in this component
+import { useImageUpload } from '@/hooks/use-image-upload';
 
 interface UploadImageModalProps {
   onClose: () => void;
@@ -99,166 +99,91 @@ const getUserImages = (): UserImage[] => {
   }
 };
 
-// Función para subir a Supabase (placeholder)
-const uploadToSupabase = async (): Promise<string | null> => {
-  try {
-    // Por ahora, devolvemos null para usar el fallback local
-    // TODO: Implementar subida real a Supabase
-    console.log('Supabase upload not implemented yet, using local fallback');
-    return null;
-  } catch (error) {
-    console.error('Error uploading to Supabase:', error);
-    return null;
-  }
-};
-
 const deleteImageFromLibrary = (imageId: string) => {
   try {
-    const existingImages = getUserImages();
-    const updatedImages = existingImages.filter(img => img.id !== imageId);
+    const existingImages = JSON.parse(localStorage.getItem('user-images') || '[]');
+    const updatedImages = existingImages.filter((img: UserImage) => img.id !== imageId);
     localStorage.setItem('user-images', JSON.stringify(updatedImages));
   } catch (error) {
     console.error('Error deleting image from library:', error);
   }
 };
 
-const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectImage }) => {
+export default function UploadImageModal({ onClose, onSelectImage }: UploadImageModalProps) {
   const [selectedCategory, setSelectedCategory] = useState('biblioteca');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userImages, setUserImages] = useState<UserImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [userImages, setUserImages] = useState<UserImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cargar imágenes del usuario al montar el componente
+  // Usar el hook de subida de imágenes
+  const { uploadImage } = useImageUpload();
+
   useEffect(() => {
     setUserImages(getUserImages());
   }, []);
 
-  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragEnter = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    handleFiles(files);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFiles(files[0]);
+    }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      handleFiles(files);
+    if (files && files.length > 0) {
+      handleFiles(files[0]);
     }
   };
 
-  const handleFiles = async (files: FileList) => {
-    const uploadedFile = files[0];
-    if (!uploadedFile) return;
-
-    if (uploadedFile.size > 5 * 1024 * 1024) {
-      toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
-      return;
-    }
-
+  const handleFiles = async (uploadedFile: File) => {
     if (!uploadedFile.type.startsWith('image/')) {
       toast.error('Por favor, selecciona un archivo de imagen válido.');
       return;
     }
 
-    setIsUploading(true);
-
     try {
-      // Subir a Supabase Storage
-      const imageUrl = await uploadToSupabase();
+      setIsUploading(true);
 
-      if (imageUrl) {
-        // Guardar en la biblioteca
-        const newImage: UserImage = {
-          id: Date.now().toString(),
-          url: imageUrl,
-          name: uploadedFile.name,
-          uploadedAt: new Date().toISOString(),
-          size: uploadedFile.size,
-        };
+      // Subir imagen usando el hook
+      const result = await uploadImage(uploadedFile);
 
-        saveImageToLibrary(newImage);
-        setUserImages(getUserImages());
+      // Guardar en la biblioteca local
+      const newImage: UserImage = {
+        id: Date.now().toString(),
+        url: result.image.url,
+        name: uploadedFile.name,
+        uploadedAt: new Date().toISOString(),
+        size: result.image.size,
+      };
 
-        toast.success('Imagen subida exitosamente');
-        onSelectImage(imageUrl);
-      } else {
-        // Fallback: usar base64 para preview local
-        toast.warning('Usando vista previa local de la imagen');
-        const reader = new FileReader();
-        reader.onload = e => {
-          const result = e.target?.result;
-          if (typeof result === 'string') {
-            // Guardar también las imágenes base64 en la biblioteca
-            const newImage: UserImage = {
-              id: Date.now().toString(),
-              url: result,
-              name: uploadedFile.name,
-              uploadedAt: new Date().toISOString(),
-              size: uploadedFile.size,
-            };
+      saveImageToLibrary(newImage);
+      setUserImages(getUserImages());
 
-            saveImageToLibrary(newImage);
-            setUserImages(getUserImages());
-
-            onSelectImage(result);
-          }
-        };
-        reader.readAsDataURL(uploadedFile);
-      }
+      toast.success('Imagen subida exitosamente a Cloudinary');
+      onSelectImage(result.image.url);
     } catch (error) {
       console.error('Error uploading image:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen';
-
-      if (errorMessage.includes('Supabase no está configurado')) {
-        toast.warning('Supabase no configurado', {
-          description: 'Usando vista previa local. Configura Supabase para subir imágenes.',
-        });
-      } else {
-        toast.error(errorMessage);
-      }
-
-      // Fallback: usar base64 para preview local
-      const reader = new FileReader();
-      reader.onload = e => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          // Guardar también las imágenes base64 en la biblioteca
-          const newImage: UserImage = {
-            id: Date.now().toString(),
-            url: result,
-            name: uploadedFile.name,
-            uploadedAt: new Date().toISOString(),
-            size: uploadedFile.size,
-          };
-
-          saveImageToLibrary(newImage);
-          setUserImages(getUserImages());
-
-          onSelectImage(result);
-        }
-      };
-      reader.readAsDataURL(uploadedFile);
+      toast.error('Error al subir la imagen. Inténtalo de nuevo.');
     } finally {
       setIsUploading(false);
     }
@@ -335,6 +260,8 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
             <input
               type="text"
               placeholder="Buscar más fotos"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-md border border-gray-700 bg-[#1E1E1E] py-2 pl-10 pr-4 text-sm text-white focus:border-gray-500 focus:outline-none"
             />
           </div>
@@ -419,7 +346,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
                       className="aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
                     >
                       <img
-                        src={image}
+                        src={typeof image === 'string' ? image : ''}
                         alt={`${categoryLabel} image ${index + 1}`}
                         className="h-full w-full object-cover"
                       />
@@ -431,6 +358,4 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
       </div>
     </div>
   );
-};
-
-export default UploadImageModal;
+}

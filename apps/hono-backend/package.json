@@ -11,17 +11,28 @@
     "deploy:prod": "npm run build && serverless deploy --stage production",
     "lint": "eslint src",
     "check-types": "tsc --noEmit",
-    "test": "echo 'No tests configured yet'"
+    "test": "echo 'No tests configured yet'",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@clerk/backend": "^2.10.1",
+    "@hono/clerk-auth": "^3.0.3",
     "@hono/node-server": "^1.0.0",
-    "hono": "^4.0.0"
+    "@prisma/client": "^6.15.0",
+    "@types/multer": "^2.0.0",
+    "cloudinary": "^2.7.0",
+    "hono": "^4.0.0",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
     "@repo/eslint-config": "workspace:*",
+    "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
+    "prisma": "^6.15.0",
     "serverless": "^3.38.0",
     "serverless-offline": "^13.3.0",
     "tsx": "^4.0.0",

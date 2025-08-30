@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { apiRoutes } from './routes/api';
 
 const app = new Hono();
 
@@ -9,7 +10,7 @@ app.use('*', logger());
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3001', 'http://localhost:3002'],
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -41,6 +42,9 @@ app.get('/api/users', c => {
   });
 });
 
+// Montar las rutas de la API (incluye /api/events/*)
+app.route('/api', apiRoutes);
+
 // 404 handler
 app.notFound(c => {
   return c.json({ error: 'Not Found' }, 404);
@@ -48,6 +52,7 @@ app.notFound(c => {
 
 // Error handler
 app.onError((err, c) => {
+  // eslint-disable-next-line no-console
   console.error('Error:', err);
   return c.json({ error: 'Internal Server Error' }, 500);
 });

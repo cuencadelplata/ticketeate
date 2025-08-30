@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, MapPin, Calendar, Music, Palette, Users2 } from 'lucide-react';
+import { Search, Filter, Music, Palette, Users2 } from 'lucide-react';
 
 interface EventFiltersProps {
   onFiltersChange: (filters: FilterState) => void;

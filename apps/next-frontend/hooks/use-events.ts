@@ -1,54 +1,79 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@/lib/config';
+import { useClerkToken } from './use-clerk-token';
 
 interface Event {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  access: string;
-  location: string;
-  description: string;
-  pricingType: string;
-  capacity: number | null;
-  imageUrl?: string;
+  id_evento: string;
+  titulo: string;
+  descripcion?: string;
+  ubicacion?: string;
+  fecha_creacion?: string;
+  fecha_inicio_venta: string;
+  fecha_fin_venta: string;
+  estado?: string;
+  imagenes_evento: Array<{
+    id_imagen: string;
+    url: string;
+    tipo?: string;
+  }>;
 }
 
 interface CreateEventData {
-  name: string;
-  startDate: string;
-  endDate: string;
-  access: string;
-  location: string;
-  description: string;
-  pricingType: string;
-  capacity: number | null;
+  titulo: string;
+  descripcion?: string;
+  ubicacion?: string;
+  fecha_inicio_venta: string;
+  fecha_fin_venta: string;
+  estado?: string;
   imageUrl?: string;
 }
 
 // Hook para obtener eventos
 export function useEvents() {
+  const { token } = useClerkToken();
+
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      const response = await fetch('/api/events');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch(API_ENDPOINTS.events, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error('Error al obtener eventos');
       }
-      return response.json();
+      const data = await response.json();
+      return data.events || [];
     },
   });
 }
 
 // Hook para obtener un evento específico
 export function useEvent(id: string) {
+  const { token } = useClerkToken();
+
   return useQuery({
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
-      const response = await fetch(`/api/events/${id}`);
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error('Error al obtener el evento');
       }
-      return response.json();
+      const data = await response.json();
+      return data.event;
     },
     enabled: !!id,
   });
@@ -57,13 +82,19 @@ export function useEvent(id: string) {
 // Hook para crear un evento
 export function useCreateEvent() {
   const queryClient = useQueryClient();
+  const { token } = useClerkToken();
 
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
-      const response = await fetch('/api/event', {
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch(API_ENDPOINTS.events, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(eventData),
       });
@@ -73,7 +104,8 @@ export function useCreateEvent() {
         throw new Error(error.error || 'Error al crear el evento');
       }
 
-      return response.json();
+      const data = await response.json();
+      return data.event;
     },
     onSuccess: newEvent => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
@@ -120,9 +152,9 @@ export function useUpdateEvent() {
     },
     onSuccess: updatedEvent => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id] });
+      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
 
-      queryClient.setQueryData(['events', updatedEvent.id], updatedEvent);
+      queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
     },
   });
 }
@@ -147,7 +179,7 @@ export function useDeleteEvent() {
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
-          return oldEvents.filter(event => event.id !== deletedId);
+          return oldEvents.filter(event => event.id_evento !== deletedId);
         }
         return [];
       });

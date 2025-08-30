@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:main": "turbo run dev --filter=@ticketeate/hono-backend --filter=Ticketeate",
     "lint": "turbo run lint",
     "lint:apps": "turbo run lint --filter=apps/*",
     "db:generate": "cd packages/db && pnpm db:generate",

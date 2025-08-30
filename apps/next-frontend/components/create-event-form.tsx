@@ -27,6 +27,7 @@ import EventDescription from './event-description';
 import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
+import { useAuth } from '@clerk/nextjs';
 
 interface TicketType {
   id: string;
@@ -75,10 +76,12 @@ export default function CreateEventForm() {
   // Date formatter intentionally not used in this component
 
   const [description, setDescription] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [ticketInfo, setTicketInfo] = useState<{
     type: 'free' | 'paid';
     price?: number;
   }>({ type: 'free' });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [capacityInfo, setCapacityInfo] = useState<{
     unlimited: boolean;
     limit?: number;
@@ -99,27 +102,12 @@ export default function CreateEventForm() {
 
   // Hook de TanStack Query para crear eventos
   const createEventMutation = useCreateEvent();
+  const { isSignedIn } = useAuth();
 
   // check auth
   useEffect(() => {
     const checkAuthAndShowModal = () => {
       try {
-        const hasAuth = localStorage.getItem('demo-auth');
-
-        if (!hasAuth && !hasCheckedAuth) {
-          // show welcome message
-          toast('¡Bienvenido a Ticketeate! 🎉', {
-            description: 'Crea eventos increíbles en segundos',
-            duration: 3000,
-          });
-        } else if (hasAuth && !hasCheckedAuth) {
-          // Usuario ya autenticado
-          const user = JSON.parse(localStorage.getItem('demo-user') || '{}');
-          toast.success('¡Listo para crear tu evento!', {
-            description: `Bienvenido ${user.email || 'Usuario'}`,
-          });
-        }
-
         setHasCheckedAuth(true);
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -131,6 +119,12 @@ export default function CreateEventForm() {
   }, [hasCheckedAuth]);
 
   const handleCreateEvent = async () => {
+    // Validar autenticación
+    if (!isSignedIn) {
+      toast.error('Debes iniciar sesión para crear eventos');
+      return;
+    }
+
     // Validaciones
     if (!eventName.trim()) {
       toast.error('Por favor ingresa un nombre para el evento');
@@ -157,14 +151,12 @@ export default function CreateEventForm() {
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
     const eventData = {
-      name: eventName,
-      startDate: startDateTime.toISOString(),
-      endDate: endDateTime.toISOString(),
-      access: selected.toUpperCase(),
-      location: location.address,
-      description,
-      pricingType: ticketInfo.type.toUpperCase(),
-      capacity: capacityInfo.unlimited ? null : capacityInfo.limit || null,
+      titulo: eventName,
+      fecha_inicio_venta: startDateTime.toISOString(),
+      fecha_fin_venta: endDateTime.toISOString(),
+      estado: selected === 'public' ? 'activo' : 'oculto',
+      ubicacion: location.address,
+      descripcion: description,
       imageUrl: coverImage || undefined,
     };
 
@@ -173,7 +165,7 @@ export default function CreateEventForm() {
       onSuccess: event => {
         // Mostrar mensaje de éxito
         toast.success('¡Evento creado exitosamente!', {
-          description: `${event.name} ha sido creado y está listo para compartir.`,
+          description: `${event.titulo} ha sido creado y está listo para compartir.`,
         });
 
         // Limpiar formulario
