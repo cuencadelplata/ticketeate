@@ -1,0 +1,179 @@
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { getAuth } from '@hono/clerk-auth';
+import { EventService, CreateEventData } from '../services/event-service';
+import { ImageUploadService } from '../services/image-upload';
+
+const events = new Hono();
+
+events.use(
+  '*',
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
+
+// POST /api/events - Crear un nuevo evento
+events.post('/', async c => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const body = await c.req.json();
+
+    // Validar datos requeridos
+    if (!body.titulo || !body.fecha_inicio_venta || !body.fecha_fin_venta) {
+      return c.json(
+        {
+          error:
+            'Faltan campos requeridos: titulo, fecha_inicio_venta, fecha_fin_venta',
+        },
+        400
+      );
+    }
+
+    // Preparar datos del evento
+    const eventData: CreateEventData = {
+      titulo: body.titulo,
+      descripcion: body.descripcion,
+      ubicacion: body.ubicacion,
+      fecha_inicio_venta: new Date(body.fecha_inicio_venta),
+      fecha_fin_venta: new Date(body.fecha_fin_venta),
+      estado: body.estado || 'oculto',
+      imageUrl: body.imageUrl, // URL de imagen ya subida a Cloudinary
+      clerkUserId: auth.userId,
+    };
+
+    // Crear el evento
+    const createdEvent = await EventService.createEvent(eventData);
+
+    return c.json(
+      {
+        message: 'Evento creado exitosamente',
+        event: createdEvent,
+      },
+      201
+    );
+  } catch (error) {
+    console.error('Error creating event:', error);
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500
+    );
+  }
+});
+
+// POST /api/events/upload-image - Subir imagen para un evento
+events.post('/upload-image', async c => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    // Usar formData para procesar el archivo
+    const formData = await c.req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return c.json({ error: 'No se proporcionó ninguna imagen' }, 400);
+    }
+
+    // Convertir File a Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Subir imagen a Cloudinary
+    const uploadResult = await ImageUploadService.uploadImage(buffer);
+
+    return c.json({
+      message: 'Imagen subida exitosamente',
+      image: {
+        url: uploadResult.url,
+        publicId: uploadResult.publicId,
+        format: uploadResult.format,
+        size: uploadResult.size,
+      },
+      userId: auth.userId,
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500
+    );
+  }
+});
+
+// GET /api/events - Obtener eventos del usuario
+events.get('/', async c => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const events = await EventService.getUserEvents(auth.userId);
+
+    return c.json({
+      events,
+      total: events.length,
+      userId: auth.userId,
+    });
+  } catch (error) {
+    console.error('Error getting events:', error);
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500
+    );
+  }
+});
+
+// GET /api/events/:id - Obtener evento específico
+events.get('/:id', async c => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const id = c.req.param('id');
+    const eventId = BigInt(id);
+
+    const event = await EventService.getEventById(eventId);
+
+    if (!event) {
+      return c.json({ error: 'Evento no encontrado' }, 404);
+    }
+
+    return c.json({
+      event,
+      userId: auth.userId,
+    });
+  } catch (error) {
+    console.error('Error getting event:', error);
+    return c.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500
+    );
+  }
+});
+
+export { events };

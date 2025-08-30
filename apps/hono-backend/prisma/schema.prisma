@@ -159,7 +159,6 @@ model sesiones {
   usuarios         usuarios  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model usuarios {
   id_usuario     BigInt         @id @default(autoincrement())
@@ -171,7 +170,7 @@ model usuarios {
   rol            String?        @default("usuario") @db.VarChar(20)
   fecha_registro DateTime?      @default(now()) @db.Timestamptz(6)
   estado         String?        @default("activo") @db.VarChar(20)
-  clerk_id       String?        @unique @db.VarChar(255)
+  clerk_id       String?        @unique @db.VarChar(255) // Agregar campo para Clerk ID
   cola_turnos    cola_turnos[]
   logs_eventos   logs_eventos[]
   reservas       reservas[]

@@ -6,9 +6,10 @@ import { timing } from 'hono/timing';
 // Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
+import { clerkMiddleware } from '@hono/clerk-auth';
 
 const app = new Hono();
-
+app.use('*', clerkMiddleware());
 // Middleware
 app.use('*', logger());
 app.use('*', timing());
@@ -26,7 +27,7 @@ app.use(
 app.route('/api', apiRoutes);
 app.route('/health', healthRoutes);
 
-// Root route
+// Root route|
 app.get('/', c => {
   return c.json({
     message: 'Hono Backend API',
