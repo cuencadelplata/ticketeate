@@ -5,7 +5,6 @@ export function useImageUpload() {
 
   const uploadImage = async (file: File) => {
     try {
-      // Verificar que estemos en el navegador
       if (typeof window === 'undefined') {
         throw new Error('Este hook solo puede usarse en el navegador');
       }
