@@ -350,7 +350,7 @@ export default function CreateEventForm() {
               <Button
                 onClick={handleCreateEvent}
                 size="md"
-                className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50"
+                className="w-full bg-white text-black hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed py-3 text-base font-medium rounded-lg shadow-lg"
                 disabled={createEventMutation.isPending}
               >
                 {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
