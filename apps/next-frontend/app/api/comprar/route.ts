@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
 // Body esperado:
 // {
@@ -15,47 +14,74 @@ export async function POST(request: NextRequest) {
     const { id_usuario, id_evento, cantidad, metodo_pago } = body ?? {};
 
     if (!id_usuario || !id_evento || !cantidad || !metodo_pago) {
-      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Faltan campos requeridos',
+        campos_requeridos: ['id_usuario', 'id_evento', 'cantidad', 'metodo_pago']
+      }, { status: 400 });
     }
 
-    // Transacción: crear reserva, pago y entradas
-    const result = await prisma.$transaction(async (tx: any) => {
-      const reserva = await tx.reserva.create({
-        data: {
-          id_usuario,
-          id_evento,
-          cantidad,
-          estado: 'PENDIENTE',
-        },
-      });
+    // Validaciones simples
+    if (cantidad <= 0 || cantidad > 10) {
+      return NextResponse.json({ 
+        error: 'Cantidad debe estar entre 1 y 10' 
+      }, { status: 400 });
+    }
 
-      const pago = await tx.pago.create({
-        data: {
-          reservaId: reserva.id,
-          metodo_pago,
-          monto_total: String(cantidad),
-          estado: 'APROBADO',
-        },
-      });
+    if (!['tarjeta', 'efectivo', 'transferencia'].includes(metodo_pago)) {
+      return NextResponse.json({ 
+        error: 'Método de pago no válido. Use: tarjeta, efectivo o transferencia' 
+      }, { status: 400 });
+    }
 
-      const entradas = await Promise.all(
-        Array.from({ length: cantidad }).map((_, idx) =>
-          tx.entrada.create({
-            data: {
-              reservaId: reserva.id,
-              codigo_qr: `${reserva.id}-${Date.now()}-${idx}`,
-              estado: 'ACTIVA',
-            },
-          })
-        )
-      );
+    // Simular procesamiento de compra
+    const timestamp = Date.now();
+    const id_reserva = Math.floor(Math.random() * 10000) + 1000;
+    const precio_unitario = 25.00; // Precio fijo para simulación
+    const monto_total = precio_unitario * cantidad;
 
-      return { reserva, pago, entradas };
-    });
+    // Simular respuesta exitosa
+    const resultado = {
+      reserva: {
+        id_reserva,
+        id_usuario,
+        id_evento,
+        cantidad,
+        estado: 'pendiente',
+        fecha_reserva: new Date().toISOString()
+      },
+      pago: {
+        id_pago: Math.floor(Math.random() * 10000) + 2000,
+        id_reserva,
+        metodo_pago,
+        monto_total: monto_total.toFixed(2),
+        estado: 'pendiente',
+        fecha_pago: new Date().toISOString()
+      },
+      entradas: Array.from({ length: cantidad }, (_, idx) => ({
+        id_entrada: Math.floor(Math.random() * 10000) + 3000 + idx,
+        id_reserva,
+        codigo_qr: `${id_reserva}-${timestamp}-${idx}`,
+        estado: 'valida'
+      })),
+      resumen: {
+        total_entradas: cantidad,
+        precio_unitario: precio_unitario.toFixed(2),
+        monto_total: monto_total.toFixed(2),
+        metodo_pago,
+        estado: 'Compra procesada exitosamente'
+      }
+    };
 
-    return NextResponse.json(result, { status: 201 });
+    // Simular delay de procesamiento
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return NextResponse.json(resultado, { status: 201 });
+
   } catch (error) {
     console.error('Error en /api/comprar', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno del servidor',
+      detalles: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 });
   }
 }
