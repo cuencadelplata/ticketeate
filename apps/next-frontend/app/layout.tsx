@@ -4,7 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { ClerkProvider } from '@clerk/nextjs';
-import { esES } from '@clerk/localizations'
+import { esES } from '@clerk/localizations';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',

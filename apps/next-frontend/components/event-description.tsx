@@ -28,7 +28,7 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
   const [aiConfig, setAIConfig] = useState({
     mood: 'creative' as MoodType,
     length: 'short' as LengthType,
-    additionalInstructions: ''
+    additionalInstructions: '',
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -44,12 +44,12 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
 
   const handleGenerateDescription = async () => {
     setIsGenerating(true);
-    
+
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     const generatedDescription = generateDescriptionWithAI(aiConfig);
     setDescription(generatedDescription);
-    
+
     setIsGenerating(false);
     setIsAIModalOpen(false);
     setIsOpen(false);
@@ -59,40 +59,40 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
   const generateDescriptionWithAI = (config: typeof aiConfig): string => {
     const moodTemplates = {
       creative: [
-        "Sumérgete en una experiencia única donde la creatividad y la innovación se encuentran. Este evento está diseñado para mentes curiosas y espíritus aventureros que buscan explorar nuevas posibilidades y conectar con ideas revolucionarias.",
-        "Descubre un mundo de inspiración y creatividad sin límites. Perfecto para artistas, diseñadores, innovadores y cualquier persona que quiera expandir sus horizontes creativos en un ambiente estimulante y colaborativo."
+        'Sumérgete en una experiencia única donde la creatividad y la innovación se encuentran. Este evento está diseñado para mentes curiosas y espíritus aventureros que buscan explorar nuevas posibilidades y conectar con ideas revolucionarias.',
+        'Descubre un mundo de inspiración y creatividad sin límites. Perfecto para artistas, diseñadores, innovadores y cualquier persona que quiera expandir sus horizontes creativos en un ambiente estimulante y colaborativo.',
       ],
       professional: [
-        "Un evento profesional diseñado para ejecutivos, emprendedores y profesionales que buscan expandir su red de contactos y adquirir conocimientos valiosos en un entorno sofisticado y estructurado.",
-        "Una oportunidad excepcional para el desarrollo profesional y el networking estratégico. Ideal para líderes empresariales, consultores y profesionales que valoran la excelencia y la innovación en sus campos."
+        'Un evento profesional diseñado para ejecutivos, emprendedores y profesionales que buscan expandir su red de contactos y adquirir conocimientos valiosos en un entorno sofisticado y estructurado.',
+        'Una oportunidad excepcional para el desarrollo profesional y el networking estratégico. Ideal para líderes empresariales, consultores y profesionales que valoran la excelencia y la innovación en sus campos.',
       ],
       fun: [
-        "¡Prepárate para una experiencia llena de diversión, risas y momentos inolvidables! Este evento está diseñado para personas que aman la vida social, la música y crear recuerdos extraordinarios juntos.",
-        "Una celebración vibrante y energética perfecta para extrovertidos, amantes de la diversión y cualquiera que quiera escapar de la rutina diaria para disfrutar de una noche mágica y llena de sorpresas."
-      ]
+        '¡Prepárate para una experiencia llena de diversión, risas y momentos inolvidables! Este evento está diseñado para personas que aman la vida social, la música y crear recuerdos extraordinarios juntos.',
+        'Una celebración vibrante y energética perfecta para extrovertidos, amantes de la diversión y cualquiera que quiera escapar de la rutina diaria para disfrutar de una noche mágica y llena de sorpresas.',
+      ],
     };
 
     const lengthMultipliers = {
       short: 0.6,
       medium: 1.0,
-      long: 1.4
+      long: 1.4,
     };
 
     const baseDescription = moodTemplates[config.mood][Math.floor(Math.random() * 2)];
     const targetLength = Math.floor(baseDescription.length * lengthMultipliers[config.length]);
-    
+
     let finalDescription = baseDescription;
-    
+
     if (config.additionalInstructions) {
       finalDescription += ` ${config.additionalInstructions}`;
     }
-    
+
     if (config.length === 'short' && finalDescription.length > targetLength) {
       finalDescription = finalDescription.substring(0, targetLength) + '...';
     } else if (config.length === 'long' && finalDescription.length < targetLength) {
       finalDescription += ' Ven y únete a nosotros para crear algo extraordinario juntos.';
     }
-    
+
     return finalDescription;
   };
 
@@ -124,23 +124,26 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
 
   const LoadingAnimation = () => (
     <div className="space-y-6">
-      <div className="text-center space-y-4">
+      <div className="space-y-4 text-center">
         <div className="relative">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 mx-auto">
-            <Brain className="h-8 w-8 text-blue-400 animate-pulse" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20">
+            <Brain className="h-8 w-8 animate-pulse text-blue-400" />
           </div>
-          <div className="absolute -top-2 -right-2 animate-bounce">
+          <div className="absolute -right-2 -top-2 animate-bounce">
             <Sparkles className="h-4 w-4 text-yellow-400" />
           </div>
-          <div className="absolute -bottom-2 -left-2 animate-bounce" style={{ animationDelay: '0.5s' }}>
+          <div
+            className="absolute -bottom-2 -left-2 animate-bounce"
+            style={{ animationDelay: '0.5s' }}
+          >
             <Sparkles className="h-4 w-4 text-pink-400" />
           </div>
-          <div className="absolute -top-1 -left-1 animate-bounce" style={{ animationDelay: '1s' }}>
+          <div className="absolute -left-1 -top-1 animate-bounce" style={{ animationDelay: '1s' }}>
             <Sparkles className="h-3 w-3 text-blue-400" />
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-stone-100 mb-2">
+          <h3 className="mb-2 text-lg font-semibold text-stone-100">
             Generando descripción con IA
           </h3>
           <p className="text-sm text-stone-400">
@@ -153,16 +156,16 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-20 bg-stone-700" />
           <div className="flex gap-1">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <div
                 key={i}
-                className="h-2 w-2 rounded-full bg-stone-600 animate-pulse"
+                className="h-2 w-2 animate-pulse rounded-full bg-stone-600"
                 style={{ animationDelay: `${i * 0.2}s` }}
               />
             ))}
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <Skeleton className="h-4 w-full bg-stone-700" />
           <Skeleton className="h-4 w-3/4 bg-stone-700" />
@@ -180,18 +183,25 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
         <div className="flex text-xs text-stone-400">
           <span>Procesando...</span>
         </div>
-        <div className="w-full bg-stone-800 rounded-full h-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-pulse" />
+        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-800">
+          <div className="h-full animate-pulse rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
         </div>
       </div>
 
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-800/50 border border-stone-700/50">
-          <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-stone-700/50 bg-stone-800/50 px-4 py-2">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
           <span className="text-sm text-stone-300">
             {isGenerating && (
               <span className="inline-block animate-pulse">
-                {['Analizando instrucciones...', 'Configurando longitud...', 'Aplicando instrucciones...', 'Generando texto final...'][Math.floor((Date.now() / 500) % 4)]}
+                {
+                  [
+                    'Analizando instrucciones...',
+                    'Configurando longitud...',
+                    'Aplicando instrucciones...',
+                    'Generando texto final...',
+                  ][Math.floor((Date.now() / 500) % 4)]
+                }
               </span>
             )}
           </span>
@@ -204,16 +214,16 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <button className="group flex w-full items-start gap-2 p-2 text-left rounded-md border bg-stone-900 bg-opacity-60 transition-colors hover:bg-stone-800/50">
-            <div className="flex h-4.5 w-4.5 items-center justify-center rounded-md">
+          <button className="group flex w-full items-start gap-2 rounded-md border bg-stone-900 bg-opacity-60 p-2 text-left transition-colors hover:bg-stone-800/50">
+            <div className="h-4.5 w-4.5 flex items-center justify-center rounded-md">
               <FileText className="mt-0.5 h-4 w-4 text-stone-400" />
             </div>
-            <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex min-w-0 flex-1 flex-col">
               <span className="text-sm font-medium text-stone-100">
                 {description ? 'Descripción del evento' : 'Agregar descripción'}
               </span>
               {description ? (
-                <span className="line-clamp-1 text-sm text-stone-400 leading-relaxed">
+                <span className="line-clamp-1 text-sm leading-relaxed text-stone-400">
                   {description}
                 </span>
               ) : (
@@ -223,34 +233,33 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
               )}
             </div>
             {description && (
-              <Badge variant="secondary" className="ml-auto bg-stone-800 text-stone-300 border-stone-700">
+              <Badge
+                variant="secondary"
+                className="ml-auto border-stone-700 bg-stone-800 text-stone-300"
+              >
                 Completado
               </Badge>
             )}
           </button>
         </DialogTrigger>
-        
-        <DialogContent className="border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] sm:max-w-[600px] p-0 overflow-hidden">
+
+        <DialogContent className="overflow-hidden border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] p-0 sm:max-w-[600px]">
           <DialogTitle className="sr-only">Descripción del evento</DialogTitle>
           <div className="relative">
             {/* Header */}
             <div className="p-6 pb-4">
-              <h2 className="text-xl font-semibold text-stone-100">
-                Descripción del evento
-              </h2>
+              <h2 className="text-xl font-semibold text-stone-100">Descripción del evento</h2>
             </div>
 
-            <div className="px-6 pb-6 space-y-6">
+            <div className="space-y-6 px-6 pb-6">
               {/* Área de texto mejorada */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-stone-200">
-                  Descripción detallada
-                </label>
+                <label className="text-sm font-medium text-stone-200">Descripción detallada</label>
                 <Textarea
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="¿Quién debería asistir? ¿De qué trata el evento? Describe los detalles importantes, el formato, y qué esperar de la experiencia..."
-                  className="min-h-[160px] border-stone-700/50 bg-[#0F0F0F]/80 text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20 resize-none text-base leading-relaxed"
+                  className="min-h-[160px] resize-none border-stone-700/50 bg-[#0F0F0F]/80 text-base leading-relaxed text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20"
                 />
                 <div className="flex items-center justify-between text-xs text-stone-500">
                   <span>Mínimo 50 caracteres recomendado</span>
@@ -261,21 +270,23 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
               </div>
 
               {/* Opción de sugerencia con IA */}
-              <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-stone-800/40 to-stone-700/40 border border-stone-600/30">
+              <div className="flex items-center justify-between rounded-lg border border-stone-600/30 bg-gradient-to-r from-stone-800/40 to-stone-700/40 p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20">
                     <Lightbulb className="h-5 w-5 text-amber-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-stone-100">Sugerir con IA</p>
-                    <p className="text-xs text-stone-400">Obtén ideas creativas para tu descripción</p>
+                    <p className="text-xs text-stone-400">
+                      Obtén ideas creativas para tu descripción
+                    </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleAISuggestion}
-                  className="border-stone-600/50 bg-stone-800/50 text-stone-200 hover:bg-stone-700/50 hover:border-stone-500/50"
+                  className="border-stone-600/50 bg-stone-800/50 text-stone-200 hover:border-stone-500/50 hover:bg-stone-700/50"
                 >
                   Usar IA
                 </Button>
@@ -286,14 +297,14 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                 <Button
                   variant="outline"
                   onClick={() => setIsOpen(false)}
-                  className="border-stone-600/50 bg-transparent text-stone-300 hover:bg-stone-800/50 hover:border-stone-500/50 hover:text-stone-200"
+                  className="border-stone-600/50 bg-transparent text-stone-300 hover:border-stone-500/50 hover:bg-stone-800/50 hover:text-stone-200"
                 >
                   Cancelar
                 </Button>
-                <Button 
-                  onClick={handleSave} 
+                <Button
+                  onClick={handleSave}
                   disabled={description.trim().length < 10}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:from-blue-700 hover:to-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Listo
                 </Button>
@@ -305,7 +316,7 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
 
       {/* Modal de Sugerir con IA */}
       <Dialog open={isAIModalOpen} onOpenChange={setIsAIModalOpen}>
-        <DialogContent className="border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] sm:max-w-[500px] p-0 overflow-hidden">
+        <DialogContent className="overflow-hidden border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] p-0 sm:max-w-[500px]">
           <DialogTitle className="sr-only">Sugerir descripción con IA</DialogTitle>
           <div className="relative">
             {/* Header */}
@@ -315,10 +326,8 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                   <Brain className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-stone-100">
-                    Sugerir descripción
-                  </h2>
-                  <p className="text-sm text-stone-400 mt-1">
+                  <h2 className="text-xl font-semibold text-stone-100">Sugerir descripción</h2>
+                  <p className="mt-1 text-sm text-stone-400">
                     Genera una descripción para tu evento con IA
                   </p>
                 </div>
@@ -334,25 +343,33 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-stone-200">Estado de ánimo</label>
                     <div className="grid grid-cols-3 gap-3">
-                      {(['creative', 'professional', 'fun'] as MoodType[]).map((mood) => (
+                      {(['creative', 'professional', 'fun'] as MoodType[]).map(mood => (
                         <button
                           key={mood}
                           onClick={() => setAIConfig(prev => ({ ...prev, mood }))}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
+                          className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all duration-200 ${
                             aiConfig.mood === mood
                               ? `bg-gradient-to-r ${getMoodColor(mood)} border-current`
                               : 'border-stone-700/50 bg-stone-800/40 hover:border-stone-600/50'
                           }`}
                         >
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-md ${
-                            aiConfig.mood === mood ? 'text-white' : 'text-stone-400'
-                          }`}>
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-md ${
+                              aiConfig.mood === mood ? 'text-white' : 'text-stone-400'
+                            }`}
+                          >
                             {getMoodIcon(mood)}
                           </div>
-                          <span className={`text-xs font-medium ${
-                            aiConfig.mood === mood ? 'text-white' : 'text-stone-300'
-                          }`}>
-                            {mood === 'creative' ? 'Creativo' : mood === 'professional' ? 'Profesional' : 'Divertido'}
+                          <span
+                            className={`text-xs font-medium ${
+                              aiConfig.mood === mood ? 'text-white' : 'text-stone-300'
+                            }`}
+                          >
+                            {mood === 'creative'
+                              ? 'Creativo'
+                              : mood === 'professional'
+                                ? 'Profesional'
+                                : 'Divertido'}
                           </span>
                         </button>
                       ))}
@@ -363,11 +380,11 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-stone-200">Longitud</label>
                     <div className="flex gap-3">
-                      {(['short', 'medium', 'long'] as LengthType[]).map((length) => (
+                      {(['short', 'medium', 'long'] as LengthType[]).map(length => (
                         <button
                           key={length}
                           onClick={() => setAIConfig(prev => ({ ...prev, length }))}
-                          className={`flex-1 py-2 px-4 rounded-lg border-2 transition-all duration-200 ${
+                          className={`flex-1 rounded-lg border-2 px-4 py-2 transition-all duration-200 ${
                             aiConfig.length === length
                               ? 'border-blue-500 bg-blue-500/20 text-blue-300'
                               : 'border-stone-700/50 bg-stone-800/40 text-stone-300 hover:border-stone-600/50'
@@ -376,8 +393,12 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                           <span className="font-medium">
                             {length === 'short' ? 'C' : length === 'medium' ? 'M' : 'L'}
                           </span>
-                          <span className="text-xs block mt-1 opacity-80">
-                            {length === 'short' ? 'Corta' : length === 'medium' ? 'Mediana' : 'Larga'}
+                          <span className="mt-1 block text-xs opacity-80">
+                            {length === 'short'
+                              ? 'Corta'
+                              : length === 'medium'
+                                ? 'Mediana'
+                                : 'Larga'}
                           </span>
                         </button>
                       ))}
@@ -391,9 +412,11 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                     </label>
                     <Textarea
                       value={aiConfig.additionalInstructions}
-                      onChange={e => setAIConfig(prev => ({ ...prev, additionalInstructions: e.target.value }))}
+                      onChange={e =>
+                        setAIConfig(prev => ({ ...prev, additionalInstructions: e.target.value }))
+                      }
                       placeholder="Por ejemplo, podrías pedirle a la IA que escriba solo en pentámetro yámbico."
-                      className="min-h-[100px] border-stone-700/50 bg-[#0F0F0F]/80 text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20 resize-none"
+                      className="min-h-[100px] resize-none border-stone-700/50 bg-[#0F0F0F]/80 text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20"
                     />
                   </div>
 
@@ -401,7 +424,7 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                   <Button
                     onClick={handleGenerateDescription}
                     disabled={isGenerating}
-                    className="w-full bg-white text-black hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed py-3 text-base font-medium rounded-lg shadow-lg"
+                    className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Generar
                   </Button>

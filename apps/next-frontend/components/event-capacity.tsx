@@ -192,13 +192,11 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-stone-400" />
-                <CardTitle className="text-stone-100 text-base">Sistema de cola</CardTitle>
+                <CardTitle className="text-base text-stone-100">Sistema de cola</CardTitle>
               </div>
               <Switch
                 checked={queueConfig.enabled}
-                onCheckedChange={checked =>
-                  setQueueConfig({ ...queueConfig, enabled: checked })
-                }
+                onCheckedChange={checked => setQueueConfig({ ...queueConfig, enabled: checked })}
               />
             </div>
             <CardDescription className="text-stone-400">
@@ -208,10 +206,10 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
           {queueConfig.enabled && (
             <CardContent className="space-y-4 pt-0">
               <Separator className="bg-stone-600" />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="maxSimultaneous" className="text-stone-100 text-sm">
+                  <Label htmlFor="maxSimultaneous" className="text-sm text-stone-100">
                     Compradores simultáneos
                   </Label>
                   <Input
@@ -234,7 +232,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="timeLimit" className="text-stone-100 text-sm">
+                  <Label htmlFor="timeLimit" className="text-sm text-stone-100">
                     Tiempo límite (min)
                   </Label>
                   <Input
@@ -251,9 +249,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                     className="border-stone-600 bg-[#2A2A2A] text-stone-100"
                     placeholder="15"
                   />
-                  <p className="text-xs text-stone-500">
-                    Tiempo para completar la compra
-                  </p>
+                  <p className="text-xs text-stone-500">Tiempo para completar la compra</p>
                 </div>
               </div>
 
@@ -289,7 +285,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-stone-400" />
-                    <CardTitle className="text-stone-100 text-base">Cupo máximo</CardTitle>
+                    <CardTitle className="text-base text-stone-100">Cupo máximo</CardTitle>
                   </div>
                   <CardDescription className="text-stone-400">
                     Cerrar automáticamente la inscripción cuando se alcance el cupo
@@ -298,31 +294,31 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 <CardContent className="pt-0">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="capacity" className="text-stone-100 text-sm">
+                      <Label htmlFor="capacity" className="text-sm text-stone-100">
                         Cantidad de entradas disponibles
                       </Label>
-                                             <Input
-                         id="capacity"
-                         type="number"
-                         value={capacity}
-                         onChange={e => setCapacity(e.target.value)}
-                         placeholder="50"
-                         className="border-0 bg-[#2A2A2A] text-stone-100"
-                       />
+                      <Input
+                        id="capacity"
+                        type="number"
+                        value={capacity}
+                        onChange={e => setCapacity(e.target.value)}
+                        placeholder="50"
+                        className="border-0 bg-[#2A2A2A] text-stone-100"
+                      />
                     </div>
 
                     <div className="flex flex-col gap-2">
-                                             <Button
-                         variant="outline"
-                         onClick={() => {
-                           setCapacity('');
-                           setIsUnlimited(true);
-                         }}
-                         className="border-stone-600 bg-transparent text-stone-100 hover:bg-[#2A2A2A]"
-                       >
-                         <InfinityIcon className="mr-2 h-4 w-4" />
-                         {isUnlimited ? 'Ilimitado' : 'Eliminar límite'}
-                       </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setCapacity('');
+                          setIsUnlimited(true);
+                        }}
+                        className="border-stone-600 bg-transparent text-stone-100 hover:bg-[#2A2A2A]"
+                      >
+                        <InfinityIcon className="mr-2 h-4 w-4" />
+                        {isUnlimited ? 'Ilimitado' : 'Eliminar límite'}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -334,7 +330,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-stone-400" />
-                      <CardTitle className="text-stone-100 text-base">Sistema de cola</CardTitle>
+                      <CardTitle className="text-base text-stone-100">Sistema de cola</CardTitle>
                     </div>
                     <Switch
                       checked={queueConfig.enabled}
@@ -350,11 +346,15 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 <CardContent className="pt-0">
                   {queueConfig.enabled ? (
                     <>
-                      <Separator className="bg-stone-600 mb-3" />
+                      <Separator className="mb-3 bg-stone-600" />
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-stone-300">
-                          <p>Máximo {queueConfig.maxSimultaneousPurchases} compradores simultáneos</p>
-                          <p className="text-stone-400">Tiempo límite: {queueConfig.purchaseTimeLimit} min</p>
+                          <p>
+                            Máximo {queueConfig.maxSimultaneousPurchases} compradores simultáneos
+                          </p>
+                          <p className="text-stone-400">
+                            Tiempo límite: {queueConfig.purchaseTimeLimit} min
+                          </p>
                         </div>
                         <Button
                           variant="outline"
@@ -368,11 +368,14 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                       </div>
                     </>
                   ) : (
-                    <div className="text-center py-4">
-                      <Clock className="mx-auto h-6 w-6 text-stone-500 mb-2" />
-                      <p className="text-sm text-stone-400 mb-3">El sistema de cola está desactivado</p>
+                    <div className="py-4 text-center">
+                      <Clock className="mx-auto mb-2 h-6 w-6 text-stone-500" />
+                      <p className="mb-3 text-sm text-stone-400">
+                        El sistema de cola está desactivado
+                      </p>
                       <p className="text-xs text-stone-500">
-                        Activa el switch para configurar cuántas personas pueden comprar simultáneamente
+                        Activa el switch para configurar cuántas personas pueden comprar
+                        simultáneamente
                       </p>
                     </div>
                   )}
@@ -383,7 +386,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
               {hasWallet && (
                 <Card className="border-stone-600 bg-[#1A1A1A]">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-stone-100 text-base">Tipos de entrada</CardTitle>
+                    <CardTitle className="text-base text-stone-100">Tipos de entrada</CardTitle>
                     <CardDescription className="text-stone-400">
                       Configura diferentes tipos de entradas con precios y capacidades
                     </CardDescription>
@@ -392,7 +395,10 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                     {ticketTypes.length > 0 ? (
                       <div className="space-y-3">
                         {ticketTypes.map(ticket => (
-                          <div key={ticket.id} className="flex items-center gap-1 rounded-lg bg-[#2A2A2A] p-3">
+                          <div
+                            key={ticket.id}
+                            className="flex items-center gap-1 rounded-lg bg-[#2A2A2A] p-3"
+                          >
                             <div className="flex-1 space-y-2">
                               <Input
                                 value={ticket.name}
@@ -403,15 +409,17 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                                     )
                                   );
                                 }}
-                                className="border-0 bg-transparent text-stone-100 text-sm"
+                                className="border-0 bg-transparent text-sm text-stone-100"
                                 placeholder="Nombre de la entrada"
                               />
                               <div className="flex gap-2">
                                 <Input
                                   type="number"
                                   value={ticket.capacity}
-                                  onChange={e => updateTicketCapacity(ticket.id, Number(e.target.value))}
-                                  className="w-20 border-0 bg-transparent text-stone-100 text-sm"
+                                  onChange={e =>
+                                    updateTicketCapacity(ticket.id, Number(e.target.value))
+                                  }
+                                  className="w-20 border-0 bg-transparent text-sm text-stone-100"
                                   placeholder="Cupo"
                                 />
                                 <Input
@@ -420,11 +428,13 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                                   onChange={e => {
                                     setTicketTypes(
                                       ticketTypes.map(t =>
-                                        t.id === ticket.id ? { ...t, price: Number(e.target.value) } : t
+                                        t.id === ticket.id
+                                          ? { ...t, price: Number(e.target.value) }
+                                          : t
                                       )
                                     );
                                   }}
-                                  className="w-20 border-0 bg-transparent text-stone-100 text-sm"
+                                  className="w-20 border-0 bg-transparent text-sm text-stone-100"
                                   placeholder="Precio"
                                 />
                               </div>
@@ -441,9 +451,11 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-6">
-                        <Users className="mx-auto h-8 w-8 text-stone-500 mb-2" />
-                        <p className="text-sm text-stone-400">No hay tipos de entrada configurados</p>
+                      <div className="py-6 text-center">
+                        <Users className="mx-auto mb-2 h-8 w-8 text-stone-500" />
+                        <p className="text-sm text-stone-400">
+                          No hay tipos de entrada configurados
+                        </p>
                       </div>
                     )}
 
@@ -587,7 +599,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-stone-100">Cupo máximo</span>
               {queueConfig.enabled && (
-                <Badge variant="secondary" className="text-xs bg-stone-600 text-stone-300">
+                <Badge variant="secondary" className="bg-stone-600 text-xs text-stone-300">
                   <Clock className="mr-1 h-3 w-3" />
                   Cola activa
                 </Badge>
@@ -596,14 +608,12 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-stone-400">
-              {isUnlimited ? 'Ilimitado' : capacity}
-            </span>
+            <span className="text-sm text-stone-400">{isUnlimited ? 'Ilimitado' : capacity}</span>
             <PencilLine className="h-4 w-4 text-stone-400" />
           </div>
         </button>
       </DialogTrigger>
-      <DialogContent className="border-0 bg-[#2A2A2A] sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto border-0 bg-[#2A2A2A] sm:max-w-[600px]">
         {renderDialogContent()}
         {(currentView === 'main' || currentView === 'queueSettings') && (
           <div className="flex justify-end gap-3">
