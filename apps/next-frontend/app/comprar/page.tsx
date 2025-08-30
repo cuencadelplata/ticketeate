@@ -29,7 +29,7 @@ export default function ComprarPage() {
   const [idEvento] = useState<number>(1);
 
   const [cantidad, setCantidad] = useState<number>(1);
-  const [metodo, setMetodo] = useState<string>('EFECTIVO');
+  const [metodo, setMetodo] = useState<string>('efectivo');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,18 +58,27 @@ export default function ComprarPage() {
     setResultado(null);
     setShowSuccess(false);
     
+    const datosCompra = {
+      id_usuario: idUsuario,
+      id_evento: idEvento,
+      cantidad,
+      metodo_pago: metodo,
+    };
+    
+    console.log('Enviando datos a la API:', datosCompra);
+    
     try {
       const res = await fetch('/api/comprar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id_usuario: idUsuario,
-          id_evento: idEvento,
-          cantidad,
-          metodo_pago: metodo,
-        }),
+        body: JSON.stringify(datosCompra),
       });
+      
+      console.log('Respuesta de la API:', res.status, res.statusText);
+      
       const data = await res.json();
+      console.log('Datos recibidos:', data);
+      
       if (!res.ok) throw new Error(data.error || 'Error');
       
       setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
@@ -81,10 +90,11 @@ export default function ComprarPage() {
         setResultado(null);
         setCantidad(1);
         setSector('Entrada_General');
-        setMetodo('EFECTIVO');
+        setMetodo('efectivo');
       }, 3000);
       
     } catch (e: any) {
+      console.error('Error en compra:', e);
       setError(e.message);
     } finally {
       setLoading(false);
@@ -205,9 +215,9 @@ export default function ComprarPage() {
                 className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={showSuccess}
               >
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TARJETA">Tarjeta</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
               </select>
             </div>
 
