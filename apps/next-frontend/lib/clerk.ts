@@ -3,6 +3,10 @@ export const clerkConfigOptions = {
   // Configuración personalizada si es necesaria
   publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   secretKey: process.env.CLERK_SECRET_KEY,
+  // Configuración de idioma
+  localization: {
+    locale: 'es-ES',
+  },
   // Configuración adicional para el tema y comportamiento
   appearance: {
     variables: {
