@@ -50,13 +50,22 @@ export class ImageUploadService {
 
   static async deleteImage(publicId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(publicId, (error, _result) => {
-        if (error) {
-          reject(new Error(`Error deleting from Cloudinary: ${error.message}`));
-          return;
+      cloudinary.uploader.destroy(
+        publicId,
+        (
+          error,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _result
+        ) => {
+          if (error) {
+            reject(
+              new Error(`Error deleting from Cloudinary: ${error.message}`)
+            );
+            return;
+          }
+          resolve();
         }
-        resolve();
-      });
+      );
     });
   }
 }

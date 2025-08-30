@@ -82,10 +82,10 @@ events.post('/upload-image', async c => {
 
     // Usar formData para procesar el archivo
     const formData = await c.req.formData();
-    const file = formData.get('file') as unknown as File;
+    const file = formData.get('file');
 
-    if (!file) {
-      return c.json({ error: 'No se proporcionó ninguna imagen' }, 400);
+    if (!file || !(file instanceof File)) {
+      return c.json({ error: 'No se proporcionó ninguna imagen válida' }, 400);
     }
 
     // Convertir File a Buffer

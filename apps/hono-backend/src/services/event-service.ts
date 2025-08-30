@@ -113,7 +113,10 @@ export class EventService {
     }
   }
 
-  static async getUserEvents(_clerkUserId: string): Promise<EventWithImages[]> {
+  static async getUserEvents(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _clerkUserId: string
+  ): Promise<EventWithImages[]> {
     try {
       // Por ahora, retornamos todos los eventos
       // En el futuro, podrías agregar una tabla de relación usuario-evento
