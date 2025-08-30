@@ -33,6 +33,7 @@ export default function ComprarPage() {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [sector, setSector] = useState<SectorKey>('Entrada_General');
 
@@ -55,6 +56,8 @@ export default function ComprarPage() {
     setLoading(true);
     setError(null);
     setResultado(null);
+    setShowSuccess(false);
+    
     try {
       const res = await fetch('/api/comprar', {
         method: 'POST',
@@ -68,12 +71,33 @@ export default function ComprarPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
+      
       setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
+      setShowSuccess(true);
+      
+      // Resetear formulario después de 3 segundos
+      setTimeout(() => {
+        setShowSuccess(false);
+        setResultado(null);
+        setCantidad(1);
+        setSector('Entrada_General');
+        setMetodo('EFECTIVO');
+      }, 3000);
+      
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setShowSuccess(false);
+    setResultado(null);
+    setError(null);
+    setCantidad(1);
+    setSector('Entrada_General');
+    setMetodo('EFECTIVO');
   };
 
   return (
@@ -97,7 +121,7 @@ export default function ComprarPage() {
             <span className="font-bold">Seleccionar sector</span>
             <button
               className="font-semibold text-orange-500 hover:underline"
-              onClick={() => setSector('Entrada_General')}
+              onClick={resetForm}
             >
               Limpiar selección
             </button>
@@ -162,6 +186,7 @@ export default function ComprarPage() {
                 value={String(cantidad)}
                 onChange={e => setCantidad(parseInt(e.target.value || '1'))}
                 className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={showSuccess}
               >
                 {[1, 2, 3, 4, 5].map(n => (
                   <option key={n} value={n}>
@@ -178,6 +203,7 @@ export default function ComprarPage() {
                 value={metodo}
                 onChange={e => setMetodo(e.target.value)}
                 className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={showSuccess}
               >
                 <option value="EFECTIVO">Efectivo</option>
                 <option value="TARJETA">Tarjeta</option>
@@ -208,19 +234,45 @@ export default function ComprarPage() {
               </div>
             </div>
 
-            <button
-              onClick={comprar}
-              disabled={loading}
-              className="mt-1 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-            >
-              {loading ? 'Comprando...' : 'Comprar'}
-            </button>
+            {/* Botón de compra */}
+            {!showSuccess ? (
+              <button
+                onClick={comprar}
+                disabled={loading}
+                className="mt-1 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {loading ? 'Comprando...' : 'Comprar'}
+              </button>
+            ) : (
+              <button
+                onClick={resetForm}
+                className="mt-1 inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700"
+              >
+                Comprar más entradas
+              </button>
+            )}
 
-            {error && <p className="text-center text-[0.9rem] text-red-500">{error}</p>}
-            {resultado && (
-              <pre className="whitespace-pre-wrap rounded-lg bg-black p-3 text-sm text-gray-100">
-                {JSON.stringify(resultado, null, 2)}
-              </pre>
+            {/* Mensajes de error y éxito */}
+            {error && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                <p className="text-center text-sm text-red-600">❌ {error}</p>
+              </div>
+            )}
+            
+            {showSuccess && resultado && (
+              <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="font-bold text-green-800 text-lg mb-2">¡Compra exitosa!</h3>
+                <div className="text-sm text-green-700 space-y-1">
+                  <p>✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}</p>
+                  <p>💰 Total: {formatARS(total)}</p>
+                  <p>💳 Método: {metodo}</p>
+                  <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
+                </div>
+                <div className="mt-3 text-xs text-green-600">
+                  Se han generado {cantidad} código(s) QR para tu entrada
+                </div>
+              </div>
             )}
           </div>
         </aside>
