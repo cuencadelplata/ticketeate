@@ -261,7 +261,9 @@ export default function CreateEventForm() {
                   <DropdownTrigger asChild>
                     <Button
                       size="sm"
-                      className="bg-stone-850 flex items-center !rounded-md !border !border-stone-700 bg-opacity-60 text-sm font-medium"
+                      className="text-sm px-2 rounded-md !bg-stone-700 !bg-opacity-60 p-2 transition-colors hover:bg-stone-800/50"
+                      color="primary"
+                      variant="faded"
                     >
                       {visibilityOptions[selected].icon}
                       {visibilityOptions[selected].label}
