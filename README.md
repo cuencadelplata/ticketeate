@@ -18,7 +18,7 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 
 ## Estructura básica
 
-```
+
 ├── apps/
 │   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
 │   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
