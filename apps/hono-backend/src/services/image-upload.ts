@@ -54,7 +54,7 @@ export class ImageUploadService {
         publicId,
         (
           error,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
           _result
         ) => {
           if (error) {

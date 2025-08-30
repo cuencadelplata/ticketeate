@@ -84,12 +84,12 @@ events.post('/upload-image', async c => {
     const formData = await c.req.formData();
     const file = formData.get('file');
 
-    if (!file || !(file instanceof File)) {
+    if (!file || typeof file !== 'object' || !('arrayBuffer' in file)) {
       return c.json({ error: 'No se proporcionó ninguna imagen válida' }, 400);
     }
 
     // Convertir File a Buffer
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await (file as { arrayBuffer(): Promise<ArrayBuffer> }).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Subir imagen a Cloudinary
