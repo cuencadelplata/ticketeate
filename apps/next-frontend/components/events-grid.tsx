@@ -174,9 +174,6 @@ export function EventsGrid({
           <h2 className="mb-4 text-4xl font-bold text-white">{title}</h2>
           <p className="mx-auto max-w-2xl text-xl text-gray-300">{subtitle}</p>
         </div>
-        <div className="flex items-center justify-center pb-12">
-          <Check className="h-10 w-10 items-center justify-center rounded-full bg-red-500" />
-        </div>
 
         {/* Filtros */}
         {showFilters && <EventFilters onFiltersChange={setFilters} />}
