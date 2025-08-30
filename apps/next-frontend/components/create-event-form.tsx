@@ -76,10 +76,12 @@ export default function CreateEventForm() {
   // Date formatter intentionally not used in this component
 
   const [description, setDescription] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [ticketInfo, setTicketInfo] = useState<{
     type: 'free' | 'paid';
     price?: number;
   }>({ type: 'free' });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [capacityInfo, setCapacityInfo] = useState<{
     unlimited: boolean;
     limit?: number;
@@ -100,7 +102,7 @@ export default function CreateEventForm() {
 
   // Hook de TanStack Query para crear eventos
   const createEventMutation = useCreateEvent();
-  const { isSignedIn, user } = useAuth();
+  const { isSignedIn } = useAuth();
 
   // check auth
   useEffect(() => {

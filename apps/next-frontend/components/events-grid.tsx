@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { EventCard, Event } from './event-card';
 import { EventFilters, FilterState } from './event-filters';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 // Datos de ejemplo para eventos
 const sampleEvents: Event[] = [

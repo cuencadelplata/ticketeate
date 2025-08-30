@@ -5,6 +5,11 @@ export function useImageUpload() {
 
   const uploadImage = async (file: File) => {
     try {
+      // Verificar que estemos en el navegador
+      if (typeof window === 'undefined') {
+        throw new Error('Este hook solo puede usarse en el navegador');
+      }
+
       // Obtener token JWT válido para el backend
       const token = await getToken({ template: 'TicketeateHono' });
 
@@ -12,6 +17,7 @@ export function useImageUpload() {
         throw new Error('No se pudo obtener el token de autenticación');
       }
 
+      // eslint-disable-next-line no-undef
       const formData = new FormData();
       formData.append('file', file);
 
