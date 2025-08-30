@@ -125,7 +125,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                 onKeyDown={handleKeyDown}
                 disabled={!ready}
                 placeholder="Ingresa una ubicación o coordenada"
-                className="w-full bg-stone-800 text-stone-100 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-stone-800"
+                className="w-full bg-stone-800 text-stone-100 focus:border-stone-800 focus:outline-none focus:ring-0 focus:ring-offset-0"
                 style={{ outline: 'none', boxShadow: 'none' }}
               />
             </div>
