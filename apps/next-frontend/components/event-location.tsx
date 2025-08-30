@@ -113,8 +113,8 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="order-0 mt-0 w-[535px] rounded-b-md border bg-stone-900 p-0">
-          <div className="space-y-2 p-2">
+        <PopoverContent className="order-0 mt-0 w-[502px] rounded-b-md border bg-stone-900 p-0">
+          <div className="space-y-1 p-1">
             <div className="relative">
               <Input
                 value={value}
@@ -124,10 +124,10 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                 }}
                 onKeyDown={handleKeyDown}
                 disabled={!ready}
-                placeholder="Ingresa ubicación o coordenadas (ej: -34.6037, -58.3816)"
-                className="w-full border-0 bg-stone-800 text-stone-100 placeholder-stone-400"
+                placeholder="Ingresa una ubicación o coordenada"
+                className="w-full bg-stone-800 text-stone-100 focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-stone-800"
+                style={{ outline: 'none', boxShadow: 'none' }}
               />
-              <MapPin className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-stone-400" />
             </div>
 
             {status === 'OK' && (
@@ -148,7 +148,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             )}
 
             <div className="space-y-2">
-              <h3 className="pl-1 text-sm text-stone-400">Ubicaciones recientes</h3>
+              <h3 className="pl-1 text-xs text-stone-400">Lugares recientes</h3>
               {storedRecentLocations.map((location, index) => (
                 <button
                   key={index}
@@ -156,10 +156,10 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     setValue(location.address, false);
                     handleSelect(location.address);
                   }}
-                  className="flex w-full items-center gap-2 rounded px-4 py-2 text-left transition-colors hover:bg-stone-800"
+                  className="flex w-full items-center gap-2 rounded px-2 py-2 text-left transition-colors hover:bg-stone-800"
                 >
                   <MapPin className="h-4 w-4 text-stone-400" />
-                  <span className="text-sm text-stone-100">{location.address}</span>
+                  <span className="text-xs text-stone-100">{location.address}</span>
                 </button>
               ))}
             </div>
