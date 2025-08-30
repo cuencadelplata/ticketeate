@@ -261,7 +261,7 @@ export default function CreateEventForm() {
                   <DropdownTrigger asChild>
                     <Button
                       size="sm"
-                      className="text-sm px-2 rounded-md !bg-stone-700 !bg-opacity-60 p-2 transition-colors hover:bg-stone-800/50"
+                      className="rounded-md !bg-stone-700 !bg-opacity-60 p-2 px-2 text-sm transition-colors hover:bg-stone-800/50"
                       color="primary"
                       variant="faded"
                     >
@@ -352,7 +352,7 @@ export default function CreateEventForm() {
               <Button
                 onClick={handleCreateEvent}
                 size="md"
-                className="w-full bg-white text-black hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed py-3 text-base font-medium rounded-lg shadow-lg"
+                className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={createEventMutation.isPending}
               >
                 {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
