@@ -113,7 +113,7 @@ export function useStats() {
       const token = await getToken();
       const response = await fetch(`/api/stats/${endpoint}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -177,14 +177,14 @@ export function useStats() {
   const loadAllStats = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await Promise.all([
         loadOverviewStats(),
         loadEventsStats(),
         loadUsersStats(),
         loadRevenueStats(),
-        loadPerformanceStats()
+        loadPerformanceStats(),
       ]);
     } catch (err) {
       setError('Error al cargar todas las estadísticas');

@@ -4,14 +4,14 @@ import { auth } from '@clerk/nextjs';
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Obtener el token de Clerk para hacer la petición al backend
     const token = await auth().getToken();
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Token no válido' }, { status: 401 });
     }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8787';
     const response = await fetch(`${backendUrl}/api/stats/overview`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { error: errorData.error || 'Error del backend' }, 
+        { error: errorData.error || 'Error del backend' },
         { status: response.status }
       );
     }
@@ -37,9 +37,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error en API de estadísticas:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

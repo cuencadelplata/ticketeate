@@ -7,30 +7,35 @@ Se ha creado un panel de administración completo para Ticketeate que incluye es
 ## Características
 
 ### 📊 **Resumen General**
+
 - Total de eventos, usuarios, reservas e ingresos
 - Estadísticas de los últimos 30 días
 - Métricas de eventos activos vs. completados
 - Tasa de confirmación de reservas
 
 ### 📅 **Estadísticas de Eventos**
+
 - Lista detallada de todos los eventos
 - Métricas de ocupación y stock
 - Precios promedio por evento
 - Estado y fechas de creación
 
 ### 👥 **Estadísticas de Usuarios**
+
 - Total de usuarios activos e inactivos
 - Distribución por roles (admin, usuario, moderador)
 - Usuarios más activos (con más reservas)
 - Nuevos registros del último mes
 
 ### 💰 **Análisis de Ingresos**
+
 - Ingresos totales, confirmados y pendientes
 - Distribución por estado de pago
 - Análisis por método de pago
 - Pagos más altos del sistema
 
 ### 📈 **Métricas de Rendimiento**
+
 - Promedio de reservas por evento
 - Tasa de conversión de reservas
 - Precio promedio de entradas
@@ -89,15 +94,18 @@ Se ha creado un panel de administración completo para Ticketeate que incluye es
 ## Seguridad
 
 ### Autenticación
+
 - Todas las rutas requieren autenticación con Clerk
 - Verificación de token en cada petición
 
 ### Autorización
+
 - Solo usuarios con rol `admin` pueden acceder
 - Verificación de permisos en el backend
 - Filtrado de datos por usuario autenticado
 
 ### Validación
+
 - Validación de entrada en todas las APIs
 - Manejo de errores robusto
 - Logs de auditoría para acciones administrativas

@@ -96,20 +96,18 @@ export function UsersStats({ users }: UserStatsProps) {
         {overviewCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
-                <div className={`p-2 rounded-full ${card.bgColor}`}>
+                <div className={`rounded-full p-2 ${card.bgColor}`}>
                   <Icon className={`h-4 w-4 ${card.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {card.description}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{card.description}</p>
               </CardContent>
             </Card>
           );
@@ -160,12 +158,10 @@ export function UsersStats({ users }: UserStatsProps) {
                 <div key={user.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
+                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-medium text-sm">{user.name}</div>
+                      <div className="text-sm font-medium">{user.name}</div>
                       <div className="text-xs text-muted-foreground">{user.email}</div>
                     </div>
                   </div>

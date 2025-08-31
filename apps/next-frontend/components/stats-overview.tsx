@@ -2,7 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Users, Calendar, Ticket, DollarSign, BarChart3 } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Calendar,
+  Ticket,
+  DollarSign,
+  BarChart3,
+} from 'lucide-react';
 
 interface OverviewStatsProps {
   overview: {
@@ -93,28 +101,28 @@ export function StatsOverview({ overview, last30Days }: OverviewStatsProps) {
       {statsCards.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card key={index} className="transition-shadow hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-full ${stat.bgColor}`}>
+              <div className={`rounded-full p-2 ${stat.bgColor}`}>
                 <Icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
               {stat.trend !== 'neutral' && (
-                <div className="flex items-center mt-2">
+                <div className="mt-2 flex items-center">
                   {stat.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+                    <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500 mr-1" />
+                    <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
                   )}
-                  <span className={`text-xs ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-xs ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}
+                  >
                     {stat.trend === 'up' ? 'Creciendo' : 'Decreciendo'}
                   </span>
                 </div>

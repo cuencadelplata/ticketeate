@@ -89,20 +89,18 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
         {metricsCards.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
                 </CardTitle>
-                <div className={`p-2 rounded-full ${metric.bgColor}`}>
+                <div className={`rounded-full p-2 ${metric.bgColor}`}>
                   <Icon className={`h-4 w-4 ${metric.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metric.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {metric.description}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{metric.description}</p>
               </CardContent>
             </Card>
           );
@@ -122,29 +120,50 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Posición</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Evento</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Reservas</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Entradas Vendidas</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Ingresos</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Rendimiento</th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Posición
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Evento
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Reservas
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Entradas Vendidas
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Ingresos
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Rendimiento
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {performance.topPerformingEvents.map((event, index) => {
                   const position = index + 1;
                   const getPositionBadge = (pos: number) => {
-                    if (pos === 1) return <Badge className="bg-yellow-100 text-yellow-800">🥇 1ro</Badge>;
-                    if (pos === 2) return <Badge className="bg-gray-100 text-gray-800">🥈 2do</Badge>;
-                    if (pos === 3) return <Badge className="bg-orange-100 text-orange-800">🥉 3ro</Badge>;
+                    if (pos === 1)
+                      return <Badge className="bg-yellow-100 text-yellow-800">🥇 1ro</Badge>;
+                    if (pos === 2)
+                      return <Badge className="bg-gray-100 text-gray-800">🥈 2do</Badge>;
+                    if (pos === 3)
+                      return <Badge className="bg-orange-100 text-orange-800">🥉 3ro</Badge>;
                     return <Badge variant="outline">{pos}°</Badge>;
                   };
 
                   const getPerformanceScore = () => {
-                    const score = (event.totalReservations * 0.4) + (event.totalSold * 0.3) + (event.totalRevenue / 100 * 0.3);
-                    if (score >= 80) return { label: 'Excelente', color: 'text-green-600', bg: 'bg-green-50' };
-                    if (score >= 60) return { label: 'Bueno', color: 'text-blue-600', bg: 'bg-blue-50' };
-                    if (score >= 40) return { label: 'Regular', color: 'text-yellow-600', bg: 'bg-yellow-50' };
+                    const score =
+                      event.totalReservations * 0.4 +
+                      event.totalSold * 0.3 +
+                      (event.totalRevenue / 100) * 0.3;
+                    if (score >= 80)
+                      return { label: 'Excelente', color: 'text-green-600', bg: 'bg-green-50' };
+                    if (score >= 60)
+                      return { label: 'Bueno', color: 'text-blue-600', bg: 'bg-blue-50' };
+                    if (score >= 40)
+                      return { label: 'Regular', color: 'text-yellow-600', bg: 'bg-yellow-50' };
                     return { label: 'Bajo', color: 'text-red-600', bg: 'bg-red-50' };
                   };
 
@@ -152,9 +171,7 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
 
                   return (
                     <tr key={event.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2">
-                        {getPositionBadge(position)}
-                      </td>
+                      <td className="p-2">{getPositionBadge(position)}</td>
                       <td className="p-2">
                         <div className="font-medium">{event.title}</div>
                       </td>
@@ -181,9 +198,9 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
               </tbody>
             </table>
           </div>
-          
+
           {performance.topPerformingEvents.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="py-8 text-center text-muted-foreground">
               No hay eventos para mostrar
             </div>
           )}
@@ -201,21 +218,27 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Tasa de conversión</span>
-                <span className={`font-medium ${getPerformanceColor(performance.metrics.conversionRate, 'rate')}`}>
+                <span
+                  className={`font-medium ${getPerformanceColor(performance.metrics.conversionRate, 'rate')}`}
+                >
                   {performance.metrics.conversionRate.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Eficiencia de ventas</span>
-                <span className={`font-medium ${getPerformanceColor(performance.metrics.avgReservationsPerEvent, 'metric')}`}>
+                <span
+                  className={`font-medium ${getPerformanceColor(performance.metrics.avgReservationsPerEvent, 'metric')}`}
+                >
                   {performance.metrics.avgReservationsPerEvent.toFixed(1)} reservas/evento
                 </span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Valor promedio</span>
-                <span className={`font-medium ${getPerformanceColor(performance.metrics.avgTicketPrice, 'metric')}`}>
+                <span
+                  className={`font-medium ${getPerformanceColor(performance.metrics.avgTicketPrice, 'metric')}`}
+                >
                   {formatCurrency(performance.metrics.avgTicketPrice)}
                 </span>
               </div>
@@ -233,21 +256,22 @@ export function PerformanceStats({ performance }: PerformanceStatsProps) {
           <CardContent>
             <div className="space-y-2 text-sm">
               {performance.metrics.conversionRate < 60 && (
-                <div className="p-2 bg-yellow-50 rounded-md">
+                <div className="rounded-md bg-yellow-50 p-2">
                   <span className="text-yellow-800">
                     ⚠️ La tasa de conversión es baja. Considera revisar el proceso de confirmación.
                   </span>
                 </div>
               )}
               {performance.metrics.avgReservationsPerEvent < 5 && (
-                <div className="p-2 bg-blue-50 rounded-md">
+                <div className="rounded-md bg-blue-50 p-2">
                   <span className="text-blue-800">
-                    💡 El promedio de reservas por evento es bajo. Revisa la estrategia de marketing.
+                    💡 El promedio de reservas por evento es bajo. Revisa la estrategia de
+                    marketing.
                   </span>
                 </div>
               )}
               {performance.metrics.avgTicketPrice < 50 && (
-                <div className="p-2 bg-green-50 rounded-md">
+                <div className="rounded-md bg-green-50 p-2">
                   <span className="text-green-800">
                     ✅ Los precios están en un rango competitivo.
                   </span>

@@ -42,10 +42,26 @@ export function EventsStatsTable({ events }: EventsStatsTableProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      activo: { label: 'Activo', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-      oculto: { label: 'Oculto', variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' },
-      cancelado: { label: 'Cancelado', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
-      completado: { label: 'Completado', variant: 'outline' as const, color: 'bg-blue-100 text-blue-800' },
+      activo: {
+        label: 'Activo',
+        variant: 'default' as const,
+        color: 'bg-green-100 text-green-800',
+      },
+      oculto: {
+        label: 'Oculto',
+        variant: 'secondary' as const,
+        color: 'bg-gray-100 text-gray-800',
+      },
+      cancelado: {
+        label: 'Cancelado',
+        variant: 'destructive' as const,
+        color: 'bg-red-100 text-red-800',
+      },
+      completado: {
+        label: 'Completado',
+        variant: 'outline' as const,
+        color: 'bg-blue-100 text-blue-800',
+      },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.oculto;
@@ -76,17 +92,23 @@ export function EventsStatsTable({ events }: EventsStatsTableProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Evento</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Estado</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Fecha</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Reservas</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Stock</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Ocupación</th>
-                <th className="text-left p-2 font-medium text-sm text-muted-foreground">Precio Prom.</th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">Evento</th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">Fecha</th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                  Reservas
+                </th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">Stock</th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                  Ocupación
+                </th>
+                <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                  Precio Prom.
+                </th>
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
+              {events.map(event => (
                 <tr key={event.id} className="border-b hover:bg-muted/50">
                   <td className="p-2">
                     <div className="font-medium">{event.titulo}</div>
@@ -94,12 +116,8 @@ export function EventsStatsTable({ events }: EventsStatsTableProps) {
                       {event.totalCategories} categorías
                     </div>
                   </td>
-                  <td className="p-2">
-                    {getStatusBadge(event.estado)}
-                  </td>
-                  <td className="p-2 text-sm">
-                    {formatDate(event.fecha_creacion)}
-                  </td>
+                  <td className="p-2">{getStatusBadge(event.estado)}</td>
+                  <td className="p-2 text-sm">{formatDate(event.fecha_creacion)}</td>
                   <td className="p-2">
                     <div className="flex items-center gap-1">
                       <Ticket className="h-4 w-4 text-muted-foreground" />
@@ -108,19 +126,19 @@ export function EventsStatsTable({ events }: EventsStatsTableProps) {
                   </td>
                   <td className="p-2">
                     <div className="text-sm">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                         <span>Disponible: {event.availableStock}</span>
                         <span>Vendido: {event.soldStock}</span>
                       </div>
-                      <div className="text-xs">
-                        Total: {event.totalStock}
-                      </div>
+                      <div className="text-xs">Total: {event.totalStock}</div>
                     </div>
                   </td>
                   <td className="p-2">
                     <div className="w-20">
                       <Progress value={event.occupancyRate} className="h-2" />
-                      <div className={`text-xs font-medium mt-1 ${getOccupancyColor(event.occupancyRate)}`}>
+                      <div
+                        className={`mt-1 text-xs font-medium ${getOccupancyColor(event.occupancyRate)}`}
+                      >
                         {event.occupancyRate}%
                       </div>
                     </div>
@@ -133,11 +151,9 @@ export function EventsStatsTable({ events }: EventsStatsTableProps) {
             </tbody>
           </table>
         </div>
-        
+
         {events.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            No hay eventos para mostrar
-          </div>
+          <div className="py-8 text-center text-muted-foreground">No hay eventos para mostrar</div>
         )}
       </CardContent>
     </Card>

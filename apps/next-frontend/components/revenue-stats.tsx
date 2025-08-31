@@ -52,9 +52,21 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      confirmado: { label: 'Confirmado', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-      pendiente: { label: 'Pendiente', variant: 'secondary' as const, color: 'bg-yellow-100 text-yellow-800' },
-      cancelado: { label: 'Cancelado', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+      confirmado: {
+        label: 'Confirmado',
+        variant: 'default' as const,
+        color: 'bg-green-100 text-green-800',
+      },
+      pendiente: {
+        label: 'Pendiente',
+        variant: 'secondary' as const,
+        color: 'bg-yellow-100 text-yellow-800',
+      },
+      cancelado: {
+        label: 'Cancelado',
+        variant: 'destructive' as const,
+        color: 'bg-red-100 text-red-800',
+      },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pendiente;
@@ -75,8 +87,10 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
   };
 
   const totalRevenue = revenue.overview.totalRevenue;
-  const confirmedPercentage = totalRevenue > 0 ? (revenue.overview.confirmedRevenue / totalRevenue) * 100 : 0;
-  const pendingPercentage = totalRevenue > 0 ? (revenue.overview.pendingRevenue / totalRevenue) * 100 : 0;
+  const confirmedPercentage =
+    totalRevenue > 0 ? (revenue.overview.confirmedRevenue / totalRevenue) * 100 : 0;
+  const pendingPercentage =
+    totalRevenue > 0 ? (revenue.overview.pendingRevenue / totalRevenue) * 100 : 0;
 
   const overviewCards = [
     {
@@ -112,20 +126,18 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
         {overviewCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
-                <div className={`p-2 rounded-full ${card.bgColor}`}>
+                <div className={`rounded-full p-2 ${card.bgColor}`}>
                   <Icon className={`h-4 w-4 ${card.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {card.description}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{card.description}</p>
               </CardContent>
             </Card>
           );
@@ -148,24 +160,25 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getStatusBadge(statusData.estado)}
-                      <span className="text-sm font-medium">
-                        {statusData._count.id_pago} pagos
-                      </span>
+                      <span className="text-sm font-medium">{statusData._count.id_pago} pagos</span>
                     </div>
                     <div className="text-right">
                       <div className="font-medium">
                         {formatCurrency(statusData._sum.monto_total)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {totalRevenue > 0 
+                        {totalRevenue > 0
                           ? Math.round((statusData._sum.monto_total / totalRevenue) * 100)
-                          : 0}%
+                          : 0}
+                        %
                       </div>
                     </div>
                   </div>
-                  <Progress 
-                    value={totalRevenue > 0 ? (statusData._sum.monto_total / totalRevenue) * 100 : 0} 
-                    className="h-2" 
+                  <Progress
+                    value={
+                      totalRevenue > 0 ? (statusData._sum.monto_total / totalRevenue) * 100 : 0
+                    }
+                    className="h-2"
                   />
                 </div>
               ))}
@@ -202,15 +215,18 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
                           {formatCurrency(methodData._sum.monto_total)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {totalRevenue > 0 
+                          {totalRevenue > 0
                             ? Math.round((methodData._sum.monto_total / totalRevenue) * 100)
-                            : 0}%
+                            : 0}
+                          %
                         </div>
                       </div>
                     </div>
-                    <Progress 
-                      value={totalRevenue > 0 ? (methodData._sum.monto_total / totalRevenue) * 100 : 0} 
-                      className="h-2" 
+                    <Progress
+                      value={
+                        totalRevenue > 0 ? (methodData._sum.monto_total / totalRevenue) * 100 : 0
+                      }
+                      className="h-2"
                     />
                   </div>
                 );
@@ -233,15 +249,23 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Evento</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Método</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Estado</th>
-                  <th className="text-left p-2 font-medium text-sm text-muted-foreground">Fecha</th>
-                  <th className="text-right p-2 font-medium text-sm text-muted-foreground">Monto</th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Evento
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Método
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">
+                    Estado
+                  </th>
+                  <th className="p-2 text-left text-sm font-medium text-muted-foreground">Fecha</th>
+                  <th className="p-2 text-right text-sm font-medium text-muted-foreground">
+                    Monto
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {revenue.topPayments.map((payment) => (
+                {revenue.topPayments.map(payment => (
                   <tr key={payment.id} className="border-b hover:bg-muted/50">
                     <td className="p-2">
                       <div className="font-medium">{payment.eventTitle}</div>
@@ -255,12 +279,8 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
                         <span className="capitalize">{payment.method}</span>
                       </div>
                     </td>
-                    <td className="p-2">
-                      {getStatusBadge(payment.status)}
-                    </td>
-                    <td className="p-2 text-sm">
-                      {formatDate(payment.date)}
-                    </td>
+                    <td className="p-2">{getStatusBadge(payment.status)}</td>
+                    <td className="p-2 text-sm">{formatDate(payment.date)}</td>
                     <td className="p-2 text-right">
                       <div className="font-medium">{formatCurrency(payment.amount)}</div>
                     </td>
@@ -269,11 +289,9 @@ export function RevenueStats({ revenue }: RevenueStatsProps) {
               </tbody>
             </table>
           </div>
-          
+
           {revenue.topPayments.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No hay pagos para mostrar
-            </div>
+            <div className="py-8 text-center text-muted-foreground">No hay pagos para mostrar</div>
           )}
         </CardContent>
       </Card>
