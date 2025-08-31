@@ -129,12 +129,12 @@ export default function ComprarPage() {
           <section className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md">
             <div className="w-full max-w-[600px]">
               <Image
-  src="/mapa-referencial.png"
-  alt="Mapa referencial de sectores"
-  width={800} 
-  height={600}
-  className="w-full rounded-lg border object-contain"
-/>
+                src="/mapa-referencial.png"
+                alt="Mapa referencial de sectores"
+                width={800}
+                height={600}
+                className="w-full rounded-lg border object-contain"
+              />
               <span className="mt-2 block text-center text-sm font-semibold text-gray-600">
                 Mapa referencial
               </span>
