@@ -18,23 +18,23 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 
 ## Estructura básica
 
-```
 ├── apps/
-│   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
-│   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
-│   │   ├── /app/crear/page.tsx      # Formulario creación de evento [dominio].com/crear
-│   │   ├── /app/api         # API Routes
-│   │   └── /deploys         # Panel administrativo deploys.[dominio].com [AWS EC2]
-│   ├── hono-backend/        # Backend Hono Serverless - [AWS Lambda]
-│   ├── express-backend/     # Backend Express
-│   └── ws-queue/            # Servicio de cola WebSocket - Redis
+│ ├── next-frontend/ # Aplicación Next.js principal con panel administrativo
+│ │ ├── /app/page.tsx # Página principal [dominio].com [AWS EC2]
+│ │ ├── /app/crear/page.tsx # Formulario creación de evento [dominio].com/crear
+│ │ ├── /app/api # API Routes
+│ │ └── /deploys # Panel administrativo deploys.[dominio].com [AWS EC2]
+│ ├── hono-backend/ # Backend Hono Serverless - [AWS Lambda]
+│ ├── express-backend/ # Backend Express
+│ └── ws-queue/ # Servicio de cola WebSocket - Redis
 ├── packages/
-│   ├── db/                  # Base de datos - Prisma ORM
-│   ├── ui/                  # Componentes UI compartidos
-│   ├── eslint-config/       # Configuración de ESLint
-│   └── typescript-config/   # Configuración de TypeScript
-└── .github/workflows/       # Workflows de GitHub Actions
-```
+│ ├── db/ # Base de datos - Prisma ORM
+│ ├── ui/ # Componentes UI compartidos
+│ ├── eslint-config/ # Configuración de ESLint
+│ └── typescript-config/ # Configuración de TypeScript
+└── .github/workflows/ # Workflows de GitHub Actions
+
+````
 
 ## ¿Para qué se usa cada cosa?
 
@@ -68,7 +68,7 @@ pnpm run dev
 
 # Construir todos los proyectos
 pnpm build
-```
+````
 
 ### Calidad de Código
 
