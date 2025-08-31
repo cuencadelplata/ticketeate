@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Globe, Upload, ChevronDown, Circle } from 'lucide-react';
+import { Globe, Upload, ChevronDown, Circle, Plus, Calendar, Trash } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -55,15 +55,20 @@ const visibilityOptions = {
   },
 };
 
+interface EventDate {
+  id: string;
+  startDate: Date;
+  endDate: Date;
+  startTime: string;
+  endTime: string;
+  isMain: boolean;
+}
+
 export default function CreateEventForm() {
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [eventName, setEventName] = useState('');
   const [selected, setSelected] = useState<'public' | 'private'>('public');
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState('00:00');
-  const [endTime, setEndTime] = useState('00:00');
 
   const libraries = useMemo(() => ['places'], []);
   const { isLoaded } = useLoadScript({
@@ -72,8 +77,6 @@ export default function CreateEventForm() {
   });
 
   const [location, setLocation] = useState<EventLocationData | null>(null);
-
-  // Date formatter intentionally not used in this component
 
   const [description, setDescription] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -87,6 +90,17 @@ export default function CreateEventForm() {
     limit?: number;
   }>({ unlimited: true });
 
+  const [eventDates, setEventDates] = useState<EventDate[]>([
+    {
+      id: Date.now().toString(),
+      startDate: new Date(),
+      endDate: new Date(),
+      startTime: '00:00',
+      endTime: '00:00',
+      isMain: true,
+    },
+  ]);
+
   function handleCapacityChange(capacity: {
     unlimited: boolean;
     limit?: number | undefined;
@@ -97,6 +111,45 @@ export default function CreateEventForm() {
       limit: capacity.limit,
     });
   }
+
+  // Funciones para manejar múltiples fechas
+  const addEventDate = () => {
+    const newDate: EventDate = {
+      id: Date.now().toString(),
+      startDate: new Date(),
+      endDate: new Date(),
+      startTime: '00:00',
+      endTime: '00:00',
+      isMain: false,
+    };
+    setEventDates([...eventDates, newDate]);
+  };
+
+  const removeEventDate = (id: string) => {
+    if (eventDates.length > 1) {
+      const updatedDates = eventDates.filter(date => date.id !== id);
+      // Si se elimina la fecha principal, hacer la primera disponible como principal
+      if (updatedDates.length > 0 && !updatedDates.some(date => date.isMain)) {
+        updatedDates[0].isMain = true;
+      }
+      setEventDates(updatedDates);
+    }
+  };
+
+  const updateEventDate = (id: string, updates: Partial<EventDate>) => {
+    setEventDates(prevDates =>
+      prevDates.map(date => (date.id === id ? { ...date, ...updates } : date))
+    );
+  };
+
+  const setMainDate = (id: string) => {
+    setEventDates(prevDates =>
+      prevDates.map(date => ({
+        ...date,
+        isMain: date.id === id,
+      }))
+    );
+  };
 
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
@@ -141,13 +194,21 @@ export default function CreateEventForm() {
       return;
     }
 
-    // Combinar fecha y hora
-    const startDateTime = new Date(startDate);
-    const [startHour, startMinute] = startTime.split(':');
+    if (eventDates.length === 0) {
+      toast.error('Debes agregar al menos una fecha para el evento');
+      return;
+    }
+
+    // Obtener la fecha principal (la primera que tenga isMain: true)
+    const mainDate = eventDates.find(date => date.isMain) || eventDates[0];
+
+    // Combinar fecha y hora de la fecha principal
+    const startDateTime = new Date(mainDate.startDate);
+    const [startHour, startMinute] = mainDate.startTime.split(':');
     startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
 
-    const endDateTime = new Date(endDate);
-    const [endHour, endMinute] = endTime.split(':');
+    const endDateTime = new Date(mainDate.endDate);
+    const [endHour, endMinute] = mainDate.endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
     const eventData = {
@@ -158,6 +219,21 @@ export default function CreateEventForm() {
       ubicacion: location.address,
       descripcion: description,
       imageUrl: coverImage || undefined,
+      fechas_adicionales: eventDates
+        .filter(date => !date.isMain)
+        .map(date => ({
+          fecha_inicio: new Date(
+            date.startDate.getTime() +
+              (parseInt(date.startTime.split(':')[0]) * 60 +
+                parseInt(date.startTime.split(':')[1])) *
+                60000
+          ).toISOString(),
+          fecha_fin: new Date(
+            date.endDate.getTime() +
+              (parseInt(date.endTime.split(':')[0]) * 60 + parseInt(date.endTime.split(':')[1])) *
+                60000
+          ).toISOString(),
+        })),
     };
 
     // Usar TanStack Query para crear el evento
@@ -173,10 +249,16 @@ export default function CreateEventForm() {
         setDescription('');
         setCoverImage(null);
         setLocation(null);
-        setStartDate(new Date());
-        setEndDate(new Date());
-        setStartTime('00:00');
-        setEndTime('00:00');
+        setEventDates([
+          {
+            id: Date.now().toString(),
+            startDate: new Date(),
+            endDate: new Date(),
+            startTime: '00:00',
+            endTime: '00:00',
+            isMain: true,
+          },
+        ]);
       },
       onError: error => {
         toast.error(error.message || 'Error al crear el evento');
@@ -309,27 +391,101 @@ export default function CreateEventForm() {
                 </Dropdown>
               </div>
 
-              <div className="space-y-1 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2 pl-4">
-                <div className="relative flex items-center gap-4">
-                  <div className="flex w-14 items-center gap-2 text-zinc-400">
-                    <Circle className="h-2 w-2 fill-current" />
-                    <span className="text-sm text-white">Inicio</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <DateSelect value={startDate} onChange={date => date && setStartDate(date)} />
-                    <TimeSelect value={startTime} onChange={setStartTime} />
-                  </div>
+              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                <div className="flex items-center gap-2 pb-1">
+                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-stone-200">Fechas del evento</h3>
                 </div>
-                <div className="relative flex items-center gap-4">
-                  <div className="flex w-14 items-center gap-2 text-zinc-400">
-                    <Circle className="h-2 w-2 fill-current" />
-                    <span className="text-sm text-white">Fin</span>
+
+                {eventDates.map((eventDate, index) => (
+                  <div
+                    key={eventDate.id}
+                    className={`relative rounded-md border-1 p-2 ${
+                      eventDate.isMain
+                        ? 'border-orange-500/50 bg-orange-500/10'
+                        : 'border-stone-700/50 bg-stone-800/30'
+                    }`}
+                  >
+                    {eventDates.length > 1 && (
+                      <button
+                        onClick={() => removeEventDate(eventDate.id)}
+                        className="absolute -right-1 -top-1 rounded-full border border-stone-600 bg-stone-800 p-1 text-stone-400 transition-colors hover:bg-stone-700 hover:text-stone-200"
+                      >
+                        <Trash className="h-3 w-3" />
+                      </button>
+                    )}
+
+                    <div className="space-y-1 pl-1">
+                      <div className="flex items-center gap-1">
+                        <div className="flex w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
+                          <Circle className="h-2 w-2 fill-current" />
+                          <span className="text-xs text-white">Inicio</span>
+                        </div>
+                        <div className="flex flex-1 gap-1">
+                          <DateSelect
+                            value={eventDate.startDate}
+                            onChange={date =>
+                              date && updateEventDate(eventDate.id, { startDate: date })
+                            }
+                          />
+                          <TimeSelect
+                            value={eventDate.startTime}
+                            onChange={time => updateEventDate(eventDate.id, { startTime: time })}
+                          />
+                        </div>
+                        <div className="w-20 flex-shrink-0" /> {/* Espaciador para alinear */}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <div className="flex w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
+                          <Circle className="h-2 w-2 fill-current" />
+                          <span className="text-xs text-white">Fin</span>
+                        </div>
+
+                        <div className="flex flex-1 gap-1">
+                          <DateSelect
+                            value={eventDate.endDate}
+                            onChange={date =>
+                              date && updateEventDate(eventDate.id, { endDate: date })
+                            }
+                          />
+                          <TimeSelect
+                            value={eventDate.endTime}
+                            onChange={time => updateEventDate(eventDate.id, { endTime: time })}
+                          />
+                        </div>
+
+                        <Button
+                          size="sm"
+                          onClick={addEventDate}
+                          className="flex-shrink-0 rounded-md !bg-stone-700 !bg-opacity-60 px-2 py-1 text-xs transition-colors hover:bg-stone-800/50"
+                          color="primary"
+                          variant="faded"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+
+                        <div className="flex flex-shrink-0 items-center gap-1">
+                          <button
+                            onClick={() => setMainDate(eventDate.id)}
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors ${
+                              eventDate.isMain
+                                ? 'border-orange-500 bg-orange-500'
+                                : 'border-stone-500 hover:border-stone-400'
+                            }`}
+                          >
+                            {eventDate.isMain && (
+                              <Circle className="h-2.5 w-2.5 fill-white text-white" />
+                            )}
+                          </button>
+                          <span className="text-xs text-stone-400">
+                            {eventDate.isMain ? 'Fecha principal' : 'Marcar como principal'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <DateSelect value={endDate} onChange={date => date && setEndDate(date)} />
-                    <TimeSelect value={endTime} onChange={setEndTime} />
-                  </div>
-                </div>
+                ))}
               </div>
 
               <EventLocation onLocationSelect={loc => setLocation(loc)} />
