@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type SectorKey = 'Entrada_General' | 'Entrada_VIP';
 
