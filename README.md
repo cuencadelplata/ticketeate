@@ -18,6 +18,8 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 
 ## Estructura básica
 
+```
+
 ├── apps/
 │ ├── next-frontend/ # Aplicación Next.js principal con panel administrativo
 │ │ ├── /app/page.tsx # Página principal [dominio].com [AWS EC2]
@@ -34,7 +36,7 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 │ └── typescript-config/ # Configuración de TypeScript
 └── .github/workflows/ # Workflows de GitHub Actions
 
-````
+```
 
 ## ¿Para qué se usa cada cosa?
 
@@ -68,7 +70,7 @@ pnpm run dev
 
 # Construir todos los proyectos
 pnpm build
-````
+```
 
 ### Calidad de Código
 
