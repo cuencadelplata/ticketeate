@@ -3,7 +3,7 @@ import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@cl
 import { Navbar } from '@/components/navbar';
 import {EventCard} from '@/components/event-card';
 import { Footer } from '@/components/footer';
-/* import Carrusel from '@/components/carrusel'; */
+import Carrusel from '@/components/carrusel'; 
 
 // 🔹 Datos de ejemplo para eventos 
 const events = [
@@ -79,7 +79,7 @@ export default function Home() {
       <main className="min-h-screen ">
   ...
 </main>
-{/* <Carrusel />    */}
+<Carrusel />
 
 
       {/* Contenido principal */}
