@@ -6,6 +6,8 @@ import { useImageUpload } from '@/hooks/use-image-upload';
 interface UploadImageModalProps {
   onClose: () => void;
   onSelectImage: (imageUrl: string) => void;
+  maxImages?: number;
+  currentImages?: number;
 }
 
 interface UserImage {
@@ -109,7 +111,12 @@ const deleteImageFromLibrary = (imageId: string) => {
   }
 };
 
-export default function UploadImageModal({ onClose, onSelectImage }: UploadImageModalProps) {
+export default function UploadImageModal({
+  onClose,
+  onSelectImage,
+  maxImages = 1,
+  currentImages = 0,
+}: UploadImageModalProps) {
   const [selectedCategory, setSelectedCategory] = useState('biblioteca');
   const [searchTerm, setSearchTerm] = useState('');
   const [userImages, setUserImages] = useState<UserImage[]>([]);
@@ -158,6 +165,13 @@ export default function UploadImageModal({ onClose, onSelectImage }: UploadImage
   const handleFiles = async (uploadedFile: File) => {
     if (!uploadedFile.type.startsWith('image/')) {
       toast.error('Por favor, selecciona un archivo de imagen válido.');
+      return;
+    }
+
+    if (currentImages >= maxImages) {
+      toast.error(
+        `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+      );
       return;
     }
 
@@ -248,6 +262,11 @@ export default function UploadImageModal({ onClose, onSelectImage }: UploadImage
                 <p className="text-sm text-gray-500">
                   O elige una imagen a continuación. La relación de aspecto ideal es 1:1.
                 </p>
+                {maxImages > 1 && (
+                  <p className="text-xs text-gray-600">
+                    {currentImages}/{maxImages} imágenes seleccionadas
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -315,7 +334,15 @@ export default function UploadImageModal({ onClose, onSelectImage }: UploadImage
                 ? userImages.map(userImage => (
                     <div key={userImage.id} className="group relative">
                       <button
-                        onClick={() => onSelectImage(userImage.url)}
+                        onClick={() => {
+                          if (currentImages >= maxImages) {
+                            toast.error(
+                              `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                            );
+                            return;
+                          }
+                          onSelectImage(userImage.url);
+                        }}
                         className="aspect-square w-full overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
                       >
                         <img
@@ -342,7 +369,15 @@ export default function UploadImageModal({ onClose, onSelectImage }: UploadImage
                 : imagesForCategory.map((image, index) => (
                     <button
                       key={index}
-                      onClick={() => onSelectImage(image)}
+                      onClick={() => {
+                        if (currentImages >= maxImages) {
+                          toast.error(
+                            `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                          );
+                          return;
+                        }
+                        onSelectImage(image);
+                      }}
                       className="aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
                     >
                       <img

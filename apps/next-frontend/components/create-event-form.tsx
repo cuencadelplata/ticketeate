@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Globe, Upload, ChevronDown, Circle, Plus, Calendar, Trash } from 'lucide-react';
+import {
+  Globe,
+  Upload,
+  ChevronDown,
+  Circle,
+  Plus,
+  Calendar,
+  Trash,
+  GripVertical,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -28,6 +37,23 @@ import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
 import { useAuth } from '@clerk/nextjs';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TicketType {
   id: string;
@@ -64,11 +90,66 @@ interface EventDate {
   isMain: boolean;
 }
 
+interface SortableImageProps {
+  image: string;
+  index: number;
+  onRemove: (index: number) => void;
+}
+
+function SortableImage({ image, index, onRemove }: SortableImageProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: image,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="group relative">
+      <div className="aspect-square overflow-hidden rounded-lg">
+        <img src={image} alt={`Imagen ${index + 1}`} className="h-full w-full object-cover" />
+      </div>
+      <div className="absolute left-2 top-2">
+        <div
+          className={`rounded-full px-2 py-1 text-xs font-medium ${
+            index === 0 ? 'bg-orange-500 text-white' : 'bg-black/50 text-white'
+          }`}
+        >
+          {index === 0 ? 'Portada' : index + 1}
+        </div>
+      </div>
+      <button
+        onClick={() => onRemove(index)}
+        className="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+      >
+        <Trash className="h-3 w-3" />
+      </button>
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute bottom-2 left-2 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 export default function CreateEventForm() {
-  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [eventImages, setEventImages] = useState<string[]>([]);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [eventName, setEventName] = useState('');
   const [selected, setSelected] = useState<'public' | 'private'>('public');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const libraries = useMemo(() => ['places'], []);
   const { isLoaded } = useLoadScript({
@@ -112,7 +193,6 @@ export default function CreateEventForm() {
     });
   }
 
-  // Funciones para manejar múltiples fechas
   const addEventDate = () => {
     const newDate: EventDate = {
       id: Date.now().toString(),
@@ -128,7 +208,6 @@ export default function CreateEventForm() {
   const removeEventDate = (id: string) => {
     if (eventDates.length > 1) {
       const updatedDates = eventDates.filter(date => date.id !== id);
-      // Si se elimina la fecha principal, hacer la primera disponible como principal
       if (updatedDates.length > 0 && !updatedDates.some(date => date.isMain)) {
         updatedDates[0].isMain = true;
       }
@@ -151,13 +230,23 @@ export default function CreateEventForm() {
     );
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setEventImages(items => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over.id as string);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
-  // Hook de TanStack Query para crear eventos
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
 
-  // check auth
   useEffect(() => {
     const checkAuthAndShowModal = () => {
       try {
@@ -172,13 +261,11 @@ export default function CreateEventForm() {
   }, [hasCheckedAuth]);
 
   const handleCreateEvent = async () => {
-    // Validar autenticación
     if (!isSignedIn) {
       toast.error('Debes iniciar sesión para crear eventos');
       return;
     }
 
-    // Validaciones
     if (!eventName.trim()) {
       toast.error('Por favor ingresa un nombre para el evento');
       return;
@@ -199,10 +286,8 @@ export default function CreateEventForm() {
       return;
     }
 
-    // Obtener la fecha principal (la primera que tenga isMain: true)
     const mainDate = eventDates.find(date => date.isMain) || eventDates[0];
 
-    // Combinar fecha y hora de la fecha principal
     const startDateTime = new Date(mainDate.startDate);
     const [startHour, startMinute] = mainDate.startTime.split(':');
     startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
@@ -218,7 +303,8 @@ export default function CreateEventForm() {
       estado: selected === 'public' ? 'activo' : 'oculto',
       ubicacion: location.address,
       descripcion: description,
-      imageUrl: coverImage || undefined,
+      imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
+      galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
       fechas_adicionales: eventDates
         .filter(date => !date.isMain)
         .map(date => ({
@@ -236,18 +322,15 @@ export default function CreateEventForm() {
         })),
     };
 
-    // Usar TanStack Query para crear el evento
     createEventMutation.mutate(eventData, {
       onSuccess: event => {
-        // Mostrar mensaje de éxito
         toast.success('¡Evento creado exitosamente!', {
           description: `${event.titulo} ha sido creado y está listo para compartir.`,
         });
 
-        // Limpiar formulario
         setEventName('');
         setDescription('');
-        setCoverImage(null);
+        setEventImages([]);
         setLocation(null);
         setEventDates([
           {
@@ -267,15 +350,14 @@ export default function CreateEventForm() {
   };
 
   if (!isLoaded) {
-    // En este caso, simplemente no renderizamos el EventLocation
     return null;
   }
 
   return (
     <>
-      {coverImage ? (
+      {eventImages.length > 0 ? (
         <div
-          style={{ backgroundImage: `url(${coverImage})` }}
+          style={{ backgroundImage: `url(${eventImages[0]})` }}
           className="fixed left-0 top-0 z-10 h-full w-full bg-cover bg-center opacity-30 blur-lg filter"
         />
       ) : (
@@ -292,23 +374,31 @@ export default function CreateEventForm() {
                 <DialogTrigger asChild>
                   <Card
                     style={
-                      coverImage
+                      eventImages.length > 0
                         ? {
-                            backgroundImage: `url(${coverImage})`,
+                            backgroundImage: `url(${eventImages[0]})`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                           }
                         : {}
                     }
                     className={`cursor-pointer rounded-xl bg-stone-900 backdrop-blur-lg transition-all duration-300 ${
-                      coverImage ? 'h-80' : ''
+                      eventImages.length > 0 ? 'h-80' : ''
                     }`}
                   >
                     <CardContent className="p-6">
-                      {!coverImage && (
+                      {eventImages.length === 0 && (
                         <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30 transition-all duration-200 hover:border-blue-500/50 hover:bg-stone-800/50">
                           <Upload className="h-8 w-8 text-stone-200 transition-colors duration-200" />
-                          <p className="mt-2 text-sm text-stone-500">Subir imagen del evento</p>
+                          <p className="mt-2 text-sm text-stone-500">Subir imágenes del evento</p>
+                          <p className="text-xs text-stone-600">Máximo 5 imágenes</p>
+                        </div>
+                      )}
+                      {eventImages.length > 0 && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="rounded-full bg-black/50 px-3 py-1 text-sm text-white">
+                            {eventImages.length}/5 imágenes
+                          </div>
                         </div>
                       )}
                     </CardContent>
@@ -316,17 +406,57 @@ export default function CreateEventForm() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Subir imagen del evento</DialogTitle>
+                    <DialogTitle>Galería de imágenes del evento</DialogTitle>
                   </DialogHeader>
                   <UploadImageModal
                     onSelectImage={img => {
-                      setCoverImage(img);
-                      setIsImageDialogOpen(false);
+                      if (eventImages.length < 5) {
+                        setEventImages(prev => [...prev, img]);
+                      } else {
+                        toast.error('Máximo 5 imágenes permitidas');
+                      }
                     }}
                     onClose={() => setIsImageDialogOpen(false)}
+                    maxImages={5}
+                    currentImages={eventImages.length}
                   />
                 </DialogContent>
               </Dialog>
+
+              {eventImages.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-stone-200">Galería de imágenes</h3>
+                    <span className="text-xs text-stone-400">
+                      {eventImages.length}/5 - La primera es la portada
+                    </span>
+                  </div>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext items={eventImages} strategy={verticalListSortingStrategy}>
+                      <div className="grid grid-cols-2 gap-2">
+                        {eventImages.map((image, index) => (
+                          <SortableImage
+                            key={image}
+                            image={image}
+                            index={index}
+                            onRemove={index => {
+                              setEventImages(prev => prev.filter((_, i) => i !== index));
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                  <p className="text-xs text-stone-500">
+                    💡 Arrastra las imágenes para reordenarlas. La primera imagen será la portada
+                    del evento.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -433,7 +563,7 @@ export default function CreateEventForm() {
                             onChange={time => updateEventDate(eventDate.id, { startTime: time })}
                           />
                         </div>
-                        <div className="w-20 flex-shrink-0" /> {/* Espaciador para alinear */}
+                        <div className="w-20 flex-shrink-0" />
                       </div>
 
                       <div className="flex items-center gap-1">
