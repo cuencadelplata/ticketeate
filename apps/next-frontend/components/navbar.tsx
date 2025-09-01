@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
+import DarkMode from './DarkMode';
 import {
   SignInButton,
   SignUpButton,
@@ -54,6 +55,17 @@ function Navbar() {
             className="h-9 w-96 pl-10 pr-4 rounded-full text-sm text-gray-400 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
+
+       
+       
+        {/* Darmode Switch*/}
+          <div>
+
+            <DarkMode />
+
+             </div> 
+
+
 
         {/* Botones de Clerk */}
         <SignedOut>

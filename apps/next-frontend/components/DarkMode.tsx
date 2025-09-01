@@ -1,4 +1,4 @@
-/*"use client";
+"use client";
 import React from "react";
 import Image from "next/image";
 
@@ -24,8 +24,8 @@ const DarkMode = () => {
   return (
     <div className="relative">
     
-      {/* Botón Light */
-    /*  <Image
+      {/* Botón Light */}
+       <Image
         src="/light-mode-button.png" 
         alt="Light mode"
         width={48}
@@ -36,9 +36,9 @@ const DarkMode = () => {
         }`}
       />
 
-      /*{/* Botón Dark */
-    /*  <Image
-    /*    src="/dark-mode-button.png" // ✅ ruta pública
+      {/* Botón Dark */}
+        <Image
+         src="/dark-mode-button.png" 
         alt="Dark mode"
         width={48}
         height={48}
@@ -49,4 +49,4 @@ const DarkMode = () => {
   );
 };
 
-export default DarkMode; */
+export default DarkMode;
