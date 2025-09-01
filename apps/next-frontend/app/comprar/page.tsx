@@ -114,13 +114,13 @@ export default function ComprarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-4 text-black">
+    <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
       {/* Contenedor principal con scroll */}
       <div className="mx-auto max-w-[1200px] space-y-4">
         {/* Header de la página */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Comprar Entradas</h1>
-          <p className="text-gray-600">Selecciona tu sector y completa tu compra</p>
+          <h1 className="text-2xl font-bold text-white">Comprar Entradas</h1>
+          <p className="text-white">Selecciona tu sector y completa tu compra</p>
         </div>
 
         {/* Contenedor de 2 columnas: mapa (izq) + panel (der) */}
