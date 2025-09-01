@@ -1,77 +1,81 @@
 'use client';
 import Link from 'next/link';
-import { Search, Bell } from 'lucide-react';
 import Image from 'next/image';
-import { Button } from '@heroui/react';
-import UserNav from './usernav';
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs';
+import { Search } from 'lucide-react'; 
 
-export function Navbar() {
-  const isAuthenticated = true;
+type NavbarProps = {
+  setQuery: (value: string) => void;
+};
 
+function Navbar() {
   return (
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
+      {/* Logo + links */}
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/wordmark-light.png" alt="Picture of the author" width={130} height={40} />
+          <Image
+            src="/wordmark-light.png"
+            alt="Ticketeate"
+            width={130}
+            height={40}
+            priority
+          />
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
-          {isAuthenticated ? (
-            <>
-              <Link href="/eventos" className="text-sm font-medium text-zinc-200 hover:text-white">
-                Mis Eventos
-              </Link>
-              <Link
-                href="/productoras"
-                className="text-sm font-medium text-zinc-200 hover:text-white"
-              >
-                Productoras
-              </Link>
-              <Link
-                href="/descubrir"
-                className="text-sm font-medium text-zinc-200 hover:text-white"
-              >
-                Descubrir
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/descubrir"
-                className="text-sm font-medium text-zinc-200 hover:text-white"
-              >
-                Descubrir
-              </Link>
-              <Link href="/crear" className="text-sm font-medium text-zinc-200 hover:text-white">
-                Crear Evento
-              </Link>
-            </>
-          )}
+          <Link href="/eventos" className="text-sm font-medium text-zinc-200 hover:text-white">
+            Mis Eventos
+          </Link>
+          <Link href="/productoras" className="text-sm font-medium text-zinc-200 hover:text-white">
+            Productoras
+          </Link>
+          <Link href="/descubrir" className="text-sm font-medium text-zinc-200 hover:text-white">
+            Descubrir
+          </Link>
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
-        >
-          <Search className="h-4 w-4" />
-        </Button>
-        <Button
-          isIconOnly
-          variant="ghost"
-          size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
-        >
-          <Bell className="h-4 w-4" />
-        </Button>
-
-        <div className="px-2">
-          <UserNav />
+      {/*  Buscador + sesión */}
+      <div className="flex items-center space-x-6">
+        {/* Barra de búsqueda */}
+        <div className="relative hidden md:flex">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por artista o eventos"
+            className="h-9 w-96 pl-10 pr-4 rounded-full text-sm text-gray-400 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
         </div>
+
+        {/* Botones de Clerk */}
+        <SignedOut>
+          {/* <SignInButton> */}
+            <button className="rounded-full bg-orange-600 px-4 py-2 hover:bg-orange-700 text-white ...">
+              Iniciar sesión
+            </button>
+          {/* </SignInButton> */}
+          {/* <SignUpButton> */}
+            <button className="rounded-full bg-orange-700 px-4 py-2 hover:bg-orange-700 text-white ...">
+              Registrarse
+            </button>
+          {/* <SignUpButton> */}
+        </SignedOut>
+
+        <SignedIn>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
       </div>
     </div>
   );
 }
+
+export { Navbar };
+export default Navbar;
+
