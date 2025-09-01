@@ -7,9 +7,9 @@ type EventCardProps = {
   
 };
 
-export default function EventCard({ title, description, price, date, image }: EventCardProps) {
+export function EventCard({ title, description, price, date, image }: EventCardProps) {
   return (
-    <div className="border rounded-xl shadow hover:shadow-lg transition overflow-hidden bg-white">
+    <div className="border-1.5 border-orange-600 rounded-xl shadow hover:shadow-lg transition overflow-hidden bg-orange-100">
       <img src={image} alt={title} className="w-full h-48 object-cover" />
       <div className="p-4">
         <h2 className="text-black font-semibold">{title}</h2>

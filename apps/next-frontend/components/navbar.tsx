@@ -9,7 +9,7 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 import { Search } from 'lucide-react'; 
-
+//import DarkMode from './DarkMode';
 type NavbarProps = {
   setQuery: (value: string) => void;
 };
@@ -19,7 +19,8 @@ function Navbar() {
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
       {/* Logo + links */}
       <div className="flex items-center space-x-8">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2 bg-orange-500 p-2 rounded-full">
+        
           <Image
             src="/wordmark-light.png"
             alt="Ticketeate"
@@ -30,21 +31,21 @@ function Navbar() {
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
-          <Link href="/eventos" className="text-sm font-medium text-zinc-200 hover:text-white">
+          <Link href="/eventos" className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full">
             Mis Eventos
           </Link>
-          <Link href="/productoras" className="text-sm font-medium text-zinc-200 hover:text-white">
+          <Link href="/productoras" className="text-sm font-medium text-white hover:text-orange-100 bg-orange-500 p-2 rounded-full">
             Productoras
           </Link>
-          <Link href="/descubrir" className="text-sm font-medium text-zinc-200 hover:text-white">
+          <Link href="/descubrir" className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full">
             Descubrir
           </Link>
         </div>
       </div>
 
-      {/*  Buscador + sesión */}
+      {/*  Buscador + sesion */}
       <div className="flex items-center space-x-6">
-        {/* Barra de búsqueda */}
+        {/* Barra de busqueda */}
         <div className="relative hidden md:flex">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <input
@@ -65,6 +66,7 @@ function Navbar() {
             <button className="rounded-full bg-orange-700 px-4 py-2 hover:bg-orange-700 text-white ...">
               Registrarse
             </button>
+            
           {/* <SignUpButton> */}
         </SignedOut>
 
@@ -73,6 +75,16 @@ function Navbar() {
         </SignedIn>
       </div>
     </div>
+
+
+      
+
+
+
+
+
+
+
   );
 }
 

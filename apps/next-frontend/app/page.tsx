@@ -1,7 +1,9 @@
 import Image from 'next/image';
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Navbar } from '@/components/navbar';
-import EventCard from '@/components/event-card';
+import {EventCard} from '@/components/event-card';
+import { Footer } from '@/components/footer';
+/* import Carrusel from '@/components/carrusel'; */
 
 // 🔹 Datos de ejemplo para eventos 
 const events = [
@@ -70,13 +72,19 @@ const artistasNacionales = events.filter(evt =>
 export default function Home() {
   
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen">
       {/* Navbar fija en todas las páginas */}
       <Navbar />
 
+      <main className="min-h-screen ">
+  ...
+</main>
+{/* <Carrusel />    */}
+
+
       {/* Contenido principal */}
-      <section className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Más Vendidos</h1>
+      <section className=" rounded-small bg-orange-900  container mx-auto px-4 py-8  mt-5">
+        <h1 className="text-2xl font-bold mb-6 text-orange-100 ">Más Vendidos</h1>
 
         {/* Grid de eventos */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -87,9 +95,9 @@ export default function Home() {
       </section>
 
       {/* Sección Artistas internacionales */}
-      <section className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Artistas Internacionales</h1>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="rounded-small bg-orange-900  container mx-auto px-4 py-8  mt-5">
+        <h1 className=" text-2xl font-bold mb-6 text-orange-100 " >Artistas Internacionales</h1>
+        <div className=" grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {internationalArtists.map((event, i) => (
             <EventCard key={i} {...event} />
           ))}
@@ -97,8 +105,8 @@ export default function Home() {
       </section>
 
       {/* Sección Artistas Nacionales */}
-      <section className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Artistas Nacionales</h1>
+      <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8  mt-5">
+        <h1 className="text-2xl font-bold mb-6 text-orange-100">Artistas Nacionales</h1>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {artistasNacionales.map((event, i) => (
             <EventCard key={i} {...event} />
@@ -106,8 +114,8 @@ export default function Home() {
         </div>
       </section>
         {/* Sección todo */}
-      <section className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Ver Todo</h1>
+      <section className="rounded-small bg-orange-900 container mx-auto px-2 py-8 mt-5">
+        <h1 className="text-2xl font-bold mb-6 text-orange-100 ">Ver Todo</h1>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event, i) => (
             <EventCard key={i} {...event} />
@@ -120,7 +128,12 @@ export default function Home() {
   <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
     Botón de Arrepentimiento
   </button>
+  
 </div>
+      {/* Footer */}
+        <Footer/> 
+           
+     
     </main>
   );
 }
