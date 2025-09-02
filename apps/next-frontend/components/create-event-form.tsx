@@ -37,6 +37,7 @@ import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
 import { useAuth } from '@clerk/nextjs';
+import type { CreateEventData } from '@/types/events';
 import {
   DndContext,
   closestCenter,
@@ -296,11 +297,11 @@ export default function CreateEventForm() {
     const [endHour, endMinute] = mainDate.endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
-    const eventData = {
+    const eventData: CreateEventData = {
       titulo: eventName,
       fecha_inicio_venta: startDateTime.toISOString(),
       fecha_fin_venta: endDateTime.toISOString(),
-      estado: selected === 'public' ? 'activo' : 'oculto',
+      estado: selected === 'public' ? 'ACTIVO' : 'OCULTO',
       ubicacion: location.address,
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
@@ -391,13 +392,13 @@ export default function CreateEventForm() {
                         <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30 transition-all duration-200 hover:border-blue-500/50 hover:bg-stone-800/50">
                           <Upload className="h-8 w-8 text-stone-200 transition-colors duration-200" />
                           <p className="mt-2 text-sm text-stone-500">Subir imágenes del evento</p>
-                          <p className="text-xs text-stone-600">Máximo 5 imágenes</p>
+                          <p className="text-xs text-stone-600">Máximo 4 imágenes</p>
                         </div>
                       )}
                       {eventImages.length > 0 && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="rounded-full bg-black/50 px-3 py-1 text-sm text-white">
-                            {eventImages.length}/5 imágenes
+                            {eventImages.length}/4 imágenes
                           </div>
                         </div>
                       )}
@@ -410,14 +411,14 @@ export default function CreateEventForm() {
                   </DialogHeader>
                   <UploadImageModal
                     onSelectImage={img => {
-                      if (eventImages.length < 5) {
+                      if (eventImages.length < 4) {
                         setEventImages(prev => [...prev, img]);
                       } else {
-                        toast.error('Máximo 5 imágenes permitidas');
+                        toast.error('Máximo 4 imágenes permitidas');
                       }
                     }}
                     onClose={() => setIsImageDialogOpen(false)}
-                    maxImages={5}
+                    maxImages={4}
                     currentImages={eventImages.length}
                   />
                 </DialogContent>
@@ -428,7 +429,7 @@ export default function CreateEventForm() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold text-stone-200">Galería de imágenes</h3>
                     <span className="text-xs text-stone-400">
-                      {eventImages.length}/5 - La primera es la portada
+                      {eventImages.length}/4 - La primera es la portada
                     </span>
                   </div>
                   <DndContext

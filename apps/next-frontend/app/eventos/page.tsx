@@ -1,142 +1,69 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, ArrowRight, Plus, RefreshCw, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, MapPin, ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { useAuth } from '@/hooks/use-auth';
+import { useEvents } from '@/hooks/use-events';
+import type { Event } from '@/types/events';
 
-type Event = {
-  id: string;
-  date: string;
-  day: string;
-  time: string;
-  title: string;
-  location?: string;
-  hasLocation: boolean;
-  guests: number;
-  image?: string;
-  isPast?: boolean;
-  description?: string;
-  access?: string;
-  pricingType?: string;
-  capacity?: number;
+// formatear fecha
+const formatEventDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const months = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
+  const days = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+  return {
+    date: `${date.getDate()} ${months[date.getMonth()]}`,
+    day: days[date.getDay()],
+    time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+  };
+};
+
+// Determinar si un evento es pasado
+const isEventPast = (fechaFin: string) => {
+  return new Date(fechaFin) < new Date();
 };
 
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user, isLoading: authLoading } = useAuth();
-  const isAuthenticated = !!user;
 
-  // Verificar auth
-  const checkAuth = () => {
-    if (!isAuthenticated && !authLoading) {
-      toast.error('Acceso restringido', {
-        description: 'Esta página es solo para productores. Por favor, inicia sesión.',
-      });
-      return false;
-    }
+  // hook de TanStack Query para obtener eventos
+  const { data: events = [], isLoading: loading, error, refetch } = useEvents();
 
-    return isAuthenticated;
-  };
-
-  // events api
+  // Función para recargar eventos
   const loadEvents = async () => {
-    if (!checkAuth()) return;
-
     try {
-      setLoading(true);
-      const response = await fetch('/api/events');
-      if (!response.ok) {
-        throw new Error('Error al cargar eventos');
-      }
-      const eventsData = await response.json();
-      setEvents(eventsData);
+      await refetch();
     } catch (error) {
       console.error('Error loading events:', error);
       toast.error('Error al cargar los eventos');
-      // fallback events if api fails
-      setEvents(fallbackEvents);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // load events
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  // fallback events
-  const fallbackEvents: Event[] = [
-    {
-      id: '1',
-      date: '16 mar',
-      day: 'domingo',
-      time: '19:00',
-      title: 'Test',
-      hasLocation: false,
-      guests: 0,
-      image:
-        'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-mqGBYDqwMIJiPrNAPp8UVg0PAlolAM.png',
-    },
-    {
-      id: '2',
-      date: '24 feb',
-      day: 'lunes',
-      time: '2:00',
-      title: 'test',
-      location: 'Buenos Aires',
-      hasLocation: true,
-      guests: 0,
-      image: '/placeholder.svg?height=100&width=100',
-    },
-    {
-      id: '3',
-      date: '10 ene',
-      day: 'viernes',
-      time: '20:30',
-      title: 'Concierto',
-      location: 'Teatro Municipal',
-      hasLocation: true,
-      guests: 120,
-      image: '/placeholder.svg?height=100&width=100',
-    },
-  ];
-
   // filter events
   const filteredEvents = events.filter(event => {
-    const isPast = event.isPast ?? false;
+    const isPast = isEventPast(event.fecha_fin_venta);
     return activeTab === 'proximos' ? !isPast : isPast;
   });
 
   const hasEvents = filteredEvents.length > 0;
-
-  // if not authenticated, show access restricted page
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#121212] text-white">
-        <div className="pb-4">
-          <Navbar />
-        </div>
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="mb-6 rounded-lg bg-[#2A2A2A] p-6">
-            <Lock className="h-16 w-16 text-gray-500" />
-          </div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-300">Acceso Restringido</h2>
-          <p className="mb-8 max-w-md text-center text-gray-400">
-            Esta página es exclusiva para productores. Inicia sesión para gestionar tus eventos.
-          </p>
-          <p className="text-sm text-gray-500">La autenticación se implementará próximamente.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
@@ -209,89 +136,83 @@ export default function EventosPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              {filteredEvents.map(event => (
-                <div key={event.id} className="relative">
-                  <div className="absolute left-4 top-0 flex flex-col items-center">
-                    <div className="text-lg font-medium">{event.date}</div>
-                    <div className="text-sm text-gray-400">{event.day}</div>
-                  </div>
-                  <div className="absolute left-[4.5rem] top-[1.5rem] h-full w-0.5 bg-[#2A2A2A]"></div>
-                  <div className="absolute left-[4.5rem] top-[1.5rem] h-2 w-2 rounded-full bg-gray-500"></div>
+              {filteredEvents.map(event => {
+                const formattedDate = formatEventDate(event.fecha_inicio_venta);
+                const hasLocation = !!event.ubicacion;
+                const coverImage =
+                  event.imagenes_evento?.find(img => img.tipo === 'portada')?.url ||
+                  event.imagenes_evento?.[0]?.url;
 
-                  <div className="ml-20 flex justify-between rounded-lg bg-[#1E1E1E] p-4">
-                    <div className="flex-1">
-                      <div className="mb-1 text-sm text-gray-400">{event.time}</div>
-                      <h3 className="mb-2 text-xl font-medium">{event.title}</h3>
+                return (
+                  <div key={event.id_evento} className="relative">
+                    <div className="absolute left-4 top-0 flex flex-col items-center">
+                      <div className="text-lg font-medium">{formattedDate.date}</div>
+                      <div className="text-sm text-gray-400">{formattedDate.day}</div>
+                    </div>
+                    <div className="absolute left-[4.5rem] top-[1.5rem] h-full w-0.5 bg-[#2A2A2A]"></div>
+                    <div className="absolute left-[4.5rem] top-[1.5rem] h-2 w-2 rounded-full bg-gray-500"></div>
 
-                      {!event.hasLocation ? (
-                        <div className="mb-1 flex items-center text-sm text-yellow-500">
-                          <span className="mr-1">⚠️</span> Falta la ubicación
+                    <div className="ml-20 flex justify-between rounded-lg bg-[#1E1E1E] p-4">
+                      <div className="flex-1">
+                        <div className="mb-1 text-sm text-gray-400">{formattedDate.time}</div>
+                        <h3 className="mb-2 text-xl font-medium">{event.titulo}</h3>
+
+                        {!hasLocation ? (
+                          <div className="mb-1 flex items-center text-sm text-yellow-500">
+                            <span className="mr-1">⚠️</span> Falta la ubicación
+                          </div>
+                        ) : (
+                          <div className="mb-1 flex items-center text-sm text-gray-400">
+                            <MapPin className="mr-1 h-4 w-4" /> {event.ubicacion}
+                          </div>
+                        )}
+
+                        <div className="mb-1 text-sm text-gray-400">
+                          <span className="mr-1">📅</span>
+                          {new Date(event.fecha_inicio_venta).toLocaleDateString('es-ES')} -{' '}
+                          {new Date(event.fecha_fin_venta).toLocaleDateString('es-ES')}
                         </div>
-                      ) : (
-                        <div className="mb-1 flex items-center text-sm text-gray-400">
-                          <MapPin className="mr-1 h-4 w-4" /> {event.location}
-                        </div>
-                      )}
 
-                      <div className="flex items-center text-sm text-gray-400">
-                        <Users className="mr-1 h-4 w-4" />
-                        {event.guests > 0 ? `${event.guests} invitados` : 'Sin invitados'}
-                      </div>
-
-                      <div className="mt-4 flex items-center gap-2">
-                        <Link href={`/event/manage/${event.id}`}>
-                          <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
-                            Gestionar evento
-                            <ArrowRight className="h-4 w-4" />
-                          </button>
-                        </Link>
-                        {event.access && (
+                        <div className="mt-4 flex items-center gap-2">
+                          <Link href={`/event/manage/${event.id_evento}`}>
+                            <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
+                              Gestionar evento
+                              <ArrowRight className="h-4 w-4" />
+                            </button>
+                          </Link>
                           <span
                             className={cn(
                               'rounded px-2 py-1 text-xs',
-                              event.access === 'PUBLIC'
+                              event.estado === 'ACTIVO'
                                 ? 'bg-green-500/20 text-green-400'
                                 : 'bg-yellow-500/20 text-yellow-400'
                             )}
                           >
-                            {event.access === 'PUBLIC' ? 'Público' : 'Privado'}
+                            {event.estado === 'ACTIVO' ? 'Activo' : 'Oculto'}
                           </span>
-                        )}
-                        {event.pricingType && (
-                          <span
-                            className={cn(
-                              'rounded px-2 py-1 text-xs',
-                              event.pricingType === 'FREE'
-                                ? 'bg-blue-500/20 text-blue-400'
-                                : 'bg-purple-500/20 text-purple-400'
-                            )}
-                          >
-                            {event.pricingType === 'FREE' ? 'Gratis' : 'Pago'}
-                          </span>
-                        )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="ml-4">
-                      <div className="h-24 w-24 overflow-hidden rounded">
-                        {event.id === '1' ? (
-                          <div className="flex h-full w-full flex-col items-center justify-center bg-white p-1 text-center text-black">
-                            <div className="text-xs">You</div>
-                            <div className="font-serif text-lg">Are</div>
-                            <div className="font-serif text-lg">Invited</div>
-                          </div>
-                        ) : (
-                          <img
-                            src={event.image || '/placeholder.svg'}
-                            alt={event.title}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
+                      <div className="ml-4">
+                        <div className="h-24 w-24 overflow-hidden rounded">
+                          {coverImage ? (
+                            <img
+                              src={coverImage}
+                              alt={event.titulo}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] p-1 text-center text-gray-400">
+                              <Calendar className="mb-1 h-8 w-8" />
+                              <div className="text-xs">Sin imagen</div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

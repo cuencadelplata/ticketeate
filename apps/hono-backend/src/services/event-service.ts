@@ -1,4 +1,4 @@
-import { prisma } from '../config/prisma';
+import { prisma } from '@repo/db';
 
 export interface CreateEventData {
   titulo: string;
@@ -6,55 +6,108 @@ export interface CreateEventData {
   ubicacion?: string;
   fecha_inicio_venta: Date;
   fecha_fin_venta: Date;
-  estado?: string;
+  estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
   imageUrl?: string;
+  galeria_imagenes?: string[];
+  fechas_adicionales?: Array<{
+    fecha_inicio: Date;
+    fecha_fin: Date;
+  }>;
   clerkUserId: string;
 }
 
 export interface EventWithImages {
-  id_evento: bigint;
+  id_evento: string;
   titulo: string;
   descripcion?: string;
   ubicacion?: string;
   fecha_creacion?: Date;
   fecha_inicio_venta: Date;
   fecha_fin_venta: Date;
-  estado?: string;
+  estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
+  id_creador: string;
   imagenes_evento: Array<{
-    id_imagen: bigint;
+    id_imagen: string;
     url: string;
     tipo?: string;
+  }>;
+  fechas_evento?: Array<{
+    id_fecha: string;
+    fecha_hora: Date;
   }>;
 }
 
 export class EventService {
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
+      await prisma.usuario.upsert({
+        where: { id_usuario: data.clerkUserId },
+        update: {},
+        create: {
+          id_usuario: data.clerkUserId,
+          nombre: 'Usuario',
+          apellido: 'Clerk',
+          email: `${data.clerkUserId}@clerk.user`,
+        },
+      });
+
       // Crear el evento
-      const evento = await prisma.eventos.create({
+      const evento = await prisma.evento.create({
         data: {
           titulo: data.titulo,
           descripcion: data.descripcion,
           ubicacion: data.ubicacion,
           fecha_inicio_venta: data.fecha_inicio_venta,
           fecha_fin_venta: data.fecha_fin_venta,
-          estado: data.estado || 'oculto',
+          estado: data.estado || 'OCULTO',
+          id_creador: data.clerkUserId,
         },
       });
 
-      // Si hay una imagen, guardarla en la base de datos
+      // Crear imágenes del evento
+      const imagenesData = [];
+
+      // Imagen de portada
       if (data.imageUrl) {
-        await prisma.imagenes_evento.create({
-          data: {
-            id_evento: evento.id_evento,
-            url: data.imageUrl,
-            tipo: 'portada',
-          },
+        imagenesData.push({
+          id_evento: evento.id_evento,
+          url: data.imageUrl,
+          tipo: 'portada',
         });
       }
 
-      // Crear estadísticas iniciales para el evento
-      await prisma.estadisticas.create({
+      // Imágenes de galería
+      if (data.galeria_imagenes && data.galeria_imagenes.length > 0) {
+        data.galeria_imagenes.forEach(url => {
+          imagenesData.push({
+            id_evento: evento.id_evento,
+            url: url,
+            tipo: 'galeria',
+          });
+        });
+      }
+
+      // Crear todas las imágenes en batch
+      if (imagenesData.length > 0) {
+        await prisma.imagenEvento.createMany({
+          data: imagenesData,
+        });
+      }
+
+      // Crear fechas adicionales del evento
+      if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
+        const fechasData = data.fechas_adicionales.map(fecha => ({
+          id_evento: evento.id_evento,
+          fecha_hora: fecha.fecha_inicio,
+        }));
+
+        await prisma.fechaEvento.createMany({
+          data: fechasData,
+        });
+      }
+
+      // set estadísticas iniciales para el evento
+      await prisma.estadistica.create({
         data: {
           id_evento: evento.id_evento,
           total_vendidos: 0,
@@ -63,8 +116,8 @@ export class EventService {
         },
       });
 
-      // Crear cola de evento
-      await prisma.colas_evento.create({
+      // set cola de evento
+      await prisma.colaEvento.create({
         data: {
           id_evento: evento.id_evento,
           max_concurrentes: 10,
@@ -72,11 +125,12 @@ export class EventService {
         },
       });
 
-      // Obtener el evento con sus imágenes
-      const eventoCompleto = await prisma.eventos.findUnique({
+      // get evento con sus imágenes y fechas
+      const eventoCompleto = await prisma.evento.findUnique({
         where: { id_evento: evento.id_evento },
         include: {
           imagenes_evento: true,
+          fechas_evento: true,
         },
       });
 
@@ -94,12 +148,13 @@ export class EventService {
     }
   }
 
-  static async getEventById(id: bigint): Promise<EventWithImages | null> {
+  static async getEventById(id: string): Promise<EventWithImages | null> {
     try {
-      const evento = await prisma.eventos.findUnique({
+      const evento = await prisma.evento.findUnique({
         where: { id_evento: id },
         include: {
           imagenes_evento: true,
+          fechas_evento: true,
         },
       });
 
@@ -113,16 +168,15 @@ export class EventService {
     }
   }
 
-  static async getUserEvents(
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-    _clerkUserId: string
-  ): Promise<EventWithImages[]> {
+  static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
     try {
-      // Por ahora, retornamos todos los eventos
-      // En el futuro, podrías agregar una tabla de relación usuario-evento
-      const eventos = await prisma.eventos.findMany({
+      const eventos = await prisma.evento.findMany({
+        where: {
+          id_creador: clerkUserId,
+        },
         include: {
           imagenes_evento: true,
+          fechas_evento: true,
         },
         orderBy: {
           fecha_creacion: 'desc',

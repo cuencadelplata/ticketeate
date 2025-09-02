@@ -1,32 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
 import { useClerkToken } from './use-clerk-token';
-
-interface Event {
-  id_evento: string;
-  titulo: string;
-  descripcion?: string;
-  ubicacion?: string;
-  fecha_creacion?: string;
-  fecha_inicio_venta: string;
-  fecha_fin_venta: string;
-  estado?: string;
-  imagenes_evento: Array<{
-    id_imagen: string;
-    url: string;
-    tipo?: string;
-  }>;
-}
-
-interface CreateEventData {
-  titulo: string;
-  descripcion?: string;
-  ubicacion?: string;
-  fecha_inicio_venta: string;
-  fecha_fin_venta: string;
-  estado?: string;
-  imageUrl?: string;
-}
+import type {
+  Event,
+  CreateEventData,
+  CreateEventResponse,
+  GetEventsResponse,
+  GetEventResponse,
+} from '@/types/events';
 
 // Hook para obtener eventos
 export function useEvents() {
@@ -47,7 +28,7 @@ export function useEvents() {
       if (!response.ok) {
         throw new Error('Error al obtener eventos');
       }
-      const data = await response.json();
+      const data: GetEventsResponse = await response.json();
       return data.events || [];
     },
   });
@@ -72,7 +53,7 @@ export function useEvent(id: string) {
       if (!response.ok) {
         throw new Error('Error al obtener el evento');
       }
-      const data = await response.json();
+      const data: GetEventResponse = await response.json();
       return data.event;
     },
     enabled: !!id,
@@ -104,7 +85,7 @@ export function useCreateEvent() {
         throw new Error(error.error || 'Error al crear el evento');
       }
 
-      const data = await response.json();
+      const data: CreateEventResponse = await response.json();
       return data.event;
     },
     onSuccess: newEvent => {
