@@ -75,6 +75,7 @@ model Evento {
   fecha_inicio_venta DateTime      @db.Timestamptz(6)
   fecha_fin_venta    DateTime      @db.Timestamptz(6)
   estado             String        @default("OCULTO") @db.VarChar(20)
+  mapa_evento        Json?         // Mapa del canvas con sectores y elementos
   
   // Relación con el creador
   id_creador         String        @db.VarChar(255)

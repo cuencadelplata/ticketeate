@@ -9,6 +9,19 @@ import { config } from 'dotenv';
 config();
 const events = new Hono();
 
+// CORS para permitir Authorization y cookies (credenciales)
+events.use(
+  '*',
+  cors({
+    origin: (origin) => origin ?? '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+    exposeHeaders: ['*'],
+    credentials: true,
+    maxAge: 86400,
+  })
+);
+
 events.use(
   '*',
   clerkMiddleware({
@@ -52,6 +65,7 @@ events.post('/', async c => {
         fecha_inicio: new Date(fecha.fecha_inicio),
         fecha_fin: new Date(fecha.fecha_fin),
       })),
+      eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
       clerkUserId: auth.userId,
     };
 
