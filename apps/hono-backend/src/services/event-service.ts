@@ -97,7 +97,7 @@ export class EventService {
           fecha_inicio_venta: data.fecha_inicio_venta,
           fecha_fin_venta: data.fecha_fin_venta,
           estado: data.estado || 'OCULTO',
-          mapa_evento: data.eventMap ? JSON.stringify(data.eventMap) : null,
+          mapa_evento: data.eventMap ?? undefined,
           id_creador: data.clerkUserId,
         },
       });
