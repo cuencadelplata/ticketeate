@@ -113,7 +113,11 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
     setStoredRecentLocations(recents);
   }, []);
 
-  const handleMapSave = (mapData: { sectors: EventSector[]; elements?: any[]; backgroundImage?: string }) => {
+  const handleMapSave = (mapData: {
+    sectors: EventSector[];
+    elements?: any[];
+    backgroundImage?: string;
+  }) => {
     if (selectedLocation) {
       const updatedLocation = {
         ...selectedLocation,
@@ -303,7 +307,9 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
               <Marker
                 position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
                 icon={{
-                  url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                  url:
+                    'data:image/svg+xml;charset=UTF-8,' +
+                    encodeURIComponent(`
                     <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="16" cy="16" r="12" fill="#f97316" stroke="#fff" stroke-width="3"/>
                       <circle cx="16" cy="16" r="6" fill="#fff"/>
@@ -321,7 +327,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
               <Button
                 size="sm"
                 variant="faded"
-                startContent={<Map className="w-4 h-4" />}
+                startContent={<Map className="h-4 w-4" />}
                 onClick={() => setIsMapModalOpen(true)}
                 className="!bg-stone-700 !bg-opacity-60 text-stone-200 hover:!bg-stone-800/50"
               >
@@ -332,7 +338,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                 <Button
                   size="sm"
                   variant="faded"
-                  startContent={<Map className="w-4 h-4" />}
+                  startContent={<Map className="h-4 w-4" />}
                   onClick={() => setIsMapModalOpen(true)}
                   className="!bg-stone-700 !bg-opacity-60 text-stone-200 hover:!bg-stone-800/50"
                 >
@@ -345,7 +351,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                   onClick={handleRemoveMap}
                   className="text-red-400 hover:text-red-300"
                 >
-                  <Trash className="w-4 h-4 text-red-400" />
+                  <Trash className="h-4 w-4 text-red-400" />
                 </Button>
               </div>
             )}
@@ -355,7 +361,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             <div className="rounded-lg border border-stone-800 bg-stone-900/30 p-2">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-stone-400" />
+                  <Eye className="h-4 w-4 text-stone-400" />
                   <span className="text-sm font-medium text-stone-200">Vista previa del mapa</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-stone-400">
@@ -363,9 +369,16 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                   {selectedLocation.eventMap.elements && (
                     <span>{selectedLocation.eventMap.elements.length} elementos</span>
                   )}
-                  {selectedLocation.eventMap.sectors.reduce((total, sector) => total + (sector.capacity || 0), 0) > 0 && (
+                  {selectedLocation.eventMap.sectors.reduce(
+                    (total, sector) => total + (sector.capacity || 0),
+                    0
+                  ) > 0 && (
                     <span>
-                      {selectedLocation.eventMap.sectors.reduce((total, sector) => total + (sector.capacity || 0), 0)} personas
+                      {selectedLocation.eventMap.sectors.reduce(
+                        (total, sector) => total + (sector.capacity || 0),
+                        0
+                      )}{' '}
+                      personas
                     </span>
                   )}
                 </div>
@@ -374,14 +387,19 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                 <div className="absolute inset-0 opacity-10">
                   <svg width="100%" height="100%" className="absolute inset-0">
                     <defs>
-                      <pattern id="preview-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#666" strokeWidth="0.5"/>
+                      <pattern
+                        id="preview-grid"
+                        width="20"
+                        height="20"
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#666" strokeWidth="0.5" />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#preview-grid)" />
                   </svg>
                 </div>
-                
+
                 {selectedLocation.eventMap.backgroundImage ? (
                   <img
                     src={selectedLocation.eventMap.backgroundImage}
@@ -393,7 +411,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     <span className="text-xs text-stone-400">Sin imagen de fondo</span>
                   </div>
                 )}
-                {selectedLocation.eventMap.sectors.map((sector) => (
+                {selectedLocation.eventMap.sectors.map(sector => (
                   <div
                     key={sector.id}
                     className="absolute border-2 border-white/70 text-xs font-medium text-white shadow-sm"
@@ -410,7 +428,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                       textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
                     }}
                   >
-                    <div className="text-center px-1">
+                    <div className="px-1 text-center">
                       <div className="font-semibold">{sector.name}</div>
                       {sector.capacity && (
                         <div className="text-xs opacity-80">{sector.capacity} personas</div>
@@ -418,10 +436,10 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     </div>
                   </div>
                 ))}
-                {selectedLocation.eventMap.elements?.map((element) => (
+                {selectedLocation.eventMap.elements?.map(element => (
                   <div
                     key={element.id}
-                    className="absolute border-2 border-white/70 text-xs font-medium text-white rounded shadow-sm"
+                    className="absolute rounded border-2 border-white/70 text-xs font-medium text-white shadow-sm"
                     style={{
                       left: `${(element.x / 800) * 100}%`,
                       top: `${((element.y + 90) / 600) * 100}%`, // Mover 40px más abajo para centrar
@@ -435,7 +453,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                       textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
                     }}
                   >
-                    <div className="text-center px-1">
+                    <div className="px-1 text-center">
                       <div className="text-xs">{element.icon}</div>
                       <div className="text-xs font-semibold">{element.name}</div>
                     </div>

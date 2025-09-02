@@ -369,7 +369,7 @@ export default function CreateEventForm() {
       <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
         <Navbar />
 
-        <div className="mx-auto max-w-5xl space-y-2 px-20 pt-10 pb-3">
+        <div className="mx-auto max-w-5xl space-y-2 px-20 pb-3 pt-10">
           <div className="grid gap-8 md:grid-cols-[330px,1fr]">
             <div className="space-y-2">
               <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>

@@ -13,7 +13,7 @@ const events = new Hono();
 events.use(
   '*',
   cors({
-    origin: (origin) => origin ?? '*',
+    origin: origin => origin ?? '*',
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
     exposeHeaders: ['*'],

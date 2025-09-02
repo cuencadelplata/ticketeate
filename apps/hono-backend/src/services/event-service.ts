@@ -32,7 +32,14 @@ export interface CreateEventData {
     elements?: Array<{
       id: string;
       name: string;
-      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
+      type:
+        | 'stage'
+        | 'bathroom'
+        | 'bar'
+        | 'entrance'
+        | 'exit'
+        | 'parking'
+        | 'custom';
       icon: string;
       x: number;
       y: number;

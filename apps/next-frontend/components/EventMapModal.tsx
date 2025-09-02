@@ -43,7 +43,11 @@ export interface EventElement {
 interface EventMapModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (mapData: { sectors: EventSector[]; elements: EventElement[]; backgroundImage?: string }) => void;
+  onSave: (mapData: {
+    sectors: EventSector[];
+    elements: EventElement[];
+    backgroundImage?: string;
+  }) => void;
   initialMapData?: { sectors: EventSector[]; elements?: EventElement[]; backgroundImage?: string };
 }
 
@@ -69,18 +73,18 @@ export default function EventMapModal({
   onSave,
   initialMapData,
 }: EventMapModalProps) {
-  const [sectors, setSectors] = useState<EventSector[]>(
-    initialMapData?.sectors || []
-  );
-  const [elements, setElements] = useState<EventElement[]>(
-    initialMapData?.elements || []
-  );
+  const [sectors, setSectors] = useState<EventSector[]>(initialMapData?.sectors || []);
+  const [elements, setElements] = useState<EventElement[]>(initialMapData?.elements || []);
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [selectedType, setSelectedType] = useState<'general' | 'vip' | 'premium' | 'custom'>('general');
-  const [selectedElementType, setSelectedElementType] = useState<'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'>('stage');
+  const [selectedType, setSelectedType] = useState<'general' | 'vip' | 'premium' | 'custom'>(
+    'general'
+  );
+  const [selectedElementType, setSelectedElementType] = useState<
+    'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
+  >('stage');
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(
     initialMapData?.backgroundImage
   );
@@ -88,257 +92,282 @@ export default function EventMapModal({
   const [showGrid, setShowGrid] = useState(true);
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [gridSize] = useState(20);
-  
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const snapToGridPosition = useCallback((x: number, y: number) => {
-    if (!snapToGrid) return { x, y };
-    
-    const snappedX = Math.round(x / gridSize) * gridSize;
-    const snappedY = Math.round(y / gridSize) * gridSize;
-    
-    return { x: snappedX, y: snappedY };
-  }, [snapToGrid, gridSize]);
+  const snapToGridPosition = useCallback(
+    (x: number, y: number) => {
+      if (!snapToGrid) return { x, y };
 
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    // Solo deseleccionar sector o elemento si hay uno seleccionado
-    if (selectedSector) {
-      setSelectedSector(null);
-    }
-    if (selectedElement) {
+      const snappedX = Math.round(x / gridSize) * gridSize;
+      const snappedY = Math.round(y / gridSize) * gridSize;
+
+      return { x: snappedX, y: snappedY };
+    },
+    [snapToGrid, gridSize]
+  );
+
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Solo deseleccionar sector o elemento si hay uno seleccionado
+      if (selectedSector) {
+        setSelectedSector(null);
+      }
+      if (selectedElement) {
+        setSelectedElement(null);
+      }
+    },
+    [selectedSector, selectedElement]
+  );
+
+  const handleSectorMouseDown = useCallback(
+    (e: React.MouseEvent, sectorId: string) => {
+      e.stopPropagation();
+      setSelectedSector(sectorId);
       setSelectedElement(null);
-    }
-  }, [selectedSector, selectedElement]);
+      setIsDragging(true);
 
-  const handleSectorMouseDown = useCallback((e: React.MouseEvent, sectorId: string) => {
-    e.stopPropagation();
-    setSelectedSector(sectorId);
-    setSelectedElement(null);
-    setIsDragging(true);
+      const sector = sectors.find(s => s.id === sectorId);
+      if (!sector) return;
 
-    const sector = sectors.find(s => s.id === sectorId);
-    if (!sector) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      setDragOffset({
+        x: e.clientX - rect.left - sector.x,
+        y: e.clientY - rect.top - sector.y,
+      });
+    },
+    [sectors]
+  );
 
-    setDragOffset({
-      x: e.clientX - rect.left - sector.x,
-      y: e.clientY - rect.top - sector.y,
-    });
-  }, [sectors]);
+  const handleElementMouseDown = useCallback(
+    (e: React.MouseEvent, elementId: string) => {
+      e.stopPropagation();
+      setSelectedElement(elementId);
+      setSelectedSector(null);
+      setIsDragging(true);
 
-  const handleElementMouseDown = useCallback((e: React.MouseEvent, elementId: string) => {
-    e.stopPropagation();
-    setSelectedElement(elementId);
-    setSelectedSector(null);
-    setIsDragging(true);
+      const element = elements.find(el => el.id === elementId);
+      if (!element) return;
 
-    const element = elements.find(el => el.id === elementId);
-    if (!element) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      setDragOffset({
+        x: e.clientX - rect.left - element.x,
+        y: e.clientY - rect.top - element.y,
+      });
+    },
+    [elements]
+  );
 
-    setDragOffset({
-      x: e.clientX - rect.left - element.x,
-      y: e.clientY - rect.top - element.y,
-    });
-  }, [elements]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const rawX = e.clientX - rect.left - dragOffset.x;
+      const rawY = e.clientY - rect.top - dragOffset.y;
 
-    const rawX = e.clientX - rect.left - dragOffset.x;
-    const rawY = e.clientY - rect.top - dragOffset.y;
-    
-    const { x: newX, y: newY } = snapToGridPosition(rawX, rawY);
+      const { x: newX, y: newY } = snapToGridPosition(rawX, rawY);
 
-    if (selectedSector) {
-      const sector = sectors.find(s => s.id === selectedSector);
-      if (sector) {
-        setSectors(prev =>
-          prev.map(s =>
-            s.id === selectedSector
-              ? { ...s, x: Math.max(0, Math.min(newX, 800 - s.width)), y: Math.max(0, Math.min(newY, 600 - s.height)) }
-              : s
-          )
-        );
+      if (selectedSector) {
+        const sector = sectors.find(s => s.id === selectedSector);
+        if (sector) {
+          setSectors(prev =>
+            prev.map(s =>
+              s.id === selectedSector
+                ? {
+                    ...s,
+                    x: Math.max(0, Math.min(newX, 800 - s.width)),
+                    y: Math.max(0, Math.min(newY, 600 - s.height)),
+                  }
+                : s
+            )
+          );
+        }
       }
-    }
 
-    if (selectedElement) {
-      const element = elements.find(el => el.id === selectedElement);
-      if (element) {
-        setElements(prev =>
-          prev.map(el =>
-            el.id === selectedElement
-              ? { ...el, x: Math.max(0, Math.min(newX, 800 - el.width)), y: Math.max(0, Math.min(newY, 600 - el.height)) }
-              : el
-          )
-        );
+      if (selectedElement) {
+        const element = elements.find(el => el.id === selectedElement);
+        if (element) {
+          setElements(prev =>
+            prev.map(el =>
+              el.id === selectedElement
+                ? {
+                    ...el,
+                    x: Math.max(0, Math.min(newX, 800 - el.width)),
+                    y: Math.max(0, Math.min(newY, 600 - el.height)),
+                  }
+                : el
+            )
+          );
+        }
       }
-    }
-  }, [isDragging, selectedSector, selectedElement, dragOffset, sectors, elements, snapToGridPosition]);
+    },
+    [isDragging, selectedSector, selectedElement, dragOffset, sectors, elements, snapToGridPosition]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
 
+  const handleSectorResize = useCallback(
+    (sectorId: string, direction: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      const sector = sectors.find(s => s.id === sectorId);
+      if (!sector) return;
 
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-  const handleSectorResize = useCallback((sectorId: string, direction: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const sector = sectors.find(s => s.id === sectorId);
-    if (!sector) return;
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = sector.width;
+      const startHeight = sector.height;
+      const startSectorX = sector.x;
+      const startSectorY = sector.y;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startWidth = sector.width;
-    const startHeight = sector.height;
-    const startSectorX = sector.x;
-    const startSectorY = sector.y;
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newX = startSectorX;
+        let newY = startSectorY;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-
-      let newWidth = startWidth;
-      let newHeight = startHeight;
-      let newX = startSectorX;
-      let newY = startSectorY;
-
-      if (direction.includes('right')) {
-        newWidth = Math.max(50, startWidth + deltaX);
-        if (snapToGrid) {
-          newWidth = Math.round(newWidth / gridSize) * gridSize;
+        if (direction.includes('right')) {
+          newWidth = Math.max(50, startWidth + deltaX);
+          if (snapToGrid) {
+            newWidth = Math.round(newWidth / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('left')) {
-        newWidth = Math.max(50, startWidth - deltaX);
-        newX = startSectorX + deltaX;
-        if (snapToGrid) {
-          newWidth = Math.round(newWidth / gridSize) * gridSize;
-          newX = Math.round(newX / gridSize) * gridSize;
+        if (direction.includes('left')) {
+          newWidth = Math.max(50, startWidth - deltaX);
+          newX = startSectorX + deltaX;
+          if (snapToGrid) {
+            newWidth = Math.round(newWidth / gridSize) * gridSize;
+            newX = Math.round(newX / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('bottom')) {
-        newHeight = Math.max(30, startHeight + deltaY);
-        if (snapToGrid) {
-          newHeight = Math.round(newHeight / gridSize) * gridSize;
+        if (direction.includes('bottom')) {
+          newHeight = Math.max(30, startHeight + deltaY);
+          if (snapToGrid) {
+            newHeight = Math.round(newHeight / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('top')) {
-        newHeight = Math.max(30, startHeight - deltaY);
-        newY = startSectorY + deltaY;
-        if (snapToGrid) {
-          newHeight = Math.round(newHeight / gridSize) * gridSize;
-          newY = Math.round(newY / gridSize) * gridSize;
+        if (direction.includes('top')) {
+          newHeight = Math.max(30, startHeight - deltaY);
+          newY = startSectorY + deltaY;
+          if (snapToGrid) {
+            newHeight = Math.round(newHeight / gridSize) * gridSize;
+            newY = Math.round(newY / gridSize) * gridSize;
+          }
         }
-      }
 
-      setSectors(prev =>
-        prev.map(s =>
-          s.id === sectorId
-            ? { ...s, width: newWidth, height: newHeight, x: newX, y: newY }
-            : s
-        )
-      );
-    };
+        setSectors(prev =>
+          prev.map(s =>
+            s.id === sectorId ? { ...s, width: newWidth, height: newHeight, x: newX, y: newY } : s
+          )
+        );
+      };
 
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [sectors]);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [sectors]
+  );
 
-  const handleElementResize = useCallback((elementId: string, direction: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const element = elements.find(el => el.id === elementId);
-    if (!element) return;
+  const handleElementResize = useCallback(
+    (elementId: string, direction: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      const element = elements.find(el => el.id === elementId);
+      if (!element) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startWidth = element.width;
-    const startHeight = element.height;
-    const startElementX = element.x;
-    const startElementY = element.y;
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = element.width;
+      const startHeight = element.height;
+      const startElementX = element.x;
+      const startElementY = element.y;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
 
-      let newWidth = startWidth;
-      let newHeight = startHeight;
-      let newX = startElementX;
-      let newY = startElementY;
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newX = startElementX;
+        let newY = startElementY;
 
-      if (direction.includes('right')) {
-        newWidth = Math.max(40, startWidth + deltaX);
-        if (snapToGrid) {
-          newWidth = Math.round(newWidth / gridSize) * gridSize;
+        if (direction.includes('right')) {
+          newWidth = Math.max(40, startWidth + deltaX);
+          if (snapToGrid) {
+            newWidth = Math.round(newWidth / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('left')) {
-        newWidth = Math.max(40, startWidth - deltaX);
-        newX = startElementX + deltaX;
-        if (snapToGrid) {
-          newWidth = Math.round(newWidth / gridSize) * gridSize;
-          newX = Math.round(newX / gridSize) * gridSize;
+        if (direction.includes('left')) {
+          newWidth = Math.max(40, startWidth - deltaX);
+          newX = startElementX + deltaX;
+          if (snapToGrid) {
+            newWidth = Math.round(newWidth / gridSize) * gridSize;
+            newX = Math.round(newX / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('bottom')) {
-        newHeight = Math.max(40, startHeight + deltaY);
-        if (snapToGrid) {
-          newHeight = Math.round(newHeight / gridSize) * gridSize;
+        if (direction.includes('bottom')) {
+          newHeight = Math.max(40, startHeight + deltaY);
+          if (snapToGrid) {
+            newHeight = Math.round(newHeight / gridSize) * gridSize;
+          }
         }
-      }
-      if (direction.includes('top')) {
-        newHeight = Math.max(40, startHeight - deltaY);
-        newY = startElementY + deltaY;
-        if (snapToGrid) {
-          newHeight = Math.round(newHeight / gridSize) * gridSize;
-          newY = Math.round(newY / gridSize) * gridSize;
+        if (direction.includes('top')) {
+          newHeight = Math.max(40, startHeight - deltaY);
+          newY = startElementY + deltaY;
+          if (snapToGrid) {
+            newHeight = Math.round(newHeight / gridSize) * gridSize;
+            newY = Math.round(newY / gridSize) * gridSize;
+          }
         }
-      }
 
-      setElements(prev =>
-        prev.map(el =>
-          el.id === elementId
-            ? { ...el, width: newWidth, height: newHeight, x: newX, y: newY }
-            : el
-        )
-      );
-    };
+        setElements(prev =>
+          prev.map(el =>
+            el.id === elementId
+              ? { ...el, width: newWidth, height: newHeight, x: newX, y: newY }
+              : el
+          )
+        );
+      };
 
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [elements]);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [elements]
+  );
 
   const updateSectorProperty = (sectorId: string, property: keyof EventSector, value: any) => {
     setSectors(prev =>
       prev.map(sector => {
         if (sector.id === sectorId) {
           const updatedSector = { ...sector, [property]: value };
-          
+
           if (updatedSector.isGrid && (property === 'rows' || property === 'columns')) {
             const rows = property === 'rows' ? value : updatedSector.rows;
             const columns = property === 'columns' ? value : updatedSector.columns;
@@ -346,7 +375,7 @@ export default function EventMapModal({
               updatedSector.capacity = rows * columns;
             }
           }
-          
+
           return updatedSector;
         }
         return sector;
@@ -402,7 +431,9 @@ export default function EventMapModal({
     setSectors(prev => [...prev, newSector]);
   };
 
-  const addElementToCanvas = (type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking') => {
+  const addElementToCanvas = (
+    type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
+  ) => {
     const elementType = elementTypes.find(t => t.type === type);
     const { x, y } = snapToGridPosition(50, 50);
     const newElement: EventElement = {
@@ -423,7 +454,7 @@ export default function EventMapModal({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = event => {
         setBackgroundImage(event.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -453,23 +484,23 @@ export default function EventMapModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0">
+      <DialogContent className="h-[90vh] max-w-6xl p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="text-xl font-semibold">Diseñar Mapa del Evento</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-80 border-r border-gray-700 p-4 space-y-4 overflow-y-auto">
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-80 space-y-4 overflow-y-auto border-r border-gray-700 p-4">
             <div className="flex border-b border-gray-200">
               {[
                 { id: 'sectors', label: 'Sectores' },
                 { id: 'elements', label: 'Elementos' },
-                { id: 'grid', label: 'Grid' }
-              ].map((tab) => (
+                { id: 'grid', label: 'Grid' },
+              ].map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -482,29 +513,26 @@ export default function EventMapModal({
 
             {activeTab === 'sectors' && (
               <div>
-                <h3 className="text-sm font-medium mb-2">Sectores Disponibles</h3>
-                <p className="text-xs text-gray-500 mb-3">Haz clic para agregar al canvas</p>
+                <h3 className="mb-2 text-sm font-medium">Sectores Disponibles</h3>
+                <p className="mb-3 text-xs text-gray-500">Haz clic para agregar al canvas</p>
                 <div className="space-y-2">
                   {sectorTypes.map(({ type, label, color }) => (
                     <button
                       key={type}
-                      onClick={() => addSectorToCanvas(type as 'general' | 'vip' | 'premium' | 'custom')}
-                      className={`w-full p-3 rounded-md border-2 border-dashed cursor-pointer transition-all hover:shadow-md text-left ${
+                      onClick={() =>
+                        addSectorToCanvas(type as 'general' | 'vip' | 'premium' | 'custom')
+                      }
+                      className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md ${
                         selectedType === type
-                          ? 'border-blue-500 bg-stone-850'
+                          ? 'bg-stone-850 border-blue-500'
                           : 'border-gray-800 hover:border-gray-900'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: color }}
-                        />
+                        <div className="h-4 w-4 rounded-full" style={{ backgroundColor: color }} />
                         <span className="text-sm font-medium">{label}</span>
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        Haz clic para agregar
-                      </div>
+                      <div className="mt-1 text-xs text-gray-500">Haz clic para agregar</div>
                     </button>
                   ))}
                 </div>
@@ -513,16 +541,20 @@ export default function EventMapModal({
 
             {activeTab === 'elements' && (
               <div>
-                <h3 className="text-sm font-medium mb-2">Elementos de Infraestructura</h3>
-                <p className="text-xs text-gray-500 mb-3">Haz clic para agregar al canvas</p>
+                <h3 className="mb-2 text-sm font-medium">Elementos de Infraestructura</h3>
+                <p className="mb-3 text-xs text-gray-500">Haz clic para agregar al canvas</p>
                 <div className="space-y-2">
                   {elementTypes.map(({ type, label, icon, color }) => (
                     <button
                       key={type}
-                      onClick={() => addElementToCanvas(type as 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking')}
-                      className={`w-full p-3 rounded-md border-2 border-dashed cursor-pointer transition-all hover:shadow-md text-left ${
+                      onClick={() =>
+                        addElementToCanvas(
+                          type as 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
+                        )
+                      }
+                      className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md ${
                         selectedElementType === type
-                          ? 'border-blue-500 bg-stone-850'
+                          ? 'bg-stone-850 border-blue-500'
                           : 'border-gray-800 hover:border-gray-900'
                       }`}
                     >
@@ -530,9 +562,7 @@ export default function EventMapModal({
                         <span className="text-lg">{icon}</span>
                         <span className="text-sm font-medium">{label}</span>
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        Haz clic para agregar
-                      </div>
+                      <div className="mt-1 text-xs text-gray-500">Haz clic para agregar</div>
                     </button>
                   ))}
                 </div>
@@ -541,8 +571,8 @@ export default function EventMapModal({
 
             {activeTab === 'grid' && (
               <div>
-                <h3 className="text-sm font-medium mb-2">Crear Grid de Asientos</h3>
-                <p className="text-xs text-gray-500 mb-3">Crea sectores con filas y columnas</p>
+                <h3 className="mb-2 text-sm font-medium">Crear Grid de Asientos</h3>
+                <p className="mb-3 text-xs text-gray-500">Crea sectores con filas y columnas</p>
                 <div className="space-y-3">
                   {[
                     { rows: 5, columns: 10, label: '5x10 (50 asientos)' },
@@ -553,10 +583,12 @@ export default function EventMapModal({
                     <button
                       key={`${rows}x${columns}`}
                       onClick={() => createGridSector(rows, columns)}
-                      className="w-full p-3 rounded-md border border-gray-800 hover:border-gray-900 hover:bg-stone-850 transition-colors text-left"
+                      className="hover:bg-stone-850 w-full rounded-md border border-gray-800 p-3 text-left transition-colors hover:border-gray-900"
                     >
                       <div className="text-sm font-medium">{label}</div>
-                      <div className="text-xs text-gray-500">Grid {rows} filas x {columns} columnas</div>
+                      <div className="text-xs text-gray-500">
+                        Grid {rows} filas x {columns} columnas
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -564,7 +596,7 @@ export default function EventMapModal({
             )}
 
             <div>
-              <h3 className="text-sm font-medium mb-2">Fondo del Mapa</h3>
+              <h3 className="mb-2 text-sm font-medium">Fondo del Mapa</h3>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -577,20 +609,20 @@ export default function EventMapModal({
                   <img
                     src={backgroundImage}
                     alt="Fondo del mapa"
-                    className="w-full h-20 object-cover rounded-md"
+                    className="h-20 w-full rounded-md object-cover"
                   />
                 </div>
               )}
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-2">Opciones de Alineación</h3>
+              <h3 className="mb-2 text-sm font-medium">Opciones de Alineación</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={showGrid}
-                    onChange={(e) => setShowGrid(e.target.checked)}
+                    onChange={e => setShowGrid(e.target.checked)}
                     className="rounded"
                   />
                   <span className="text-sm">Mostrar grid</span>
@@ -599,7 +631,7 @@ export default function EventMapModal({
                   <input
                     type="checkbox"
                     checked={snapToGrid}
-                    onChange={(e) => setSnapToGrid(e.target.checked)}
+                    onChange={e => setSnapToGrid(e.target.checked)}
                     className="rounded"
                   />
                   <span className="text-sm">Alinear al grid</span>
@@ -608,14 +640,14 @@ export default function EventMapModal({
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-2">Elementos del Mapa</h3>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {sectors.map((sector) => (
+              <h3 className="mb-2 text-sm font-medium">Elementos del Mapa</h3>
+              <div className="max-h-60 space-y-2 overflow-y-auto">
+                {sectors.map(sector => (
                   <div
                     key={sector.id}
-                    className={`p-2 rounded-md border cursor-pointer transition-colors ${
+                    className={`cursor-pointer rounded-md border p-2 transition-colors ${
                       selectedSector === sector.id
-                        ? 'border-blue-500 bg-stone-850'
+                        ? 'bg-stone-850 border-blue-500'
                         : 'border-gray-800 hover:border-gray-900'
                     }`}
                     onClick={() => {
@@ -626,31 +658,33 @@ export default function EventMapModal({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className="h-3 w-3 rounded-full"
                           style={{ backgroundColor: sector.color }}
                         />
                         <span className="text-sm font-medium">{sector.name}</span>
                         {sector.isGrid && (
-                          <span className="text-xs text-gray-500">({sector.rows}x{sector.columns})</span>
+                          <span className="text-xs text-gray-500">
+                            ({sector.rows}x{sector.columns})
+                          </span>
                         )}
                       </div>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           deleteSector(sector.id);
                         }}
                         className="text-red-500 hover:text-red-700"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
                 ))}
-                
-                {elements.map((element) => (
+
+                {elements.map(element => (
                   <div
                     key={element.id}
-                    className={`p-2 rounded-md border cursor-pointer transition-colors ${
+                    className={`cursor-pointer rounded-md border p-2 transition-colors ${
                       selectedElement === element.id
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-800 hover:border-gray-900'
@@ -666,13 +700,13 @@ export default function EventMapModal({
                         <span className="text-sm font-medium">{element.name}</span>
                       </div>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           deleteElement(element.id);
                         }}
                         className="text-red-500 hover:text-red-700"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
@@ -682,11 +716,11 @@ export default function EventMapModal({
 
             {selectedSector && (
               <div>
-                <h3 className="text-sm font-medium mb-2">Propiedades del Sector</h3>
+                <h3 className="mb-2 text-sm font-medium">Propiedades del Sector</h3>
                 {(() => {
                   const sector = sectors.find(s => s.id === selectedSector);
                   if (!sector) return null;
-                  
+
                   return (
                     <div className="space-y-2">
                       <div>
@@ -694,8 +728,8 @@ export default function EventMapModal({
                         <input
                           type="text"
                           value={sector.name}
-                          onChange={(e) => updateSectorProperty(sector.id, 'name', e.target.value)}
-                          className="w-full p-1 text-sm border rounded"
+                          onChange={e => updateSectorProperty(sector.id, 'name', e.target.value)}
+                          className="w-full rounded border p-1 text-sm"
                         />
                       </div>
                       {sector.isGrid && (
@@ -705,8 +739,14 @@ export default function EventMapModal({
                             <input
                               type="number"
                               value={sector.rows || ''}
-                              onChange={(e) => updateSectorProperty(sector.id, 'rows', parseInt(e.target.value) || undefined)}
-                              className="w-full p-1 text-sm border rounded"
+                              onChange={e =>
+                                updateSectorProperty(
+                                  sector.id,
+                                  'rows',
+                                  parseInt(e.target.value) || undefined
+                                )
+                              }
+                              className="w-full rounded border p-1 text-sm"
                             />
                           </div>
                           <div>
@@ -714,8 +754,14 @@ export default function EventMapModal({
                             <input
                               type="number"
                               value={sector.columns || ''}
-                              onChange={(e) => updateSectorProperty(sector.id, 'columns', parseInt(e.target.value) || undefined)}
-                              className="w-full p-1 text-sm border rounded"
+                              onChange={e =>
+                                updateSectorProperty(
+                                  sector.id,
+                                  'columns',
+                                  parseInt(e.target.value) || undefined
+                                )
+                              }
+                              className="w-full rounded border p-1 text-sm"
                             />
                           </div>
                         </div>
@@ -725,8 +771,14 @@ export default function EventMapModal({
                         <input
                           type="number"
                           value={sector.capacity || ''}
-                          onChange={(e) => updateSectorProperty(sector.id, 'capacity', parseInt(e.target.value) || undefined)}
-                          className="w-full p-1 text-sm border rounded"
+                          onChange={e =>
+                            updateSectorProperty(
+                              sector.id,
+                              'capacity',
+                              parseInt(e.target.value) || undefined
+                            )
+                          }
+                          className="w-full rounded border p-1 text-sm"
                           placeholder="Opcional"
                         />
                       </div>
@@ -735,8 +787,14 @@ export default function EventMapModal({
                         <input
                           type="number"
                           value={sector.price || ''}
-                          onChange={(e) => updateSectorProperty(sector.id, 'price', parseFloat(e.target.value) || undefined)}
-                          className="w-full p-1 text-sm border rounded"
+                          onChange={e =>
+                            updateSectorProperty(
+                              sector.id,
+                              'price',
+                              parseFloat(e.target.value) || undefined
+                            )
+                          }
+                          className="w-full rounded border p-1 text-sm"
                           placeholder="Opcional"
                         />
                       </div>
@@ -748,11 +806,11 @@ export default function EventMapModal({
 
             {selectedElement && (
               <div>
-                <h3 className="text-sm font-medium mb-2">Propiedades del Elemento</h3>
+                <h3 className="mb-2 text-sm font-medium">Propiedades del Elemento</h3>
                 {(() => {
                   const element = elements.find(el => el.id === selectedElement);
                   if (!element) return null;
-                  
+
                   return (
                     <div className="space-y-2">
                       <div>
@@ -760,40 +818,42 @@ export default function EventMapModal({
                         <input
                           type="text"
                           value={element.name}
-                          onChange={(e) => {
+                          onChange={e => {
                             setElements(prev =>
                               prev.map(el =>
                                 el.id === selectedElement ? { ...el, name: e.target.value } : el
                               )
                             );
                           }}
-                          className="w-full p-1 text-sm border rounded"
+                          className="w-full rounded border p-1 text-sm"
                         />
                       </div>
                       <div>
                         <label className="text-xs text-gray-600">Tipo</label>
                         <select
                           value={element.type}
-                          onChange={(e) => {
+                          onChange={e => {
                             const newType = e.target.value as any;
                             const elementType = elementTypes.find(t => t.type === newType);
                             setElements(prev =>
                               prev.map(el =>
-                                el.id === selectedElement 
-                                  ? { 
-                                      ...el, 
+                                el.id === selectedElement
+                                  ? {
+                                      ...el,
                                       type: newType,
                                       icon: elementType?.icon || el.icon,
-                                      color: elementType?.color || el.color
-                                    } 
+                                      color: elementType?.color || el.color,
+                                    }
                                   : el
                               )
                             );
                           }}
-                          className="w-full p-1 text-sm border rounded"
+                          className="w-full rounded border p-1 text-sm"
                         >
                           {elementTypes.map(({ type, label }) => (
-                            <option key={type} value={type}>{label}</option>
+                            <option key={type} value={type}>
+                              {label}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -807,24 +867,39 @@ export default function EventMapModal({
           <div className="flex-1 p-4">
             <div className="mb-4 flex items-center gap-2">
               <span className="text-sm text-gray-600">
-                Haz clic en los elementos del panel para agregarlos al canvas. Arrastra para mover, redimensiona desde las esquinas.
+                Haz clic en los elementos del panel para agregarlos al canvas. Arrastra para mover,
+                redimensiona desde las esquinas.
               </span>
             </div>
-            
+
             <div
               ref={canvasRef}
-              className="relative w-full h-96 border-2 border-dashed border-gray-800 rounded-lg overflow-hidden cursor-default"
-              style={{ backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}
+              className="relative h-96 w-full cursor-default overflow-hidden rounded-lg border-2 border-dashed border-gray-800"
+              style={{
+                backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
               onClick={handleCanvasClick}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
             >
               {showGrid && (
-                <div className="absolute inset-0 pointer-events-none opacity-20">
+                <div className="pointer-events-none absolute inset-0 opacity-20">
                   <svg width="100%" height="100%" className="absolute inset-0">
                     <defs>
-                      <pattern id="grid" width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
-                        <path d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`} fill="none" stroke="#666" strokeWidth="0.5"/>
+                      <pattern
+                        id="grid"
+                        width={gridSize}
+                        height={gridSize}
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path
+                          d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`}
+                          fill="none"
+                          stroke="#666"
+                          strokeWidth="0.5"
+                        />
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#grid)" />
@@ -832,10 +907,10 @@ export default function EventMapModal({
                 </div>
               )}
 
-              {sectors.map((sector) => (
+              {sectors.map(sector => (
                 <div
                   key={sector.id}
-                  className={`absolute border-2 cursor-move select-none ${
+                  className={`absolute cursor-move select-none border-2 ${
                     selectedSector === sector.id ? 'border-blue-500' : 'border-gray-400'
                   }`}
                   style={{
@@ -845,58 +920,61 @@ export default function EventMapModal({
                     height: sector.height,
                     backgroundColor: sector.color + 'CC',
                   }}
-                  onMouseDown={(e) => handleSectorMouseDown(e, sector.id)}
+                  onMouseDown={e => handleSectorMouseDown(e, sector.id)}
                 >
-                  <div className="p-1 text-xs font-medium text-white text-center">
+                  <div className="p-1 text-center text-xs font-medium text-white">
                     {sector.name}
                   </div>
-                  
-                  {sector.isGrid && sector.rows && sector.columns && (() => {
-                    const rows = sector.rows!;
-                    const columns = sector.columns!;
-                    return (
-                      <div className="absolute inset-0 opacity-30">
-                        {Array.from({ length: rows }).map((_, rowIndex) =>
-                          Array.from({ length: columns }).map((_, colIndex) => (
-                            <div
-                              key={`${rowIndex}-${colIndex}`}
-                              className="absolute border border-white/20"
-                              style={{
-                                left: `${(colIndex / columns) * 100}%`,
-                                top: `${(rowIndex / rows) * 100}%`,
-                                width: `${100 / columns}%`,
-                                height: `${100 / rows}%`,
-                              }}
-                            />
-                          ))
-                        )}
-                      </div>
-                    );
-                  })()}
-                  
+
+                  {sector.isGrid &&
+                    sector.rows &&
+                    sector.columns &&
+                    (() => {
+                      const rows = sector.rows!;
+                      const columns = sector.columns!;
+                      return (
+                        <div className="absolute inset-0 opacity-30">
+                          {Array.from({ length: rows }).map((_, rowIndex) =>
+                            Array.from({ length: columns }).map((_, colIndex) => (
+                              <div
+                                key={`${rowIndex}-${colIndex}`}
+                                className="absolute border border-white/20"
+                                style={{
+                                  left: `${(colIndex / columns) * 100}%`,
+                                  top: `${(rowIndex / rows) * 100}%`,
+                                  width: `${100 / columns}%`,
+                                  height: `${100 / rows}%`,
+                                }}
+                              />
+                            ))
+                          )}
+                        </div>
+                      );
+                    })()}
+
                   <div
-                    className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 cursor-se-resize"
-                    onMouseDown={(e) => handleSectorResize(sector.id, 'bottom-right', e)}
+                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-se-resize bg-blue-500"
+                    onMouseDown={e => handleSectorResize(sector.id, 'bottom-right', e)}
                   />
                   <div
-                    className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 cursor-sw-resize"
-                    onMouseDown={(e) => handleSectorResize(sector.id, 'bottom-left', e)}
+                    className="absolute -bottom-1 -left-1 h-3 w-3 cursor-sw-resize bg-blue-500"
+                    onMouseDown={e => handleSectorResize(sector.id, 'bottom-left', e)}
                   />
                   <div
-                    className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 cursor-ne-resize"
-                    onMouseDown={(e) => handleSectorResize(sector.id, 'top-right', e)}
+                    className="absolute -right-1 -top-1 h-3 w-3 cursor-ne-resize bg-blue-500"
+                    onMouseDown={e => handleSectorResize(sector.id, 'top-right', e)}
                   />
                   <div
-                    className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 cursor-nw-resize"
-                    onMouseDown={(e) => handleSectorResize(sector.id, 'top-left', e)}
+                    className="absolute -left-1 -top-1 h-3 w-3 cursor-nw-resize bg-blue-500"
+                    onMouseDown={e => handleSectorResize(sector.id, 'top-left', e)}
                   />
                 </div>
               ))}
 
-              {elements.map((element) => (
+              {elements.map(element => (
                 <div
                   key={element.id}
-                  className={`absolute border-2 cursor-move select-none rounded-lg z-10 ${
+                  className={`absolute z-10 cursor-move select-none rounded-lg border-2 ${
                     selectedElement === element.id ? 'border-green-500' : 'border-gray-400'
                   }`}
                   style={{
@@ -906,40 +984,40 @@ export default function EventMapModal({
                     height: element.height,
                     backgroundColor: element.color + 'CC',
                   }}
-                  onMouseDown={(e) => handleElementMouseDown(e, element.id)}
+                  onMouseDown={e => handleElementMouseDown(e, element.id)}
                 >
-                  <div className="flex items-center justify-center h-full text-white">
+                  <div className="flex h-full items-center justify-center text-white">
                     <div className="text-center">
                       <div className="text-lg">{element.icon}</div>
                       <div className="text-xs font-medium">{element.name}</div>
                     </div>
                   </div>
-                  
+
                   <div
-                    className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 cursor-se-resize"
-                    onMouseDown={(e) => handleElementResize(element.id, 'bottom-right', e)}
+                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-se-resize bg-green-500"
+                    onMouseDown={e => handleElementResize(element.id, 'bottom-right', e)}
                   />
                   <div
-                    className="absolute -bottom-1 -left-1 w-3 h-3 bg-green-500 cursor-sw-resize"
-                    onMouseDown={(e) => handleElementResize(element.id, 'bottom-left', e)}
+                    className="absolute -bottom-1 -left-1 h-3 w-3 cursor-sw-resize bg-green-500"
+                    onMouseDown={e => handleElementResize(element.id, 'bottom-left', e)}
                   />
                   <div
-                    className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 cursor-ne-resize"
-                    onMouseDown={(e) => handleElementResize(element.id, 'top-right', e)}
+                    className="absolute -right-1 -top-1 h-3 w-3 cursor-ne-resize bg-green-500"
+                    onMouseDown={e => handleElementResize(element.id, 'top-right', e)}
                   />
                   <div
-                    className="absolute -top-1 -left-1 w-3 h-3 bg-green-500 cursor-nw-resize"
-                    onMouseDown={(e) => handleElementResize(element.id, 'top-left', e)}
+                    className="absolute -left-1 -top-1 h-3 w-3 cursor-nw-resize bg-green-500"
+                    onMouseDown={e => handleElementResize(element.id, 'top-left', e)}
                   />
                 </div>
               ))}
-              
+
               {sectors.length === 0 && elements.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                   <div className="text-center">
-                    <Plus className="w-8 h-8 mx-auto mb-2" />
+                    <Plus className="mx-auto mb-2 h-8 w-8" />
                     <p>Haz clic en los elementos del panel lateral</p>
-                    <p className="text-xs mt-1">para agregarlos al canvas</p>
+                    <p className="mt-1 text-xs">para agregarlos al canvas</p>
                   </div>
                 </div>
               )}
@@ -952,21 +1030,17 @@ export default function EventMapModal({
             <Button
               variant="light"
               onClick={handleReset}
-              startContent={<RotateCcw className="w-4 h-4" />}
+              startContent={<RotateCcw className="h-4 w-4" />}
             >
               Reiniciar
             </Button>
-            <Button
-              variant="light"
-              onClick={onClose}
-              startContent={<X className="w-4 h-4" />}
-            >
+            <Button variant="light" onClick={onClose} startContent={<X className="h-4 w-4" />}>
               Cancelar
             </Button>
             <Button
               color="primary"
               onClick={handleSave}
-              startContent={<Save className="w-4 h-4" />}
+              startContent={<Save className="h-4 w-4" />}
             >
               Guardar Mapa
             </Button>
