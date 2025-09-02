@@ -232,7 +232,7 @@ export default function EventMapModal({
       const startSectorX = sector.x;
       const startSectorY = sector.y;
 
-      const handleMouseMove = (moveEvent: MouseEvent) => {
+      const handleMouseMove = (moveEvent: { clientX: number; clientY: number }) => {
         const deltaX = moveEvent.clientX - startX;
         const deltaY = moveEvent.clientY - startY;
 
@@ -304,7 +304,7 @@ export default function EventMapModal({
       const startElementX = element.x;
       const startElementY = element.y;
 
-      const handleMouseMove = (moveEvent: MouseEvent) => {
+      const handleMouseMove = (moveEvent: { clientX: number; clientY: number }) => {
         const deltaX = moveEvent.clientX - startX;
         const deltaY = moveEvent.clientY - startY;
 
