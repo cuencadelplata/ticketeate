@@ -5,19 +5,19 @@ export const prisma = new PrismaClient();
 
 // Export Prisma types for use in other packages
 export type {
-  eventos,
-  imagenes_evento,
-  fechas_evento,
-  categorias_entrada,
-  reservas,
-  usuarios,
-  pagos,
-  entradas,
-  estadisticas,
-  colas_evento,
-  cola_turnos,
-  logs_eventos,
-  sesiones,
+  Evento,
+  ImagenEvento,
+  FechaEvento,
+  CategoriaEntrada,
+  Reserva,
+  Usuario,
+  Pago,
+  Entrada,
+  Estadistica,
+  ColaEvento,
+  ColaTurno,
+  LogEvento,
+  Sesion,
 } from '@prisma/client';
 
 // Enums are no longer exported as we use string literals in the application
