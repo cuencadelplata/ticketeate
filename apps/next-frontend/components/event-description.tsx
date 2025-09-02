@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Lightbulb, X, Brain, Briefcase, PartyPopper, Sparkles } from 'lucide-react';
+import {
+  FileText,
+  Lightbulb,
+  X,
+  Brain,
+  Briefcase,
+  PartyPopper,
+  Sparkles,
+  AlertCircle,
+} from 'lucide-react';
+import { useDescriptionGenerator } from '@/hooks/use-description-generator';
 import {
   Dialog,
   DialogContent,
@@ -16,12 +26,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface EventDescriptionProps {
   onDescriptionChange: (description: string) => void;
+  eventTitle?: string;
+  eventType?: string;
 }
 
 type MoodType = 'creative' | 'professional' | 'fun';
 type LengthType = 'short' | 'medium' | 'long';
 
-export default function EventDescription({ onDescriptionChange }: EventDescriptionProps) {
+export default function EventDescription({
+  onDescriptionChange,
+  eventTitle,
+  eventType,
+}: EventDescriptionProps) {
   const [description, setDescription] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -30,7 +46,13 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
     length: 'short' as LengthType,
     additionalInstructions: '',
   });
-  const [isGenerating, setIsGenerating] = useState(false);
+
+  const {
+    generateDescription,
+    isLoading: isGenerating,
+    error,
+    clearError,
+  } = useDescriptionGenerator();
 
   const handleSave = () => {
     onDescriptionChange(description);
@@ -38,62 +60,26 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
   };
 
   const handleAISuggestion = () => {
+    clearError();
     setIsOpen(false);
     setIsAIModalOpen(true);
   };
 
   const handleGenerateDescription = async () => {
-    setIsGenerating(true);
+    const generatedDescription = await generateDescription({
+      mood: aiConfig.mood,
+      length: aiConfig.length,
+      additionalInstructions: aiConfig.additionalInstructions,
+      eventTitle,
+      eventType,
+    });
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const generatedDescription = generateDescriptionWithAI(aiConfig);
-    setDescription(generatedDescription);
-
-    setIsGenerating(false);
-    setIsAIModalOpen(false);
-    setIsOpen(false);
-    onDescriptionChange(generatedDescription);
-  };
-
-  const generateDescriptionWithAI = (config: typeof aiConfig): string => {
-    const moodTemplates = {
-      creative: [
-        'Sumérgete en una experiencia única donde la creatividad y la innovación se encuentran. Este evento está diseñado para mentes curiosas y espíritus aventureros que buscan explorar nuevas posibilidades y conectar con ideas revolucionarias.',
-        'Descubre un mundo de inspiración y creatividad sin límites. Perfecto para artistas, diseñadores, innovadores y cualquier persona que quiera expandir sus horizontes creativos en un ambiente estimulante y colaborativo.',
-      ],
-      professional: [
-        'Un evento profesional diseñado para ejecutivos, emprendedores y profesionales que buscan expandir su red de contactos y adquirir conocimientos valiosos en un entorno sofisticado y estructurado.',
-        'Una oportunidad excepcional para el desarrollo profesional y el networking estratégico. Ideal para líderes empresariales, consultores y profesionales que valoran la excelencia y la innovación en sus campos.',
-      ],
-      fun: [
-        '¡Prepárate para una experiencia llena de diversión, risas y momentos inolvidables! Este evento está diseñado para personas que aman la vida social, la música y crear recuerdos extraordinarios juntos.',
-        'Una celebración vibrante y energética perfecta para extrovertidos, amantes de la diversión y cualquiera que quiera escapar de la rutina diaria para disfrutar de una noche mágica y llena de sorpresas.',
-      ],
-    };
-
-    const lengthMultipliers = {
-      short: 0.6,
-      medium: 1.0,
-      long: 1.4,
-    };
-
-    const baseDescription = moodTemplates[config.mood][Math.floor(Math.random() * 2)];
-    const targetLength = Math.floor(baseDescription.length * lengthMultipliers[config.length]);
-
-    let finalDescription = baseDescription;
-
-    if (config.additionalInstructions) {
-      finalDescription += ` ${config.additionalInstructions}`;
+    if (generatedDescription) {
+      setDescription(generatedDescription);
+      setIsAIModalOpen(false);
+      setIsOpen(false);
+      onDescriptionChange(generatedDescription);
     }
-
-    if (config.length === 'short' && finalDescription.length > targetLength) {
-      finalDescription = finalDescription.substring(0, targetLength) + '...';
-    } else if (config.length === 'long' && finalDescription.length < targetLength) {
-      finalDescription += ' Ven y únete a nosotros para crear algo extraordinario juntos.';
-    }
-
-    return finalDescription;
   };
 
   const getMoodIcon = (mood: MoodType) => {
@@ -243,7 +229,7 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
           </button>
         </DialogTrigger>
 
-        <DialogContent className="overflow-hidden border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] p-0 sm:max-w-[600px]">
+        <DialogContent className="overflow-hidden border-0 bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] p-0 sm:max-w-[500px]">
           <DialogTitle className="sr-only">Descripción del evento</DialogTitle>
           <div className="relative">
             {/* Header */}
@@ -420,13 +406,21 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
                     />
                   </div>
 
+                  {/* Mostrar error si existe */}
+                  {error && (
+                    <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                      <AlertCircle className="h-4 w-4 text-red-400" />
+                      <span className="text-sm text-red-300">{error}</span>
+                    </div>
+                  )}
+
                   {/* Botón Generar */}
                   <Button
                     onClick={handleGenerateDescription}
                     disabled={isGenerating}
                     className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Generar
+                    {isGenerating ? 'Generando...' : 'Generar'}
                   </Button>
                 </div>
               )}

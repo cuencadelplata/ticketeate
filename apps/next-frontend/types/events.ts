@@ -1,15 +1,15 @@
-import type { eventos, imagenes_evento, fechas_evento } from '@repo/db';
+import type { Evento, ImagenEvento, FechaEvento } from '@repo/db';
 
 // Tipos para eventos - usando los tipos de Prisma del paquete @db
-export interface Event extends Omit<eventos, 'id_evento'> {
+export interface Event extends Omit<Evento, 'id_evento'> {
   id_evento: string;
   imagenes_evento: Array<
-    Omit<imagenes_evento, 'id_imagen' | 'id_evento'> & {
+    Omit<ImagenEvento, 'id_imagen' | 'id_evento'> & {
       id_imagen: string;
     }
   >;
   fechas_evento?: Array<
-    Omit<fechas_evento, 'id_fecha' | 'id_evento'> & {
+    Omit<FechaEvento, 'id_fecha' | 'id_evento'> & {
       id_fecha: string;
     }
   >;
@@ -28,6 +28,35 @@ export interface CreateEventData {
     fecha_inicio: string;
     fecha_fin: string;
   }>;
+  eventMap?: {
+    sectors: Array<{
+      id: string;
+      name: string;
+      type: 'general' | 'vip' | 'premium' | 'custom';
+      color: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      capacity?: number;
+      price?: number;
+      isGrid?: boolean;
+      rows?: number;
+      columns?: number;
+    }>;
+    elements?: Array<{
+      id: string;
+      name: string;
+      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
+      icon: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      color: string;
+    }>;
+    backgroundImage?: string;
+  };
 }
 
 export interface EventImage {

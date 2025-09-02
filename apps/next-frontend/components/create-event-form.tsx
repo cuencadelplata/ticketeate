@@ -321,6 +321,7 @@ export default function CreateEventForm() {
                 60000
           ).toISOString(),
         })),
+      eventMap: location.eventMap,
     };
 
     createEventMutation.mutate(eventData, {
@@ -368,7 +369,7 @@ export default function CreateEventForm() {
       <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
         <Navbar />
 
-        <div className="mx-auto max-w-5xl space-y-2 px-20 pt-10">
+        <div className="mx-auto max-w-5xl space-y-2 px-20 pb-3 pt-10">
           <div className="grid gap-8 md:grid-cols-[330px,1fr]">
             <div className="space-y-2">
               <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
@@ -389,7 +390,7 @@ export default function CreateEventForm() {
                   >
                     <CardContent className="p-6">
                       {eventImages.length === 0 && (
-                        <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30 transition-all duration-200 hover:border-blue-500/50 hover:bg-stone-800/50">
+                        <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30 transition-all duration-200 hover:border-orange-500/50 hover:bg-stone-800/50">
                           <Upload className="h-8 w-8 text-stone-200 transition-colors duration-200" />
                           <p className="mt-2 text-sm text-stone-500">Subir imágenes del evento</p>
                           <p className="text-xs text-stone-600">Máximo 4 imágenes</p>
@@ -620,7 +621,11 @@ export default function CreateEventForm() {
               </div>
 
               <EventLocation onLocationSelect={loc => setLocation(loc)} />
-              <EventDescription onDescriptionChange={setDescription} />
+              <EventDescription
+                onDescriptionChange={setDescription}
+                eventTitle={eventName}
+                eventType="Evento"
+              />
 
               <Card className="border-1 bg-stone-900 bg-opacity-60">
                 <CardContent className="space-y-1 p-2">

@@ -13,6 +13,42 @@ export interface CreateEventData {
     fecha_inicio: Date;
     fecha_fin: Date;
   }>;
+  eventMap?: {
+    sectors: Array<{
+      id: string;
+      name: string;
+      type: 'general' | 'vip' | 'premium' | 'custom';
+      color: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      capacity?: number;
+      price?: number;
+      isGrid?: boolean;
+      rows?: number;
+      columns?: number;
+    }>;
+    elements?: Array<{
+      id: string;
+      name: string;
+      type:
+        | 'stage'
+        | 'bathroom'
+        | 'bar'
+        | 'entrance'
+        | 'exit'
+        | 'parking'
+        | 'custom';
+      icon: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      color: string;
+    }>;
+    backgroundImage?: string;
+  };
   clerkUserId: string;
 }
 
@@ -25,6 +61,7 @@ export interface EventWithImages {
   fecha_inicio_venta: Date;
   fecha_fin_venta: Date;
   estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
+  mapa_evento?: any; // JSON del mapa de evento
   id_creador: string;
   imagenes_evento: Array<{
     id_imagen: string;
@@ -60,6 +97,7 @@ export class EventService {
           fecha_inicio_venta: data.fecha_inicio_venta,
           fecha_fin_venta: data.fecha_fin_venta,
           estado: data.estado || 'OCULTO',
+          mapa_evento: data.eventMap ?? undefined,
           id_creador: data.clerkUserId,
         },
       });
