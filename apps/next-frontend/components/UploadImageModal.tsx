@@ -4,6 +4,13 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { useImageUpload } from '@/hooks/use-image-upload';
 
+// Componente Skeleton para las imagenes
+const ImageSkeleton = () => (
+  <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-700">
+    <div className="h-full w-full bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 animate-pulse" />
+  </div>
+);
+
 interface UploadImageModalProps {
   onClose: () => void;
   onSelectImage: (imageUrl: string) => void;
@@ -163,6 +170,7 @@ export default function UploadImageModal({
   const [userImages, setUserImages] = useState<UserImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Usar el hook de subida de imágenes
@@ -249,6 +257,18 @@ export default function UploadImageModal({
     deleteImageFromLibrary(imageId);
     setUserImages(getUserImages());
     toast.success('Imagen eliminada de la biblioteca');
+  };
+
+  const handleImageLoad = (imageId: string) => {
+    setLoadingImages(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(imageId);
+      return newSet;
+    });
+  };
+
+  const handleImageLoadStart = (imageId: string) => {
+    setLoadingImages(prev => new Set(prev).add(imageId));
   };
 
   // Obtiene las imágenes y el título de la categoría seleccionada
@@ -387,13 +407,18 @@ export default function UploadImageModal({
                           }}
                           className="relative aspect-square w-full overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
                         >
-                                                  <Image
-                          src={userImage.url}
-                          alt={userImage.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        />
+                          {loadingImages.has(userImage.id) && <ImageSkeleton />}
+                          <Image
+                            src={userImage.url}
+                            alt={userImage.name}
+                            fill
+                            className={`object-cover transition-opacity duration-300 ${
+                              loadingImages.has(userImage.id) ? 'opacity-0' : 'opacity-100'
+                            }`}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            onLoad={() => handleImageLoad(userImage.id)}
+                            onLoadStart={() => handleImageLoadStart(userImage.id)}
+                          />
                         </button>
                         <button
                           onClick={e => handleDeleteImage(userImage.id, e)}
@@ -410,29 +435,37 @@ export default function UploadImageModal({
                         </div>
                       </div>
                     ))
-                  : imagesForCategory.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          if (currentImages >= maxImages) {
-                            toast.error(
-                              `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
-                            );
-                            return;
-                          }
-                          onSelectImage(image);
-                        }}
-                        className="relative aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
-                      >
-                                              <Image
-                        src={image}
-                        alt={`${categoryLabel} image ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                      />
-                      </button>
-                    ))}
+                  : imagesForCategory.map((image, index) => {
+                      const imageKey = `${selectedCategory}-${index}`;
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            if (currentImages >= maxImages) {
+                              toast.error(
+                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                              );
+                              return;
+                            }
+                            onSelectImage(image);
+                          }}
+                          className="relative aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
+                        >
+                          {loadingImages.has(imageKey) && <ImageSkeleton />}
+                          <Image
+                            src={image}
+                            alt={`${categoryLabel} image ${index + 1}`}
+                            fill
+                            className={`object-cover transition-opacity duration-300 ${
+                              loadingImages.has(imageKey) ? 'opacity-0' : 'opacity-100'
+                            }`}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            onLoad={() => handleImageLoad(imageKey)}
+                            onLoadStart={() => handleImageLoadStart(imageKey)}
+                          />
+                        </button>
+                      );
+                    })}
               </div>
             </div>
           )}
