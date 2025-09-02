@@ -621,7 +621,11 @@ export default function CreateEventForm() {
               </div>
 
               <EventLocation onLocationSelect={loc => setLocation(loc)} />
-              <EventDescription onDescriptionChange={setDescription} />
+              <EventDescription 
+                onDescriptionChange={setDescription}
+                eventTitle={eventName}
+                eventType="Evento"
+              />
 
               <Card className="border-1 bg-stone-900 bg-opacity-60">
                 <CardContent className="space-y-1 p-2">
