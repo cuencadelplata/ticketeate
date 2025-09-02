@@ -20,7 +20,5 @@ export type {
   Sesion,
 } from '@prisma/client';
 
-// Enums are no longer exported as we use string literals in the application
-
 // Export the PrismaClient type
 export type { PrismaClient } from '@prisma/client';
