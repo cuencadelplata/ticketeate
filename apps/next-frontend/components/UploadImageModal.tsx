@@ -1,5 +1,5 @@
 import React, { useState, useRef, DragEvent, useEffect } from 'react';
-import { Search, Upload, History, Trash2 } from 'lucide-react';
+import { Search, Upload, History, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useImageUpload } from '@/hooks/use-image-upload';
 
@@ -224,7 +224,7 @@ export default function UploadImageModal({
         <div className="flex items-center justify-between border-b border-gray-700 px-6 py-2">
           <h2 className="text-base font-medium text-white">Elegir imagen</h2>
           <button onClick={onClose} className="text-gray-400 transition-colors hover:text-white">
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </div>
 
