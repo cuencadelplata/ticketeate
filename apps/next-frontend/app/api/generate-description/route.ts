@@ -16,23 +16,20 @@ export async function POST(request: NextRequest) {
     // Validar que tenemos las credenciales necesarias
     const apiKey = process.env.GROK_API_KEY;
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
     // Construir el prompt para Grok
     const moodDescriptions = {
       creative: 'creativo e innovador, enfocado en la inspiración y la exploración de nuevas ideas',
       professional: 'profesional y estructurado, ideal para networking y desarrollo empresarial',
-      fun: 'divertido y energético, perfecto para eventos sociales y entretenimiento'
+      fun: 'divertido y energético, perfecto para eventos sociales y entretenimiento',
     };
 
     const lengthDescriptions = {
       short: 'breve y concisa (máximo 100 palabras)',
       medium: 'de longitud media (150-200 palabras)',
-      long: 'detallada y extensa (250-300 palabras)'
+      long: 'detallada y extensa (250-300 palabras)',
     };
 
     const prompt = `Eres un experto en marketing de eventos. Genera una descripción atractiva para un evento en español.
@@ -60,15 +57,15 @@ Genera solo la descripción, sin explicaciones adicionales.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'grok-3',
         messages: [
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         max_tokens: 3000,
         temperature: 0.8,
@@ -89,22 +86,15 @@ Genera solo la descripción, sin explicaciones adicionales.`;
     const generatedDescription = data.choices?.[0]?.message?.content?.trim();
 
     if (!generatedDescription) {
-      return NextResponse.json(
-        { error: 'No description generated' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'No description generated' }, { status: 500 });
     }
 
     return NextResponse.json({
       description: generatedDescription,
-      success: true
+      success: true,
     });
-
   } catch (error) {
     console.error('Error generating description:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

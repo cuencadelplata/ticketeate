@@ -1,7 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Lightbulb, X, Brain, Briefcase, PartyPopper, Sparkles, AlertCircle } from 'lucide-react';
+import {
+  FileText,
+  Lightbulb,
+  X,
+  Brain,
+  Briefcase,
+  PartyPopper,
+  Sparkles,
+  AlertCircle,
+} from 'lucide-react';
 import { useDescriptionGenerator } from '@/hooks/use-description-generator';
 import {
   Dialog,
@@ -24,7 +33,11 @@ interface EventDescriptionProps {
 type MoodType = 'creative' | 'professional' | 'fun';
 type LengthType = 'short' | 'medium' | 'long';
 
-export default function EventDescription({ onDescriptionChange, eventTitle, eventType }: EventDescriptionProps) {
+export default function EventDescription({
+  onDescriptionChange,
+  eventTitle,
+  eventType,
+}: EventDescriptionProps) {
   const [description, setDescription] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -33,8 +46,13 @@ export default function EventDescription({ onDescriptionChange, eventTitle, even
     length: 'short' as LengthType,
     additionalInstructions: '',
   });
-  
-  const { generateDescription, isLoading: isGenerating, error, clearError } = useDescriptionGenerator();
+
+  const {
+    generateDescription,
+    isLoading: isGenerating,
+    error,
+    clearError,
+  } = useDescriptionGenerator();
 
   const handleSave = () => {
     onDescriptionChange(description);
@@ -63,8 +81,6 @@ export default function EventDescription({ onDescriptionChange, eventTitle, even
       onDescriptionChange(generatedDescription);
     }
   };
-
-
 
   const getMoodIcon = (mood: MoodType) => {
     switch (mood) {

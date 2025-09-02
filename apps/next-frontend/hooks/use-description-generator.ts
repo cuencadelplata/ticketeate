@@ -43,7 +43,7 @@ export function useDescriptionGenerator(): UseDescriptionGeneratorReturn {
       }
 
       const data: GenerateDescriptionResponse = await response.json();
-      
+
       if (!data.success || !data.description) {
         throw new Error('No se pudo generar la descripción');
       }

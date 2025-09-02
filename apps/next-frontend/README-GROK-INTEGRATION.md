@@ -35,7 +35,7 @@ Los siguientes archivos han sido creados/modificados:
 El componente ahora acepta props adicionales opcionales:
 
 ```tsx
-<EventDescription 
+<EventDescription
   onDescriptionChange={handleDescriptionChange}
   eventTitle="Mi Evento Especial" // Opcional
   eventType="Conferencia" // Opcional
@@ -55,6 +55,7 @@ El modal de IA permite configurar:
 ### POST `/api/generate-description`
 
 **Request Body:**
+
 ```json
 {
   "mood": "creative" | "professional" | "fun",
@@ -66,6 +67,7 @@ El modal de IA permite configurar:
 ```
 
 **Response:**
+
 ```json
 {
   "description": "string",

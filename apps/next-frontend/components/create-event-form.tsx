@@ -621,7 +621,7 @@ export default function CreateEventForm() {
               </div>
 
               <EventLocation onLocationSelect={loc => setLocation(loc)} />
-              <EventDescription 
+              <EventDescription
                 onDescriptionChange={setDescription}
                 eventTitle={eventName}
                 eventType="Evento"

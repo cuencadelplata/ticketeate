@@ -7,7 +7,7 @@ import { useImageUpload } from '@/hooks/use-image-upload';
 // Componente Skeleton para las imagenes
 const ImageSkeleton = () => (
   <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-700">
-    <div className="h-full w-full bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 animate-pulse" />
+    <div className="h-full w-full animate-pulse bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700" />
   </div>
 );
 
@@ -47,7 +47,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/05_grx8i8.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/06_gabtdh.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/07_ctn24o.jpg',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/08_msapmt.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/08_msapmt.jpg',
   ],
   teatro: [
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838344/08_qbpkv0.jpg',
@@ -57,7 +57,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/05_yii5wz.avif',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/04_c4ant0.avif',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/02_hpvqwi.jpg',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/01_cnsyst.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/01_cnsyst.jpg',
   ],
   fiesta: [
     'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500&h=500&fit=crop',
@@ -91,7 +91,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/04_tcyyjg.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/03_hbk29j.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/02_emj01v.jpg',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/01_gvuqvl.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/01_gvuqvl.jpg',
   ],
   geometrica: [
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/07_toa9uf.webp',
@@ -105,7 +105,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/05_wqyxwm.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/02_dtwlhr.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/03_jrkgrp.jpg',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838328/01_xustcu.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838328/01_xustcu.jpg',
   ],
   musica: [
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/01_tr9xyl.jpg',
@@ -115,7 +115,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/07_ubqvoe.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/08_kk1z7h.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/06_loavyr.jpg',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/04_a4d3p5.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/04_a4d3p5.jpg',
   ],
   tecnologia: [
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/07_hoapm8.jpg',
@@ -125,7 +125,7 @@ const imagesMapping: Record<string, string[]> = {
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/03_bwr1aj.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838339/02_zaxr5n.jpg',
     'https://res.cloudinary.com/dvssnomng/image/upload/v1756838339/05_fyinmd.png',
-    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838338/01_sse632.jpg'
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838338/01_sse632.jpg',
   ],
 };
 
