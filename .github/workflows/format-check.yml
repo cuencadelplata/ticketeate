@@ -54,7 +54,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
         working-directory: apps/hono-backend
-        run: npx prisma generate
+        run: pnpm db:generate
 
       - name: Check formatting
         run: pnpm format:check

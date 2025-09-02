@@ -114,7 +114,7 @@ const deleteImageFromLibrary = (imageId: string) => {
 export default function UploadImageModal({
   onClose,
   onSelectImage,
-  maxImages = 1,
+  maxImages = 4,
   currentImages = 0,
 }: UploadImageModalProps) {
   const [selectedCategory, setSelectedCategory] = useState('biblioteca');

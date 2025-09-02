@@ -9,7 +9,7 @@ import { healthRoutes } from './routes/health';
 import { clerkMiddleware } from '@hono/clerk-auth';
 
 const app = new Hono();
-app.use('*', clerkMiddleware());
+
 // Middleware
 app.use('*', logger());
 app.use('*', timing());

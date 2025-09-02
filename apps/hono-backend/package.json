@@ -12,18 +12,20 @@
     "lint": "eslint src",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:generate": "cd ../../packages/db && npm run db:generate",
+    "db:push": "cd ../../packages/db && npm run db:push",
+    "db:migrate": "cd ../../packages/db && npm run db:migrate",
+    "db:studio": "cd ../../packages/db && npm run db:studio"
   },
   "dependencies": {
     "@clerk/backend": "^2.10.1",
     "@hono/clerk-auth": "^3.0.3",
     "@hono/node-server": "^1.0.0",
     "@prisma/client": "^6.15.0",
+    "@repo/db": "workspace:*",
     "@types/multer": "^2.0.0",
     "cloudinary": "^2.7.0",
+    "dotenv": "^16.0.0",
     "hono": "^4.0.0",
     "multer": "^2.0.2"
   },

@@ -1,18 +1,19 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { getAuth } from '@hono/clerk-auth';
+import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
+import { config } from 'dotenv';
 
+// Cargar variables de entorno
+config();
 const events = new Hono();
 
 events.use(
   '*',
-  cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+  clerkMiddleware({
+    secretKey: process.env.CLERK_SECRET_KEY,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
   })
 );
 
@@ -44,8 +45,13 @@ events.post('/', async c => {
       ubicacion: body.ubicacion,
       fecha_inicio_venta: new Date(body.fecha_inicio_venta),
       fecha_fin_venta: new Date(body.fecha_fin_venta),
-      estado: body.estado || 'oculto',
-      imageUrl: body.imageUrl, // URL de imagen ya subida a Cloudinary
+      estado: body.estado || 'OCULTO',
+      imageUrl: body.imageUrl, // URL de imagen de portada ya subida a Cloudinary
+      galeria_imagenes: body.galeria_imagenes, // Array de URLs de galería
+      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
+        fecha_inicio: new Date(fecha.fecha_inicio),
+        fecha_fin: new Date(fecha.fecha_fin),
+      })),
       clerkUserId: auth.userId,
     };
 
@@ -157,9 +163,8 @@ events.get('/:id', async c => {
     }
 
     const id = c.req.param('id');
-    const eventId = BigInt(id);
 
-    const event = await EventService.getEventById(eventId);
+    const event = await EventService.getEventById(id);
 
     if (!event) {
       return c.json({ error: 'Evento no encontrado' }, 404);

@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { Search, Bell } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@heroui/react';
+import { useAuth } from '@clerk/nextjs';
 import UserNav from './usernav';
 
 export function Navbar() {
-  const isAuthenticated = true;
+  const { isSignedIn } = useAuth();
 
   return (
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
@@ -16,7 +17,7 @@ export function Navbar() {
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
-          {isAuthenticated ? (
+          {isSignedIn ? (
             <>
               <Link href="/eventos" className="text-sm font-medium text-zinc-200 hover:text-white">
                 Mis Eventos
