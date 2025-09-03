@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 //   id_usuario: number,
 //   id_evento: number,
 //   cantidad: number,
-//   metodo_pago: string
+//   metodo_pago: 'tarjeta_credito' | 'tarjeta_debito'
 // }
 
 export async function POST(request: NextRequest) {
@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['tarjeta', 'efectivo', 'transferencia'].includes(metodo_pago)) {
+    if (!['tarjeta_credito', 'tarjeta_debito'].includes(metodo_pago)) {
       return NextResponse.json(
         {
-          error: 'Método de pago no válido. Use: tarjeta, efectivo o transferencia',
+          error: 'Método de pago no válido. Use: tarjeta_credito o tarjeta_debito',
         },
         { status: 400 }
       );
