@@ -32,7 +32,7 @@ export default function ComprarPage() {
   const [idEvento] = useState<number>(1);
 
   const [cantidad, setCantidad] = useState<number>(1);
-  const [metodo, setMetodo] = useState<string>('efectivo');
+  const [metodo, setMetodo] = useState<string>('tarjeta_debito');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export default function ComprarPage() {
         setResultado(null);
         setCantidad(1);
         setSector('Entrada_General');
-        setMetodo('efectivo');
+        setMetodo('tarjeta_debito');
         router.push('/'); // Redirigir al menú principal
       }, 3000);
     } catch (e: any) {
@@ -110,7 +110,7 @@ export default function ComprarPage() {
     setError(null);
     setCantidad(1);
     setSector('Entrada_General');
-    setMetodo('EFECTIVO');
+    setMetodo('tarjeta_debito');
   };
 
   return (
@@ -229,9 +229,8 @@ export default function ComprarPage() {
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={showSuccess}
                 >
-                  <option value="efectivo">Efectivo</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta_debito">Tarjeta de Débito</option>
+                  <option value="tarjeta_credito">Tarjeta de Crédito</option>
                 </select>
               </div>
 
@@ -292,7 +291,7 @@ export default function ComprarPage() {
                       ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
                     </p>
                     <p>💰 Total: {formatARS(total)}</p>
-                    <p>💳 Método: {metodo}</p>
+                    <p>💳 Método: {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}</p>
                     <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
                   </div>
                   <div className="mt-3 text-xs text-green-600">
