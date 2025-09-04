@@ -1,0 +1,35 @@
+{
+  "environments": {
+    "dev": {
+      "region": "us-east-2",
+      "accountId": "665352994810",
+      "repositoryName": "hono/ticketeate",
+      "imageTag": "dev",
+      "description": "Entorno de desarrollo"
+    },
+    "staging": {
+      "region": "us-east-2",
+      "accountId": "665352994810",
+      "repositoryName": "hono/ticketeate",
+      "imageTag": "staging",
+      "description": "Entorno de staging"
+    },
+    "production": {
+      "region": "us-east-2",
+      "accountId": "665352994810",
+      "repositoryName": "hono/ticketeate",
+      "imageTag": "latest",
+      "description": "Entorno de producción"
+    }
+  },
+  "defaultEnvironment": "dev",
+  "docker": {
+    "baseImage": "public.ecr.aws/lambda/nodejs:18",
+    "buildArgs": {},
+    "labels": {
+      "maintainer": "Ticketeate Team",
+      "version": "1.0.0",
+      "description": "Hono Backend API for Ticketeate"
+    }
+  }
+}
