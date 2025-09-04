@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
@@ -7,16 +8,15 @@
     "moduleResolution": "node",
     "lib": ["ES2022"],
     "types": ["node"],
-    "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "sourceMap": true,
-    "allowJs": true
+    "baseUrl": ".",
+    "paths": {
+      "@repo/db": ["../../packages/db/src"],
+      "@repo/db/*": ["../../packages/db/src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "dev.ts"]
+  "exclude": ["node_modules", "dist", "dev.ts"],
+  "references": [
+    { "path": "../../packages/db" }
+  ]
 }

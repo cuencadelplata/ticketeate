@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist", "build", ".next"],
+  "references": [
+    { "path": "./packages/db" },
+    { "path": "./packages/ui" },
+    { "path": "./apps/next-frontend" },
+    { "path": "./apps/svc-users" },
+    { "path": "./apps/svc-events" },
+    { "path": "./apps/svc-checkout" },
+    { "path": "./apps/svc-producers" }
+  ]
+}
