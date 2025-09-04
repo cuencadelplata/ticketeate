@@ -17,6 +17,7 @@ Este es un monorepo construido con Turborepo que contiene múltiples aplicacione
 Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 4 aplicaciones Hono
 
 ## Estructura básica
+
 ```
 
 ├── apps/
@@ -27,10 +28,10 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 4 apli
 │ │ └── /deploys # Panel administrativo deploys.[dominio].com [AWS EC2]
 │ │
 │ │   # Microservicios Hono Serverless - [AWS Lambda en ECR]
-│ ├── svc-checkout/ 
-│ ├── svc-events/ 
-│ ├── svc-producers/ 
-│ └── svc-users/ 
+│ ├── svc-checkout/
+│ ├── svc-events/
+│ ├── svc-producers/
+│ └── svc-users/
 ├── packages/
 │ ├── db/ # Base de datos - Prisma ORM
 │ ├── ui/ # Componentes UI compartidos
