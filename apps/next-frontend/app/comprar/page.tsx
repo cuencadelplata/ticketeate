@@ -291,7 +291,10 @@ export default function ComprarPage() {
                       ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
                     </p>
                     <p>💰 Total: {formatARS(total)}</p>
-                    <p>💳 Método: {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}</p>
+                    <p>
+                      💳 Método:{' '}
+                      {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}
+                    </p>
                     <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
                   </div>
                   <div className="mt-3 text-xs text-green-600">
