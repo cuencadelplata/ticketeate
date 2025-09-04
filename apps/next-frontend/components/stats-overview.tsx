@@ -13,20 +13,20 @@ import {
 } from 'lucide-react';
 
 interface OverviewStatsProps {
-  overview: {
-    totalEvents: number;
-    totalUsers: number;
-    totalReservations: number;
-    totalRevenue: number;
-    activeEvents: number;
-    completedEvents: number;
-    pendingReservations: number;
-    confirmedReservations: number;
+  readonly overview: {
+    readonly totalEvents: number;
+    readonly totalUsers: number;
+    readonly totalReservations: number;
+    readonly totalRevenue: number;
+    readonly activeEvents: number;
+    readonly completedEvents: number;
+    readonly pendingReservations: number;
+    readonly confirmedReservations: number;
   };
-  last30Days: {
-    newEvents: number;
-    newReservations: number;
-    revenue: number;
+  readonly last30Days: {
+    readonly newEvents: number;
+    readonly newReservations: number;
+    readonly revenue: number;
   };
 }
 

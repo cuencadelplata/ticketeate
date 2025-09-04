@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 
 export const router = Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req: Request, res: Response) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
@@ -12,6 +12,6 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/ping', (req, res) => {
+router.get('/ping', (req: Request, res: Response) => {
   res.json({ message: 'pong' });
 });

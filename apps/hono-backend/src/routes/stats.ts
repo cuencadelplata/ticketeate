@@ -111,7 +111,6 @@ stats.get('/overview', async c => {
       },
     });
   } catch (error) {
-    console.error('Error getting overview stats:', error);
     return c.json(
       {
         error:
@@ -181,7 +180,10 @@ stats.get('/events', async c => {
         reservas: number;
         categorias_entrada: number;
       };
-      estadisticas: any;
+      estadisticas: Array<{
+        total_vendidos: number | null;
+        total_ingresos: number | null;
+      }>;
       categorias_entrada: CategoriaEntrada[];
     }
 
@@ -238,7 +240,6 @@ stats.get('/events', async c => {
       total: eventsWithMetrics.length,
     });
   } catch (error) {
-    console.error('Error getting events stats:', error);
     return c.json(
       {
         error:
@@ -318,7 +319,13 @@ stats.get('/users', async c => {
         recentRegistrations,
       },
       usersByRole,
-      topUsers: topUsers.map(user => ({
+      topUsers: topUsers.map((user: {
+        id_usuario: number;
+        nombre: string;
+        apellido: string;
+        email: string;
+        _count: { reservas: number };
+      }) => ({
         id: user.id_usuario,
         name: `${user.nombre} ${user.apellido}`,
         email: user.email,
@@ -326,7 +333,6 @@ stats.get('/users', async c => {
       })),
     });
   } catch (error) {
-    console.error('Error getting users stats:', error);
     return c.json(
       {
         error:
@@ -445,7 +451,14 @@ stats.get('/revenue', async c => {
       },
       byStatus: revenueByMonth,
       byMethod: revenueByMethod,
-      topPayments: revenueByEvent.map(payment => ({
+      topPayments: revenueByEvent.map((payment: {
+        id_pago: number;
+        monto_total: number;
+        metodo_pago: string;
+        estado: string;
+        reservas: { eventos: { titulo: string } };
+        fecha_pago: Date;
+      }) => ({
         id: payment.id_pago,
         amount: payment.monto_total,
         method: payment.metodo_pago,
@@ -455,7 +468,6 @@ stats.get('/revenue', async c => {
       })),
     });
   } catch (error) {
-    console.error('Error getting revenue stats:', error);
     return c.json(
       {
         error:
@@ -499,9 +511,10 @@ stats.get('/performance', async c => {
           by: ['id_evento'],
           _count: { id_reserva: true },
         })
-        .then(results => {
-          const total = results.reduce(
-            (sum, r) => sum + r._count.id_reserva,
+        .then((results: Array<{ _count: { id_reserva: number } }>) => {
+          const total: number = results.reduce(
+            (sum: number, r: { _count: { id_reserva: number } }) =>
+              sum + r._count.id_reserva,
             0
           );
           return results.length > 0 ? total / results.length : 0;
@@ -514,10 +527,12 @@ stats.get('/performance', async c => {
         .count({
           where: { estado: 'confirmada' },
         })
-        .then(confirmed =>
+        .then((confirmed: number) =>
           prisma.reservas
             .count()
-            .then(total => (total > 0 ? (confirmed / total) * 100 : 0))
+            .then((total: number) =>
+              total > 0 ? (confirmed / total) * 100 : 0
+            )
         ),
       prisma.categorias_entrada.aggregate({
         _avg: { precio: true },
@@ -544,7 +559,15 @@ stats.get('/performance', async c => {
         conversionRate: Math.round(conversionRate * 100) / 100,
         avgTicketPrice: avgTicketPrice._avg.precio || 0,
       },
-      topPerformingEvents: topPerformingEvents.map(event => ({
+      topPerformingEvents: topPerformingEvents.map((event: {
+        id_evento: number;
+        titulo: string;
+        _count: { reservas: number };
+        estadisticas: Array<{
+          total_vendidos: number | null;
+          total_ingresos: number | null;
+        }>;
+      }) => ({
         id: event.id_evento,
         title: event.titulo,
         totalReservations: event._count.reservas,
@@ -553,7 +576,6 @@ stats.get('/performance', async c => {
       })),
     });
   } catch (error) {
-    console.error('Error getting performance stats:', error);
     return c.json(
       {
         error:

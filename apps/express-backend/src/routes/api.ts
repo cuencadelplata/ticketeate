@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 
 export const router = Router();
 
 // Example API endpoints
-router.get('/', (req, res) => {
+router.get('/', (req: Request, res: Response) => {
   res.json({
     message: 'Welcome to the API',
     version: '1.0.0',
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
 });
 
 // Users endpoint
-router.get('/users', (req, res) => {
+router.get('/users', (req: Request, res: Response) => {
   res.json({
     users: [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
@@ -26,7 +26,7 @@ router.get('/users', (req, res) => {
 });
 
 // Posts endpoint
-router.get('/posts', (req, res) => {
+router.get('/posts', (req: Request, res: Response) => {
   res.json({
     posts: [
       { id: 1, title: 'First Post', content: 'This is the first post' },
@@ -36,7 +36,7 @@ router.get('/posts', (req, res) => {
 });
 
 // Example POST endpoint
-router.post('/users', (req, res) => {
+router.post('/users', (req: Request, res: Response) => {
   const { name, email } = req.body;
 
   if (!name || !email) {

@@ -24,7 +24,7 @@ app.use('/api', apiRouter);
 app.use('/health', healthRouter);
 
 // Root route
-app.get('/', (req, res) => {
+app.get('/', (req: express.Request, res: express.Response) => {
   res.json({
     message: 'Express.js Backend API',
     version: '1.0.0',
@@ -52,7 +52,7 @@ app.use(
 );
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req: express.Request, res: express.Response) => {
   res.status(404).json({
     error: 'Route not found',
     path: req.originalUrl,

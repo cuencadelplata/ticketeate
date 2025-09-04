@@ -187,7 +187,12 @@ export function useStats() {
         loadPerformanceStats(),
       ]);
     } catch (err) {
-      setError('Error al cargar todas las estadísticas');
+      if (err instanceof Error) {
+        console.error('Error al cargar todas las estadísticas:', err);
+        setError(err.message);
+      } else {
+        setError('Error al cargar todas las estadísticas');
+      }
     } finally {
       setLoading(false);
     }
