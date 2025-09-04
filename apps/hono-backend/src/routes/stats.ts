@@ -166,7 +166,40 @@ stats.get('/events', async c => {
     });
 
     // Calcular métricas por evento
-    const eventsWithMetrics = eventsStats.map(event => {
+    interface CategoriaEntrada {
+      stock_total: number;
+      stock_disponible: number;
+      precio: number | string;
+    }
+
+    interface EventoStats {
+      id_evento: number;
+      titulo: string;
+      estado: string;
+      fecha_creacion: Date;
+      _count: {
+        reservas: number;
+        categorias_entrada: number;
+      };
+      estadisticas: any;
+      categorias_entrada: CategoriaEntrada[];
+    }
+
+    interface EventWithMetrics {
+      id: number;
+      titulo: string;
+      estado: string;
+      fecha_creacion: Date;
+      totalReservations: number;
+      totalCategories: number;
+      totalStock: number;
+      availableStock: number;
+      soldStock: number;
+      avgPrice: number;
+      occupancyRate: number;
+    }
+
+    const eventsWithMetrics: EventWithMetrics[] = eventsStats.map((event: EventoStats): EventWithMetrics => {
       const totalStock = event.categorias_entrada.reduce(
         (sum, cat) => sum + cat.stock_total,
         0
@@ -372,7 +405,39 @@ stats.get('/revenue', async c => {
       _count: { id_pago: true },
     });
 
-    return c.json({
+    interface RevenueOverview {
+      totalRevenue: number;
+      confirmedRevenue: number;
+      pendingRevenue: number;
+    }
+
+    interface RevenueByStatus {
+      estado: string;
+      _sum: { monto_total: number | null };
+      _count: { id_pago: number };
+    }
+
+    interface RevenueByMethod {
+      metodo_pago: string;
+      _sum: { monto_total: number | null };
+      _count: { id_pago: number };
+    }
+
+    interface TopPayment {
+      id: number;
+      amount: number;
+      method: string;
+      status: string;
+      eventTitle: string;
+      date: Date;
+    }
+
+    return c.json<{
+      overview: RevenueOverview;
+      byStatus: RevenueByStatus[];
+      byMethod: RevenueByMethod[];
+      topPayments: TopPayment[];
+    }>({
       overview: {
         totalRevenue: totalRevenue._sum.monto_total || 0,
         confirmedRevenue: confirmedRevenue._sum.monto_total || 0,
