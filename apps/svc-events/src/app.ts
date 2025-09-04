@@ -6,7 +6,6 @@ import { timing } from 'hono/timing';
 // Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
-import { clerkMiddleware } from '@hono/clerk-auth';
 
 const app = new Hono();
 
