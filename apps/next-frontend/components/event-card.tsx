@@ -16,7 +16,7 @@ export function EventCard({ title, description, price, date, image }: EventCardP
         <p className="text-gray-600 text-sm">{description}</p>
         <p className="text-gray-500 text-xs">{date}</p>
 
-        {/* Botón naranja en vez del precio */}
+        {/* Botón naranja  */}
         <button
           className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
                      hover:bg-orange-600 active:bg-orange-700 transition"
