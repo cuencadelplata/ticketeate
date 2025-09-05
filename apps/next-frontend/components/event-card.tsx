@@ -6,7 +6,17 @@ type EventCardProps = {
   image: string;
   category: string;
   category2: string;
+  disponibilidad: string;
+
 };
+function getDisponibilidadColor(disponibilidad: string) {
+  if (disponibilidad.toLowerCase().includes('agotada')) {
+    return 'bg-red-600';
+  }
+  if (disponibilidad.toLowerCase().includes('disponible')) {
+    return 'bg-green-600';
+  }
+}
 
 export function EventCard({
   title,
@@ -16,6 +26,7 @@ export function EventCard({
   image,
   category,
   category2,
+  disponibilidad,
 }: EventCardProps) {
   return (
     <div className="border-1.5 border-orange-600 rounded-xl shadow hover:shadow-lg transition overflow-hidden bg-orange-100">
@@ -31,6 +42,10 @@ export function EventCard({
         <p className="inline-block text-white text-xs bg-lime-500 rounded-xl w-16 h-4 mt-3 px-1">
           {category2}
         </p>
+         <p className={`inline-block text-white text-xs rounded-xl w-17 h-4 mt-3 px-2 ${getDisponibilidadColor(disponibilidad)}`}>
+          {disponibilidad}
+        </p>
+
 
         {/* Botón naranja en vez del precio */}
         <button
