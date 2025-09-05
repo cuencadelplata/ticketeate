@@ -118,8 +118,7 @@ export default function ComprarPage() {
     const { jsPDF } = await import('jspdf');
     const QRCode = await import('qrcode');
 
-    const reservaId = String(resultado?.reserva?.id_reserva ?? '');
-    const qrData = reservaId ? `RESERVA:${reservaId}` : 'RESERVA:PENDIENTE';
+    const qrData = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1';
 
     // Generar QR como dataURL
     const qrDataUrl = await QRCode.toDataURL(qrData, {
