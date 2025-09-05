@@ -41,7 +41,15 @@ export default function ProductorasPage() {
           </div>
         ))}
       </div>
-
+  {/* Botón volver al inicio */}
+      <div className="mt-10 flex justify-center">
+        <Link
+          href="/"
+          className="inline-flex items-center rounded-full bg-orange-600 px-6 py-2 text-white font-semibold hover:bg-orange-700 transition"
+        >
+          ← Volver al inicio
+        </Link>
+      </div>
     </main>
   );
 }
