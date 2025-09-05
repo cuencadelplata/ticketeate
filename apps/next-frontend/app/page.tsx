@@ -8,12 +8,13 @@ import Carrusel from '@/components/carrusel';
 // 🔹 Datos de ejemplo para eventos 
 const events = [
   {
-    title: "Lollapalooza",
-    description: "Hola de Nuevo",
-    price: "$2500000",
-    date: "hola",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrDmZh_Geg-RRTaB2ZVCyGBXggVotnRxRjUg&s",
-    category: "Festival",
+    title: "El unipersonal de Luciano Mellera",
+    description: "Stand Up Comedy",
+    price: "$250000",
+    date: "2025-09-18",
+    image: "https://www.meticketonline.com/sistem/images/eventos/1660161119mellera-feed-lanus.png",
+    category: "Concierto",
+    category2: "Comedia",
   },
   {
     title: "The Life of a Show Girl World Tour",
@@ -22,6 +23,7 @@ const events = [
     date: "2026-07-15",
     image: "https://is1-ssl.mzstatic.com/image/thumb/Video211/v4/64/af/6b/64af6b79-fc3b-347b-11a8-039815b9c41e/25UM1IM20144.crop.jpg/1200x630mv.jpg",
     category: "Concierto",
+    category2: "Pop",
   
   },
   {
@@ -31,6 +33,7 @@ const events = [
     date: "2025-12-13",
     image: "https://cdn.getcrowder.com/images/3d1c8c9d-0c52-4baa-ae92-02ad038799c6-mb-1312-banneraa-1920x720.jpg?w=1920&format=webp",
     category: "Concierto",
+    category2: "Pop",
   },
    {
     title: "Andrea Boccelli",
@@ -39,6 +42,7 @@ const events = [
     date: "2024-11-17",
     image: "https://cdn.getcrowder.com/images/46b4b663-800e-4b06-a168-821ef9fe5cde-827975eb-67e2-41e7-bd16-34b8a4a6df15-andreabocelli-hsi-banneraa-1920x720-min.jpg?w=1920&format=webp",
     category: "Concierto",
+    category2: "Clásica",
   },
   {
     title: "Bad Bunny",
@@ -47,6 +51,7 @@ const events = [
     date: "2026-02-13",
     image: "https://cdn.getcrowder.com/images/fcf30efa-77c5-4cf9-8b36-67387ca88ab1-789058aa-7e3a-40ae-9a96-7dcf42b8c66b-banner-mobile--quentro-640-x-640.jpg?w=1920&format=webp",
     category: "Concierto",
+    category2: "Reggaeton",
   },
   {
     title: "Pink Floyd",
@@ -55,6 +60,7 @@ const events = [
     date: "2024-07-15",
     image: "https://cdn.getcrowder.com/images/c08b4235-92f1-42c2-a342-2b7d5733c56b-640x640-85.jpg?w=1920&format=webp",
     category: "Concierto",
+    category2: "Rock",
   },
    {
     title: "Airbag",
@@ -63,11 +69,12 @@ const events = [
     date: "2024-10-05",
     image: "https://cdn.getcrowder.com/images/d2a3ff29-13fa-4438-bf75-5f0e1a396772-21214967-cdc1-44d7-a8a1-82c30d4ad569-1920x720-9-min.jpg?w=1920&format=webp",
     category: "Concierto",
+    category2: "Rock",
   },
 ];
 
 const masVendidos = events.filter(evt =>
-  ["Lollapalooza", "The Life of a Show Girl World Tour", "Pink Floyd"].includes(evt.title)
+  ["El unipersonal de Luciano Mellera", "The Life of a Show Girl World Tour", "Pink Floyd"].includes(evt.title)
 );
 const internationalArtists = events.filter(evt =>
   ["Andrea Boccelli", "Bad Bunny", "Pink Floyd"].includes(evt.title)
