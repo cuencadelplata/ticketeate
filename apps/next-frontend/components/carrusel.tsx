@@ -4,8 +4,8 @@ import Image from 'next/image';
 
 const featured = [
   {
-    title: "Lollapalooza",
-    image: "https://cdn.getcrowder.com/images/9a0e2384-88e1-4d94-8ba8-0d5e94b1503e-lolla-headliners-bannersaa-1920x720-min.jpg",
+    title: "El unipersonal de Luciano Mellera",
+    image: "https://www.movistararena.com.ar/static/artistas/BDFE1_LucianoMellera_FileFotoFichaDesktop",
   },
 
   {
