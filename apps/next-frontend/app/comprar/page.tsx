@@ -115,26 +115,46 @@ export default function ComprarPage() {
   };
 
   const descargarComprobantePDF = async () => {
-    if (!comprobanteRef.current) return;
-    const { default: html2canvas } = await import('html2canvas');
     const { jsPDF } = await import('jspdf');
-
-    const element = comprobanteRef.current;
-    const canvas = await html2canvas(element, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-    });
-    const imgData = canvas.toDataURL('image/png');
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20; // mm
+    let cursorY = 30; // posición inicial
 
-    const imgWidth = pageWidth - 20; // 10mm de margen a cada lado
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const marginTop = 10;
+    // Encabezado
+    pdf.setTextColor(34, 139, 34);
+    pdf.setFontSize(22);
+    const title = '¡Compra exitosa!';
+    const titleWidth = pdf.getTextWidth(title);
+    pdf.text(title, (pageWidth - titleWidth) / 2, cursorY, { baseline: 'middle' });
 
-    pdf.addImage(imgData, 'PNG', 10, marginTop, imgWidth, imgHeight, undefined, 'FAST');
+    // Datos
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(14);
+    cursorY += 16;
+    pdf.text(`Entradas: ${cantidad} · Sector: ${SECTORES[sector].nombre}`, margin, cursorY);
+    cursorY += 10;
+    pdf.text(
+      `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
+      margin,
+      cursorY
+    );
+    cursorY += 10;
+    pdf.text(
+      `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
+      margin,
+      cursorY
+    );
+    cursorY += 10;
+    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, margin, cursorY);
+
+    // Pie
+    cursorY += 16;
+    pdf.setFontSize(10);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Gracias por tu compra.', margin, cursorY);
+
     const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
     pdf.save(fileName);
   };
@@ -309,25 +329,28 @@ export default function ComprarPage() {
               )}
 
               {showSuccess && resultado && (
-                <div ref={comprobanteRef} className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-                  <div className="mb-2 text-4xl">🎉</div>
-                  <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
-                  <div className="space-y-1 text-sm text-green-700">
-                    <p>
-                      ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
-                    </p>
-                    <p>💰 Total: {formatARS(total)}</p>
-                    <p>
-                      💳 Método:{' '}
-                      {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}
-                    </p>
-                    <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
+                <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
+                  <div ref={comprobanteRef}>
+                    <div className="mb-2 text-4xl">🎉</div>
+                    <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
+                    <div className="space-y-1 text-sm text-green-700">
+                      <p>
+                        ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
+                      </p>
+                      <p>💰 Total: {formatARS(total)}</p>
+                      <p>
+                        💳 Método:{' '}
+                        {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}
+                      </p>
+                      <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
+                    </div>
                   </div>
                   <div className="mt-3 text-xs text-green-600">
                     Se han generado {cantidad} código(s) QR para tu entrada
                   </div>
                   <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 10 segundos. Puedes descargar tu comprobante ahora.
+                    ⏱️ Serás redirigido al menú principal en 10 segundos. Puedes descargar tu
+                    comprobante ahora.
                   </div>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
                     <button
