@@ -116,44 +116,113 @@ export default function ComprarPage() {
 
   const descargarComprobantePDF = async () => {
     const { jsPDF } = await import('jspdf');
+    const QRCode = await import('qrcode');
+
+    const reservaId = String(resultado?.reserva?.id_reserva ?? '');
+    const qrData = reservaId ? `RESERVA:${reservaId}` : 'RESERVA:PENDIENTE';
+
+    // Generar QR como dataURL
+    const qrDataUrl = await QRCode.toDataURL(qrData, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 256,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+
+    // Cargar imagen del evento (fallback si no existe)
+    const eventImageUrl = (resultado?.evento?.imagen_url as string) || '/icon-ticketeate.png';
+    const imageToDataUrl = async (url: string) => {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise<string>(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(String(reader.result));
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return '';
+      }
+    };
+    const eventImgDataUrl = await imageToDataUrl(eventImageUrl);
 
     const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.setFont('helvetica', 'normal');
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const margin = 20; // mm
-    let cursorY = 30; // posición inicial
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // Encabezado
-    pdf.setTextColor(34, 139, 34);
-    pdf.setFontSize(22);
+    // Tarjeta estilo UI
+    const cardWidth = Math.min(180, pageWidth - 20);
+    const cardHeight = 200;
+    const cardX = (pageWidth - cardWidth) / 2;
+    const cardY = (pageHeight - cardHeight) / 2;
+
+    // Fondo (verde claro) con borde suave y esquinas redondeadas
+    pdf.setFillColor(236, 252, 240);
+    pdf.setDrawColor(199, 230, 204);
+    // roundedRect está disponible en jsPDF v3
+    pdf.roundedRect(cardX, cardY, cardWidth, cardHeight, 4, 4, 'FD');
+
+    // Título
     const title = '¡Compra exitosa!';
+    pdf.setTextColor(22, 101, 52);
+    pdf.setFontSize(20);
     const titleWidth = pdf.getTextWidth(title);
-    pdf.text(title, (pageWidth - titleWidth) / 2, cursorY, { baseline: 'middle' });
+    let cursorY = cardY + 14;
+    pdf.text(title, cardX + (cardWidth - titleWidth) / 2, cursorY, { baseline: 'middle' });
 
-    // Datos
+    // Imagen del evento
+    if (eventImgDataUrl) {
+      const imgMargin = 10;
+      const imgW = cardWidth - imgMargin * 2;
+      const imgH = 40;
+      pdf.addImage(
+        eventImgDataUrl,
+        'PNG',
+        cardX + imgMargin,
+        cursorY + 6,
+        imgW,
+        imgH,
+        undefined,
+        'FAST'
+      );
+      cursorY += 6 + imgH;
+    }
+
+    // QR centrado
+    const qrSize = 50;
+    pdf.addImage(
+      qrDataUrl,
+      'PNG',
+      cardX + (cardWidth - qrSize) / 2,
+      cursorY + 10,
+      qrSize,
+      qrSize,
+      undefined,
+      'FAST'
+    );
+    cursorY += 10 + qrSize + 6;
+
+    // Contenido
     pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(14);
-    cursorY += 16;
-    pdf.text(`Entradas: ${cantidad} · Sector: ${SECTORES[sector].nombre}`, margin, cursorY);
-    cursorY += 10;
+    pdf.setFontSize(12.5);
+    const left = cardX + 12;
+    cursorY += 6;
+    pdf.text(`${cantidad} entrada(s) para ${SECTORES[sector].nombre}`, left, cursorY);
+    cursorY += 12;
     pdf.text(
       `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
-      margin,
+      left,
       cursorY
     );
-    cursorY += 10;
+    cursorY += 12;
     pdf.text(
       `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
-      margin,
+      left,
       cursorY
     );
-    cursorY += 10;
-    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, margin, cursorY);
-
-    // Pie
-    cursorY += 16;
-    pdf.setFontSize(10);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Gracias por tu compra.', margin, cursorY);
+    cursorY += 12;
+    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, left, cursorY);
 
     const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
     pdf.save(fileName);
