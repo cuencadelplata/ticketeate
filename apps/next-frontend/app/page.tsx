@@ -1,9 +1,11 @@
-import Image from 'next/image';
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+'use client';
+
+import { useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
-import {EventCard} from '@/components/event-card';
+import { EventCard } from '@/components/event-card';
 import { Footer } from '@/components/footer';
-import Carrusel from '@/components/carrusel'; 
+import Carrusel from '@/components/carrusel';
 
 // 🔹 Datos de ejemplo para eventos 
 const events = [
@@ -24,7 +26,6 @@ const events = [
     image: "https://is1-ssl.mzstatic.com/image/thumb/Video211/v4/64/af/6b/64af6b79-fc3b-347b-11a8-039815b9c41e/25UM1IM20144.crop.jpg/1200x630mv.jpg",
     category: "Concierto",
     category2: "Pop",
-  
   },
   {
     title: "Maria Becerra",
@@ -35,7 +36,7 @@ const events = [
     category: "Concierto",
     category2: "Pop",
   },
-   {
+  {
     title: "Andrea Boccelli",
     description: "Live in Concert",
     price: "$2500000",
@@ -62,7 +63,7 @@ const events = [
     category: "Concierto",
     category2: "Rock",
   },
-   {
+  {
     title: "Airbag",
     description: "Gira Mundial 2023",
     price: "$2000000",
@@ -84,67 +85,113 @@ const artistasNacionales = events.filter(evt =>
 );
 
 export default function Home() {
-  
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const q = (searchParams.get('search') || '').trim();
+  const showingSearch = Boolean(q);
+
+  const results = useMemo(() => {
+    if (!q) return [];
+    const qLower = q.toLowerCase();
+    return events.filter(e =>
+      e.title.toLowerCase().includes(qLower) ||
+      e.description.toLowerCase().includes(qLower) ||
+      (e.category && e.category.toLowerCase().includes(qLower)) ||
+      (e.category2 && e.category2.toLowerCase().includes(qLower))
+    );
+  }, [q]);
+
+  const handleClear = () => {
+    router.push('/'); // quita ?search y vuelve a home
+  };
+
   return (
     <main className="min-h-screen">
       {/* Navbar fija en todas las páginas */}
       <Navbar />
 
-<Carrusel />
+      {/* Si hay búsqueda, ocultamos el carrusel */}
+      {!showingSearch && <Carrusel />}
 
+      {showingSearch ? (
+        <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-orange-100">
+              Resultados para: <span className="italic">“{q}”</span>
+            </h1>
+            <button
+              onClick={handleClear}
+              className="rounded-full bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+            >
+              Limpiar búsqueda
+            </button>
+          </div>
+          <p className="text-orange-200 mb-6">
+            {results.length} resultado(s) encontrado(s)
+          </p>
 
-      {/* Contenido principal */}
-      <section className=" rounded-small bg-orange-900  container mx-auto px-4 py-8  mt-5">
-        <h1 className="text-2xl font-bold mb-6 text-orange-100 ">Más Vendidos</h1>
+          {results.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {results.map((event, i) => (
+                <EventCard key={i} {...event} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-orange-100">
+              No se encontraron eventos. Probá con otro término.
+            </div>
+          )}
+        </section>
+      ) : (
+        <>
+          {/* Contenido principal sin búsqueda */}
+          <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
+            <h1 className="text-2xl font-bold mb-6 text-orange-100">Más Vendidos</h1>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {masVendidos.map((event, i) => (
+                <EventCard key={i} {...event} />
+              ))}
+            </div>
+          </section>
 
-        {/* Grid de eventos */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {masVendidos.map((event, i) => (
-            <EventCard key={i} {...event} />
-          ))}
-        </div>
-      </section>
+          <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
+            <h1 className="text-2xl font-bold mb-6 text-orange-100">Artistas Internacionales</h1>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {internationalArtists.map((event, i) => (
+                <EventCard key={i} {...event} />
+              ))}
+            </div>
+          </section>
 
-      {/* Sección Artistas internacionales */}
-      <section className="rounded-small bg-orange-900  container mx-auto px-4 py-8  mt-5">
-        <h1 className=" text-2xl font-bold mb-6 text-orange-100 " >Artistas Internacionales</h1>
-        <div className=" grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {internationalArtists.map((event, i) => (
-            <EventCard key={i} {...event} />
-          ))}
-        </div>
-      </section>
+          <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
+            <h1 className="text-2xl font-bold mb-6 text-orange-100">Artistas Nacionales</h1>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {artistasNacionales.map((event, i) => (
+                <EventCard key={i} {...event} />
+              ))}
+            </div>
+          </section>
 
-      {/* Sección Artistas Nacionales */}
-      <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8  mt-5">
-        <h1 className="text-2xl font-bold mb-6 text-orange-100">Artistas Nacionales</h1>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {artistasNacionales.map((event, i) => (
-            <EventCard key={i} {...event} />
-          ))}
-        </div>
-      </section>
-        {/* Sección todo */}
-      <section className="rounded-small bg-orange-900 container mx-auto px-2 py-8 mt-5">
-        <h1 className="text-2xl font-bold mb-6 text-orange-100 ">Ver Todo</h1>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event, i) => (
-            <EventCard key={i} {...event} />
-          ))}
-        </div>
-      </section>
+          <section className="rounded-small bg-orange-900 container mx-auto px-2 py-8 mt-5">
+            <h1 className="text-2xl font-bold mb-6 text-orange-100">Ver Todo</h1>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((event, i) => (
+                <EventCard key={i} {...event} />
+              ))}
+            </div>
+          </section>
 
-      {/* Botón de arrepentimiento */}
-<div className="flex justify-center mt-12">
-  <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
-    Botón de Arrepentimiento
-  </button>
-  
-</div>
+          {/* Botón de arrepentimiento */}
+          <div className="flex justify-center mt-12">
+            <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
+              Botón de Arrepentimiento
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Footer */}
-        <Footer/> 
-           
-     
+      <Footer />
     </main>
   );
 }
