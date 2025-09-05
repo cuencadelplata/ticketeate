@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Filter deploys by environment
     let filteredDeploys = mockDeploys;
     if (environment !== 'all') {
-      filteredDeploys = mockDeploys.filter(deploy => deploy.environment === environment);
+      filteredDeploys = mockDeploys.filter((deploy) => deploy.environment === environment);
     }
 
     // Calculate pagination
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     const paginatedDeploys = filteredDeploys.slice(startIndex, endIndex);
 
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return NextResponse.json({
       deploys: paginatedDeploys,

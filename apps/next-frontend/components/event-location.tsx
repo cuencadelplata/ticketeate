@@ -78,11 +78,11 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   const saveRecentLocation = (location: EventLocationData) => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
-    const updated = [location, ...recents.filter(loc => loc.address !== location.address)].slice(
+    const updated = [location, ...recents.filter((loc) => loc.address !== location.address)].slice(
       0,
-      5
+      5,
     );
     localStorage.setItem('recentLocations', JSON.stringify(updated));
     setStoredRecentLocations(updated);
@@ -90,7 +90,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   useEffect(() => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
     setStoredRecentLocations(recents);
   }, []);
@@ -118,7 +118,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             <div className="relative">
               <Input
                 value={value}
-                onChange={e => {
+                onChange={(e) => {
                   setValue(e.target.value);
                   if (!isOpen) setIsOpen(true);
                 }}
@@ -133,7 +133,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             {status === 'OK' && (
               <Card className="absolute left-0 z-10 mt-1 w-full border-0 bg-stone-900">
                 <ul className="py-2">
-                  {data.map(suggestion => (
+                  {data.map((suggestion) => (
                     <li
                       key={suggestion.place_id}
                       onClick={() => handleSelect(suggestion.description)}

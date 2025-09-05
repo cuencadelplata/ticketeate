@@ -116,7 +116,7 @@ export default function Home() {
             </div>
           ) : events.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {events.map(event => (
+              {events.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>
@@ -220,7 +220,7 @@ export default function Home() {
           <h2 className="mb-8 text-2xl font-bold md:text-3xl">Localidades</h2>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {locations.map(location => (
+            {locations.map((location) => (
               <LocationCard
                 key={location.location}
                 _loc={location.location}

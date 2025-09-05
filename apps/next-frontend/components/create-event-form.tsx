@@ -170,7 +170,7 @@ export default function CreateEventForm() {
 
     // Usar TanStack Query para crear el evento
     createEventMutation.mutate(eventData, {
-      onSuccess: event => {
+      onSuccess: (event) => {
         // Mostrar mensaje de éxito
         toast.success('¡Evento creado exitosamente!', {
           description: `${event.name} ha sido creado y está listo para compartir.`,
@@ -186,7 +186,7 @@ export default function CreateEventForm() {
         setStartTime('00:00');
         setEndTime('00:00');
       },
-      onError: error => {
+      onError: (error) => {
         toast.error(error.message || 'Error al crear el evento');
       },
     });
@@ -245,7 +245,7 @@ export default function CreateEventForm() {
                     <DialogTitle>Subir imagen del evento</DialogTitle>
                   </DialogHeader>
                   <UploadImageModal
-                    onSelectImage={img => {
+                    onSelectImage={(img) => {
                       setCoverImage(img);
                       setIsImageDialogOpen(false);
                     }}
@@ -261,7 +261,7 @@ export default function CreateEventForm() {
                   type="text"
                   placeholder="Nombre del evento"
                   value={eventName}
-                  onChange={e => setEventName(e.target.value)}
+                  onChange={(e) => setEventName(e.target.value)}
                   className="w-full border-none bg-transparent text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
                 />
 
@@ -279,7 +279,7 @@ export default function CreateEventForm() {
                   <DropdownMenu
                     selectionMode="single"
                     selectedKeys={new Set([selected])}
-                    onSelectionChange={keys => {
+                    onSelectionChange={(keys) => {
                       const selection = Array.from(keys as Set<string>);
                       if (selection.length > 0) {
                         setSelected(selection[0] as 'public' | 'private');
@@ -309,7 +309,7 @@ export default function CreateEventForm() {
                             </div>
                           </div>
                         </DropdownItem>
-                      )
+                      ),
                     )}
                   </DropdownMenu>
                 </Dropdown>
@@ -322,7 +322,7 @@ export default function CreateEventForm() {
                     <span className="text-sm text-white">Inicio</span>
                   </div>
                   <div className="flex gap-1">
-                    <DateSelect value={startDate} onChange={date => date && setStartDate(date)} />
+                    <DateSelect value={startDate} onChange={(date) => date && setStartDate(date)} />
                     <TimeSelect value={startTime} onChange={setStartTime} />
                   </div>
                 </div>
@@ -332,13 +332,13 @@ export default function CreateEventForm() {
                     <span className="text-sm text-white">Fin</span>
                   </div>
                   <div className="flex gap-1">
-                    <DateSelect value={endDate} onChange={date => date && setEndDate(date)} />
+                    <DateSelect value={endDate} onChange={(date) => date && setEndDate(date)} />
                     <TimeSelect value={endTime} onChange={setEndTime} />
                   </div>
                 </div>
               </div>
 
-              <EventLocation onLocationSelect={loc => setLocation(loc)} />
+              <EventLocation onLocationSelect={(loc) => setLocation(loc)} />
               <EventDescription onDescriptionChange={setDescription} />
 
               <Card className="border-1 bg-stone-900 bg-opacity-60">

@@ -1,5 +1,5 @@
 // app/productoras/page.tsx
-import Link from "next/link";
+import Link from 'next/link';
 
 type Producer = {
   slug: string;
@@ -9,10 +9,10 @@ type Producer = {
 };
 
 const producers: Producer[] = [
-  { slug: "df-entertainment", name: "DF Entertainment", city: "Buenos Aires" },
-  { slug: "fenix", name: "Fenix Entertainment", city: "Buenos Aires" },
-  { slug: "t4f", name: "Time For Fun (T4F)", city: "Buenos Aires" },
-  { slug: "la-trastienda", name: "La Trastienda", city: "Buenos Aires" },
+  { slug: 'df-entertainment', name: 'DF Entertainment', city: 'Buenos Aires' },
+  { slug: 'fenix', name: 'Fenix Entertainment', city: 'Buenos Aires' },
+  { slug: 't4f', name: 'Time For Fun (T4F)', city: 'Buenos Aires' },
+  { slug: 'la-trastienda', name: 'La Trastienda', city: 'Buenos Aires' },
 ];
 
 export default function ProductorasPage() {
@@ -41,7 +41,7 @@ export default function ProductorasPage() {
           </div>
         ))}
       </div>
-  {/* Botón volver al inicio */}
+      {/* Botón volver al inicio */}
       <div className="mt-10 flex justify-center">
         <Link
           href="/"
@@ -53,4 +53,3 @@ export default function ProductorasPage() {
     </main>
   );
 }
-

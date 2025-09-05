@@ -1,13 +1,11 @@
 // app/productoras/[slug]/page.tsx
-import Link from "next/link";
+import Link from 'next/link';
 
 const eventsByProducer: Record<string, { id: string; title: string; date: string }[]> = {
-  "df-entertainment": [
-    { id: "bocelli-2025", title: "Andrea Bocelli", date: "2025-11-18" },
-  ],
+  'df-entertainment': [{ id: 'bocelli-2025', title: 'Andrea Bocelli', date: '2025-11-18' }],
   fenix: [],
   t4f: [],
-  "la-trastienda": [],
+  'la-trastienda': [],
 };
 
 export default function ProducerDetailPage({ params }: { params: { slug: string } }) {
@@ -17,7 +15,7 @@ export default function ProducerDetailPage({ params }: { params: { slug: string 
   return (
     <main className="mx-auto max-w-6xl p-6">
       <h1 className="mb-4 text-2xl font-bold">
-        Eventos de <span className="text-orange-600">{slug.replaceAll("-", " ")}</span>
+        Eventos de <span className="text-orange-600">{slug.replaceAll('-', ' ')}</span>
       </h1>
 
       {events.length === 0 ? (

@@ -115,7 +115,7 @@ const uploadToSupabase = async (): Promise<string | null> => {
 const deleteImageFromLibrary = (imageId: string) => {
   try {
     const existingImages = getUserImages();
-    const updatedImages = existingImages.filter(img => img.id !== imageId);
+    const updatedImages = existingImages.filter((img) => img.id !== imageId);
     localStorage.setItem('user-images', JSON.stringify(updatedImages));
   } catch (error) {
     console.error('Error deleting image from library:', error);
@@ -206,7 +206,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
         // Fallback: usar base64 para preview local
         toast.warning('Usando vista previa local de la imagen');
         const reader = new FileReader();
-        reader.onload = e => {
+        reader.onload = (e) => {
           const result = e.target?.result;
           if (typeof result === 'string') {
             // Guardar también las imágenes base64 en la biblioteca
@@ -240,7 +240,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
 
       // Fallback: usar base64 para preview local
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = (e) => {
         const result = e.target?.result;
         if (typeof result === 'string') {
           // Guardar también las imágenes base64 en la biblioteca
@@ -274,9 +274,9 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
   // Obtiene las imágenes y el título de la categoría seleccionada
   const imagesForCategory =
     selectedCategory === 'biblioteca'
-      ? userImages.map(img => img.url)
+      ? userImages.map((img) => img.url)
       : imagesMapping[selectedCategory] || [];
-  const categoryLabel = categories.find(cat => cat.id === selectedCategory)?.label || '';
+  const categoryLabel = categories.find((cat) => cat.id === selectedCategory)?.label || '';
 
   return (
     <div className="fixed inset-0 z-50 flex w-full items-center justify-center bg-black bg-opacity-50 p-4">
@@ -343,7 +343,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
         {/* Categorías */}
         <div className="px-3">
           <div className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex space-x-2 overflow-x-auto pb-2">
-            {categories.map(category => (
+            {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -385,7 +385,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {selectedCategory === 'biblioteca'
-                ? userImages.map(userImage => (
+                ? userImages.map((userImage) => (
                     <div key={userImage.id} className="group relative">
                       <button
                         onClick={() => onSelectImage(userImage.url)}
@@ -398,7 +398,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
                         />
                       </button>
                       <button
-                        onClick={e => handleDeleteImage(userImage.id, e)}
+                        onClick={(e) => handleDeleteImage(userImage.id, e)}
                         className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
                         title="Eliminar imagen"
                       >

@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 const api = new Hono();
 
 // GET /api/users
-api.get('/users', c => {
+api.get('/users', (c) => {
   return c.json({
     users: [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
@@ -13,7 +13,7 @@ api.get('/users', c => {
 });
 
 // GET /api/users/:id
-api.get('/users/:id', c => {
+api.get('/users/:id', (c) => {
   const id = c.req.param('id');
   return c.json({
     id: parseInt(id),
@@ -23,19 +23,19 @@ api.get('/users/:id', c => {
 });
 
 // POST /api/users
-api.post('/users', async c => {
+api.post('/users', async (c) => {
   const body = await c.req.json();
   return c.json(
     {
       message: 'User created successfully',
       user: body,
     },
-    201
+    201,
   );
 });
 
 // PUT /api/users/:id
-api.put('/api/users/:id', async c => {
+api.put('/api/users/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
   return c.json({
@@ -46,7 +46,7 @@ api.put('/api/users/:id', async c => {
 });
 
 // DELETE /api/users/:id
-api.delete('/users/:id', c => {
+api.delete('/users/:id', (c) => {
   const id = c.req.param('id');
   return c.json({
     message: 'User deleted successfully',
@@ -64,7 +64,7 @@ api.use('/protected/*', async (c, next) => {
 });
 
 // Protected route example
-api.get('/protected/profile', c => {
+api.get('/protected/profile', (c) => {
   return c.json({
     message: 'This is a protected route',
     user: {

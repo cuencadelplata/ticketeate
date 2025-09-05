@@ -75,7 +75,7 @@ export function useCreateEvent() {
 
       return response.json();
     },
-    onSuccess: newEvent => {
+    onSuccess: (newEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
@@ -85,7 +85,7 @@ export function useCreateEvent() {
         return [newEvent];
       });
     },
-    onError: error => {
+    onError: (error) => {
       console.error('Error al crear evento:', error);
     },
   });
@@ -118,7 +118,7 @@ export function useUpdateEvent() {
 
       return response.json();
     },
-    onSuccess: updatedEvent => {
+    onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id] });
 
@@ -147,7 +147,7 @@ export function useDeleteEvent() {
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
-          return oldEvents.filter(event => event.id !== deletedId);
+          return oldEvents.filter((event) => event.id !== deletedId);
         }
         return [];
       });

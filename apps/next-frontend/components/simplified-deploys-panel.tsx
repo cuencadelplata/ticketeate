@@ -267,7 +267,7 @@ export function SimplifiedDeploysPanel() {
         <CardContent>
           <ScrollArea className="h-[400px]">
             <div className="space-y-4">
-              {deployData.map(deploy => (
+              {deployData.map((deploy) => (
                 <div
                   key={deploy.id}
                   className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted/50"

@@ -2,11 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import DarkMode from './DarkMode';
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Search } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -37,23 +33,26 @@ function Navbar() {
       {/* Logo + links */}
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2 bg-orange-500 p-2 rounded-full">
-          <Image
-            src="/wordmark-light.png"
-            alt="Ticketeate"
-            width={130}
-            height={40}
-            priority
-          />
+          <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={40} priority />
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
-          <Link href="/eventos" className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full">
+          <Link
+            href="/eventos"
+            className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full"
+          >
             Mis Eventos
           </Link>
-          <Link href="/productoras" className="text-sm font-medium text-white hover:text-orange-100 bg-orange-500 p-2 rounded-full">
+          <Link
+            href="/productoras"
+            className="text-sm font-medium text-white hover:text-orange-100 bg-orange-500 p-2 rounded-full"
+          >
             Productoras
           </Link>
-          <Link href="/descubrir" className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full">
+          <Link
+            href="/descubrir"
+            className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full"
+          >
             Descubrir
           </Link>
         </div>

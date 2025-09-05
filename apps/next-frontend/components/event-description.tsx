@@ -47,7 +47,7 @@ export default function EventDescription({ onDescriptionChange }: EventDescripti
         <div className="space-y-4 pt-4">
           <Textarea
             value={description}
-            onChange={e => setDescription(e.target.value)}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe tu evento..."
             className="h-40 border-0 bg-[#1A1A1A] text-stone-100 placeholder-stone-400"
           />

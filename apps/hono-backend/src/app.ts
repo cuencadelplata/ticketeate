@@ -19,7 +19,7 @@ app.use(
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-  })
+  }),
 );
 
 // Routes
@@ -27,7 +27,7 @@ app.route('/api', apiRoutes);
 app.route('/health', healthRoutes);
 
 // Root route
-app.get('/', c => {
+app.get('/', (c) => {
   return c.json({
     message: 'Hono Backend API',
     version: '1.0.0',
@@ -36,7 +36,7 @@ app.get('/', c => {
 });
 
 // 404 handler
-app.notFound(c => {
+app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 

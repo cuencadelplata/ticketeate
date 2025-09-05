@@ -110,7 +110,7 @@ export default function EventosPage() {
   ];
 
   // filter events
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = events.filter((event) => {
     const isPast = event.isPast ?? false;
     return activeTab === 'proximos' ? !isPast : isPast;
   });
@@ -163,7 +163,7 @@ export default function EventosPage() {
                 onClick={() => setActiveTab('proximos')}
                 className={cn(
                   'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400'
+                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
                 )}
               >
                 Próximos
@@ -172,7 +172,7 @@ export default function EventosPage() {
                 onClick={() => setActiveTab('pasados')}
                 className={cn(
                   'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400'
+                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
                 )}
               >
                 Pasados
@@ -209,7 +209,7 @@ export default function EventosPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              {filteredEvents.map(event => (
+              {filteredEvents.map((event) => (
                 <div key={event.id} className="relative">
                   <div className="absolute left-4 top-0 flex flex-col items-center">
                     <div className="text-lg font-medium">{event.date}</div>
@@ -251,7 +251,7 @@ export default function EventosPage() {
                               'rounded px-2 py-1 text-xs',
                               event.access === 'PUBLIC'
                                 ? 'bg-green-500/20 text-green-400'
-                                : 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-yellow-500/20 text-yellow-400',
                             )}
                           >
                             {event.access === 'PUBLIC' ? 'Público' : 'Privado'}
@@ -263,7 +263,7 @@ export default function EventosPage() {
                               'rounded px-2 py-1 text-xs',
                               event.pricingType === 'FREE'
                                 ? 'bg-blue-500/20 text-blue-400'
-                                : 'bg-purple-500/20 text-purple-400'
+                                : 'bg-purple-500/20 text-purple-400',
                             )}
                           >
                             {event.pricingType === 'FREE' ? 'Gratis' : 'Pago'}
