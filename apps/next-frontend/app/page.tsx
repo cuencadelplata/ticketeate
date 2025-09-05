@@ -18,7 +18,7 @@ const events = [
   {
     title: "The Life of a Show Girl World Tour",
     description: "Taylor Swift en vivo.",
-    price: "$3000000",
+    price: "$3500000",
     date: "2026-07-15",
     image: "https://is1-ssl.mzstatic.com/image/thumb/Video211/v4/64/af/6b/64af6b79-fc3b-347b-11a8-039815b9c41e/25UM1IM20144.crop.jpg/1200x630mv.jpg",
   },
@@ -76,9 +76,6 @@ export default function Home() {
       {/* Navbar fija en todas las páginas */}
       <Navbar />
 
-      <main className="min-h-screen ">
-  ...
-</main>
 <Carrusel />
 
 
