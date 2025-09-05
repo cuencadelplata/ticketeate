@@ -23,10 +23,9 @@ const DarkMode = () => {
 
   return (
     <div className="relative">
-    
       {/* Botón Light */}
-       <Image
-        src="/light-mode-button.png" 
+      <Image
+        src="https://static.vecteezy.com/system/resources/thumbnails/011/888/106/small/neumorphism-toggle-switch-button-free-png.png"
         alt="Light mode"
         width={48}
         height={48}
@@ -37,8 +36,8 @@ const DarkMode = () => {
       />
 
       {/* Botón Dark */}
-        <Image
-         src="/dark-mode-button.png" 
+      <Image
+        src="https://static.vecteezy.com/system/resources/thumbnails/011/888/103/small_2x/neumorphism-ui-toggle-switch-free-png.png"
         alt="Dark mode"
         width={48}
         height={48}
