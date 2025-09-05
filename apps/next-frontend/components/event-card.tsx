@@ -5,6 +5,7 @@ type EventCardProps = {
   date: string;
   image: string;
   category: string;
+
 };
 
 export function EventCard({ title, description, price, date, image, category }: EventCardProps) {
@@ -16,13 +17,8 @@ export function EventCard({ title, description, price, date, image, category }: 
         <h2 className="text-black font-semibold">{title}</h2>
         <p className="text-gray-600 text-sm">{description}</p>
         <p className="text-gray-500 text-xs">{date}</p>
-<<<<<<< HEAD
-
-        {/* Botón naranja  */}
-=======
         <p className="text-white text-xs  bg-teal-500 rounded-xl w-16 h-4 mt-3 px-1">{category}</p>
         {/* Botón naranja en vez del precio */}
->>>>>>> 00f34cdc6081cc3306ffa78a98919b502b5d15f3
         <button
           className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
                      hover:bg-orange-600 active:bg-orange-700 transition"
