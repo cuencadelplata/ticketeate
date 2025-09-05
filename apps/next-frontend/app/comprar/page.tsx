@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -37,6 +37,7 @@ export default function ComprarPage() {
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('Entrada_General');
 
@@ -87,7 +88,7 @@ export default function ComprarPage() {
       setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
       setShowSuccess(true);
 
-      // Resetear formulario después de 3 segundos
+      // Resetear formulario después de 10 segundos
       setTimeout(() => {
         setShowSuccess(false);
         setResultado(null);
@@ -95,7 +96,7 @@ export default function ComprarPage() {
         setSector('Entrada_General');
         setMetodo('tarjeta_debito');
         router.push('/'); // Redirigir al menú principal
-      }, 3000);
+      }, 10000);
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
@@ -111,6 +112,31 @@ export default function ComprarPage() {
     setCantidad(1);
     setSector('Entrada_General');
     setMetodo('tarjeta_debito');
+  };
+
+  const descargarComprobantePDF = async () => {
+    if (!comprobanteRef.current) return;
+    const { default: html2canvas } = await import('html2canvas');
+    const { jsPDF } = await import('jspdf');
+
+    const element = comprobanteRef.current;
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+    });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth - 20; // 10mm de margen a cada lado
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const marginTop = 10;
+
+    pdf.addImage(imgData, 'PNG', 10, marginTop, imgWidth, imgHeight, undefined, 'FAST');
+    const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
+    pdf.save(fileName);
   };
 
   return (
@@ -283,7 +309,7 @@ export default function ComprarPage() {
               )}
 
               {showSuccess && resultado && (
-                <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
+                <div ref={comprobanteRef} className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
                   <div className="mb-2 text-4xl">🎉</div>
                   <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
                   <div className="space-y-1 text-sm text-green-700">
@@ -301,10 +327,15 @@ export default function ComprarPage() {
                     Se han generado {cantidad} código(s) QR para tu entrada
                   </div>
                   <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 3 segundos...
+                    ⏱️ Serás redirigido al menú principal en 10 segundos. Puedes descargar tu comprobante ahora.
                   </div>
-                  <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 3 segundos...
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <button
+                      onClick={descargarComprobantePDF}
+                      className="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                    >
+                      Descargar comprobante (PDF)
+                    </button>
                   </div>
                 </div>
               )}
