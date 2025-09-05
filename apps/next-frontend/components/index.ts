@@ -1,6 +1,6 @@
 // Event Components
 export { EventCard } from './event-card';
-export { EventsGrid } from './events-grid';
+//export { EventsGrid } from './events-grid';
 //export { CategoryEvents } from './category-events';
 //export { EventFilters } from './event-filters';
 

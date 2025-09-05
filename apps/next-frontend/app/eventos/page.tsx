@@ -130,7 +130,7 @@ export default function EventosPage() {
           </div>
           <h2 className="mb-2 text-2xl font-semibold text-gray-300">Acceso Restringido</h2>
           <p className="mb-8 max-w-md text-center text-gray-400">
-            Esta página es exclusiva para productores. Inicia sesión para gestionar tus eventos.
+            Inicie sesion para ver sus eventos.
           </p>
           <p className="text-sm text-gray-500">La autenticación se implementará próximamente.</p>
         </div>

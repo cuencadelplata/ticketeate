@@ -49,12 +49,6 @@ function Navbar() {
           >
             Productoras
           </Link>
-          <Link
-            href="/descubrir"
-            className="text-sm font-medium text-white hover:text-orange-100  bg-orange-500 p-2 rounded-full"
-          >
-            Descubrir
-          </Link>
         </div>
       </div>
 
