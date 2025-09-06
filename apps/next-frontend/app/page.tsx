@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Navbar } from '@/components/navbar';
+import NavbarHome from '@/components/navbar-main';
 import { EventCard } from '@/components/event-card';
 import { Footer } from '@/components/footer';
 import Carrusel from '@/components/carrusel';
@@ -125,7 +125,7 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Navbar fija en todas las páginas */}
-      <Navbar />
+      <NavbarHome />
 
       {/* Si hay búsqueda, ocultamos el carrusel */}
       {!showingSearch && <Carrusel />}
