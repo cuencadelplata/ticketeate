@@ -41,6 +41,12 @@ export default function ComprarPage() {
 
   const [sector, setSector] = useState<SectorKey>('Entrada_General');
 
+  // Campos de tarjeta
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [cardExpiry, setCardExpiry] = useState<string>(''); // MM/AA
+  const [cardCvv, setCardCvv] = useState<string>('');
+  const [cardDni, setCardDni] = useState<string>('');
+
   // Simulación de disponibilidad por sector
   const DISPONIBILIDAD: Record<SectorKey, number> = {
     Entrada_General: 120,
@@ -56,17 +62,50 @@ export default function ComprarPage() {
     return { precioUnitario: unit, total: unit * cantidad };
   }, [sector, cantidad]);
 
+  const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
+
+  const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
+  const formatCardNumber = (v: string) => sanitizeNumber(v).slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 ');
+  const formatExpiry = (v: string) => {
+    const n = sanitizeNumber(v).slice(0, 4);
+    if (n.length <= 2) return n;
+    return `${n.slice(0, 2)}/${n.slice(2)}`;
+  };
+
+  const isValidCardInputs = () => {
+    if (!isCardPayment) return true;
+    const numberOk = sanitizeNumber(cardNumber).length >= 13 && sanitizeNumber(cardNumber).length <= 19;
+    const expMatch = cardExpiry.match(/^\s*(0[1-9]|1[0-2])\/(\d{2})\s*$/);
+    const cvvOk = /^\d{3,4}$/.test(cardCvv.trim());
+    const dniOk = /^\d{7,10}$/.test(cardDni.trim());
+    return Boolean(numberOk && expMatch && cvvOk && dniOk);
+  };
+
   const comprar = async () => {
     setLoading(true);
     setError(null);
     setResultado(null);
     setShowSuccess(false);
 
+    if (isCardPayment && !isValidCardInputs()) {
+      setLoading(false);
+      setError('Completa correctamente número, vencimiento (MM/AA), CVV y DNI.');
+      return;
+    }
+
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
+      datos_tarjeta: isCardPayment
+        ? {
+            numero: sanitizeNumber(cardNumber),
+            vencimiento: cardExpiry.trim(),
+            cvv: cardCvv.trim(),
+            dni: cardDni.trim(),
+          }
+        : undefined,
     };
 
     console.log('Enviando datos a la API:', datosCompra);
@@ -112,6 +151,10 @@ export default function ComprarPage() {
     setCantidad(1);
     setSector('Entrada_General');
     setMetodo('tarjeta_debito');
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvv('');
+    setCardDni('');
   };
 
   const descargarComprobantePDF = async () => {
@@ -348,6 +391,66 @@ export default function ComprarPage() {
                 </select>
               </div>
 
+              {/* Datos de tarjeta */}
+              {isCardPayment && (
+                <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-xs font-medium text-gray-700">Número de tarjeta</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="cc-number"
+                      placeholder="#### #### #### ####"
+                      value={cardNumber}
+                      onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                      className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">Vencimiento (MM/AA)</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-exp"
+                        placeholder="MM/AA"
+                        value={cardExpiry}
+                        onChange={e => setCardExpiry(formatExpiry(e.target.value))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">CVV</label>
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        autoComplete="cc-csc"
+                        placeholder="3 o 4 dígitos"
+                        value={cardCvv}
+                        onChange={e => setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">DNI</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Solo números"
+                        value={cardDni}
+                        onChange={e => setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  {!isValidCardInputs() && (
+                    <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">
+                      Verifica número, vencimiento, CVV y DNI.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Info selección */}
               <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
                 <div>
@@ -375,10 +478,10 @@ export default function ComprarPage() {
               {!showSuccess ? (
                 <button
                   onClick={comprar}
-                  disabled={loading}
+                  disabled={loading || (isCardPayment && !isValidCardInputs())}
                   className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {loading ? 'Comprando...' : 'Comprar'}
+                  {loading ? 'Comprando...' : isCardPayment && !isValidCardInputs() ? 'Completa los datos de tarjeta' : 'Comprar'}
                 </button>
               ) : (
                 <button
