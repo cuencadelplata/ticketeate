@@ -181,7 +181,7 @@ export default function ComprarPage() {
       try {
         const res = await fetch(url);
         const blob = await res.blob();
-        return await new Promise<string>(resolve => {
+        return await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(String(reader.result));
           reader.readAsDataURL(blob);
@@ -230,7 +230,7 @@ export default function ComprarPage() {
         imgW,
         imgH,
         undefined,
-        'FAST'
+        'FAST',
       );
       cursorY += 6 + imgH;
     }
@@ -245,7 +245,7 @@ export default function ComprarPage() {
       qrSize,
       qrSize,
       undefined,
-      'FAST'
+      'FAST',
     );
     cursorY += 10 + qrSize + 6;
 
@@ -259,13 +259,13 @@ export default function ComprarPage() {
     pdf.text(
       `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
       left,
-      cursorY
+      cursorY,
     );
     cursorY += 12;
     pdf.text(
       `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
       left,
-      cursorY
+      cursorY,
     );
     cursorY += 12;
     pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, left, cursorY);
@@ -408,7 +408,7 @@ export default function ComprarPage() {
                       autoComplete="cc-number"
                       placeholder="#### #### #### ####"
                       value={cardNumber}
-                      onChange={e => setCardNumber(formatCardNumber(e.target.value))}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                       className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -423,7 +423,7 @@ export default function ComprarPage() {
                         autoComplete="cc-exp"
                         placeholder="MM/AA"
                         value={cardExpiry}
-                        onChange={e => setCardExpiry(formatExpiry(e.target.value))}
+                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
                         className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -435,7 +435,7 @@ export default function ComprarPage() {
                         autoComplete="cc-csc"
                         placeholder="3 o 4 dígitos"
                         value={cardCvv}
-                        onChange={e =>
+                        onChange={(e) =>
                           setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
                         }
                         className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
@@ -448,7 +448,7 @@ export default function ComprarPage() {
                         inputMode="numeric"
                         placeholder="Solo números"
                         value={cardDni}
-                        onChange={e =>
+                        onChange={(e) =>
                           setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
                         }
                         className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
