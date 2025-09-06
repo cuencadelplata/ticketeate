@@ -65,14 +65,15 @@ export default function ComprarPage() {
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
   const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
-  const formatCardNumber = (v: string) =>
-    sanitizeNumber(v)
-      .slice(0, 19)
-      .replace(/(\d{4})(?=\d)/g, '$1 ');
+  const formatCardNumber = (v: string) => {
+    const digits = sanitizeNumber(v).slice(0, 19);
+    const groups = digits.match(/\d{1,4}/g);
+    return groups ? groups.join(' ') : '';
+  };
   const formatExpiry = (v: string) => {
-    const n = sanitizeNumber(v).slice(0, 4);
-    if (n.length <= 2) return n;
-    return `${n.slice(0, 2)}/${n.slice(2)}`;
+    const digits = sanitizeNumber(v).slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
   const isValidCardInputs = () => {
@@ -275,13 +276,13 @@ export default function ComprarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
+    <div className="min-h-screen bg-gray-50 p-4 text-black">
       {/* Contenedor principal con scroll */}
       <div className="mx-auto max-w-[1200px] space-y-4">
         {/* Header de la página */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Comprar Entradas</h1>
-          <p className="text-white">Selecciona tu sector y completa tu compra</p>
+          <h1 className="text-2xl font-bold text-gray-900">Comprar Entradas</h1>
+          <p className="text-gray-900">Selecciona tu sector y completa tu compra</p>
         </div>
 
         {/* Contenedor de 2 columnas: mapa (izq) + panel (der) */}
@@ -409,7 +410,7 @@ export default function ComprarPage() {
                       placeholder="#### #### #### ####"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -424,7 +425,7 @@ export default function ComprarPage() {
                         placeholder="MM/AA"
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="col-span-1 flex flex-col">
@@ -438,7 +439,7 @@ export default function ComprarPage() {
                         onChange={(e) =>
                           setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
                         }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="col-span-1 flex flex-col">
@@ -451,7 +452,7 @@ export default function ComprarPage() {
                         onChange={(e) =>
                           setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
                         }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
