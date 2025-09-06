@@ -32,14 +32,7 @@ export interface CreateEventData {
     elements?: Array<{
       id: string;
       name: string;
-      type:
-        | 'stage'
-        | 'bathroom'
-        | 'bar'
-        | 'entrance'
-        | 'exit'
-        | 'parking'
-        | 'custom';
+      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
       icon: string;
       x: number;
       y: number;
@@ -116,7 +109,7 @@ export class EventService {
 
       // Imágenes de galería
       if (data.galeria_imagenes && data.galeria_imagenes.length > 0) {
-        data.galeria_imagenes.forEach(url => {
+        data.galeria_imagenes.forEach((url) => {
           imagenesData.push({
             id_evento: evento.id_evento,
             url: url,
@@ -134,7 +127,7 @@ export class EventService {
 
       // Crear fechas adicionales del evento
       if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
-        const fechasData = data.fechas_adicionales.map(fecha => ({
+        const fechasData = data.fechas_adicionales.map((fecha) => ({
           id_evento: evento.id_evento,
           fecha_hora: fecha.fecha_inicio,
         }));
@@ -181,7 +174,7 @@ export class EventService {
       // eslint-disable-next-line no-console
       console.error('Error creating event:', error);
       throw new Error(
-        `Error al crear el evento: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Error al crear el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
@@ -201,7 +194,7 @@ export class EventService {
       // eslint-disable-next-line no-console
       console.error('Error getting event:', error);
       throw new Error(
-        `Error al obtener el evento: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Error al obtener el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
@@ -226,7 +219,7 @@ export class EventService {
       // eslint-disable-next-line no-console
       console.error('Error getting user events:', error);
       throw new Error(
-        `Error al obtener los eventos del usuario: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Error al obtener los eventos del usuario: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

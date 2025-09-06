@@ -10,7 +10,7 @@ api.use('*', clerkMiddleware());
 api.route('/events', events);
 
 // GET /api/users/:id
-api.get('/users/:id', c => {
+api.get('/users/:id', (c) => {
   const auth = getAuth(c);
 
   if (!auth?.userId) {
@@ -27,7 +27,7 @@ api.get('/users/:id', c => {
 });
 
 // POST /api/users
-api.post('/users', async c => {
+api.post('/users', async (c) => {
   const auth = getAuth(c);
 
   if (!auth?.userId) {
@@ -41,12 +41,12 @@ api.post('/users', async c => {
       user: body,
       authenticatedUserId: auth.userId,
     },
-    201
+    201,
   );
 });
 
 // PUT /api/users/:id
-api.put('/users/:id', async c => {
+api.put('/users/:id', async (c) => {
   const auth = getAuth(c);
 
   if (!auth?.userId) {
@@ -64,7 +64,7 @@ api.put('/users/:id', async c => {
 });
 
 // DELETE /api/users/:id
-api.delete('/users/:id', c => {
+api.delete('/users/:id', (c) => {
   const auth = getAuth(c);
 
   if (!auth?.userId) {
@@ -80,7 +80,7 @@ api.delete('/users/:id', c => {
 });
 
 // Protected route example
-api.get('/protected/profile', c => {
+api.get('/protected/profile', (c) => {
   const auth = getAuth(c);
 
   if (!auth?.userId) {

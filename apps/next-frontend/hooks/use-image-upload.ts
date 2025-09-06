@@ -31,7 +31,7 @@ export function useImageUpload() {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(
-          `Error subiendo imagen: ${res.status} - ${errorData.error || res.statusText}`
+          `Error subiendo imagen: ${res.status} - ${errorData.error || res.statusText}`,
         );
       }
 

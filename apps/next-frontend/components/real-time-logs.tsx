@@ -58,16 +58,16 @@ export function RealTimeLogs() {
 
     eventSourceRef.current = new EventSource(url);
 
-    eventSourceRef.current.onmessage = event => {
+    eventSourceRef.current.onmessage = (event) => {
       const newLog: LogEntry = JSON.parse(event.data);
 
-      setLogs(prevLogs => {
+      setLogs((prevLogs) => {
         const updatedLogs = [newLog, ...prevLogs];
         return updatedLogs.slice(0, maxLogs);
       });
     };
 
-    eventSourceRef.current.onerror = error => {
+    eventSourceRef.current.onerror = (error) => {
       console.error('EventSource error:', error);
       setIsStreaming(false);
     };
@@ -90,7 +90,7 @@ export function RealTimeLogs() {
   const exportLogs = () => {
     const filteredLogs = getFilteredLogs();
     const logText = filteredLogs
-      .map(log => `[${log.timestamp}] ${log.level.toUpperCase()}: ${log.message} (${log.source})`)
+      .map((log) => `[${log.timestamp}] ${log.level.toUpperCase()}: ${log.message} (${log.source})`)
       .join('\n');
 
     const blob = new Blob([logText], { type: 'text/plain' });
@@ -105,7 +105,7 @@ export function RealTimeLogs() {
   };
 
   const getFilteredLogs = () => {
-    return logs.filter(log => {
+    return logs.filter((log) => {
       const matchesSearch =
         searchTerm === '' ||
         log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -232,7 +232,7 @@ export function RealTimeLogs() {
                 <Input
                   placeholder="Buscar en logs..."
                   value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
                 />
               </div>
@@ -260,7 +260,7 @@ export function RealTimeLogs() {
               <Label htmlFor="max-logs">Máx logs:</Label>
               <Select
                 value={maxLogs.toString()}
-                onValueChange={value => setMaxLogs(Number.parseInt(value))}
+                onValueChange={(value) => setMaxLogs(Number.parseInt(value))}
               >
                 <SelectTrigger className="w-20">
                   <SelectValue />
@@ -302,7 +302,7 @@ export function RealTimeLogs() {
                     : 'No se encontraron logs con los filtros aplicados'}
                 </div>
               ) : (
-                filteredLogs.map(log => (
+                filteredLogs.map((log) => (
                   <div
                     key={log.id}
                     className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"

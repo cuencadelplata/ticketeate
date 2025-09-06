@@ -219,7 +219,7 @@ export default function UploadImageModal({
 
     if (currentImages >= maxImages) {
       toast.error(
-        `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+        `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`,
       );
       return;
     }
@@ -260,7 +260,7 @@ export default function UploadImageModal({
   };
 
   const handleImageLoad = (imageId: string) => {
-    setLoadingImages(prev => {
+    setLoadingImages((prev) => {
       const newSet = new Set(prev);
       newSet.delete(imageId);
       return newSet;
@@ -268,15 +268,15 @@ export default function UploadImageModal({
   };
 
   const handleImageLoadStart = (imageId: string) => {
-    setLoadingImages(prev => new Set(prev).add(imageId));
+    setLoadingImages((prev) => new Set(prev).add(imageId));
   };
 
   // Obtiene las imágenes y el título de la categoría seleccionada
   const imagesForCategory =
     selectedCategory === 'biblioteca'
-      ? userImages.map(img => img.url)
+      ? userImages.map((img) => img.url)
       : imagesMapping[selectedCategory] || [];
-  const categoryLabel = categories.find(cat => cat.id === selectedCategory)?.label || '';
+  const categoryLabel = categories.find((cat) => cat.id === selectedCategory)?.label || '';
 
   return (
     <div className="fixed inset-0 z-50 flex w-full items-center justify-center bg-black bg-opacity-50 p-4">
@@ -341,7 +341,7 @@ export default function UploadImageModal({
               type="text"
               placeholder="Buscar más fotos"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-md border border-gray-700 bg-[#1E1E1E] py-2 pl-10 pr-4 text-sm text-white focus:border-gray-500 focus:outline-none"
             />
           </div>
@@ -350,7 +350,7 @@ export default function UploadImageModal({
         {/* Categorías */}
         <div className="px-3">
           <div className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex space-x-2 overflow-x-auto pb-2">
-            {categories.map(category => (
+            {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -393,13 +393,13 @@ export default function UploadImageModal({
             <div className="max-h-56 overflow-y-auto">
               <div className="grid grid-cols-4 gap-2">
                 {selectedCategory === 'biblioteca'
-                  ? userImages.map(userImage => (
+                  ? userImages.map((userImage) => (
                       <div key={userImage.id} className="group relative">
                         <button
                           onClick={() => {
                             if (currentImages >= maxImages) {
                               toast.error(
-                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`,
                               );
                               return;
                             }
@@ -421,7 +421,7 @@ export default function UploadImageModal({
                           />
                         </button>
                         <button
-                          onClick={e => handleDeleteImage(userImage.id, e)}
+                          onClick={(e) => handleDeleteImage(userImage.id, e)}
                           className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
                           title="Eliminar imagen"
                         >
@@ -443,7 +443,7 @@ export default function UploadImageModal({
                           onClick={() => {
                             if (currentImages >= maxImages) {
                               toast.error(
-                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`,
                               );
                               return;
                             }

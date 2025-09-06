@@ -200,7 +200,7 @@ export function SimpleDeploysList() {
           <Badge variant="secondary" className="bg-muted">
             {loading
               ? '...'
-              : `${deploys.filter(d => d.status === 'ready').length}/${deploys.length}`}
+              : `${deploys.filter((d) => d.status === 'ready').length}/${deploys.length}`}
           </Badge>
           {loading && (
             <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-primary"></div>
@@ -310,7 +310,7 @@ export function SimpleDeploysList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="border-border"
           >
@@ -322,7 +322,7 @@ export function SimpleDeploysList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
             disabled={currentPage === pagination.totalPages}
             className="border-border"
           >

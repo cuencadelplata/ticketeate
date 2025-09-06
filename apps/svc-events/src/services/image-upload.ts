@@ -10,7 +10,7 @@ export interface UploadResult {
 export class ImageUploadService {
   static async uploadImage(
     fileBuffer: Buffer,
-    folder: string = 'ticketeate/events'
+    folder: string = 'ticketeate/events',
   ): Promise<UploadResult> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -24,9 +24,7 @@ export class ImageUploadService {
         },
         (error, result) => {
           if (error) {
-            reject(
-              new Error(`Error uploading to Cloudinary: ${error.message}`)
-            );
+            reject(new Error(`Error uploading to Cloudinary: ${error.message}`));
             return;
           }
 
@@ -41,7 +39,7 @@ export class ImageUploadService {
             format: result.format || 'jpg',
             size: result.bytes || 0,
           });
-        }
+        },
       );
 
       uploadStream.end(fileBuffer);
@@ -55,16 +53,14 @@ export class ImageUploadService {
         (
           error,
           // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-          _result
+          _result,
         ) => {
           if (error) {
-            reject(
-              new Error(`Error deleting from Cloudinary: ${error.message}`)
-            );
+            reject(new Error(`Error deleting from Cloudinary: ${error.message}`));
             return;
           }
           resolve();
-        }
+        },
       );
     });
   }

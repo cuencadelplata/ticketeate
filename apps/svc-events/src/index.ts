@@ -14,11 +14,11 @@ app.use(
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-  })
+  }),
 );
 
 // Routes
-app.get('/', c => {
+app.get('/', (c) => {
   return c.json({
     message: 'Hono Backend API',
     version: '1.0.0',
@@ -26,14 +26,14 @@ app.get('/', c => {
   });
 });
 
-app.get('/health', c => {
+app.get('/health', (c) => {
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
   });
 });
 
-app.get('/api/users', c => {
+app.get('/api/users', (c) => {
   return c.json({
     users: [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
@@ -46,7 +46,7 @@ app.get('/api/users', c => {
 app.route('/api', apiRoutes);
 
 // 404 handler
-app.notFound(c => {
+app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 

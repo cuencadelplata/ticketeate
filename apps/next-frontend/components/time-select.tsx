@@ -33,7 +33,7 @@ export function TimeSelect({ value, onChange }: TimeSelectProps) {
       <PopoverContent className="w-[80px] p-0">
         <ScrollArea className="h-[200px] bg-stone-900">
           <div className="grid">
-            {times.map(time => (
+            {times.map((time) => (
               <Button
                 key={time}
                 variant="ghost"

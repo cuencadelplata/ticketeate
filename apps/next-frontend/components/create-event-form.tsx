@@ -149,7 +149,7 @@ export default function CreateEventForm() {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const libraries = useMemo(() => ['places'], []);
@@ -208,8 +208,8 @@ export default function CreateEventForm() {
 
   const removeEventDate = (id: string) => {
     if (eventDates.length > 1) {
-      const updatedDates = eventDates.filter(date => date.id !== id);
-      if (updatedDates.length > 0 && !updatedDates.some(date => date.isMain)) {
+      const updatedDates = eventDates.filter((date) => date.id !== id);
+      if (updatedDates.length > 0 && !updatedDates.some((date) => date.isMain)) {
         updatedDates[0].isMain = true;
       }
       setEventDates(updatedDates);
@@ -217,17 +217,17 @@ export default function CreateEventForm() {
   };
 
   const updateEventDate = (id: string, updates: Partial<EventDate>) => {
-    setEventDates(prevDates =>
-      prevDates.map(date => (date.id === id ? { ...date, ...updates } : date))
+    setEventDates((prevDates) =>
+      prevDates.map((date) => (date.id === id ? { ...date, ...updates } : date)),
     );
   };
 
   const setMainDate = (id: string) => {
-    setEventDates(prevDates =>
-      prevDates.map(date => ({
+    setEventDates((prevDates) =>
+      prevDates.map((date) => ({
         ...date,
         isMain: date.id === id,
-      }))
+      })),
     );
   };
 
@@ -235,7 +235,7 @@ export default function CreateEventForm() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setEventImages(items => {
+      setEventImages((items) => {
         const oldIndex = items.indexOf(active.id as string);
         const newIndex = items.indexOf(over.id as string);
         return arrayMove(items, oldIndex, newIndex);
@@ -287,7 +287,7 @@ export default function CreateEventForm() {
       return;
     }
 
-    const mainDate = eventDates.find(date => date.isMain) || eventDates[0];
+    const mainDate = eventDates.find((date) => date.isMain) || eventDates[0];
 
     const startDateTime = new Date(mainDate.startDate);
     const [startHour, startMinute] = mainDate.startTime.split(':');
@@ -307,25 +307,25 @@ export default function CreateEventForm() {
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
       galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
       fechas_adicionales: eventDates
-        .filter(date => !date.isMain)
-        .map(date => ({
+        .filter((date) => !date.isMain)
+        .map((date) => ({
           fecha_inicio: new Date(
             date.startDate.getTime() +
               (parseInt(date.startTime.split(':')[0]) * 60 +
                 parseInt(date.startTime.split(':')[1])) *
-                60000
+                60000,
           ).toISOString(),
           fecha_fin: new Date(
             date.endDate.getTime() +
               (parseInt(date.endTime.split(':')[0]) * 60 + parseInt(date.endTime.split(':')[1])) *
-                60000
+                60000,
           ).toISOString(),
         })),
       eventMap: location.eventMap,
     };
 
     createEventMutation.mutate(eventData, {
-      onSuccess: event => {
+      onSuccess: (event) => {
         toast.success('¡Evento creado exitosamente!', {
           description: `${event.titulo} ha sido creado y está listo para compartir.`,
         });
@@ -345,7 +345,7 @@ export default function CreateEventForm() {
           },
         ]);
       },
-      onError: error => {
+      onError: (error) => {
         toast.error(error.message || 'Error al crear el evento');
       },
     });
@@ -411,9 +411,9 @@ export default function CreateEventForm() {
                     <DialogTitle>Galería de imágenes del evento</DialogTitle>
                   </DialogHeader>
                   <UploadImageModal
-                    onSelectImage={img => {
+                    onSelectImage={(img) => {
                       if (eventImages.length < 4) {
-                        setEventImages(prev => [...prev, img]);
+                        setEventImages((prev) => [...prev, img]);
                       } else {
                         toast.error('Máximo 4 imágenes permitidas');
                       }
@@ -445,8 +445,8 @@ export default function CreateEventForm() {
                             key={image}
                             image={image}
                             index={index}
-                            onRemove={index => {
-                              setEventImages(prev => prev.filter((_, i) => i !== index));
+                            onRemove={(index) => {
+                              setEventImages((prev) => prev.filter((_, i) => i !== index));
                             }}
                           />
                         ))}
@@ -467,7 +467,7 @@ export default function CreateEventForm() {
                   type="text"
                   placeholder="Nombre del evento"
                   value={eventName}
-                  onChange={e => setEventName(e.target.value)}
+                  onChange={(e) => setEventName(e.target.value)}
                   className="w-full border-none bg-transparent text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
                 />
 
@@ -487,7 +487,7 @@ export default function CreateEventForm() {
                   <DropdownMenu
                     selectionMode="single"
                     selectedKeys={new Set([selected])}
-                    onSelectionChange={keys => {
+                    onSelectionChange={(keys) => {
                       const selection = Array.from(keys as Set<string>);
                       if (selection.length > 0) {
                         setSelected(selection[0] as 'public' | 'private');
@@ -517,7 +517,7 @@ export default function CreateEventForm() {
                             </div>
                           </div>
                         </DropdownItem>
-                      )
+                      ),
                     )}
                   </DropdownMenu>
                 </Dropdown>
@@ -556,13 +556,13 @@ export default function CreateEventForm() {
                         <div className="flex flex-1 gap-1">
                           <DateSelect
                             value={eventDate.startDate}
-                            onChange={date =>
+                            onChange={(date) =>
                               date && updateEventDate(eventDate.id, { startDate: date })
                             }
                           />
                           <TimeSelect
                             value={eventDate.startTime}
-                            onChange={time => updateEventDate(eventDate.id, { startTime: time })}
+                            onChange={(time) => updateEventDate(eventDate.id, { startTime: time })}
                           />
                         </div>
                         <div className="w-20 flex-shrink-0" />
@@ -577,13 +577,13 @@ export default function CreateEventForm() {
                         <div className="flex flex-1 gap-1">
                           <DateSelect
                             value={eventDate.endDate}
-                            onChange={date =>
+                            onChange={(date) =>
                               date && updateEventDate(eventDate.id, { endDate: date })
                             }
                           />
                           <TimeSelect
                             value={eventDate.endTime}
-                            onChange={time => updateEventDate(eventDate.id, { endTime: time })}
+                            onChange={(time) => updateEventDate(eventDate.id, { endTime: time })}
                           />
                         </div>
 
@@ -620,7 +620,7 @@ export default function CreateEventForm() {
                 ))}
               </div>
 
-              <EventLocation onLocationSelect={loc => setLocation(loc)} />
+              <EventLocation onLocationSelect={(loc) => setLocation(loc)} />
               <EventDescription
                 onDescriptionChange={setDescription}
                 eventTitle={eventName}

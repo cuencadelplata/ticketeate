@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 
 const health = new Hono();
 
-health.get('/', c => {
+health.get('/', (c) => {
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -11,7 +11,7 @@ health.get('/', c => {
   });
 });
 
-health.get('/ready', c => {
+health.get('/ready', (c) => {
   // Add your readiness checks here (database connection, external services, etc.)
   return c.json({
     status: 'ready',
@@ -19,7 +19,7 @@ health.get('/ready', c => {
   });
 });
 
-health.get('/live', c => {
+health.get('/live', (c) => {
   // Add your liveness checks here
   return c.json({
     status: 'alive',

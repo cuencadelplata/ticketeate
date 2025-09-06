@@ -96,11 +96,11 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   const saveRecentLocation = (location: EventLocationData) => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
-    const updated = [location, ...recents.filter(loc => loc.address !== location.address)].slice(
+    const updated = [location, ...recents.filter((loc) => loc.address !== location.address)].slice(
       0,
-      5
+      5,
     );
     localStorage.setItem('recentLocations', JSON.stringify(updated));
     setStoredRecentLocations(updated);
@@ -108,7 +108,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   useEffect(() => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
     setStoredRecentLocations(recents);
   }, []);
@@ -163,7 +163,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             <div className="relative">
               <Input
                 value={value}
-                onChange={e => {
+                onChange={(e) => {
                   setValue(e.target.value);
                   if (!isOpen) setIsOpen(true);
                 }}
@@ -178,7 +178,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             {status === 'OK' && (
               <Card className="absolute left-0 z-10 mt-1 w-full border-0 bg-stone-900">
                 <ul className="py-2">
-                  {data.map(suggestion => (
+                  {data.map((suggestion) => (
                     <li
                       key={suggestion.place_id}
                       onClick={() => handleSelect(suggestion.description)}
@@ -371,12 +371,12 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                   )}
                   {selectedLocation.eventMap.sectors.reduce(
                     (total, sector) => total + (sector.capacity || 0),
-                    0
+                    0,
                   ) > 0 && (
                     <span>
                       {selectedLocation.eventMap.sectors.reduce(
                         (total, sector) => total + (sector.capacity || 0),
-                        0
+                        0,
                       )}{' '}
                       personas
                     </span>
@@ -411,7 +411,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     <span className="text-xs text-stone-400">Sin imagen de fondo</span>
                   </div>
                 )}
-                {selectedLocation.eventMap.sectors.map(sector => (
+                {selectedLocation.eventMap.sectors.map((sector) => (
                   <div
                     key={sector.id}
                     className="absolute border-2 border-white/70 text-xs font-medium text-white shadow-sm"
@@ -436,7 +436,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     </div>
                   </div>
                 ))}
-                {selectedLocation.eventMap.elements?.map(element => (
+                {selectedLocation.eventMap.elements?.map((element) => (
                   <div
                     key={element.id}
                     className="absolute rounded border-2 border-white/70 text-xs font-medium text-white shadow-sm"

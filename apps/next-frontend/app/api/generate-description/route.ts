@@ -78,7 +78,7 @@ Genera solo la descripción, sin explicaciones adicionales.`;
       console.error('Grok API error:', errorData);
       return NextResponse.json(
         { error: 'Failed to generate description' },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

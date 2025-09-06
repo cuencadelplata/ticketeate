@@ -120,12 +120,14 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
   };
 
   const removeTicketType = (id: string) => {
-    setTicketTypes(ticketTypes.filter(ticket => ticket.id !== id));
+    setTicketTypes(ticketTypes.filter((ticket) => ticket.id !== id));
   };
 
   const updateTicketCapacity = (id: string, newCapacity: number) => {
     setTicketTypes(
-      ticketTypes.map(ticket => (ticket.id === id ? { ...ticket, capacity: newCapacity } : ticket))
+      ticketTypes.map((ticket) =>
+        ticket.id === id ? { ...ticket, capacity: newCapacity } : ticket,
+      ),
     );
   };
 
@@ -148,7 +150,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
             id="capacity"
             type="number"
             value={capacity}
-            onChange={e => setCapacity(e.target.value)}
+            onChange={(e) => setCapacity(e.target.value)}
             placeholder="50"
             className="border-0 bg-[#1A1A1A] text-stone-100 placeholder-stone-400"
           />
@@ -196,7 +198,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
               </div>
               <Switch
                 checked={queueConfig.enabled}
-                onCheckedChange={checked => setQueueConfig({ ...queueConfig, enabled: checked })}
+                onCheckedChange={(checked) => setQueueConfig({ ...queueConfig, enabled: checked })}
               />
             </div>
             <CardDescription className="text-stone-400">
@@ -217,7 +219,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                     type="number"
                     min="1"
                     value={queueConfig.maxSimultaneousPurchases}
-                    onChange={e =>
+                    onChange={(e) =>
                       setQueueConfig({
                         ...queueConfig,
                         maxSimultaneousPurchases: Number(e.target.value),
@@ -240,7 +242,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                     type="number"
                     min="1"
                     value={queueConfig.purchaseTimeLimit}
-                    onChange={e =>
+                    onChange={(e) =>
                       setQueueConfig({
                         ...queueConfig,
                         purchaseTimeLimit: Number(e.target.value),
@@ -301,7 +303,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                         id="capacity"
                         type="number"
                         value={capacity}
-                        onChange={e => setCapacity(e.target.value)}
+                        onChange={(e) => setCapacity(e.target.value)}
                         placeholder="50"
                         className="border-0 bg-[#2A2A2A] text-stone-100"
                       />
@@ -334,7 +336,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                     </div>
                     <Switch
                       checked={queueConfig.enabled}
-                      onCheckedChange={checked =>
+                      onCheckedChange={(checked) =>
                         setQueueConfig({ ...queueConfig, enabled: checked })
                       }
                     />
@@ -394,7 +396,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                   <CardContent className="space-y-4 pt-0">
                     {ticketTypes.length > 0 ? (
                       <div className="space-y-3">
-                        {ticketTypes.map(ticket => (
+                        {ticketTypes.map((ticket) => (
                           <div
                             key={ticket.id}
                             className="flex items-center gap-1 rounded-lg bg-[#2A2A2A] p-3"
@@ -402,11 +404,11 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                             <div className="flex-1 space-y-2">
                               <Input
                                 value={ticket.name}
-                                onChange={e => {
+                                onChange={(e) => {
                                   setTicketTypes(
-                                    ticketTypes.map(t =>
-                                      t.id === ticket.id ? { ...t, name: e.target.value } : t
-                                    )
+                                    ticketTypes.map((t) =>
+                                      t.id === ticket.id ? { ...t, name: e.target.value } : t,
+                                    ),
                                   );
                                 }}
                                 className="border-0 bg-transparent text-sm text-stone-100"
@@ -416,7 +418,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                                 <Input
                                   type="number"
                                   value={ticket.capacity}
-                                  onChange={e =>
+                                  onChange={(e) =>
                                     updateTicketCapacity(ticket.id, Number(e.target.value))
                                   }
                                   className="w-20 border-0 bg-transparent text-sm text-stone-100"
@@ -425,13 +427,13 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                                 <Input
                                   type="number"
                                   value={ticket.price}
-                                  onChange={e => {
+                                  onChange={(e) => {
                                     setTicketTypes(
-                                      ticketTypes.map(t =>
+                                      ticketTypes.map((t) =>
                                         t.id === ticket.id
                                           ? { ...t, price: Number(e.target.value) }
-                                          : t
-                                      )
+                                          : t,
+                                      ),
                                     );
                                   }}
                                   className="w-20 border-0 bg-transparent text-sm text-stone-100"
@@ -498,7 +500,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                   <Input
                     id="ticketName"
                     value={newTicket.name}
-                    onChange={e => setNewTicket({ ...newTicket, name: e.target.value })}
+                    onChange={(e) => setNewTicket({ ...newTicket, name: e.target.value })}
                     placeholder="General"
                     className="border-0 bg-[#1A1A1A] text-stone-100"
                   />
@@ -511,7 +513,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                   <Textarea
                     id="ticketDescription"
                     value={newTicket.description}
-                    onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
+                    onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
                     placeholder="Describe los beneficios o restricciones de este tipo de entrada"
                     className="min-h-[80px] border-0 bg-[#1A1A1A] text-stone-100"
                   />
@@ -526,7 +528,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                       id="ticketCapacity"
                       type="number"
                       value={newTicket.capacity}
-                      onChange={e =>
+                      onChange={(e) =>
                         setNewTicket({ ...newTicket, capacity: Number(e.target.value) })
                       }
                       placeholder="100"
@@ -542,7 +544,9 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                       id="ticketPrice"
                       type="number"
                       value={newTicket.price}
-                      onChange={e => setNewTicket({ ...newTicket, price: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setNewTicket({ ...newTicket, price: Number(e.target.value) })
+                      }
                       placeholder="0"
                       className="border-0 bg-[#1A1A1A] text-stone-100"
                     />
@@ -557,7 +561,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 <Switch
                   id="requiresApproval"
                   checked={newTicket.requiresApproval}
-                  onCheckedChange={checked =>
+                  onCheckedChange={(checked) =>
                     setNewTicket({ ...newTicket, requiresApproval: checked })
                   }
                 />
@@ -585,7 +589,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={open => {
+      onOpenChange={(open) => {
         setIsOpen(open);
         if (!open) {
           setCurrentView('main');

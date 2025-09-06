@@ -37,7 +37,7 @@ export default function locationSelect() {
         label="Select an animal"
         variant="faded"
       >
-        {item => <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>}
+        {(item) => <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>}
       </Autocomplete>
     </div>
   );

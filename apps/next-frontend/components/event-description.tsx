@@ -142,7 +142,7 @@ export default function EventDescription({
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-20 bg-stone-700" />
           <div className="flex gap-1">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div
                 key={i}
                 className="h-2 w-2 animate-pulse rounded-full bg-stone-600"
@@ -243,7 +243,7 @@ export default function EventDescription({
                 <label className="text-sm font-medium text-stone-200">Descripción detallada</label>
                 <Textarea
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                   placeholder="¿Quién debería asistir? ¿De qué trata el evento? Describe los detalles importantes, el formato, y qué esperar de la experiencia..."
                   className="min-h-[160px] resize-none border-stone-700/50 bg-[#0F0F0F]/80 text-base leading-relaxed text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20"
                 />
@@ -329,10 +329,10 @@ export default function EventDescription({
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-stone-200">Estado de ánimo</label>
                     <div className="grid grid-cols-3 gap-3">
-                      {(['creative', 'professional', 'fun'] as MoodType[]).map(mood => (
+                      {(['creative', 'professional', 'fun'] as MoodType[]).map((mood) => (
                         <button
                           key={mood}
-                          onClick={() => setAIConfig(prev => ({ ...prev, mood }))}
+                          onClick={() => setAIConfig((prev) => ({ ...prev, mood }))}
                           className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all duration-200 ${
                             aiConfig.mood === mood
                               ? `bg-gradient-to-r ${getMoodColor(mood)} border-current`
@@ -366,10 +366,10 @@ export default function EventDescription({
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-stone-200">Longitud</label>
                     <div className="flex gap-3">
-                      {(['short', 'medium', 'long'] as LengthType[]).map(length => (
+                      {(['short', 'medium', 'long'] as LengthType[]).map((length) => (
                         <button
                           key={length}
-                          onClick={() => setAIConfig(prev => ({ ...prev, length }))}
+                          onClick={() => setAIConfig((prev) => ({ ...prev, length }))}
                           className={`flex-1 rounded-lg border-2 px-4 py-2 transition-all duration-200 ${
                             aiConfig.length === length
                               ? 'border-blue-500 bg-blue-500/20 text-blue-300'
@@ -398,8 +398,8 @@ export default function EventDescription({
                     </label>
                     <Textarea
                       value={aiConfig.additionalInstructions}
-                      onChange={e =>
-                        setAIConfig(prev => ({ ...prev, additionalInstructions: e.target.value }))
+                      onChange={(e) =>
+                        setAIConfig((prev) => ({ ...prev, additionalInstructions: e.target.value }))
                       }
                       placeholder="Por ejemplo, podrías pedirle a la IA que escriba solo en pentámetro yámbico."
                       className="min-h-[100px] resize-none border-stone-700/50 bg-[#0F0F0F]/80 text-stone-100 placeholder-stone-500 focus:border-stone-500 focus:ring-stone-500/20"
