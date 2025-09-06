@@ -65,7 +65,10 @@ export default function ComprarPage() {
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
   const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
-  const formatCardNumber = (v: string) => sanitizeNumber(v).slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 ');
+  const formatCardNumber = (v: string) =>
+    sanitizeNumber(v)
+      .slice(0, 19)
+      .replace(/(\d{4})(?=\d)/g, '$1 ');
   const formatExpiry = (v: string) => {
     const n = sanitizeNumber(v).slice(0, 4);
     if (n.length <= 2) return n;
@@ -74,7 +77,8 @@ export default function ComprarPage() {
 
   const isValidCardInputs = () => {
     if (!isCardPayment) return true;
-    const numberOk = sanitizeNumber(cardNumber).length >= 13 && sanitizeNumber(cardNumber).length <= 19;
+    const numberOk =
+      sanitizeNumber(cardNumber).length >= 13 && sanitizeNumber(cardNumber).length <= 19;
     const expMatch = cardExpiry.match(/^\s*(0[1-9]|1[0-2])\/(\d{2})\s*$/);
     const cvvOk = /^\d{3,4}$/.test(cardCvv.trim());
     const dniOk = /^\d{7,10}$/.test(cardDni.trim());
@@ -395,7 +399,9 @@ export default function ComprarPage() {
               {isCardPayment && (
                 <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
                   <div className="flex flex-col">
-                    <label className="mb-1 text-xs font-medium text-gray-700">Número de tarjeta</label>
+                    <label className="mb-1 text-xs font-medium text-gray-700">
+                      Número de tarjeta
+                    </label>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -408,7 +414,9 @@ export default function ComprarPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="col-span-1 flex flex-col">
-                      <label className="mb-1 text-xs font-medium text-gray-700">Vencimiento (MM/AA)</label>
+                      <label className="mb-1 text-xs font-medium text-gray-700">
+                        Vencimiento (MM/AA)
+                      </label>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -427,7 +435,9 @@ export default function ComprarPage() {
                         autoComplete="cc-csc"
                         placeholder="3 o 4 dígitos"
                         value={cardCvv}
-                        onChange={e => setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                        onChange={e =>
+                          setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
+                        }
                         className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -438,7 +448,9 @@ export default function ComprarPage() {
                         inputMode="numeric"
                         placeholder="Solo números"
                         value={cardDni}
-                        onChange={e => setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                        onChange={e =>
+                          setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
+                        }
                         className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -481,7 +493,11 @@ export default function ComprarPage() {
                   disabled={loading || (isCardPayment && !isValidCardInputs())}
                   className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {loading ? 'Comprando...' : isCardPayment && !isValidCardInputs() ? 'Completa los datos de tarjeta' : 'Comprar'}
+                  {loading
+                    ? 'Comprando...'
+                    : isCardPayment && !isValidCardInputs()
+                      ? 'Completa los datos de tarjeta'
+                      : 'Comprar'}
                 </button>
               ) : (
                 <button

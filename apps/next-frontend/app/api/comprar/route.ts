@@ -45,10 +45,15 @@ export async function POST(request: NextRequest) {
 
     // Validar datos de tarjeta (demo - no procesar reales en servidor sin PCI)
     if (['tarjeta_credito', 'tarjeta_debito'].includes(metodo_pago)) {
-      const numeroOk = typeof datos_tarjeta?.numero === 'string' && /^\d{13,19}$/.test(datos_tarjeta.numero);
-      const vencOk = typeof datos_tarjeta?.vencimiento === 'string' && /^(0[1-9]|1[0-2])\/\d{2}$/.test(datos_tarjeta.vencimiento.trim());
-      const cvvOk = typeof datos_tarjeta?.cvv === 'string' && /^\d{3,4}$/.test(datos_tarjeta.cvv.trim());
-      const dniOk = typeof datos_tarjeta?.dni === 'string' && /^\d{7,10}$/.test(datos_tarjeta.dni.trim());
+      const numeroOk =
+        typeof datos_tarjeta?.numero === 'string' && /^\d{13,19}$/.test(datos_tarjeta.numero);
+      const vencOk =
+        typeof datos_tarjeta?.vencimiento === 'string' &&
+        /^(0[1-9]|1[0-2])\/\d{2}$/.test(datos_tarjeta.vencimiento.trim());
+      const cvvOk =
+        typeof datos_tarjeta?.cvv === 'string' && /^\d{3,4}$/.test(datos_tarjeta.cvv.trim());
+      const dniOk =
+        typeof datos_tarjeta?.dni === 'string' && /^\d{7,10}$/.test(datos_tarjeta.dni.trim());
       if (!numeroOk || !vencOk || !cvvOk || !dniOk) {
         return NextResponse.json(
           {
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
               'datos_tarjeta.numero (13-19 dígitos)',
               'datos_tarjeta.vencimiento (MM/AA)',
               'datos_tarjeta.cvv (3-4 dígitos)',
-              'datos_tarjeta.dni (7-10 dígitos)'
+              'datos_tarjeta.dni (7-10 dígitos)',
             ],
           },
           { status: 400 }
@@ -89,7 +94,9 @@ export async function POST(request: NextRequest) {
         estado: 'pendiente',
         fecha_pago: new Date().toISOString(),
         // Por seguridad, no devolveremos los datos completos de la tarjeta
-        tarjeta: datos_tarjeta ? { dni: datos_tarjeta.dni, ultimos4: datos_tarjeta.numero?.slice(-4) } : undefined,
+        tarjeta: datos_tarjeta
+          ? { dni: datos_tarjeta.dni, ultimos4: datos_tarjeta.numero?.slice(-4) }
+          : undefined,
       },
       entradas: Array.from({ length: cantidad }, (_, idx) => ({
         id_entrada: Math.floor(Math.random() * 10000) + 3000 + idx,
