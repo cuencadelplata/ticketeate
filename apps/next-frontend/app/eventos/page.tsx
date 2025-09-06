@@ -58,7 +58,7 @@ export default function EventosPage() {
   };
 
   // filter events
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = events.filter((event) => {
     const isPast = isEventPast(event.fecha_fin_venta);
     return activeTab === 'proximos' ? !isPast : isPast;
   });
@@ -90,7 +90,7 @@ export default function EventosPage() {
                 onClick={() => setActiveTab('proximos')}
                 className={cn(
                   'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400'
+                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
                 )}
               >
                 Próximos
@@ -99,7 +99,7 @@ export default function EventosPage() {
                 onClick={() => setActiveTab('pasados')}
                 className={cn(
                   'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400'
+                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
                 )}
               >
                 Pasados
@@ -136,11 +136,11 @@ export default function EventosPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              {filteredEvents.map(event => {
+              {filteredEvents.map((event) => {
                 const formattedDate = formatEventDate(event.fecha_inicio_venta);
                 const hasLocation = !!event.ubicacion;
                 const coverImage =
-                  event.imagenes_evento?.find(img => img.tipo === 'portada')?.url ||
+                  event.imagenes_evento?.find((img) => img.tipo === 'portada')?.url ||
                   event.imagenes_evento?.[0]?.url;
 
                 return (
@@ -185,7 +185,7 @@ export default function EventosPage() {
                               'rounded px-2 py-1 text-xs',
                               event.estado === 'ACTIVO'
                                 ? 'bg-green-500/20 text-green-400'
-                                : 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-yellow-500/20 text-yellow-400',
                             )}
                           >
                             {event.estado === 'ACTIVO' ? 'Activo' : 'Oculto'}

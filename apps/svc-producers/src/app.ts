@@ -26,13 +26,8 @@ app.use(
 app.route('/api', apiRoutes);
 app.route('/health', healthRoutes);
 
-<<<<<<< HEAD:apps/hono-backend/src/app.ts
-// Root route
-app.get('/', (c) => {
-=======
 // Root route|
-app.get('/', c => {
->>>>>>> c396df71e96c17c0aaaa9eb6650b5a952324be06:apps/svc-producers/src/app.ts
+app.get('/', (c) => {
   return c.json({
     message: 'Hono Backend API',
     version: '1.0.0',

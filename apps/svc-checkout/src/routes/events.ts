@@ -13,13 +13,13 @@ const events = new Hono();
 events.use(
   '*',
   cors({
-    origin: origin => origin ?? '*',
+    origin: (origin) => origin ?? '*',
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
     exposeHeaders: ['*'],
     credentials: true,
     maxAge: 86400,
-  })
+  }),
 );
 
 events.use(
@@ -27,11 +27,11 @@ events.use(
   clerkMiddleware({
     secretKey: process.env.CLERK_SECRET_KEY,
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-  })
+  }),
 );
 
 // POST /api/events - Crear un nuevo evento
-events.post('/', async c => {
+events.post('/', async (c) => {
   try {
     const auth = getAuth(c);
     if (!auth?.userId) {
@@ -44,10 +44,9 @@ events.post('/', async c => {
     if (!body.titulo || !body.fecha_inicio_venta || !body.fecha_fin_venta) {
       return c.json(
         {
-          error:
-            'Faltan campos requeridos: titulo, fecha_inicio_venta, fecha_fin_venta',
+          error: 'Faltan campos requeridos: titulo, fecha_inicio_venta, fecha_fin_venta',
         },
-        400
+        400,
       );
     }
 
@@ -77,23 +76,22 @@ events.post('/', async c => {
         message: 'Evento creado exitosamente',
         event: createdEvent,
       },
-      201
+      201,
     );
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error creating event:', error);
     return c.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
-      500
+      500,
     );
   }
 });
 
 // POST /api/events/upload-image - Subir imagen para un evento
-events.post('/upload-image', async c => {
+events.post('/upload-image', async (c) => {
   try {
     const auth = getAuth(c);
     if (!auth?.userId) {
@@ -109,9 +107,7 @@ events.post('/upload-image', async c => {
     }
 
     // Convertir File a Buffer
-    const arrayBuffer = await (
-      file as { arrayBuffer(): Promise<ArrayBuffer> }
-    ).arrayBuffer();
+    const arrayBuffer = await (file as { arrayBuffer(): Promise<ArrayBuffer> }).arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Subir imagen a Cloudinary
@@ -132,16 +128,15 @@ events.post('/upload-image', async c => {
     console.error('Error uploading image:', error);
     return c.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
-      500
+      500,
     );
   }
 });
 
 // GET /api/events - Obtener eventos del usuario
-events.get('/', async c => {
+events.get('/', async (c) => {
   try {
     const auth = getAuth(c);
     if (!auth?.userId) {
@@ -160,16 +155,15 @@ events.get('/', async c => {
     console.error('Error getting events:', error);
     return c.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
-      500
+      500,
     );
   }
 });
 
 // GET /api/events/:id - Obtener evento específico
-events.get('/:id', async c => {
+events.get('/:id', async (c) => {
   try {
     const auth = getAuth(c);
     if (!auth?.userId) {
@@ -193,10 +187,9 @@ events.get('/:id', async c => {
     console.error('Error getting event:', error);
     return c.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Error interno del servidor',
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
-      500
+      500,
     );
   }
 });

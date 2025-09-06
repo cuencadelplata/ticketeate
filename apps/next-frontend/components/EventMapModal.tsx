@@ -80,13 +80,13 @@ export default function EventMapModal({
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [selectedType, setSelectedType] = useState<'general' | 'vip' | 'premium' | 'custom'>(
-    'general'
+    'general',
   );
   const [selectedElementType, setSelectedElementType] = useState<
     'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
   >('stage');
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(
-    initialMapData?.backgroundImage
+    initialMapData?.backgroundImage,
   );
   const [activeTab, setActiveTab] = useState<'sectors' | 'elements' | 'grid'>('sectors');
   const [showGrid, setShowGrid] = useState(true);
@@ -105,7 +105,7 @@ export default function EventMapModal({
 
       return { x: snappedX, y: snappedY };
     },
-    [snapToGrid, gridSize]
+    [snapToGrid, gridSize],
   );
 
   const handleCanvasClick = useCallback(
@@ -118,7 +118,7 @@ export default function EventMapModal({
         setSelectedElement(null);
       }
     },
-    [selectedSector, selectedElement]
+    [selectedSector, selectedElement],
   );
 
   const handleSectorMouseDown = useCallback(
@@ -128,7 +128,7 @@ export default function EventMapModal({
       setSelectedElement(null);
       setIsDragging(true);
 
-      const sector = sectors.find(s => s.id === sectorId);
+      const sector = sectors.find((s) => s.id === sectorId);
       if (!sector) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -139,7 +139,7 @@ export default function EventMapModal({
         y: e.clientY - rect.top - sector.y,
       });
     },
-    [sectors]
+    [sectors],
   );
 
   const handleElementMouseDown = useCallback(
@@ -149,7 +149,7 @@ export default function EventMapModal({
       setSelectedSector(null);
       setIsDragging(true);
 
-      const element = elements.find(el => el.id === elementId);
+      const element = elements.find((el) => el.id === elementId);
       if (!element) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -160,7 +160,7 @@ export default function EventMapModal({
         y: e.clientY - rect.top - element.y,
       });
     },
-    [elements]
+    [elements],
   );
 
   const handleMouseMove = useCallback(
@@ -176,40 +176,48 @@ export default function EventMapModal({
       const { x: newX, y: newY } = snapToGridPosition(rawX, rawY);
 
       if (selectedSector) {
-        const sector = sectors.find(s => s.id === selectedSector);
+        const sector = sectors.find((s) => s.id === selectedSector);
         if (sector) {
-          setSectors(prev =>
-            prev.map(s =>
+          setSectors((prev) =>
+            prev.map((s) =>
               s.id === selectedSector
                 ? {
                     ...s,
                     x: Math.max(0, Math.min(newX, 800 - s.width)),
                     y: Math.max(0, Math.min(newY, 600 - s.height)),
                   }
-                : s
-            )
+                : s,
+            ),
           );
         }
       }
 
       if (selectedElement) {
-        const element = elements.find(el => el.id === selectedElement);
+        const element = elements.find((el) => el.id === selectedElement);
         if (element) {
-          setElements(prev =>
-            prev.map(el =>
+          setElements((prev) =>
+            prev.map((el) =>
               el.id === selectedElement
                 ? {
                     ...el,
                     x: Math.max(0, Math.min(newX, 800 - el.width)),
                     y: Math.max(0, Math.min(newY, 600 - el.height)),
                   }
-                : el
-            )
+                : el,
+            ),
           );
         }
       }
     },
-    [isDragging, selectedSector, selectedElement, dragOffset, sectors, elements, snapToGridPosition]
+    [
+      isDragging,
+      selectedSector,
+      selectedElement,
+      dragOffset,
+      sectors,
+      elements,
+      snapToGridPosition,
+    ],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -219,7 +227,7 @@ export default function EventMapModal({
   const handleSectorResize = useCallback(
     (sectorId: string, direction: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      const sector = sectors.find(s => s.id === sectorId);
+      const sector = sectors.find((s) => s.id === sectorId);
       if (!sector) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -270,10 +278,10 @@ export default function EventMapModal({
           }
         }
 
-        setSectors(prev =>
-          prev.map(s =>
-            s.id === sectorId ? { ...s, width: newWidth, height: newHeight, x: newX, y: newY } : s
-          )
+        setSectors((prev) =>
+          prev.map((s) =>
+            s.id === sectorId ? { ...s, width: newWidth, height: newHeight, x: newX, y: newY } : s,
+          ),
         );
       };
 
@@ -285,13 +293,13 @@ export default function EventMapModal({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [sectors]
+    [sectors],
   );
 
   const handleElementResize = useCallback(
     (elementId: string, direction: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      const element = elements.find(el => el.id === elementId);
+      const element = elements.find((el) => el.id === elementId);
       if (!element) return;
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -342,12 +350,12 @@ export default function EventMapModal({
           }
         }
 
-        setElements(prev =>
-          prev.map(el =>
+        setElements((prev) =>
+          prev.map((el) =>
             el.id === elementId
               ? { ...el, width: newWidth, height: newHeight, x: newX, y: newY }
-              : el
-          )
+              : el,
+          ),
         );
       };
 
@@ -359,12 +367,12 @@ export default function EventMapModal({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [elements]
+    [elements],
   );
 
   const updateSectorProperty = (sectorId: string, property: keyof EventSector, value: any) => {
-    setSectors(prev =>
-      prev.map(sector => {
+    setSectors((prev) =>
+      prev.map((sector) => {
         if (sector.id === sectorId) {
           const updatedSector = { ...sector, [property]: value };
 
@@ -379,19 +387,19 @@ export default function EventMapModal({
           return updatedSector;
         }
         return sector;
-      })
+      }),
     );
   };
 
   const deleteSector = (sectorId: string) => {
-    setSectors(prev => prev.filter(sector => sector.id !== sectorId));
+    setSectors((prev) => prev.filter((sector) => sector.id !== sectorId));
     if (selectedSector === sectorId) {
       setSelectedSector(null);
     }
   };
 
   const deleteElement = (elementId: string) => {
-    setElements(prev => prev.filter(element => element.id !== elementId));
+    setElements((prev) => prev.filter((element) => element.id !== elementId));
     if (selectedElement === elementId) {
       setSelectedElement(null);
     }
@@ -413,28 +421,28 @@ export default function EventMapModal({
       columns,
       capacity,
     };
-    setSectors(prev => [...prev, newSector]);
+    setSectors((prev) => [...prev, newSector]);
   };
 
   const addSectorToCanvas = (type: 'general' | 'vip' | 'premium' | 'custom') => {
     const { x, y } = snapToGridPosition(50, 50);
     const newSector: EventSector = {
       id: Date.now().toString(),
-      name: `${sectorTypes.find(t => t.type === type)?.label} ${sectors.length + 1}`,
+      name: `${sectorTypes.find((t) => t.type === type)?.label} ${sectors.length + 1}`,
       type: type,
-      color: sectorTypes.find(t => t.type === type)?.color || '#1E40AF',
+      color: sectorTypes.find((t) => t.type === type)?.color || '#1E40AF',
       x,
       y,
       width: snapToGrid ? Math.round(100 / gridSize) * gridSize : 100,
       height: snapToGrid ? Math.round(50 / gridSize) * gridSize : 50,
     };
-    setSectors(prev => [...prev, newSector]);
+    setSectors((prev) => [...prev, newSector]);
   };
 
   const addElementToCanvas = (
-    type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
+    type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking',
   ) => {
-    const elementType = elementTypes.find(t => t.type === type);
+    const elementType = elementTypes.find((t) => t.type === type);
     const { x, y } = snapToGridPosition(50, 50);
     const newElement: EventElement = {
       id: Date.now().toString(),
@@ -447,14 +455,14 @@ export default function EventMapModal({
       width: snapToGrid ? Math.round(60 / gridSize) * gridSize : 60,
       height: snapToGrid ? Math.round(60 / gridSize) * gridSize : 60,
     };
-    setElements(prev => [...prev, newElement]);
+    setElements((prev) => [...prev, newElement]);
   };
 
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = event => {
+      reader.onload = (event) => {
         setBackgroundImage(event.target?.result as string);
       };
       reader.readAsDataURL(file);
@@ -496,7 +504,7 @@ export default function EventMapModal({
                 { id: 'sectors', label: 'Sectores' },
                 { id: 'elements', label: 'Elementos' },
                 { id: 'grid', label: 'Grid' },
-              ].map(tab => (
+              ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
@@ -549,7 +557,7 @@ export default function EventMapModal({
                       key={type}
                       onClick={() =>
                         addElementToCanvas(
-                          type as 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
+                          type as 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking',
                         )
                       }
                       className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md ${
@@ -622,7 +630,7 @@ export default function EventMapModal({
                   <input
                     type="checkbox"
                     checked={showGrid}
-                    onChange={e => setShowGrid(e.target.checked)}
+                    onChange={(e) => setShowGrid(e.target.checked)}
                     className="rounded"
                   />
                   <span className="text-sm">Mostrar grid</span>
@@ -631,7 +639,7 @@ export default function EventMapModal({
                   <input
                     type="checkbox"
                     checked={snapToGrid}
-                    onChange={e => setSnapToGrid(e.target.checked)}
+                    onChange={(e) => setSnapToGrid(e.target.checked)}
                     className="rounded"
                   />
                   <span className="text-sm">Alinear al grid</span>
@@ -642,7 +650,7 @@ export default function EventMapModal({
             <div>
               <h3 className="mb-2 text-sm font-medium">Elementos del Mapa</h3>
               <div className="max-h-60 space-y-2 overflow-y-auto">
-                {sectors.map(sector => (
+                {sectors.map((sector) => (
                   <div
                     key={sector.id}
                     className={`cursor-pointer rounded-md border p-2 transition-colors ${
@@ -669,7 +677,7 @@ export default function EventMapModal({
                         )}
                       </div>
                       <button
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           deleteSector(sector.id);
                         }}
@@ -681,7 +689,7 @@ export default function EventMapModal({
                   </div>
                 ))}
 
-                {elements.map(element => (
+                {elements.map((element) => (
                   <div
                     key={element.id}
                     className={`cursor-pointer rounded-md border p-2 transition-colors ${
@@ -700,7 +708,7 @@ export default function EventMapModal({
                         <span className="text-sm font-medium">{element.name}</span>
                       </div>
                       <button
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           deleteElement(element.id);
                         }}
@@ -718,7 +726,7 @@ export default function EventMapModal({
               <div>
                 <h3 className="mb-2 text-sm font-medium">Propiedades del Sector</h3>
                 {(() => {
-                  const sector = sectors.find(s => s.id === selectedSector);
+                  const sector = sectors.find((s) => s.id === selectedSector);
                   if (!sector) return null;
 
                   return (
@@ -728,7 +736,7 @@ export default function EventMapModal({
                         <input
                           type="text"
                           value={sector.name}
-                          onChange={e => updateSectorProperty(sector.id, 'name', e.target.value)}
+                          onChange={(e) => updateSectorProperty(sector.id, 'name', e.target.value)}
                           className="w-full rounded border p-1 text-sm"
                         />
                       </div>
@@ -739,11 +747,11 @@ export default function EventMapModal({
                             <input
                               type="number"
                               value={sector.rows || ''}
-                              onChange={e =>
+                              onChange={(e) =>
                                 updateSectorProperty(
                                   sector.id,
                                   'rows',
-                                  parseInt(e.target.value) || undefined
+                                  parseInt(e.target.value) || undefined,
                                 )
                               }
                               className="w-full rounded border p-1 text-sm"
@@ -754,11 +762,11 @@ export default function EventMapModal({
                             <input
                               type="number"
                               value={sector.columns || ''}
-                              onChange={e =>
+                              onChange={(e) =>
                                 updateSectorProperty(
                                   sector.id,
                                   'columns',
-                                  parseInt(e.target.value) || undefined
+                                  parseInt(e.target.value) || undefined,
                                 )
                               }
                               className="w-full rounded border p-1 text-sm"
@@ -771,11 +779,11 @@ export default function EventMapModal({
                         <input
                           type="number"
                           value={sector.capacity || ''}
-                          onChange={e =>
+                          onChange={(e) =>
                             updateSectorProperty(
                               sector.id,
                               'capacity',
-                              parseInt(e.target.value) || undefined
+                              parseInt(e.target.value) || undefined,
                             )
                           }
                           className="w-full rounded border p-1 text-sm"
@@ -787,11 +795,11 @@ export default function EventMapModal({
                         <input
                           type="number"
                           value={sector.price || ''}
-                          onChange={e =>
+                          onChange={(e) =>
                             updateSectorProperty(
                               sector.id,
                               'price',
-                              parseFloat(e.target.value) || undefined
+                              parseFloat(e.target.value) || undefined,
                             )
                           }
                           className="w-full rounded border p-1 text-sm"
@@ -808,7 +816,7 @@ export default function EventMapModal({
               <div>
                 <h3 className="mb-2 text-sm font-medium">Propiedades del Elemento</h3>
                 {(() => {
-                  const element = elements.find(el => el.id === selectedElement);
+                  const element = elements.find((el) => el.id === selectedElement);
                   if (!element) return null;
 
                   return (
@@ -818,11 +826,11 @@ export default function EventMapModal({
                         <input
                           type="text"
                           value={element.name}
-                          onChange={e => {
-                            setElements(prev =>
-                              prev.map(el =>
-                                el.id === selectedElement ? { ...el, name: e.target.value } : el
-                              )
+                          onChange={(e) => {
+                            setElements((prev) =>
+                              prev.map((el) =>
+                                el.id === selectedElement ? { ...el, name: e.target.value } : el,
+                              ),
                             );
                           }}
                           className="w-full rounded border p-1 text-sm"
@@ -832,11 +840,11 @@ export default function EventMapModal({
                         <label className="text-xs text-gray-600">Tipo</label>
                         <select
                           value={element.type}
-                          onChange={e => {
+                          onChange={(e) => {
                             const newType = e.target.value as any;
-                            const elementType = elementTypes.find(t => t.type === newType);
-                            setElements(prev =>
-                              prev.map(el =>
+                            const elementType = elementTypes.find((t) => t.type === newType);
+                            setElements((prev) =>
+                              prev.map((el) =>
                                 el.id === selectedElement
                                   ? {
                                       ...el,
@@ -844,8 +852,8 @@ export default function EventMapModal({
                                       icon: elementType?.icon || el.icon,
                                       color: elementType?.color || el.color,
                                     }
-                                  : el
-                              )
+                                  : el,
+                              ),
                             );
                           }}
                           className="w-full rounded border p-1 text-sm"
@@ -907,7 +915,7 @@ export default function EventMapModal({
                 </div>
               )}
 
-              {sectors.map(sector => (
+              {sectors.map((sector) => (
                 <div
                   key={sector.id}
                   className={`absolute cursor-move select-none border-2 ${
@@ -920,7 +928,7 @@ export default function EventMapModal({
                     height: sector.height,
                     backgroundColor: sector.color + 'CC',
                   }}
-                  onMouseDown={e => handleSectorMouseDown(e, sector.id)}
+                  onMouseDown={(e) => handleSectorMouseDown(e, sector.id)}
                 >
                   <div className="p-1 text-center text-xs font-medium text-white">
                     {sector.name}
@@ -946,7 +954,7 @@ export default function EventMapModal({
                                   height: `${100 / rows}%`,
                                 }}
                               />
-                            ))
+                            )),
                           )}
                         </div>
                       );
@@ -954,24 +962,24 @@ export default function EventMapModal({
 
                   <div
                     className="absolute -bottom-1 -right-1 h-3 w-3 cursor-se-resize bg-blue-500"
-                    onMouseDown={e => handleSectorResize(sector.id, 'bottom-right', e)}
+                    onMouseDown={(e) => handleSectorResize(sector.id, 'bottom-right', e)}
                   />
                   <div
                     className="absolute -bottom-1 -left-1 h-3 w-3 cursor-sw-resize bg-blue-500"
-                    onMouseDown={e => handleSectorResize(sector.id, 'bottom-left', e)}
+                    onMouseDown={(e) => handleSectorResize(sector.id, 'bottom-left', e)}
                   />
                   <div
                     className="absolute -right-1 -top-1 h-3 w-3 cursor-ne-resize bg-blue-500"
-                    onMouseDown={e => handleSectorResize(sector.id, 'top-right', e)}
+                    onMouseDown={(e) => handleSectorResize(sector.id, 'top-right', e)}
                   />
                   <div
                     className="absolute -left-1 -top-1 h-3 w-3 cursor-nw-resize bg-blue-500"
-                    onMouseDown={e => handleSectorResize(sector.id, 'top-left', e)}
+                    onMouseDown={(e) => handleSectorResize(sector.id, 'top-left', e)}
                   />
                 </div>
               ))}
 
-              {elements.map(element => (
+              {elements.map((element) => (
                 <div
                   key={element.id}
                   className={`absolute z-10 cursor-move select-none rounded-lg border-2 ${
@@ -984,7 +992,7 @@ export default function EventMapModal({
                     height: element.height,
                     backgroundColor: element.color + 'CC',
                   }}
-                  onMouseDown={e => handleElementMouseDown(e, element.id)}
+                  onMouseDown={(e) => handleElementMouseDown(e, element.id)}
                 >
                   <div className="flex h-full items-center justify-center text-white">
                     <div className="text-center">
@@ -995,19 +1003,19 @@ export default function EventMapModal({
 
                   <div
                     className="absolute -bottom-1 -right-1 h-3 w-3 cursor-se-resize bg-green-500"
-                    onMouseDown={e => handleElementResize(element.id, 'bottom-right', e)}
+                    onMouseDown={(e) => handleElementResize(element.id, 'bottom-right', e)}
                   />
                   <div
                     className="absolute -bottom-1 -left-1 h-3 w-3 cursor-sw-resize bg-green-500"
-                    onMouseDown={e => handleElementResize(element.id, 'bottom-left', e)}
+                    onMouseDown={(e) => handleElementResize(element.id, 'bottom-left', e)}
                   />
                   <div
                     className="absolute -right-1 -top-1 h-3 w-3 cursor-ne-resize bg-green-500"
-                    onMouseDown={e => handleElementResize(element.id, 'top-right', e)}
+                    onMouseDown={(e) => handleElementResize(element.id, 'top-right', e)}
                   />
                   <div
                     className="absolute -left-1 -top-1 h-3 w-3 cursor-nw-resize bg-green-500"
-                    onMouseDown={e => handleElementResize(element.id, 'top-left', e)}
+                    onMouseDown={(e) => handleElementResize(element.id, 'top-left', e)}
                   />
                 </div>
               ))}
