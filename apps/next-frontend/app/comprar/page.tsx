@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -32,13 +32,20 @@ export default function ComprarPage() {
   const [idEvento] = useState<number>(1);
 
   const [cantidad, setCantidad] = useState<number>(1);
-  const [metodo, setMetodo] = useState<string>('efectivo');
+  const [metodo, setMetodo] = useState<string>('tarjeta_debito');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('Entrada_General');
+
+  // Campos de tarjeta
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [cardExpiry, setCardExpiry] = useState<string>(''); // MM/AA
+  const [cardCvv, setCardCvv] = useState<string>('');
+  const [cardDni, setCardDni] = useState<string>('');
 
   // Simulación de disponibilidad por sector
   const DISPONIBILIDAD: Record<SectorKey, number> = {
@@ -55,17 +62,54 @@ export default function ComprarPage() {
     return { precioUnitario: unit, total: unit * cantidad };
   }, [sector, cantidad]);
 
+  const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
+
+  const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
+  const formatCardNumber = (v: string) =>
+    sanitizeNumber(v)
+      .slice(0, 19)
+      .replace(/(\d{4})(?=\d)/g, '$1 ');
+  const formatExpiry = (v: string) => {
+    const n = sanitizeNumber(v).slice(0, 4);
+    if (n.length <= 2) return n;
+    return `${n.slice(0, 2)}/${n.slice(2)}`;
+  };
+
+  const isValidCardInputs = () => {
+    if (!isCardPayment) return true;
+    const numberOk =
+      sanitizeNumber(cardNumber).length >= 13 && sanitizeNumber(cardNumber).length <= 19;
+    const expMatch = cardExpiry.match(/^\s*(0[1-9]|1[0-2])\/(\d{2})\s*$/);
+    const cvvOk = /^\d{3,4}$/.test(cardCvv.trim());
+    const dniOk = /^\d{7,10}$/.test(cardDni.trim());
+    return Boolean(numberOk && expMatch && cvvOk && dniOk);
+  };
+
   const comprar = async () => {
     setLoading(true);
     setError(null);
     setResultado(null);
     setShowSuccess(false);
 
+    if (isCardPayment && !isValidCardInputs()) {
+      setLoading(false);
+      setError('Completa correctamente número, vencimiento (MM/AA), CVV y DNI.');
+      return;
+    }
+
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
+      datos_tarjeta: isCardPayment
+        ? {
+            numero: sanitizeNumber(cardNumber),
+            vencimiento: cardExpiry.trim(),
+            cvv: cardCvv.trim(),
+            dni: cardDni.trim(),
+          }
+        : undefined,
     };
 
     console.log('Enviando datos a la API:', datosCompra);
@@ -87,15 +131,15 @@ export default function ComprarPage() {
       setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
       setShowSuccess(true);
 
-      // Resetear formulario después de 3 segundos
+      // Resetear formulario después de 10 segundos
       setTimeout(() => {
         setShowSuccess(false);
         setResultado(null);
         setCantidad(1);
         setSector('Entrada_General');
-        setMetodo('efectivo');
+        setMetodo('tarjeta_debito');
         router.push('/'); // Redirigir al menú principal
-      }, 3000);
+      }, 10000);
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
@@ -110,17 +154,134 @@ export default function ComprarPage() {
     setError(null);
     setCantidad(1);
     setSector('Entrada_General');
-    setMetodo('EFECTIVO');
+    setMetodo('tarjeta_debito');
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvv('');
+    setCardDni('');
+  };
+
+  const descargarComprobantePDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const QRCode = await import('qrcode');
+
+    const qrData = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1';
+
+    // Generar QR como dataURL
+    const qrDataUrl = await QRCode.toDataURL(qrData, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 256,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
+
+    // Cargar imagen del evento (fallback si no existe)
+    const eventImageUrl = (resultado?.evento?.imagen_url as string) || '/icon-ticketeate.png';
+    const imageToDataUrl = async (url: string) => {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(String(reader.result));
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return '';
+      }
+    };
+    const eventImgDataUrl = await imageToDataUrl(eventImageUrl);
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.setFont('helvetica', 'normal');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Tarjeta estilo UI
+    const cardWidth = Math.min(180, pageWidth - 20);
+    const cardHeight = 200;
+    const cardX = (pageWidth - cardWidth) / 2;
+    const cardY = (pageHeight - cardHeight) / 2;
+
+    // Fondo (verde claro) con borde suave y esquinas redondeadas
+    pdf.setFillColor(236, 252, 240);
+    pdf.setDrawColor(199, 230, 204);
+    // roundedRect está disponible en jsPDF v3
+    pdf.roundedRect(cardX, cardY, cardWidth, cardHeight, 4, 4, 'FD');
+
+    // Título
+    const title = '¡Compra exitosa!';
+    pdf.setTextColor(22, 101, 52);
+    pdf.setFontSize(20);
+    const titleWidth = pdf.getTextWidth(title);
+    let cursorY = cardY + 14;
+    pdf.text(title, cardX + (cardWidth - titleWidth) / 2, cursorY, { baseline: 'middle' });
+
+    // Imagen del evento
+    if (eventImgDataUrl) {
+      const imgMargin = 10;
+      const imgW = cardWidth - imgMargin * 2;
+      const imgH = 40;
+      pdf.addImage(
+        eventImgDataUrl,
+        'PNG',
+        cardX + imgMargin,
+        cursorY + 6,
+        imgW,
+        imgH,
+        undefined,
+        'FAST',
+      );
+      cursorY += 6 + imgH;
+    }
+
+    // QR centrado
+    const qrSize = 50;
+    pdf.addImage(
+      qrDataUrl,
+      'PNG',
+      cardX + (cardWidth - qrSize) / 2,
+      cursorY + 10,
+      qrSize,
+      qrSize,
+      undefined,
+      'FAST',
+    );
+    cursorY += 10 + qrSize + 6;
+
+    // Contenido
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(12.5);
+    const left = cardX + 12;
+    cursorY += 6;
+    pdf.text(`${cantidad} entrada(s) para ${SECTORES[sector].nombre}`, left, cursorY);
+    cursorY += 12;
+    pdf.text(
+      `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
+      left,
+      cursorY,
+    );
+    cursorY += 12;
+    pdf.text(
+      `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
+      left,
+      cursorY,
+    );
+    cursorY += 12;
+    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, left, cursorY);
+
+    const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
+    pdf.save(fileName);
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] p-4 text-black">
+    <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
       {/* Contenedor principal con scroll */}
       <div className="mx-auto max-w-[1200px] space-y-4">
         {/* Header de la página */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Comprar Entradas</h1>
-          <p className="text-gray-600">Selecciona tu sector y completa tu compra</p>
+          <h1 className="text-2xl font-bold text-white">Comprar Entradas</h1>
+          <p className="text-white">Selecciona tu sector y completa tu compra</p>
         </div>
 
         {/* Contenedor de 2 columnas: mapa (izq) + panel (der) */}
@@ -229,11 +390,78 @@ export default function ComprarPage() {
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={showSuccess}
                 >
-                  <option value="efectivo">Efectivo</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta_debito">Tarjeta de Débito</option>
+                  <option value="tarjeta_credito">Tarjeta de Crédito</option>
                 </select>
               </div>
+
+              {/* Datos de tarjeta */}
+              {isCardPayment && (
+                <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-xs font-medium text-gray-700">
+                      Número de tarjeta
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="cc-number"
+                      placeholder="#### #### #### ####"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">
+                        Vencimiento (MM/AA)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-exp"
+                        placeholder="MM/AA"
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">CVV</label>
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        autoComplete="cc-csc"
+                        placeholder="3 o 4 dígitos"
+                        value={cardCvv}
+                        onChange={(e) =>
+                          setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
+                        }
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-1 flex flex-col">
+                      <label className="mb-1 text-xs font-medium text-gray-700">DNI</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Solo números"
+                        value={cardDni}
+                        onChange={(e) =>
+                          setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
+                        }
+                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  {!isValidCardInputs() && (
+                    <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">
+                      Verifica número, vencimiento, CVV y DNI.
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Info selección */}
               <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
@@ -262,10 +490,14 @@ export default function ComprarPage() {
               {!showSuccess ? (
                 <button
                   onClick={comprar}
-                  disabled={loading}
+                  disabled={loading || (isCardPayment && !isValidCardInputs())}
                   className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {loading ? 'Comprando...' : 'Comprar'}
+                  {loading
+                    ? 'Comprando...'
+                    : isCardPayment && !isValidCardInputs()
+                      ? 'Completa los datos de tarjeta'
+                      : 'Comprar'}
                 </button>
               ) : (
                 <button
@@ -285,24 +517,35 @@ export default function ComprarPage() {
 
               {showSuccess && resultado && (
                 <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-                  <div className="mb-2 text-4xl">🎉</div>
-                  <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
-                  <div className="space-y-1 text-sm text-green-700">
-                    <p>
-                      ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
-                    </p>
-                    <p>💰 Total: {formatARS(total)}</p>
-                    <p>💳 Método: {metodo}</p>
-                    <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
+                  <div ref={comprobanteRef}>
+                    <div className="mb-2 text-4xl">🎉</div>
+                    <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
+                    <div className="space-y-1 text-sm text-green-700">
+                      <p>
+                        ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
+                      </p>
+                      <p>💰 Total: {formatARS(total)}</p>
+                      <p>
+                        💳 Método:{' '}
+                        {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}
+                      </p>
+                      <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
+                    </div>
                   </div>
                   <div className="mt-3 text-xs text-green-600">
                     Se han generado {cantidad} código(s) QR para tu entrada
                   </div>
                   <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 3 segundos...
+                    ⏱️ Serás redirigido al menú principal en 10 segundos. Puedes descargar tu
+                    comprobante ahora.
                   </div>
-                  <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 3 segundos...
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <button
+                      onClick={descargarComprobantePDF}
+                      className="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                    >
+                      Descargar comprobante (PDF)
+                    </button>
                   </div>
                 </div>
               )}
