@@ -1,11 +1,21 @@
 import React, { useState, useRef, DragEvent, useEffect } from 'react';
-import { Search, Upload, History, Trash2 } from 'lucide-react';
+import { Search, Upload, History, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-// Image import removed because it's not used in this component
+import Image from 'next/image';
+import { useImageUpload } from '@/hooks/use-image-upload';
+
+// Componente Skeleton para las imagenes
+const ImageSkeleton = () => (
+  <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-700">
+    <div className="h-full w-full animate-pulse bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700" />
+  </div>
+);
 
 interface UploadImageModalProps {
   onClose: () => void;
   onSelectImage: (imageUrl: string) => void;
+  maxImages?: number;
+  currentImages?: number;
 }
 
 interface UserImage {
@@ -19,29 +29,35 @@ interface UserImage {
 const categories = [
   { id: 'biblioteca', label: 'Mi Biblioteca', icon: <History className="h-4 w-4" /> },
   { id: 'destacado', label: 'Destacado' },
-  { id: 'eventos', label: 'Eventos anteriores' },
-  { id: 'sanpatricio', label: 'San Patricio' },
+  { id: 'teatro', label: 'Teatro' },
   { id: 'fiesta', label: 'Fiesta' },
-  { id: 'comida', label: 'Comida' },
-  { id: 'bebidas', label: 'Bebidas' },
-  { id: 'deportes', label: 'Deportes' },
-  { id: 'cripto', label: 'Cripto' },
-  { id: 'abstracto', label: 'Abstracto' },
+  { id: 'retro', label: 'Retro' },
+  { id: 'frases', label: 'Frases' },
+  { id: 'geometrica', label: 'Geometrica' },
+  { id: 'musica', label: 'Musica' },
   { id: 'tecnologia', label: 'Tecnología' },
 ];
 
 const imagesMapping: Record<string, string[]> = {
   destacado: [
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=500&fit=crop',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838351/01_k5fyfl.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/02_c1hjhl.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/03_v69k6f.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/04_n5jgnw.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/05_grx8i8.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/06_gabtdh.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/07_ctn24o.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/08_msapmt.jpg',
   ],
-  eventos: [
-    'https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1485217988980-11786ced9454?w=500&h=500&fit=crop',
-  ],
-  sanpatricio: [
-    'https://images.unsplash.com/photo-1504198458649-3128b932f49b?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1503614472-8c5a4f7a4c6f?w=500&h=500&fit=crop',
+  teatro: [
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838344/08_qbpkv0.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838343/07_qve3fa.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838343/06_kig1y0.avif',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/03_wlferm.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/05_yii5wz.avif',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/04_c4ant0.avif',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/02_hpvqwi.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/01_cnsyst.jpg',
   ],
   fiesta: [
     'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500&h=500&fit=crop',
@@ -53,29 +69,63 @@ const imagesMapping: Record<string, string[]> = {
     'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop',
     'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=500&h=500&fit=crop',
   ],
-  comida: [
-    'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1543353071-873f17a7a088?w=500&h=500&fit=crop',
+  retro: [
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838338/08_z7uqvr.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838337/10_d3b08s.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838337/11_yy1v2d.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838337/12_iflyqw.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838337/06_uvmxne.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838336/07_nuvpqa.webp',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838336/09_hdtpoh.webp',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/05_cw7zgj.avif',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/04_ppfzjh.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/02_sk05tr.png',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/01_suquw2.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/03_rwwya1.jpg',
   ],
-  bebidas: [
-    'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1510627498534-cf7e9002facc?w=500&h=500&fit=crop',
+  frases: [
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838334/07_ngtav0.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838334/08_b5i9ni.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/06_ztnibz.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838332/05_xxkwft.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/04_tcyyjg.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/03_hbk29j.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/02_emj01v.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/01_gvuqvl.jpg',
   ],
-  deportes: [
-    'https://images.unsplash.com/photo-1571019613914-85f342c3c201?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500&h=500&fit=crop',
+  geometrica: [
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/07_toa9uf.webp',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/13_dzvtf1.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838332/10_xh8ok5.webp',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838332/12_se132g.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/09_tlncga.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/08_ssom8t.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/04_i4gmx0.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/06_jtwmt5.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/05_wqyxwm.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/02_dtwlhr.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/03_jrkgrp.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838328/01_xustcu.jpg',
   ],
-  cripto: [
-    'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&h=500&fit=crop',
-  ],
-  abstracto: [
-    'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=500&h=500&fit=crop',
+  musica: [
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838335/01_tr9xyl.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/03_fkagvt.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838333/02_hzzfpk.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838331/05_tjtrsc.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838330/07_ubqvoe.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/08_kk1z7h.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/06_loavyr.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838329/04_a4d3p5.jpg',
   ],
   tecnologia: [
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=500&fit=crop',
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=500&fit=crop',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838350/07_hoapm8.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838341/04_fvc0im.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/08_r42uoq.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/06_zn1wna.webp',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838340/03_bwr1aj.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838339/02_zaxr5n.jpg',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838339/05_fyinmd.png',
+    'https://res.cloudinary.com/dvssnomng/image/upload/v1756838338/01_sse632.jpg',
   ],
 };
 
@@ -99,166 +149,104 @@ const getUserImages = (): UserImage[] => {
   }
 };
 
-// Función para subir a Supabase (placeholder)
-const uploadToSupabase = async (): Promise<string | null> => {
-  try {
-    // Por ahora, devolvemos null para usar el fallback local
-    // TODO: Implementar subida real a Supabase
-    console.log('Supabase upload not implemented yet, using local fallback');
-    return null;
-  } catch (error) {
-    console.error('Error uploading to Supabase:', error);
-    return null;
-  }
-};
-
 const deleteImageFromLibrary = (imageId: string) => {
   try {
-    const existingImages = getUserImages();
-    const updatedImages = existingImages.filter((img) => img.id !== imageId);
+    const existingImages = JSON.parse(localStorage.getItem('user-images') || '[]');
+    const updatedImages = existingImages.filter((img: UserImage) => img.id !== imageId);
     localStorage.setItem('user-images', JSON.stringify(updatedImages));
   } catch (error) {
     console.error('Error deleting image from library:', error);
   }
 };
 
-const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectImage }) => {
+export default function UploadImageModal({
+  onClose,
+  onSelectImage,
+  maxImages = 4,
+  currentImages = 0,
+}: UploadImageModalProps) {
   const [selectedCategory, setSelectedCategory] = useState('biblioteca');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userImages, setUserImages] = useState<UserImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [userImages, setUserImages] = useState<UserImage[]>([]);
+  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cargar imágenes del usuario al montar el componente
+  // Usar el hook de subida de imágenes
+  const { uploadImage } = useImageUpload();
+
   useEffect(() => {
     setUserImages(getUserImages());
   }, []);
 
-  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragEnter = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    handleFiles(files);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFiles(files[0]);
+    }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      handleFiles(files);
+    if (files && files.length > 0) {
+      handleFiles(files[0]);
     }
   };
 
-  const handleFiles = async (files: FileList) => {
-    const uploadedFile = files[0];
-    if (!uploadedFile) return;
-
-    if (uploadedFile.size > 5 * 1024 * 1024) {
-      toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
-      return;
-    }
-
+  const handleFiles = async (uploadedFile: File) => {
     if (!uploadedFile.type.startsWith('image/')) {
       toast.error('Por favor, selecciona un archivo de imagen válido.');
       return;
     }
 
-    setIsUploading(true);
+    if (currentImages >= maxImages) {
+      toast.error(
+        `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+      );
+      return;
+    }
 
     try {
-      // Subir a Supabase Storage
-      const imageUrl = await uploadToSupabase();
+      setIsUploading(true);
 
-      if (imageUrl) {
-        // Guardar en la biblioteca
-        const newImage: UserImage = {
-          id: Date.now().toString(),
-          url: imageUrl,
-          name: uploadedFile.name,
-          uploadedAt: new Date().toISOString(),
-          size: uploadedFile.size,
-        };
+      // Subir imagen usando el hook
+      const result = await uploadImage(uploadedFile);
 
-        saveImageToLibrary(newImage);
-        setUserImages(getUserImages());
+      // Guardar en la biblioteca local
+      const newImage: UserImage = {
+        id: Date.now().toString(),
+        url: result.image.url,
+        name: uploadedFile.name,
+        uploadedAt: new Date().toISOString(),
+        size: result.image.size,
+      };
 
-        toast.success('Imagen subida exitosamente');
-        onSelectImage(imageUrl);
-      } else {
-        // Fallback: usar base64 para preview local
-        toast.warning('Usando vista previa local de la imagen');
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result;
-          if (typeof result === 'string') {
-            // Guardar también las imágenes base64 en la biblioteca
-            const newImage: UserImage = {
-              id: Date.now().toString(),
-              url: result,
-              name: uploadedFile.name,
-              uploadedAt: new Date().toISOString(),
-              size: uploadedFile.size,
-            };
+      saveImageToLibrary(newImage);
+      setUserImages(getUserImages());
 
-            saveImageToLibrary(newImage);
-            setUserImages(getUserImages());
-
-            onSelectImage(result);
-          }
-        };
-        reader.readAsDataURL(uploadedFile);
-      }
+      toast.success('Imagen subida exitosamente a Cloudinary');
+      onSelectImage(result.image.url);
     } catch (error) {
       console.error('Error uploading image:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen';
-
-      if (errorMessage.includes('Supabase no está configurado')) {
-        toast.warning('Supabase no configurado', {
-          description: 'Usando vista previa local. Configura Supabase para subir imágenes.',
-        });
-      } else {
-        toast.error(errorMessage);
-      }
-
-      // Fallback: usar base64 para preview local
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          // Guardar también las imágenes base64 en la biblioteca
-          const newImage: UserImage = {
-            id: Date.now().toString(),
-            url: result,
-            name: uploadedFile.name,
-            uploadedAt: new Date().toISOString(),
-            size: uploadedFile.size,
-          };
-
-          saveImageToLibrary(newImage);
-          setUserImages(getUserImages());
-
-          onSelectImage(result);
-        }
-      };
-      reader.readAsDataURL(uploadedFile);
+      toast.error('Error al subir la imagen. Inténtalo de nuevo.');
     } finally {
       setIsUploading(false);
     }
@@ -271,12 +259,24 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
     toast.success('Imagen eliminada de la biblioteca');
   };
 
+  const handleImageLoad = (imageId: string) => {
+    setLoadingImages(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(imageId);
+      return newSet;
+    });
+  };
+
+  const handleImageLoadStart = (imageId: string) => {
+    setLoadingImages(prev => new Set(prev).add(imageId));
+  };
+
   // Obtiene las imágenes y el título de la categoría seleccionada
   const imagesForCategory =
     selectedCategory === 'biblioteca'
-      ? userImages.map((img) => img.url)
+      ? userImages.map(img => img.url)
       : imagesMapping[selectedCategory] || [];
-  const categoryLabel = categories.find((cat) => cat.id === selectedCategory)?.label || '';
+  const categoryLabel = categories.find(cat => cat.id === selectedCategory)?.label || '';
 
   return (
     <div className="fixed inset-0 z-50 flex w-full items-center justify-center bg-black bg-opacity-50 p-4">
@@ -285,7 +285,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
         <div className="flex items-center justify-between border-b border-gray-700 px-6 py-2">
           <h2 className="text-base font-medium text-white">Elegir imagen</h2>
           <button onClick={onClose} className="text-gray-400 transition-colors hover:text-white">
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -323,6 +323,11 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
                 <p className="text-sm text-gray-500">
                   O elige una imagen a continuación. La relación de aspecto ideal es 1:1.
                 </p>
+                {maxImages > 1 && (
+                  <p className="text-xs text-gray-600">
+                    {currentImages}/{maxImages} imágenes seleccionadas
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -335,6 +340,8 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
             <input
               type="text"
               placeholder="Buscar más fotos"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full rounded-md border border-gray-700 bg-[#1E1E1E] py-2 pl-10 pr-4 text-sm text-white focus:border-gray-500 focus:outline-none"
             />
           </div>
@@ -343,7 +350,7 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
         {/* Categorías */}
         <div className="px-3">
           <div className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex space-x-2 overflow-x-auto pb-2">
-            {categories.map((category) => (
+            {categories.map(category => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -383,54 +390,87 @@ const UploadImageModal: React.FC<UploadImageModalProps> = ({ onClose, onSelectIm
               <p className="text-sm text-gray-500">Las imágenes que subas aparecerán aquí</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {selectedCategory === 'biblioteca'
-                ? userImages.map((userImage) => (
-                    <div key={userImage.id} className="group relative">
-                      <button
-                        onClick={() => onSelectImage(userImage.url)}
-                        className="aspect-square w-full overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
-                      >
-                        <img
-                          src={userImage.url}
-                          alt={userImage.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteImage(userImage.id, e)}
-                        className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                        title="Eliminar imagen"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                        <p className="truncate text-xs text-white">{userImage.name}</p>
-                        <p className="text-xs text-gray-300">
-                          {new Date(userImage.uploadedAt).toLocaleDateString()}
-                        </p>
+            <div className="max-h-56 overflow-y-auto">
+              <div className="grid grid-cols-4 gap-2">
+                {selectedCategory === 'biblioteca'
+                  ? userImages.map(userImage => (
+                      <div key={userImage.id} className="group relative">
+                        <button
+                          onClick={() => {
+                            if (currentImages >= maxImages) {
+                              toast.error(
+                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                              );
+                              return;
+                            }
+                            onSelectImage(userImage.url);
+                          }}
+                          className="relative aspect-square w-full overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
+                        >
+                          {loadingImages.has(userImage.id) && <ImageSkeleton />}
+                          <Image
+                            src={userImage.url}
+                            alt={userImage.name}
+                            fill
+                            className={`object-cover transition-opacity duration-300 ${
+                              loadingImages.has(userImage.id) ? 'opacity-0' : 'opacity-100'
+                            }`}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            onLoad={() => handleImageLoad(userImage.id)}
+                            onLoadStart={() => handleImageLoadStart(userImage.id)}
+                          />
+                        </button>
+                        <button
+                          onClick={e => handleDeleteImage(userImage.id, e)}
+                          className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                          title="Eliminar imagen"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                          <p className="truncate text-xs text-white">{userImage.name}</p>
+                          <p className="text-xs text-gray-300">
+                            {new Date(userImage.uploadedAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                : imagesForCategory.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => onSelectImage(image)}
-                      className="aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
-                    >
-                      <img
-                        src={image}
-                        alt={`${categoryLabel} image ${index + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
+                    ))
+                  : imagesForCategory.map((image, index) => {
+                      const imageKey = `${selectedCategory}-${index}`;
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            if (currentImages >= maxImages) {
+                              toast.error(
+                                `Máximo ${maxImages} imagen${maxImages > 1 ? 'es' : ''} permitida${maxImages > 1 ? 's' : ''}`
+                              );
+                              return;
+                            }
+                            onSelectImage(image);
+                          }}
+                          className="relative aspect-square overflow-hidden rounded-lg transition-all hover:ring-2 hover:ring-blue-500"
+                        >
+                          {loadingImages.has(imageKey) && <ImageSkeleton />}
+                          <Image
+                            src={image}
+                            alt={`${categoryLabel} image ${index + 1}`}
+                            fill
+                            className={`object-cover transition-opacity duration-300 ${
+                              loadingImages.has(imageKey) ? 'opacity-0' : 'opacity-100'
+                            }`}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            onLoad={() => handleImageLoad(imageKey)}
+                            onLoadStart={() => handleImageLoadStart(imageKey)}
+                          />
+                        </button>
+                      );
+                    })}
+              </div>
             </div>
           )}
         </div>
       </div>
     </div>
   );
-};
-
-export default UploadImageModal;
+}

@@ -11,36 +11,48 @@
 Ticketeate es un sistema modular para la gestión y venta de entradas a eventos.
 Permite la vizualización de eventos, la compra de entradas mediante una cola controlada y la administración completa de los eventos y usuarios mediante API's.
 
-## Características
-
-- Búsqueda de eventos por categoría y ubicación
-- Compra segura de entradas
-- Gestión de usuarios y eventos
-- Panel de administración para organizadores
-- Soporte para múltiples métodos de pago
+## Proyectos
 
 Este es un monorepo construido con Turborepo que contiene múltiples aplicaciones y paquetes.
-Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 aplicaciones backend (Express/Hono)
+Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 4 aplicaciones Hono
 
 ## Estructura básica
 
 ```
+
 ├── apps/
-│   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
-│   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
-│   │   ├── /app/crear/page.tsx      # Formulario creación de evento [dominio].com/crear
-│   │   ├── /app/api         # API Routes
-│   │   └── /deploys         # Panel administrativo deploys.[dominio].com [AWS EC2]
-│   ├── hono-backend/        # Backend Hono Serverless - [AWS Lambda]
-│   ├── express-backend/     # Backend Express
-│   └── ws-queue/            # Servicio de cola WebSocket - Redis
+│ ├── next-frontend/ # Aplicación Next.js principal con panel administrativo
+│ │ ├── /app/page.tsx # Página principal [dominio].com [AWS EC2]
+│ │ ├── /app/crear/page.tsx # Formulario creación de evento [dominio].com/crear
+│ │ ├── /app/api # API Routes
+│ │ └── /deploys # Panel administrativo deploys.[dominio].com [AWS EC2]
+│ │
+│ │   # Microservicios Hono Serverless - [AWS Lambda en ECR]
+│ ├── svc-checkout/
+│ ├── svc-events/
+│ ├── svc-producers/
+│ └── svc-users/
 ├── packages/
-│   ├── db/                  # Base de datos - Prisma ORM
-│   ├── ui/                  # Componentes UI compartidos
-│   ├── eslint-config/       # Configuración de ESLint
-│   └── typescript-config/   # Configuración de TypeScript
-└── .github/workflows/       # Workflows de GitHub Actions
+│ ├── db/ # Base de datos - Prisma ORM
+│ ├── ui/ # Componentes UI compartidos
+│ ├── eslint-config/ # Configuración de ESLint
+│ └── typescript-config/ # Configuración de TypeScript
+└── .github/workflows/ # Workflows de GitHub Actions
+
 ```
+
+## ¿Para qué se usa cada cosa?
+
+- Clerk: Autenticación de los usuarios y protección de rutas.
+- TanStack Query: Fetch de datos, acciones de servidor, caché, revalidación y persitencia de datos en sesión. (Como reemplazo a useEffect)
+- HeroUI: Componentes estilizados
+- API Routes (de Nextjs, framework fullstack): Acciones de servidor livianas. Se definen en app/api
+- Hono: Framework backend similar a Express para cargas de trabajo recurrentes (Serverless, más rápido y más liviano)
+- Prisma ORM: Herramienta para definir esquemas en texto plano e interactuar con la DB de manera directa sin comandos sql. (Sirve para insertar y recuperar información de las tablas).
+
+## ¿Cuál framework usamos?
+
+Usamos Next.js, un framework fullstack basado en React (de pila completa, permite trabajar un frontend y backend en una única aplicación -mediante API Routes-)
 
 ## Comandos Disponibles
 
@@ -50,8 +62,14 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 apli
 # Instalar dependencias
 pnpm install
 
-# Ejecutar en modo desarrollo
-pnpm dev
+# Ejecutar App Nextjs y Backend Hono svc-events
+pnpm run dev:main
+
+# Ejecutar App Nextjs (desde next-frontend)
+npm run dev
+
+# Ejecutar Backend Hono (svc-events)
+pnpm run dev
 
 # Construir todos los proyectos
 pnpm build

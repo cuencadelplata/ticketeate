@@ -105,5 +105,5 @@ function NavbarHome() {
   );
 }
 
-export { Navbar };
-export default Navbar;
+export { NavbarHome };
+export default NavbarHome;
