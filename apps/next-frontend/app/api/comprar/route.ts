@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
               'datos_tarjeta.dni (7-10 dígitos)',
             ],
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
