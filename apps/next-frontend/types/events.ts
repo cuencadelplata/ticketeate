@@ -1,0 +1,118 @@
+import type { Evento, ImagenEvento, FechaEvento } from '@repo/db';
+
+// Tipos para eventos - usando los tipos de Prisma del paquete @db
+export interface Event extends Omit<Evento, 'id_evento'> {
+  id_evento: string;
+  imagenes_evento: Array<
+    Omit<ImagenEvento, 'id_imagen' | 'id_evento'> & {
+      id_imagen: string;
+    }
+  >;
+  fechas_evento?: Array<
+    Omit<FechaEvento, 'id_fecha' | 'id_evento'> & {
+      id_fecha: string;
+    }
+  >;
+}
+
+export interface CreateEventData {
+  titulo: string;
+  descripcion?: string;
+  ubicacion?: string;
+  fecha_inicio_venta: string;
+  fecha_fin_venta: string;
+  estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
+  imageUrl?: string;
+  galeria_imagenes?: string[];
+  fechas_adicionales?: Array<{
+    fecha_inicio: string;
+    fecha_fin: string;
+  }>;
+  eventMap?: {
+    sectors: Array<{
+      id: string;
+      name: string;
+      type: 'general' | 'vip' | 'premium' | 'custom';
+      color: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      capacity?: number;
+      price?: number;
+      isGrid?: boolean;
+      rows?: number;
+      columns?: number;
+    }>;
+    elements?: Array<{
+      id: string;
+      name: string;
+      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
+      icon: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      color: string;
+    }>;
+    backgroundImage?: string;
+  };
+}
+
+export interface EventImage {
+  id_imagen: string;
+  url: string;
+  tipo: 'portada' | 'galeria';
+}
+
+export interface EventDate {
+  id_fecha: string;
+  fecha_hora: string;
+}
+
+// Tipos para el formulario
+export interface EventFormData {
+  eventName: string;
+  description: string;
+  location: {
+    address: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  } | null;
+  eventImages: string[];
+  eventDates: Array<{
+    id: string;
+    startDate: Date;
+    endDate: Date;
+    startTime: string;
+    endTime: string;
+    isMain: boolean;
+  }>;
+  visibility: 'public' | 'private';
+}
+
+// Respuestas de la API
+export interface ApiResponse<T = unknown> {
+  data?: T;
+  message?: string;
+  error?: string;
+  timestamp?: string;
+}
+
+export interface CreateEventResponse {
+  message: string;
+  event: Event;
+}
+
+export interface GetEventsResponse {
+  events: Event[];
+  total: number;
+  userId: string;
+}
+
+export interface GetEventResponse {
+  event: Event;
+  userId: string;
+}

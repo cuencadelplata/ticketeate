@@ -41,20 +41,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
+      - name: Generate Prisma client and build database package
         env:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-        working-directory: packages/db
         run: pnpm db:generate
-
-      - name: Build database package
-        run: pnpm --filter @repo/db build
-
-      - name: Generate Prisma client for Hono backend
-        env:
-          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-        working-directory: apps/hono-backend
-        run: npx prisma generate
 
       - name: Run linting
         run: pnpm lint
@@ -96,14 +86,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
+      - name: Generate Prisma client and build database package
         env:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-        working-directory: packages/db
         run: pnpm db:generate
-
-      - name: Build database package
-        run: pnpm --filter @repo/db build
 
       - name: Run tests
         run: pnpm test
@@ -149,14 +135,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
+      - name: Generate Prisma client and build database package
         env:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-        working-directory: packages/db
         run: pnpm db:generate
-
-      - name: Build database package
-        run: pnpm --filter @repo/db build
 
       - name: Check formatting
         run: pnpm format:check

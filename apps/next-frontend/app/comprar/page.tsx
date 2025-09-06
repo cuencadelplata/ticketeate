@@ -314,7 +314,7 @@ export default function ComprarPage() {
 
             {/* Lista de sectores con scroll */}
             <div className="max-h-[300px] flex-1 overflow-y-auto p-2">
-              {(Object.keys(SECTORES) as SectorKey[]).map(key => {
+              {(Object.keys(SECTORES) as SectorKey[]).map((key) => {
                 const s = SECTORES[key];
                 const activo = key === sector;
                 return (
@@ -369,11 +369,11 @@ export default function ComprarPage() {
                 <label className="mb-1 text-xs font-medium text-gray-700">Cantidad</label>
                 <select
                   value={String(cantidad)}
-                  onChange={e => setCantidad(parseInt(e.target.value || '1'))}
+                  onChange={(e) => setCantidad(parseInt(e.target.value || '1'))}
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={showSuccess}
                 >
-                  {[1, 2, 3, 4, 5].map(n => (
+                  {[1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>
                       {n}
                     </option>
@@ -386,7 +386,7 @@ export default function ComprarPage() {
                 <label className="mb-1 text-xs font-medium text-gray-700">Método de pago</label>
                 <select
                   value={metodo}
-                  onChange={e => setMetodo(e.target.value)}
+                  onChange={(e) => setMetodo(e.target.value)}
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={showSuccess}
                 >

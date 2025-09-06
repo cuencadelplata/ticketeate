@@ -6,10 +6,10 @@ import {
   DropdownMenu,
   DropdownItem,
   Avatar,
-  User,
   DropdownSection,
 } from '@heroui/react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useClerk } from '@clerk/nextjs';
@@ -70,12 +70,23 @@ export default function UserNav() {
     <div className="flex items-center gap-4">
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
-          <Avatar
-            isBordered
-            as="button"
-            className="size-8 transition-transform"
-            src={user.imageUrl}
-          />
+          <div className="relative cursor-pointer">
+            {user.imageUrl ? (
+              <Image
+                src={user.imageUrl}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="size-8 cursor-pointer rounded-full border-2 border-gray-600 object-cover transition-transform hover:scale-105"
+                unoptimized
+              />
+            ) : null}
+            <div
+              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${user.imageUrl ? 'hidden' : ''}`}
+            >
+              {user.firstName?.[0] || user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+            </div>
+          </div>
         </DropdownTrigger>
         <DropdownMenu
           aria-label="User menu"
@@ -97,20 +108,33 @@ export default function UserNav() {
         >
           <DropdownSection showDivider aria-label="Profile & Actions">
             <DropdownItem key="profile" isReadOnly className="h-14 gap-2 opacity-100">
-              <User
-                avatarProps={{
-                  size: 'sm',
-                  src:
-                    user.imageUrl ||
-                    'https://i.pravatar.cc/150?u=' + user.emailAddresses[0]?.emailAddress,
-                }}
-                classNames={{
-                  name: 'text-default-600',
-                  description: 'text-default-500',
-                }}
-                description={user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
-                name={user.fullName || user.emailAddresses[0]?.emailAddress}
-              />
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  {user.imageUrl ? (
+                    <Image
+                      src={user.imageUrl}
+                      alt="Profile"
+                      width={32}
+                      height={32}
+                      className="size-8 rounded-full border-2 border-gray-600 object-cover transition-transform hover:scale-105"
+                      unoptimized
+                    />
+                  ) : null}
+                  <div
+                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${user.imageUrl ? 'hidden' : ''}`}
+                  >
+                    {user.firstName?.[0] || user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-sm font-medium leading-none text-default-600">
+                    {user.fullName || user.firstName || user.emailAddresses[0]?.emailAddress}
+                  </p>
+                  <p className="text-xs text-default-500">
+                    {user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                  </p>
+                </div>
+              </div>
             </DropdownItem>
             <DropdownItem key="dashboard" href="/eventos">
               Mis Eventos

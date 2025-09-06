@@ -1,15 +1,12 @@
-## Checklist antes de hacer PR
-
-- [ ] Leí el README 👍
-- [ ] No borré la base de datos 👍
-- [ ] Mis cambios no ponen en peligro el proyecto 👍
-- [ ] Leí el README 👍
+## Checklist PR
 
 ## Packages Afectados
 
 - [ ] `next-frontend` (core web)
-- [ ] `hono-backend`
-- [ ] `express-backend`
+- [ ] `svc-checkout`
+- [ ] `svc-events`
+- [ ] `svc-producers`
+- [ ] `svc-users`
 - [ ] `packages/db`
 - [ ] Docs
 

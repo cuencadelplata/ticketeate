@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
           error: 'Faltan campos requeridos',
           campos_requeridos: ['id_usuario', 'id_evento', 'cantidad', 'metodo_pago'],
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Cantidad debe estar entre 1 y 10',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'Método de pago no válido. Use: tarjeta_credito o tarjeta_debito',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Simular delay de procesamiento
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return NextResponse.json(resultado, { status: 201 });
   } catch (error) {
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         error: 'Error interno del servidor',
         detalles: error instanceof Error ? error.message : 'Error desconocido',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

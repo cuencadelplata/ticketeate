@@ -11,7 +11,7 @@ export default function LocationPage() {
   const params = useParams();
   const locationId = params.location as string;
 
-  const location = locations.find(loc => loc.location === locationId);
+  const location = locations.find((loc) => loc.location === locationId);
 
   if (!location) {
     return (
