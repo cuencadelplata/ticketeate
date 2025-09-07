@@ -92,11 +92,11 @@ const masVendidos = events.filter((evt) =>
   [
     'El unipersonal de Luciano Mellera',
     'The Life of a Show Girl World Tour',
-    'Pink Floyd',
+    'Maria Becerra',
   ].includes(evt.title),
 );
 const internationalArtists = events.filter((evt) =>
-  ['Andrea Boccelli', 'Bad Bunny', 'Pink Floyd'].includes(evt.title),
+  ['Andrea Boccelli', 'Bad Bunny', 'GUNS N\' ROSES'].includes(evt.title),
 );
 const artistasNacionales = events.filter((evt) => ['Maria Becerra', 'Airbag'].includes(evt.title));
 

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import DarkMode from './DarkMode';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { Search } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -89,12 +89,16 @@ function NavbarHome() {
 
         {/* Clerk */}
         <SignedOut>
-          <button className="rounded-full bg-orange-600 px-4 py-2 hover:bg-orange-700 text-white">
-            Iniciar sesión
-          </button>
-          <button className="rounded-full bg-orange-700 px-4 py-2 hover:bg-orange-700 text-white">
-            Registrarse
-          </button>
+          <SignInButton mode="modal">
+            <button className="rounded-full bg-orange-600 px-4 py-2 hover:bg-orange-700 text-white">
+              Iniciar sesión
+            </button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <button className="rounded-full bg-orange-500 px-4 py-2 hover:bg-orange-600 text-white ml-2">
+              Registrarse
+            </button>
+          </SignUpButton>
         </SignedOut>
 
         <SignedIn>
