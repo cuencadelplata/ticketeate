@@ -1,17 +1,34 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Map, Trash, Eye } from 'lucide-react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@heroui/react';
+import EventMapModal, { EventSector } from './EventMapModal';
 
 export interface EventLocationData {
   address: string;
   lat: number;
   lng: number;
+  eventMap?: {
+    sectors: EventSector[];
+    elements?: Array<{
+      id: string;
+      name: string;
+      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
+      icon: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      color: string;
+    }>;
+    backgroundImage?: string;
+  };
 }
 
 interface EventLocationProps {
@@ -21,6 +38,7 @@ interface EventLocationProps {
 const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EventLocationData | null>(null);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const {
     ready,
@@ -30,7 +48,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
     clearSuggestions,
   } = usePlacesAutocomplete({
     requestOptions: {
-      types: ['address'],
+      types: ['establishment', 'geocode'],
       componentRestrictions: { country: 'AR' },
     },
     debounce: 300,
@@ -78,11 +96,11 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   const saveRecentLocation = (location: EventLocationData) => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
-    const updated = [location, ...recents.filter(loc => loc.address !== location.address)].slice(
+    const updated = [location, ...recents.filter((loc) => loc.address !== location.address)].slice(
       0,
-      5
+      5,
     );
     localStorage.setItem('recentLocations', JSON.stringify(updated));
     setStoredRecentLocations(updated);
@@ -90,10 +108,37 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
 
   useEffect(() => {
     const recents: EventLocationData[] = JSON.parse(
-      localStorage.getItem('recentLocations') || '[]'
+      localStorage.getItem('recentLocations') || '[]',
     );
     setStoredRecentLocations(recents);
   }, []);
+
+  const handleMapSave = (mapData: {
+    sectors: EventSector[];
+    elements?: any[];
+    backgroundImage?: string;
+  }) => {
+    if (selectedLocation) {
+      const updatedLocation = {
+        ...selectedLocation,
+        eventMap: mapData,
+      };
+      setSelectedLocation(updatedLocation);
+      onLocationSelect(updatedLocation);
+    }
+    setIsMapModalOpen(false);
+  };
+
+  const handleRemoveMap = () => {
+    if (selectedLocation) {
+      const updatedLocation = {
+        ...selectedLocation,
+        eventMap: undefined,
+      };
+      setSelectedLocation(updatedLocation);
+      onLocationSelect(updatedLocation);
+    }
+  };
 
   return (
     <>
@@ -113,27 +158,27 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="order-0 mt-0 w-[535px] rounded-b-md border bg-stone-900 p-0">
-          <div className="space-y-2 p-2">
+        <PopoverContent className="order-0 mt-0 w-[502px] rounded-b-md border bg-stone-900 p-0">
+          <div className="space-y-1 p-1">
             <div className="relative">
               <Input
                 value={value}
-                onChange={e => {
+                onChange={(e) => {
                   setValue(e.target.value);
                   if (!isOpen) setIsOpen(true);
                 }}
                 onKeyDown={handleKeyDown}
                 disabled={!ready}
-                placeholder="Ingresa ubicación o coordenadas (ej: -34.6037, -58.3816)"
-                className="w-full border-0 bg-stone-800 text-stone-100 placeholder-stone-400"
+                placeholder="Busca un lugar, dirección o coordenada..."
+                className="w-full bg-stone-800 text-stone-100 focus:border-stone-800 focus:outline-none focus:ring-0 focus:ring-offset-0"
+                style={{ outline: 'none', boxShadow: 'none' }}
               />
-              <MapPin className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-stone-400" />
             </div>
 
             {status === 'OK' && (
               <Card className="absolute left-0 z-10 mt-1 w-full border-0 bg-stone-900">
                 <ul className="py-2">
-                  {data.map(suggestion => (
+                  {data.map((suggestion) => (
                     <li
                       key={suggestion.place_id}
                       onClick={() => handleSelect(suggestion.description)}
@@ -148,7 +193,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
             )}
 
             <div className="space-y-2">
-              <h3 className="pl-1 text-sm text-stone-400">Ubicaciones recientes</h3>
+              <h3 className="pl-1 text-xs text-stone-400">Lugares recientes</h3>
               {storedRecentLocations.map((location, index) => (
                 <button
                   key={index}
@@ -156,10 +201,10 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
                     setValue(location.address, false);
                     handleSelect(location.address);
                   }}
-                  className="flex w-full items-center gap-2 rounded px-4 py-2 text-left transition-colors hover:bg-stone-800"
+                  className="flex w-full items-center gap-2 rounded px-2 py-2 text-left transition-colors hover:bg-stone-800"
                 >
                   <MapPin className="h-4 w-4 text-stone-400" />
-                  <span className="text-sm text-stone-100">{location.address}</span>
+                  <span className="text-xs text-stone-100">{location.address}</span>
                 </button>
               ))}
             </div>
@@ -168,39 +213,264 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
       </Popover>
 
       {selectedLocation && (
-        <div className="mt-4 overflow-hidden rounded-lg border border-stone-800">
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '200px' }}
-            center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-            zoom={14}
-            options={{
-              styles: [
-                {
-                  featureType: 'all',
-                  elementType: 'all',
-                  stylers: [
-                    { invert_lightness: true },
-                    { saturation: 10 },
-                    { lightness: 30 },
-                    { gamma: 0.5 },
-                    { hue: '#00ff00' },
-                  ],
-                },
-              ],
-              disableDefaultUI: true,
-              zoomControl: true,
-            }}
-          >
-            <Marker
-              position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
-              icon={{
-                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                scaledSize: new window.google.maps.Size(32, 32),
+        <div className="mt-4 space-y-3">
+          <div className="overflow-hidden rounded-lg border border-stone-800">
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '200px' }}
+              center={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
+              zoom={14}
+              options={{
+                styles: [
+                  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+                  {
+                    featureType: 'administrative.locality',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#d59563' }],
+                  },
+                  {
+                    featureType: 'poi',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#d59563' }],
+                  },
+                  {
+                    featureType: 'poi.park',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#263c3f' }],
+                  },
+                  {
+                    featureType: 'poi.park',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#6b9a76' }],
+                  },
+                  {
+                    featureType: 'road',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#38414e' }],
+                  },
+                  {
+                    featureType: 'road',
+                    elementType: 'geometry.stroke',
+                    stylers: [{ color: '#212a37' }],
+                  },
+                  {
+                    featureType: 'road',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#9ca5b3' }],
+                  },
+                  {
+                    featureType: 'road.highway',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#746855' }],
+                  },
+                  {
+                    featureType: 'road.highway',
+                    elementType: 'geometry.stroke',
+                    stylers: [{ color: '#1f2835' }],
+                  },
+                  {
+                    featureType: 'road.highway',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#f3d19c' }],
+                  },
+                  {
+                    featureType: 'transit',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#2f3948' }],
+                  },
+                  {
+                    featureType: 'transit.station',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#d59563' }],
+                  },
+                  {
+                    featureType: 'water',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#17263c' }],
+                  },
+                  {
+                    featureType: 'water',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#515c6d' }],
+                  },
+                  {
+                    featureType: 'water',
+                    elementType: 'labels.text.stroke',
+                    stylers: [{ color: '#17263c' }],
+                  },
+                ],
+                disableDefaultUI: true,
+                zoomControl: true,
               }}
-            />
-          </GoogleMap>
+            >
+              <Marker
+                position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}
+                icon={{
+                  url:
+                    'data:image/svg+xml;charset=UTF-8,' +
+                    encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="16" cy="16" r="12" fill="#f97316" stroke="#fff" stroke-width="3"/>
+                      <circle cx="16" cy="16" r="6" fill="#fff"/>
+                    </svg>
+                  `),
+                  scaledSize: new window.google.maps.Size(32, 32),
+                  anchor: new window.google.maps.Point(16, 16),
+                }}
+              />
+            </GoogleMap>
+          </div>
+
+          <div className="flex items-center">
+            {!selectedLocation.eventMap ? (
+              <Button
+                size="sm"
+                variant="faded"
+                startContent={<Map className="h-4 w-4" />}
+                onClick={() => setIsMapModalOpen(true)}
+                className="!bg-stone-700 !bg-opacity-60 text-stone-200 hover:!bg-stone-800/50"
+              >
+                Crear mapa de sectores
+              </Button>
+            ) : (
+              <div className="flex items-center">
+                <Button
+                  size="sm"
+                  variant="faded"
+                  startContent={<Map className="h-4 w-4" />}
+                  onClick={() => setIsMapModalOpen(true)}
+                  className="!bg-stone-700 !bg-opacity-60 text-stone-200 hover:!bg-stone-800/50"
+                >
+                  Editar mapa ({selectedLocation.eventMap.sectors.length} sectores)
+                </Button>
+                <Button
+                  size="sm"
+                  variant="light"
+                  color="danger"
+                  onClick={handleRemoveMap}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <Trash className="h-4 w-4 text-red-400" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {selectedLocation.eventMap && (
+            <div className="rounded-lg border border-stone-800 bg-stone-900/30 p-2">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-stone-400" />
+                  <span className="text-sm font-medium text-stone-200">Vista previa del mapa</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-stone-400">
+                  <span>{selectedLocation.eventMap.sectors.length} sectores</span>
+                  {selectedLocation.eventMap.elements && (
+                    <span>{selectedLocation.eventMap.elements.length} elementos</span>
+                  )}
+                  {selectedLocation.eventMap.sectors.reduce(
+                    (total, sector) => total + (sector.capacity || 0),
+                    0,
+                  ) > 0 && (
+                    <span>
+                      {selectedLocation.eventMap.sectors.reduce(
+                        (total, sector) => total + (sector.capacity || 0),
+                        0,
+                      )}{' '}
+                      personas
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="relative h-48 w-full overflow-hidden rounded border border-stone-700">
+                <div className="absolute inset-0 opacity-10">
+                  <svg width="100%" height="100%" className="absolute inset-0">
+                    <defs>
+                      <pattern
+                        id="preview-grid"
+                        width="20"
+                        height="20"
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#666" strokeWidth="0.5" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#preview-grid)" />
+                  </svg>
+                </div>
+
+                {selectedLocation.eventMap.backgroundImage ? (
+                  <img
+                    src={selectedLocation.eventMap.backgroundImage}
+                    alt="Mapa del evento"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-stone-800/50">
+                    <span className="text-xs text-stone-400">Sin imagen de fondo</span>
+                  </div>
+                )}
+                {selectedLocation.eventMap.sectors.map((sector) => (
+                  <div
+                    key={sector.id}
+                    className="absolute border-2 border-white/70 text-xs font-medium text-white shadow-sm"
+                    style={{
+                      left: `${(sector.x / 800) * 100}%`,
+                      top: `${((sector.y + 90) / 600) * 100}%`, // Mover 40px más abajo para centrar
+                      width: `${(sector.width / 800) * 100}%`,
+                      height: `${(sector.height / 600) * 100}%`,
+                      backgroundColor: sector.color + 'DD',
+                      fontSize: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                    }}
+                  >
+                    <div className="px-1 text-center">
+                      <div className="font-semibold">{sector.name}</div>
+                      {sector.capacity && (
+                        <div className="text-xs opacity-80">{sector.capacity} personas</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {selectedLocation.eventMap.elements?.map((element) => (
+                  <div
+                    key={element.id}
+                    className="absolute rounded border-2 border-white/70 text-xs font-medium text-white shadow-sm"
+                    style={{
+                      left: `${(element.x / 800) * 100}%`,
+                      top: `${((element.y + 90) / 600) * 100}%`, // Mover 40px más abajo para centrar
+                      width: `${(element.width / 800) * 100}%`,
+                      height: `${(element.height / 600) * 100}%`,
+                      backgroundColor: element.color + 'DD',
+                      fontSize: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                    }}
+                  >
+                    <div className="px-1 text-center">
+                      <div className="text-xs">{element.icon}</div>
+                      <div className="text-xs font-semibold">{element.name}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      <EventMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        onSave={handleMapSave}
+        initialMapData={selectedLocation?.eventMap}
+      />
     </>
   );
 };

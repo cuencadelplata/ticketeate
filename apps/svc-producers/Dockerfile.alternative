@@ -1,0 +1,30 @@
+# Alternative Dockerfile using standard Node.js base image
+FROM --platform=linux/amd64 node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Build the TypeScript application
+RUN pnpm run build
+
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
+
+# Expose port
+EXPOSE 3000
+
+# Set the command to run the application
+CMD ["node", "dist/index.js"]

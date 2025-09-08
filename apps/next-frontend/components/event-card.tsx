@@ -1,121 +1,59 @@
-import Image from 'next/image';
-import { Calendar, MapPin, Users, Clock, Music, Palette, Users2 } from 'lucide-react';
-
-export interface Event {
-  id: string;
-  name: string;
+type EventCardProps = {
+  title: string;
   description: string;
-  date: string;
-  time: string;
-  location: string;
-  imageUrl?: string;
-  category: 'social' | 'cultural' | 'musica';
   price: string;
-  capacity: number;
-  availableTickets: number;
-  organizer: string;
+  date: string;
+  image: string;
+  category: string;
+  category2: string;
+  disponibilidad: string;
+};
+function getDisponibilidadColor(disponibilidad: string) {
+  if (disponibilidad.toLowerCase().includes('agotada')) {
+    return 'bg-red-600';
+  }
+  if (disponibilidad.toLowerCase().includes('disponible')) {
+    return 'bg-green-600';
+  }
 }
 
-interface EventCardProps {
-  event: Event;
-}
-
-const categoryIcons = {
-  social: Users2,
-  cultural: Palette,
-  musica: Music,
-};
-
-const categoryColors = {
-  social: 'bg-blue-500',
-  cultural: 'bg-purple-500',
-  musica: 'bg-green-500',
-};
-
-const categoryLabels = {
-  social: 'Social',
-  cultural: 'Cultural',
-  musica: 'Música en Vivo',
-};
-
-export function EventCard({ event }: EventCardProps) {
-  const CategoryIcon = categoryIcons[event.category];
-  const categoryColor = categoryColors[event.category];
-  const categoryLabel = categoryLabels[event.category];
-
+export function EventCard({
+  title,
+  description,
+  price,
+  date,
+  image,
+  category,
+  category2,
+  disponibilidad,
+}: EventCardProps) {
   return (
-    <div className="group cursor-pointer overflow-hidden rounded-lg bg-[#1a1f2e] shadow-lg transition-all hover:scale-105 hover:bg-[#252a3a] hover:shadow-xl">
-      <div className="relative h-48 overflow-hidden">
-        {event.imageUrl ? (
-          <Image
-            src={event.imageUrl}
-            alt={event.name}
-            fill
-            className="object-cover transition-transform group-hover:scale-110"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
-            <CategoryIcon className="h-16 w-16 text-white/70" />
-          </div>
-        )}
+    <div className="border-1.5 border-orange-600 rounded-xl shadow hover:shadow-lg transition overflow-hidden bg-orange-100">
+      <img src={image} alt={title} className="w-full h-48 object-cover" />
 
-        {/* Category Badge */}
-        <div className="absolute left-4 top-4">
-          <span
-            className={`rounded-full ${categoryColor} px-3 py-1 text-xs font-medium text-white`}
-          >
-            {categoryLabel}
-          </span>
-        </div>
+      <div className="p-4">
+        <h2 className="text-black font-semibold">{title}</h2>
+        <p className="text-gray-600 text-sm">{description}</p>
+        <p className="text-gray-500 text-xs">{date}</p>
+        <p className="inline-block text-white text-xs bg-teal-500 rounded-xl w-16 h-4 mt-3 px-1">
+          {category}
+        </p>
+        <p className="inline-block text-white text-xs bg-lime-500 rounded-xl w-16 h-4 mt-3 px-1">
+          {category2}
+        </p>
+        <p
+          className={`inline-block text-white text-xs rounded-xl w-17 h-4 mt-3 px-2 ${getDisponibilidadColor(disponibilidad)}`}
+        >
+          {disponibilidad}
+        </p>
 
-        {/* Price Badge */}
-        <div className="absolute right-4 top-4">
-          <span className="rounded-full bg-black/70 px-3 py-1 text-sm font-medium text-white backdrop-blur-sm">
-            {event.price}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-6">
-        {/* Date and Time */}
-        <div className="mb-3 flex items-center gap-2 text-sm text-gray-400">
-          <Calendar className="h-4 w-4" />
-          <span>{event.date}</span>
-          <span>•</span>
-          <Clock className="h-4 w-4" />
-          <span>{event.time}</span>
-        </div>
-
-        {/* Title */}
-        <h3 className="mb-3 line-clamp-2 text-xl font-semibold text-white transition-colors group-hover:text-green-400">
-          {event.name}
-        </h3>
-
-        {/* Location */}
-        <div className="mb-3 flex items-center gap-2 text-sm text-gray-400">
-          <MapPin className="h-4 w-4" />
-          <span className="line-clamp-1">{event.location}</span>
-        </div>
-
-        {/* Description */}
-        <p className="mb-4 line-clamp-2 text-sm text-gray-300">{event.description}</p>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-blue-500">
-              <span className="text-xs font-bold text-white">
-                {event.organizer.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <span className="text-sm text-gray-400">{event.organizer}</span>
-          </div>
-
-          <div className="flex items-center gap-1 text-sm text-gray-400">
-            <Users className="h-4 w-4" />
-            <span>{event.availableTickets} disponibles</span>
-          </div>
-        </div>
+        {/* Botón naranja en vez del precio */}
+        <button
+          className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
+                     hover:bg-orange-600 active:bg-orange-700 transition"
+        >
+          Comprar Entradas | Precios desde {price}
+        </button>
       </div>
     </div>
   );

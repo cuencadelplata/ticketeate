@@ -1,0 +1,46 @@
+{
+  "accounts": {
+    "dev": {
+      "accountId": "665352994810",
+      "region": "us-east-2",
+      "profile": "default",
+      "description": "Cuenta de desarrollo"
+    },
+    "staging": {
+      "accountId": "665352994810",
+      "region": "us-east-2",
+      "profile": "staging",
+      "description": "Cuenta de staging"
+    },
+    "production": {
+      "accountId": "665352994810",
+      "region": "us-east-2",
+      "profile": "production",
+      "description": "Cuenta de producción"
+    }
+  },
+  "ecr": {
+    "repositoryName": "hono/ticketeate",
+    "imageScanning": true,
+    "encryption": "AES256",
+    "lifecyclePolicy": {
+      "maxImageCount": 10,
+      "maxImageAge": 30
+    }
+  },
+  "lambda": {
+    "functionName": "hono-backend-api",
+    "memorySize": 512,
+    "timeout": 30,
+    "environment": {
+      "NODE_ENV": "production",
+      "LOG_LEVEL": "info"
+    }
+  },
+  "tags": {
+    "Project": "Ticketeate",
+    "Service": "Hono Backend",
+    "Environment": "production",
+    "ManagedBy": "Infrastructure as Code"
+  }
+}

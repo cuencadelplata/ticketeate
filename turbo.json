@@ -20,7 +20,7 @@
       "cache": true
     },
     "check-types": {
-      "dependsOn": ["^check-types"],
+      "dependsOn": ["^build", "^check-types"],
       "cache": true,
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json", "src/**/*.ts", "src/**/*.tsx"]
     },

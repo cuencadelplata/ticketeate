@@ -59,7 +59,7 @@ export interface RespuestaPaginada<T> {
 // Función para listar eventos con paginación
 export async function listarEventos(
   paginacion: PaginacionParams,
-  filtros?: FiltrosEventos
+  filtros?: FiltrosEventos,
 ): Promise<RespuestaPaginada<Evento>> {
   try {
     const { pagina, limite } = paginacion;
@@ -123,7 +123,7 @@ export async function listarEventos(
     // Calcular disponibilidad para cada evento en paralelo
     const eventosTyped: any[] = eventos as any[];
     const disponiblesArr = await Promise.all(
-      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id))
+      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id)),
     );
 
     const datos: Evento[] = eventosTyped.map((ev: any, idx: number) => ({
@@ -283,7 +283,7 @@ export async function GET(request: NextRequest) {
 
     const resultado = await listarEventos(
       { pagina: Math.max(1, pagina), limite: Math.max(1, limite) },
-      filtros
+      filtros,
     );
     return NextResponse.json(resultado);
   } catch (error) {

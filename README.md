@@ -14,26 +14,31 @@ Permite la vizualización de eventos, la compra de entradas mediante una cola co
 ## Proyectos
 
 Este es un monorepo construido con Turborepo que contiene múltiples aplicaciones y paquetes.
-Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 3 aplicaciones backend (Express/Hono)
+Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 4 aplicaciones Hono
 
 ## Estructura básica
 
 ```
+
 ├── apps/
-│   ├── next-frontend/               # Aplicación Next.js principal con panel administrativo
-│   │   ├── /app/page.tsx            # Página principal [dominio].com [AWS EC2]
-│   │   ├── /app/crear/page.tsx      # Formulario creación de evento [dominio].com/crear
-│   │   ├── /app/api         # API Routes
-│   │   └── /deploys         # Panel administrativo deploys.[dominio].com [AWS EC2]
-│   ├── hono-backend/        # Backend Hono Serverless - [AWS Lambda]
-│   ├── express-backend/     # Backend Express
-│   └── ws-queue/            # Servicio de cola WebSocket - Redis
+│ ├── next-frontend/ # Aplicación Next.js principal con panel administrativo
+│ │ ├── /app/page.tsx # Página principal [dominio].com [AWS EC2]
+│ │ ├── /app/crear/page.tsx # Formulario creación de evento [dominio].com/crear
+│ │ ├── /app/api # API Routes
+│ │ └── /deploys # Panel administrativo deploys.[dominio].com [AWS EC2]
+│ │
+│ │   # Microservicios Hono Serverless - [AWS Lambda en ECR]
+│ ├── svc-checkout/
+│ ├── svc-events/
+│ ├── svc-producers/
+│ └── svc-users/
 ├── packages/
-│   ├── db/                  # Base de datos - Prisma ORM
-│   ├── ui/                  # Componentes UI compartidos
-│   ├── eslint-config/       # Configuración de ESLint
-│   └── typescript-config/   # Configuración de TypeScript
-└── .github/workflows/       # Workflows de GitHub Actions
+│ ├── db/ # Base de datos - Prisma ORM
+│ ├── ui/ # Componentes UI compartidos
+│ ├── eslint-config/ # Configuración de ESLint
+│ └── typescript-config/ # Configuración de TypeScript
+└── .github/workflows/ # Workflows de GitHub Actions
+
 ```
 
 ## ¿Para qué se usa cada cosa?
@@ -57,13 +62,13 @@ Usamos Next.js, un framework fullstack basado en React (de pila completa, permit
 # Instalar dependencias
 pnpm install
 
-# Ejecutar App Nextjs y Backend Hono
+# Ejecutar App Nextjs y Backend Hono svc-events
 pnpm run dev:main
 
 # Ejecutar App Nextjs (desde next-frontend)
 npm run dev
 
-# Ejecutar Backend Hono (desde hono-backend)
+# Ejecutar Backend Hono (svc-events)
 pnpm run dev
 
 # Construir todos los proyectos

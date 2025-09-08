@@ -51,7 +51,7 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
             type="text"
             placeholder="Buscar eventos..."
             value={filters.search}
-            onChange={e => handleFilterChange('search', e.target.value)}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
             className="w-full rounded-lg border border-gray-600 bg-[#252a3a] py-2 pl-10 pr-4 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
@@ -60,10 +60,10 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
         <div>
           <select
             value={filters.category}
-            onChange={e => handleFilterChange('category', e.target.value)}
+            onChange={(e) => handleFilterChange('category', e.target.value)}
             className="w-full rounded-lg border border-gray-600 bg-[#252a3a] px-4 py-2 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            {categories.map(category => (
+            {categories.map((category) => (
               <option key={category.value} value={category.value}>
                 {category.label}
               </option>
@@ -75,10 +75,10 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
         <div>
           <select
             value={filters.location}
-            onChange={e => handleFilterChange('location', e.target.value)}
+            onChange={(e) => handleFilterChange('location', e.target.value)}
             className="w-full rounded-lg border border-gray-600 bg-[#252a3a] px-4 py-2 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            {locations.map(location => (
+            {locations.map((location) => (
               <option key={location.value} value={location.value}>
                 {location.label}
               </option>
@@ -90,7 +90,7 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
         <div>
           <select
             value={filters.date}
-            onChange={e => handleFilterChange('date', e.target.value)}
+            onChange={(e) => handleFilterChange('date', e.target.value)}
             className="w-full rounded-lg border border-gray-600 bg-[#252a3a] px-4 py-2 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="">Todas las fechas</option>
@@ -108,7 +108,7 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
           <span className="text-sm text-gray-400">Filtros activos:</span>
           {filters.category && (
             <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-sm text-white">
-              {categories.find(c => c.value === filters.category)?.label}
+              {categories.find((c) => c.value === filters.category)?.label}
               <button
                 onClick={() => handleFilterChange('category', '')}
                 className="ml-1 flex h-4 w-4 items-center justify-center rounded-full hover:bg-blue-600"
@@ -119,7 +119,7 @@ export function EventFilters({ onFiltersChange }: EventFiltersProps) {
           )}
           {filters.location && (
             <span className="inline-flex items-center gap-1 rounded-full bg-purple-500 px-3 py-1 text-sm text-white">
-              {locations.find(l => l.value === filters.location)?.label}
+              {locations.find((l) => l.value === filters.location)?.label}
               <button
                 onClick={() => handleFilterChange('location', '')}
                 className="ml-1 flex h-4 w-4 items-center justify-center rounded-full hover:bg-purple-600"
