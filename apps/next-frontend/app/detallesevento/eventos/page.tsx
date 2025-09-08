@@ -55,7 +55,7 @@ export default function EventsPage() {
             <p className="text-muted-foreground mt-2">Gestiona todos tus eventos desde aquí</p>
           </div>
           <Button asChild className="bg-primary hover:bg-primary/90">
-            <Link href="/admin/events/new">
+            <Link href="/crear">
               <Plus className="w-4 h-4 mr-2" />
               Crear Evento
             </Link>
@@ -110,7 +110,7 @@ export default function EventsPage() {
               <CardContent>
                 <div className="flex items-center gap-2">
                   <Button asChild size="sm" className="flex-1">
-                    <Link href={`/admin/events/${event.id}`}>Ver Detalles</Link>
+                    <Link href={`/detallesevento/eventos/${event.id}`}>Ver Detalles</Link>
                   </Button>
 
                   <Button variant="outline" size="sm">

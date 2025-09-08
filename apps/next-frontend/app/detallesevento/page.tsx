@@ -13,7 +13,7 @@ export default function HomePage() {
             <p className="text-muted-foreground mt-2">Gestiona tus eventos y analiza métricas</p>
           </div>
           <Button asChild className="bg-primary hover:bg-primary/90">
-            <Link href="/admin/events">
+            <Link href="/detallesevento/eventos">
               <Plus className="w-4 h-4 mr-2" />
               Ver Eventos
             </Link>
