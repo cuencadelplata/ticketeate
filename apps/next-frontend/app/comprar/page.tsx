@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 type SectorKey = 'Entrada_General' | 'Entrada_VIP';
@@ -28,8 +28,9 @@ const SECTORES: Record<
 
 export default function ComprarPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const [idUsuario] = useState<number>(1);
-  const [idEvento] = useState<number>(1);
+  const [idEvento, setIdEvento] = useState<string>('');
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -40,6 +41,11 @@ export default function ComprarPage() {
   const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('Entrada_General');
+
+  useEffect(() => {
+    const id = search.get('id_evento');
+    if (id) setIdEvento(id);
+  }, [search]);
 
   // Campos de tarjeta
   const [cardNumber, setCardNumber] = useState<string>('');
@@ -103,6 +109,8 @@ export default function ComprarPage() {
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
+      // En un futuro, mapear sector -> categoria en DB
+      // id_categoria: ...
       datos_tarjeta: isCardPayment
         ? {
             numero: sanitizeNumber(cardNumber),
