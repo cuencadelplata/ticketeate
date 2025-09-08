@@ -49,6 +49,12 @@ function NavbarHome() {
           >
             Productoras
           </Link>
+          <Link
+            href="/sobre-nosotros"
+            className="text-sm font-medium text-white hover:text-orange-100 bg-orange-500 p-2 rounded-full"
+          >
+            Sobre Nosotros
+          </Link>
         </div>
       </div>
 

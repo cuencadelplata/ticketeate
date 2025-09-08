@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
       <div className="container mx-auto px-4 text-center">
         <h1>&copy; 2024 Ticketeate. Todos los derechos reservados.</h1>
         <Link
-          href="/sobrenosotros"
+          href="/sobre-nosotros"
           className="text-center font-medium text-white hover:text-gray-300 "
         >
           Sobre nosotros
