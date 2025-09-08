@@ -1,8 +1,8 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   CalendarDays,
   MapPin,
@@ -18,34 +18,34 @@ import {
   Facebook,
   Twitter,
   Instagram,
-} from "lucide-react"
+} from 'lucide-react';
 
 // Datos de ejemplo - en una app real vendrían de una API
 const eventData = {
   id: 1,
-  title: "Conferencia Tech 2024",
+  title: 'Conferencia Tech 2024',
   description:
-    "La conferencia más importante de tecnología del año. Únete a nosotros para descubrir las últimas tendencias en desarrollo, IA y startups.",
-  date: "2024-03-15",
-  time: "09:00 - 18:00",
-  location: "Centro de Convenciones",
-  address: "Av. Principal 123, Ciudad",
+    'La conferencia más importante de tecnología del año. Únete a nosotros para descubrir las últimas tendencias en desarrollo, IA y startups.',
+  date: '2024-03-15',
+  time: '09:00 - 18:00',
+  location: 'Centro de Convenciones',
+  address: 'Av. Principal 123, Ciudad',
   attendees: 450,
   capacity: 500,
   price: 150,
-  status: "active",
-  image: "/tech-conference-hall.png",
-  organizer: "TechEvents Corp",
-  category: "Tecnología",
-  website: "https://techconf2024.com",
-}
+  status: 'active',
+  image: '/tech-conference-hall.png',
+  organizer: 'TechEvents Corp',
+  category: 'Tecnología',
+  website: 'https://techconf2024.com',
+};
 
 const metrics = {
   totalSales: 67500,
   ticketsSold: 450,
   conversionRate: 12.5,
   pageViews: 3600,
-}
+};
 
 export default function EventDetailsPage({ params }: { params: { id: string } }) {
   return (
@@ -66,12 +66,14 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
           <div className="lg:col-span-2">
             <div className="aspect-video relative mb-6 rounded-lg overflow-hidden">
               <img
-                src={eventData.image || "/placeholder.svg"}
+                src={eventData.image || '/placeholder.svg'}
                 alt={eventData.title}
                 className="w-full h-full object-cover"
               />
-              <Badge className={`absolute top-4 left-4 ${eventData.status === "active" ? "bg-primary" : "bg-muted"}`}>
-                {eventData.status === "active" ? "Activo" : "Inactivo"}
+              <Badge
+                className={`absolute top-4 left-4 ${eventData.status === 'active' ? 'bg-primary' : 'bg-muted'}`}
+              >
+                {eventData.status === 'active' ? 'Activo' : 'Inactivo'}
               </Badge>
             </div>
 
@@ -85,11 +87,11 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                   <div>
                     <p className="font-medium">Fecha y Hora</p>
                     <p className="text-muted-foreground">
-                      {new Date(eventData.date).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}{" "}
+                      {new Date(eventData.date).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}{' '}
                       • {eventData.time}
                     </p>
                   </div>
@@ -238,10 +240,14 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
             <Card>
               <CardHeader>
                 <CardTitle>Lista de Asistentes</CardTitle>
-                <CardDescription>Gestiona los asistentes registrados para este evento</CardDescription>
+                <CardDescription>
+                  Gestiona los asistentes registrados para este evento
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Funcionalidad de gestión de asistentes próximamente...</p>
+                <p className="text-muted-foreground">
+                  Funcionalidad de gestión de asistentes próximamente...
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -275,7 +281,9 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                   <CardTitle>Configuración</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Opciones de configuración del evento próximamente...</p>
+                  <p className="text-muted-foreground">
+                    Opciones de configuración del evento próximamente...
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -283,5 +291,5 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

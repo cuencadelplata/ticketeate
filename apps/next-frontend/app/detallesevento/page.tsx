@@ -1,7 +1,7 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarDays, Users, TrendingUp, Plus } from "lucide-react"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarDays, Users, TrendingUp, Plus } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -81,5 +81,5 @@ export default function HomePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

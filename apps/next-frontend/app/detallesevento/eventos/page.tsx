@@ -1,49 +1,49 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { CalendarDays, MapPin, Users, Plus, Search, Edit, Trash2, Share2 } from "lucide-react"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { CalendarDays, MapPin, Users, Plus, Search, Edit, Trash2, Share2 } from 'lucide-react';
 
 // Datos de ejemplo - en una app real vendrían de una API/base de datos
 const events = [
   {
     id: 1,
-    title: "Conferencia Tech 2024",
-    date: "2024-03-15",
-    location: "Centro de Convenciones",
+    title: 'Conferencia Tech 2024',
+    date: '2024-03-15',
+    location: 'Centro de Convenciones',
     attendees: 450,
-    status: "active",
-    image: "/tech-conference.png",
+    status: 'active',
+    image: '/tech-conference.png',
   },
   {
     id: 2,
-    title: "Festival de Música Indie",
-    date: "2024-04-20",
-    location: "Parque Central",
+    title: 'Festival de Música Indie',
+    date: '2024-04-20',
+    location: 'Parque Central',
     attendees: 1200,
-    status: "active",
-    image: "/vibrant-music-festival.png",
+    status: 'active',
+    image: '/vibrant-music-festival.png',
   },
   {
     id: 3,
-    title: "Workshop de Diseño UX",
-    date: "2024-02-28",
-    location: "Coworking Space",
+    title: 'Workshop de Diseño UX',
+    date: '2024-02-28',
+    location: 'Coworking Space',
     attendees: 85,
-    status: "completed",
-    image: "/ux-design-workshop.png",
+    status: 'completed',
+    image: '/ux-design-workshop.png',
   },
   {
     id: 4,
-    title: "Maratón Benéfica",
-    date: "2024-05-10",
-    location: "Ciudad",
+    title: 'Maratón Benéfica',
+    date: '2024-05-10',
+    location: 'Ciudad',
     attendees: 800,
-    status: "draft",
-    image: "/charity-marathon.jpg",
+    status: 'draft',
+    image: '/charity-marathon.jpg',
   },
-]
+];
 
 export default function EventsPage() {
   return (
@@ -75,13 +75,25 @@ export default function EventsPage() {
           {events.map((event) => (
             <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video relative">
-                <img src={event.image || "/placeholder.svg"} alt={event.title} className="w-full h-full object-cover" />
+                <img
+                  src={event.image || '/placeholder.svg'}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                />
                 <Badge
                   className={`absolute top-2 right-2 ${
-                    event.status === "active" ? "bg-primary" : event.status === "completed" ? "bg-muted" : "bg-accent"
+                    event.status === 'active'
+                      ? 'bg-primary'
+                      : event.status === 'completed'
+                        ? 'bg-muted'
+                        : 'bg-accent'
                   }`}
                 >
-                  {event.status === "active" ? "Activo" : event.status === "completed" ? "Completado" : "Borrador"}
+                  {event.status === 'active'
+                    ? 'Activo'
+                    : event.status === 'completed'
+                      ? 'Completado'
+                      : 'Borrador'}
                 </Badge>
               </div>
 
@@ -90,10 +102,10 @@ export default function EventsPage() {
                 <CardDescription className="space-y-2">
                   <div className="flex items-center text-sm">
                     <CalendarDays className="w-4 h-4 mr-2" />
-                    {new Date(event.date).toLocaleDateString("es-ES", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
+                    {new Date(event.date).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
                     })}
                   </div>
                   <div className="flex items-center text-sm">
@@ -135,5 +147,5 @@ export default function EventsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
