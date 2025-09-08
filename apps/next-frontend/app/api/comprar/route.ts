@@ -78,18 +78,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 1) Validar evento y categoría
+    // 1) Validar usuario, evento y categoría
+    // Crear el usuario si no existe (placeholder)
+    const usuario = await prisma.usuario.upsert({
+      where: { id_usuario: String(id_usuario) },
+      update: {},
+      create: {
+        id_usuario: String(id_usuario),
+        nombre: 'Invitado',
+        apellido: 'App',
+        email: `${String(id_usuario)}@placeholder.local`,
+      },
+    });
+
     const evento = await prisma.evento.findUnique({ where: { id_evento: String(id_evento) } });
     if (!evento) {
       return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 });
     }
 
+    // Buscar una fecha válida del evento (si no existe, se creará en la transacción)
+    const fecha = await prisma.fechaEvento.findFirst({ where: { id_evento: String(id_evento) } });
+
     let categoria = null as null | { id_categoria: string; precio: any; stock_disponible: number };
     if (id_categoria) {
+      // Permitir id o nombre de categoría (asociada al evento)
       categoria = (await prisma.categoriaEntrada.findUnique({
         where: { id_categoria: String(id_categoria) },
         select: { id_categoria: true, precio: true, stock_disponible: true },
       })) as any;
+      if (!categoria) {
+        categoria = (await prisma.categoriaEntrada.findFirst({
+          where: { id_evento: String(id_evento), nombre: String(id_categoria) },
+          select: { id_categoria: true, precio: true, stock_disponible: true },
+        })) as any;
+      }
       if (!categoria) {
         return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 404 });
       }
@@ -122,14 +144,32 @@ export async function POST(request: NextRequest) {
         data: { stock_disponible: { decrement: cantidad } },
       });
 
-      // Crear reserva en estado PENDIENTE
+      // Asegurar fecha: si no existe, crear una por defecto usando fecha_inicio_venta o NOW
+      let fechaId = fecha?.id_fecha as string | undefined;
+      if (!fechaId) {
+        const nuevaFecha = await tx.fechaEvento.create({
+          data: {
+            id_evento: String(id_evento),
+            fecha_hora: (evento as any).fecha_inicio_venta ?? new Date(),
+          },
+        });
+        fechaId = nuevaFecha.id_fecha;
+      }
+
+      // Crear reserva en estado PENDIENTE con relaciones conectadas
+      console.log('[api/comprar] creando reserva con connect', {
+        id_usuario: String(id_usuario),
+        id_evento: String(id_evento),
+        id_fecha: String(fechaId),
+        id_categoria: categoria!.id_categoria,
+        cantidad: Number(cantidad),
+      });
       const reserva = await tx.reserva.create({
         data: {
-          id_usuario: String(id_usuario),
-          id_evento: String(id_evento),
-          id_fecha: (await tx.fechaEvento.findFirst({ where: { id_evento: String(id_evento) } }))
-            ?.id_fecha as string,
-          id_categoria: categoria!.id_categoria,
+          usuario: { connect: { id_usuario: String(id_usuario) } },
+          evento: { connect: { id_evento: String(id_evento) } },
+          fecha: { connect: { id_fecha: String(fechaId) } },
+          categoria: { connect: { id_categoria: categoria!.id_categoria } },
           cantidad: Number(cantidad),
           estado: 'PENDIENTE',
         },
