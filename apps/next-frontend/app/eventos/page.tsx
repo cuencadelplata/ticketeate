@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, UserButton } from '@clerk/nextjs';
 import { Calendar, MapPin, ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useEvents } from '@/hooks/use-events';
-import type { Event } from '@/types/events';
+import Image from 'next/image';
 
 // formatear fecha
 const formatEventDate = (dateString: string) => {
@@ -45,7 +45,7 @@ export default function EventosPage() {
   const { user, isSignedIn } = useUser();
 
   if (!isSignedIn) {
-    return <div>Por favor inicia sesión.</div>;
+    return <div></div>;
   }
 
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
@@ -228,9 +228,14 @@ export default function EventosPage() {
     );
   }
   return (
-    <div>
-      <h1>Eventos para usuario</h1>
-      {/* Aquí va la interfaz de usuario normal */}
-    </div>
+    <main className="mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/" className="flex items-center bg-orange-500 p-2 rounded-full">
+          <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={40} priority />
+        </Link>
+        <UserButton />
+      </div>
+      <h1 className="text-4xl font-bold text-orange-500 mb-6">Mis Eventos</h1>
+    </main>
   );
 }

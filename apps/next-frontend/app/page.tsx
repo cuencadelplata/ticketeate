@@ -96,7 +96,7 @@ const masVendidos = events.filter((evt) =>
   ].includes(evt.title),
 );
 const internationalArtists = events.filter((evt) =>
-  ['Andrea Boccelli', 'Bad Bunny', 'GUNS N\' ROSES'].includes(evt.title),
+  ['Andrea Boccelli', 'Bad Bunny', "GUNS N' ROSES"].includes(evt.title),
 );
 const artistasNacionales = events.filter((evt) => ['Maria Becerra', 'Airbag'].includes(evt.title));
 

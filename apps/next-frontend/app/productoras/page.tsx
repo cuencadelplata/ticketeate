@@ -1,5 +1,7 @@
 // app/productoras/page.tsx
 import Link from 'next/link';
+import Image from 'next/image';
+import { UserButton } from '@clerk/nextjs';
 
 type Producer = {
   slug: string;
@@ -17,8 +19,16 @@ const producers: Producer[] = [
 
 export default function ProductorasPage() {
   return (
-    <main className="mx-auto max-w-6xl p-6">
-      <h1 className="mb-6 text-3xl font-bold text-orange-600">Productoras Argentinas</h1>
+    <main className="mx-auto p-6 ">
+      {/*Logo + perfil del usuario */}
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/" className="flex items-center bg-orange-500 p-2 rounded-full">
+          <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={40} priority />
+        </Link>
+        <UserButton />
+      </div>
+
+      <h1 className="text-4xl font-bold text-orange-500 mb-6">Productoras Argentinas</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {producers.map((p) => (
@@ -26,9 +36,6 @@ export default function ProductorasPage() {
             key={p.slug}
             className="rounded-xl border border-orange-300 bg-white p-4 shadow hover:shadow-md transition"
           >
-            {/* Podés poner un logo si tenés */}
-            {/* {p.logo && <img src={p.logo} alt={p.name} className="h-14 mb-3 object-contain" />} */}
-
             <h2 className="text-lg font-semibold text-gray-900">{p.name}</h2>
             <p className="text-sm text-gray-600">{p.city}, Argentina</p>
 
@@ -40,15 +47,6 @@ export default function ProductorasPage() {
             </Link>
           </div>
         ))}
-      </div>
-      {/* Botón volver al inicio */}
-      <div className="mt-10 flex justify-center">
-        <Link
-          href="/"
-          className="inline-flex items-center rounded-full bg-orange-600 px-6 py-2 text-white font-semibold hover:bg-orange-700 transition"
-        >
-          ← Volver al inicio
-        </Link>
       </div>
     </main>
   );
