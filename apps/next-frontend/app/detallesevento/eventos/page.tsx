@@ -121,7 +121,11 @@ export default function EventsPage() {
 
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <Button asChild size="sm" className="flex-1 bg-orange-500 rounded-md hover:bg-orange-600 text-neutral-100">
+                  <Button
+                    asChild
+                    size="sm"
+                    className="flex-1 bg-orange-500 rounded-md hover:bg-orange-600 text-neutral-100"
+                  >
                     <Link href={`/detallesevento/eventos/${event.id}`}>Ver Detalles</Link>
                   </Button>
 
