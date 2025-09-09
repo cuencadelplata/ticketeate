@@ -125,11 +125,12 @@ export class EventService {
         });
       }
 
-      // Crear fechas adicionales del evento
+      // Crear fechas adicionales del evento (inicio y fin)
       if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
         const fechasData = data.fechas_adicionales.map((fecha) => ({
           id_evento: evento.id_evento,
           fecha_hora: fecha.fecha_inicio,
+          fecha_fin: fecha.fecha_fin,
         }));
 
         await prisma.fechaEvento.createMany({

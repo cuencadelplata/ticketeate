@@ -34,6 +34,8 @@ import EventTicket from './event-ticket';
 import EventCapacity from './event-capacity';
 import EventDescription from './event-description';
 import { useLoadScript } from '@react-google-maps/api';
+import { useWalletStatus } from '@/hooks/use-wallet';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
 import { useAuth } from '@clerk/nextjs';
@@ -159,6 +161,8 @@ export default function CreateEventForm() {
   });
 
   const [location, setLocation] = useState<EventLocationData | null>(null);
+  const router = useRouter();
+  const { data: walletData } = useWalletStatus();
 
   const [description, setDescription] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -632,11 +636,17 @@ export default function CreateEventForm() {
                   <h3 className="pb-1 text-sm font-semibold text-stone-200">Opciones del evento</h3>
 
                   <div className="flex items-center justify-between">
-                    <EventTicket onTicketChange={setTicketInfo} />
+                    <EventTicket
+                      onTicketChange={setTicketInfo}
+                      onConnectWallet={() => router.push('/settings')}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <EventCapacity hasWallet={false} onCapacityChange={handleCapacityChange} />
+                    <EventCapacity
+                      hasWallet={Boolean(walletData?.wallet_linked)}
+                      onCapacityChange={handleCapacityChange}
+                    />
                   </div>
                 </CardContent>
               </Card>
