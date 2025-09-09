@@ -247,29 +247,37 @@ export default function EventoPage() {
                 )}
 
                 {/* Tipos de entradas (si existen) */}
-                {Array.isArray((event as any).categorias_entrada) && (event as any).categorias_entrada.length > 0 && (
-                  <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                    <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
-                    <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
-                      {(event as any).categorias_entrada.map((cat: any) => (
-                        <li key={cat.id_categoria} className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium">{cat.nombre}</div>
-                              {cat.descripcion && (
-                                <div className="text-xs text-stone-400">{cat.descripcion}</div>
-                              )}
+                {Array.isArray((event as any).categorias_entrada) &&
+                  (event as any).categorias_entrada.length > 0 && (
+                    <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                      <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
+                      <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
+                        {(event as any).categorias_entrada.map((cat: any) => (
+                          <li
+                            key={cat.id_categoria}
+                            className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{cat.nombre}</div>
+                                {cat.descripcion && (
+                                  <div className="text-xs text-stone-400">{cat.descripcion}</div>
+                                )}
+                              </div>
+                              <div className="text-right text-stone-300">
+                                <div>
+                                  ${'{'}cat.precio{'}'}
+                                </div>
+                                <div className="text-xs text-stone-400">
+                                  Cupo: {cat.stock_disponible} / {cat.stock_total}
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-right text-stone-300">
-                              <div>${'{'}cat.precio{'}'}</div>
-                              <div className="text-xs text-stone-400">Cupo: {cat.stock_disponible} / {cat.stock_total}</div>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Mapa de sectores y resumen de entradas (solo informativo) */}
                 {event.mapa_evento && (
@@ -277,7 +285,10 @@ export default function EventoPage() {
                     <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
                     <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
                     <div className="w-full">
-                      <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800" style={{ height: 320 }}>
+                      <div
+                        className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
+                        style={{ height: 320 }}
+                      >
                         <div
                           className="absolute inset-0"
                           style={{

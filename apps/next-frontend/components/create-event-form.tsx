@@ -643,7 +643,11 @@ export default function CreateEventForm() {
 
               <EventLocation
                 onLocationSelect={(loc) => setLocation(loc)}
-                allowedSectorNames={ticketInfo.type === 'paid' && ticketTypesState.length > 0 ? ticketTypesState.map((t) => t.name) : []}
+                allowedSectorNames={
+                  ticketInfo.type === 'paid' && ticketTypesState.length > 0
+                    ? ticketTypesState.map((t) => t.name)
+                    : []
+                }
               />
               <EventDescription
                 onDescriptionChange={setDescription}

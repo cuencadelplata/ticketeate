@@ -562,7 +562,8 @@ export default function EventMapModal({
                     ))
                   ) : (
                     <div className="rounded-md border border-gray-800 p-3 text-xs text-gray-400">
-                      No hay tipos de entrada disponibles. Define tipos en “Opciones del evento → Tipos de entrada”.
+                      No hay tipos de entrada disponibles. Define tipos en “Opciones del evento →
+                      Tipos de entrada”.
                     </div>
                   )}
                 </div>
