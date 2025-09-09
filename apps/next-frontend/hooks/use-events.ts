@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/config';
+import { API_BASE_URL, API_ENDPOINTS } from '@/lib/config';
 import { useAuth } from '@clerk/nextjs';
 import type {
   Event,
@@ -74,7 +74,7 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
       const token = await getToken();
-      let response = await fetch(API_ENDPOINTS.events, {
+      let response = await fetch(`${API_BASE_URL}/api/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
