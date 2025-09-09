@@ -7,16 +7,16 @@ import { NavbarHome } from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Users, 
-  Target, 
-  Heart, 
-  Award, 
-  Globe, 
+import {
+  Users,
+  Target,
+  Heart,
+  Award,
+  Globe,
   Calendar,
   Ticket,
   Star,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 export default function SobreNosotrosPage() {
@@ -33,7 +33,7 @@ export default function SobreNosotrosPage() {
               Sobre <span className="text-orange-500">Ticketeate</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Somos la plataforma líder en Argentina para la venta de entradas de eventos. 
+              Somos la plataforma líder en Argentina para la venta de entradas de eventos.
               Conectamos a productoras, artistas y fans para crear experiencias inolvidables.
             </p>
           </div>
@@ -78,8 +78,8 @@ export default function SobreNosotrosPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Nuestra Misión</h2>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                Democratizar el acceso a eventos culturales y de entretenimiento en Argentina, 
-                facilitando la conexión entre productoras, artistas y el público, mientras 
+                Democratizar el acceso a eventos culturales y de entretenimiento en Argentina,
+                facilitando la conexión entre productoras, artistas y el público, mientras
                 garantizamos una experiencia de compra segura, rápida y confiable.
               </p>
             </Card>
@@ -90,8 +90,8 @@ export default function SobreNosotrosPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Nuestra Visión</h2>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                Ser la plataforma de referencia en Latinoamérica para la venta de entradas, 
-                expandiendo nuestro alcance y conectando a más personas con las experiencias 
+                Ser la plataforma de referencia en Latinoamérica para la venta de entradas,
+                expandiendo nuestro alcance y conectando a más personas con las experiencias
                 culturales que aman, impulsando la industria del entretenimiento.
               </p>
             </Card>
@@ -124,7 +124,8 @@ export default function SobreNosotrosPage() {
               <Users className="h-12 w-12 text-orange-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Comunidad</h3>
               <p className="text-gray-600">
-                Construimos puentes entre artistas, productoras y fans para crear conexiones duraderas.
+                Construimos puentes entre artistas, productoras y fans para crear conexiones
+                duraderas.
               </p>
             </Card>
           </div>
@@ -166,28 +167,40 @@ export default function SobreNosotrosPage() {
       {/* Why Choose Us */}
       <section className="py-16 px-6 bg-orange-50">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">¿Por qué elegirnos?</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            ¿Por qué elegirnos?
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="flex items-start">
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Seguridad Garantizada</h3>
-                  <p className="text-gray-600">Protegemos tus datos y transacciones con la más alta seguridad.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Seguridad Garantizada
+                  </h3>
+                  <p className="text-gray-600">
+                    Protegemos tus datos y transacciones con la más alta seguridad.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Soporte 24/7</h3>
-                  <p className="text-gray-600">Nuestro equipo está disponible para ayudarte en cualquier momento.</p>
+                  <p className="text-gray-600">
+                    Nuestro equipo está disponible para ayudarte en cualquier momento.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Precios Transparentes</h3>
-                  <p className="text-gray-600">Sin costos ocultos, siempre sabrás exactamente qué pagas.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Precios Transparentes
+                  </h3>
+                  <p className="text-gray-600">
+                    Sin costos ocultos, siempre sabrás exactamente qué pagas.
+                  </p>
                 </div>
               </div>
             </div>
@@ -196,21 +209,29 @@ export default function SobreNosotrosPage() {
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Variedad de Eventos</h3>
-                  <p className="text-gray-600">Desde conciertos hasta teatro, tenemos eventos para todos los gustos.</p>
+                  <p className="text-gray-600">
+                    Desde conciertos hasta teatro, tenemos eventos para todos los gustos.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Fácil de Usar</h3>
-                  <p className="text-gray-600">Interfaz intuitiva que hace que comprar entradas sea simple y rápido.</p>
+                  <p className="text-gray-600">
+                    Interfaz intuitiva que hace que comprar entradas sea simple y rápido.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="h-6 w-6 text-green-500 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Actualizaciones en Tiempo Real</h3>
-                  <p className="text-gray-600">Información actualizada sobre disponibilidad y cambios de eventos.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Actualizaciones en Tiempo Real
+                  </h3>
+                  <p className="text-gray-600">
+                    Información actualizada sobre disponibilidad y cambios de eventos.
+                  </p>
                 </div>
               </div>
             </div>
