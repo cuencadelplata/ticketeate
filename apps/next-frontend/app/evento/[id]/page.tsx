@@ -228,6 +228,115 @@ export default function EventoPage() {
                   </div>
                 )}
 
+                {/* Tipos de entradas (si existen) */}
+                {Array.isArray((event as any).categorias_entrada) && (event as any).categorias_entrada.length > 0 && (
+                  <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                    <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
+                    <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {(event as any).categorias_entrada.map((cat: any) => (
+                        <li key={cat.id_categoria} className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{cat.nombre}</div>
+                              {cat.descripcion && (
+                                <div className="text-xs text-stone-400">{cat.descripcion}</div>
+                              )}
+                            </div>
+                            <div className="text-right text-stone-300">
+                              <div>${'{'}cat.precio{'}'}</div>
+                              <div className="text-xs text-stone-400">Cupo: {cat.stock_disponible} / {cat.stock_total}</div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Mapa de sectores y resumen de entradas (solo informativo) */}
+                {event.mapa_evento && (
+                  <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                    <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
+                    <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
+                    <div
+                      className="relative w-full overflow-hidden rounded-md border border-stone-800"
+                      style={{
+                        height: 320,
+                        backgroundImage: (event as any).mapa_evento?.backgroundImage
+                          ? `url(${(event as any).mapa_evento.backgroundImage})`
+                          : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    >
+                      {((event as any).mapa_evento?.sectors || []).map((s: any) => (
+                        <div
+                          key={s.id}
+                          className="absolute rounded-sm border border-black/20 text-[10px] text-white"
+                          style={{
+                            left: s.x,
+                            top: s.y,
+                            width: s.width,
+                            height: s.height,
+                            backgroundColor: s.color || 'rgba(255,255,255,0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                          title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
+                        >
+                          <span className="backdrop-blur-sm drop-shadow">{s.name}</span>
+                        </div>
+                      ))}
+                      {((event as any).mapa_evento?.elements || []).map((el: any) => (
+                        <div
+                          key={el.id}
+                          className="absolute rounded-full border border-black/20 text-[9px] text-white"
+                          style={{
+                            left: el.x,
+                            top: el.y,
+                            width: el.width,
+                            height: el.height,
+                            backgroundColor: el.color || 'rgba(0,0,0,0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                          title={el.name}
+                        >
+                          {el.icon}
+                        </div>
+                      ))}
+                    </div>
+
+                    {(((event as any).mapa_evento?.sectors || []).length ?? 0) > 0 && (
+                      <div className="pt-2">
+                        <h4 className="text-xs font-semibold text-stone-400">
+                          Entradas disponibles por sector
+                        </h4>
+                        <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
+                          {(event as any).mapa_evento.sectors.map((s: any) => (
+                            <li
+                              key={s.id}
+                              className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span>{s.name}</span>
+                                <span className="text-stone-400">
+                                  {typeof s.capacity === 'number'
+                                    ? `${s.capacity} entradas`
+                                    : 'Capacidad no definida'}
+                                  {typeof s.price === 'number' ? ` • $${s.price}` : ''}
+                                </span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="rounded-xl border-1 bg-stone-900 bg-opacity-60 p-2">
                   <button className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200">
                     Comprar Entradas

@@ -170,6 +170,7 @@ export default function CreateEventForm() {
     type: 'free' | 'paid';
     price?: number;
   }>({ type: 'free' });
+  const [ticketTypesState, setTicketTypesState] = useState<TicketType[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [capacityInfo, setCapacityInfo] = useState<{
     unlimited: boolean;
@@ -196,6 +197,13 @@ export default function CreateEventForm() {
       unlimited: capacity.unlimited,
       limit: capacity.limit,
     });
+    // También sincronizamos tipos de tickets si existen
+    if (capacity.ticketTypes) {
+      setTicketInfo({ type: 'paid' });
+      setTicketTypesState(capacity.ticketTypes);
+    } else {
+      setTicketTypesState([]);
+    }
   }
 
   const addEventDate = () => {
@@ -326,6 +334,15 @@ export default function CreateEventForm() {
           ).toISOString(),
         })),
       eventMap: location.eventMap,
+      ticket_types:
+        ticketInfo.type === 'paid' && ticketTypesState.length > 0
+          ? ticketTypesState.map((t) => ({
+              nombre: t.name,
+              descripcion: t.description,
+              precio: t.price,
+              stock_total: t.capacity,
+            }))
+          : undefined,
     };
 
     createEventMutation.mutate(eventData, {
@@ -624,7 +641,10 @@ export default function CreateEventForm() {
                 ))}
               </div>
 
-              <EventLocation onLocationSelect={(loc) => setLocation(loc)} />
+              <EventLocation
+                onLocationSelect={(loc) => setLocation(loc)}
+                allowedSectorNames={ticketInfo.type === 'paid' && ticketTypesState.length > 0 ? ticketTypesState.map((t) => t.name) : []}
+              />
               <EventDescription
                 onDescriptionChange={setDescription}
                 eventTitle={eventName}

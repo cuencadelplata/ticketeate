@@ -49,6 +49,7 @@ interface EventMapModalProps {
     backgroundImage?: string;
   }) => void;
   initialMapData?: { sectors: EventSector[]; elements?: EventElement[]; backgroundImage?: string };
+  allowedSectorNames?: string[];
 }
 
 const sectorTypes = [
@@ -72,6 +73,7 @@ export default function EventMapModal({
   onClose,
   onSave,
   initialMapData,
+  allowedSectorNames,
 }: EventMapModalProps) {
   const [sectors, setSectors] = useState<EventSector[]>(initialMapData?.sectors || []);
   const [elements, setElements] = useState<EventElement[]>(initialMapData?.elements || []);
@@ -439,6 +441,23 @@ export default function EventMapModal({
     setSectors((prev) => [...prev, newSector]);
   };
 
+  const colorPalette = ['#1E40AF', '#D97706', '#7C3AED', '#059669', '#DC2626', '#0891B2'];
+  const addNamedSector = (name: string, index: number) => {
+    const { x, y } = snapToGridPosition(50, 50);
+    const color = colorPalette[index % colorPalette.length];
+    const newSector: EventSector = {
+      id: Date.now().toString(),
+      name,
+      type: 'custom',
+      color,
+      x,
+      y,
+      width: snapToGrid ? Math.round(100 / gridSize) * gridSize : 100,
+      height: snapToGrid ? Math.round(50 / gridSize) * gridSize : 50,
+    };
+    setSectors((prev) => [...prev, newSector]);
+  };
+
   const addElementToCanvas = (
     type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking',
   ) => {
@@ -524,25 +543,28 @@ export default function EventMapModal({
                 <h3 className="mb-2 text-sm font-medium">Sectores Disponibles</h3>
                 <p className="mb-3 text-xs text-gray-500">Haz clic para agregar al canvas</p>
                 <div className="space-y-2">
-                  {sectorTypes.map(({ type, label, color }) => (
-                    <button
-                      key={type}
-                      onClick={() =>
-                        addSectorToCanvas(type as 'general' | 'vip' | 'premium' | 'custom')
-                      }
-                      className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md ${
-                        selectedType === type
-                          ? 'bg-stone-850 border-blue-500'
-                          : 'border-gray-800 hover:border-gray-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full" style={{ backgroundColor: color }} />
-                        <span className="text-sm font-medium">{label}</span>
-                      </div>
-                      <div className="mt-1 text-xs text-gray-500">Haz clic para agregar</div>
-                    </button>
-                  ))}
+                  {allowedSectorNames && allowedSectorNames.length > 0 ? (
+                    allowedSectorNames.map((name, idx) => (
+                      <button
+                        key={name}
+                        onClick={() => addNamedSector(name, idx)}
+                        className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md border-gray-800 hover:border-gray-900`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-4 w-4 rounded-full"
+                            style={{ backgroundColor: colorPalette[idx % colorPalette.length] }}
+                          />
+                          <span className="text-sm font-medium">{name}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">Haz clic para agregar</div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="rounded-md border border-gray-800 p-3 text-xs text-gray-400">
+                      No hay tipos de entrada disponibles. Define tipos en “Opciones del evento → Tipos de entrada”.
+                    </div>
+                  )}
                 </div>
               </div>
             )}

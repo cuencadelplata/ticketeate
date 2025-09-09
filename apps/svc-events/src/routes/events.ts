@@ -107,6 +107,7 @@ events.post('/', async (c) => {
       })),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
       clerkUserId: auth.userId,
+      ticket_types: body.ticket_types,
     };
 
     // Crear el evento

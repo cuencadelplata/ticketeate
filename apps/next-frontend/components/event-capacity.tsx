@@ -91,6 +91,19 @@ export default function EventCapacity({
     }
   }, [capacity]);
 
+  // Propagar cambios de tipos de tickets inmediatamente (sin esperar Guardar)
+  useEffect(() => {
+    if (hasWallet && isPaid) {
+      onCapacityChange({
+        unlimited: isUnlimited,
+        limit: !isUnlimited ? Number(capacity) : undefined,
+        ticketTypes: ticketTypes.length > 0 ? ticketTypes : undefined,
+        queueConfig: queueConfig.enabled ? queueConfig : undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketTypes]);
+
   const handleSave = () => {
     onCapacityChange({
       unlimited: isUnlimited,
