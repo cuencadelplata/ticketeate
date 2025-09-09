@@ -81,11 +81,11 @@ export default function EventoPage() {
 
       <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
         <NavbarHome />
-        <div className="mx-auto max-w-5xl space-y-2 px-20 pb-3 pt-10">
+        <div className="mx-auto max-w-[68rem] space-y-2 px-20 pb-3 pt-10">
           {isLoading && <div className="text-orange-100">Cargando evento...</div>}
           {error && <div className="text-red-200">No se pudo cargar el evento.</div>}
           {!isLoading && !error && event && (
-            <div className="grid gap-8 md:grid-cols-[330px,1fr]">
+            <div className="grid gap-8 md:grid-cols-[300px,1fr]">
               <div className="space-y-2">
                 <div
                   style={
@@ -175,15 +175,33 @@ export default function EventoPage() {
                       <ul className="list-disc pl-6 text-stone-200">
                         {event.fechas_evento.map((f) => (
                           <li key={f.id_fecha}>
-                            {new Date(f.fecha_hora).toLocaleDateString('es-AR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                            })}{' '}
-                            {new Date(f.fecha_hora).toLocaleTimeString('es-AR', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            <span>
+                              <span className="font-medium">Inicio: </span>
+                              {new Date(f.fecha_hora).toLocaleDateString('es-AR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })}{' '}
+                              {new Date(f.fecha_hora).toLocaleTimeString('es-AR', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                            {(f as any).fecha_fin && (
+                              <span>
+                                {' '}
+                                · <span className="font-medium">Fin: </span>
+                                {new Date((f as any).fecha_fin).toLocaleDateString('es-AR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })}{' '}
+                                {new Date((f as any).fecha_fin).toLocaleTimeString('es-AR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -258,55 +276,85 @@ export default function EventoPage() {
                   <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
                     <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
                     <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
-                    <div
-                      className="relative w-full overflow-hidden rounded-md border border-stone-800"
-                      style={{
-                        height: 320,
-                        backgroundImage: (event as any).mapa_evento?.backgroundImage
-                          ? `url(${(event as any).mapa_evento.backgroundImage})`
-                          : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    >
-                      {((event as any).mapa_evento?.sectors || []).map((s: any) => (
+                    <div className="w-full">
+                      <div className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800" style={{ height: 320 }}>
                         <div
-                          key={s.id}
-                          className="absolute rounded-sm border border-black/20 text-[10px] text-white"
+                          className="absolute inset-0"
                           style={{
-                            left: s.x,
-                            top: s.y,
-                            width: s.width,
-                            height: s.height,
-                            backgroundColor: s.color || 'rgba(255,255,255,0.2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            backgroundImage: (event as any).mapa_evento?.backgroundImage
+                              ? `url(${(event as any).mapa_evento.backgroundImage})`
+                              : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
                           }}
-                          title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
-                        >
-                          <span className="backdrop-blur-sm drop-shadow">{s.name}</span>
-                        </div>
-                      ))}
-                      {((event as any).mapa_evento?.elements || []).map((el: any) => (
-                        <div
-                          key={el.id}
-                          className="absolute rounded-full border border-black/20 text-[9px] text-white"
-                          style={{
-                            left: el.x,
-                            top: el.y,
-                            width: el.width,
-                            height: el.height,
-                            backgroundColor: el.color || 'rgba(0,0,0,0.3)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                          title={el.name}
-                        >
-                          {el.icon}
-                        </div>
-                      ))}
+                        />
+                        {((event as any).mapa_evento?.sectors || []).map((s: any) => {
+                          const scale = 1.8;
+                          const baseW = (s.width / 800) * 100;
+                          const baseH = (s.height / 600) * 100;
+                          const w = baseW * scale;
+                          const h = baseH * scale;
+                          const baseL = (s.x / 800) * 100;
+                          const baseT = (s.y / 600) * 100;
+                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                          return (
+                            <div
+                              key={s.id}
+                              className="absolute rounded-md border-2 border-black/30 text-white shadow-md"
+                              style={{
+                                left: `${l}%`,
+                                top: `${t}%`,
+                                width: `${w}%`,
+                                height: `${h}%`,
+                                backgroundColor: s.color || 'rgba(255,255,255,0.25)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                              }}
+                              title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
+                            >
+                              <span className="backdrop-blur-[1px] drop-shadow">{s.name}</span>
+                            </div>
+                          );
+                        })}
+                        {((event as any).mapa_evento?.elements || []).map((el: any) => {
+                          const scale = 1.8;
+                          const baseW = (el.width / 800) * 100;
+                          const baseH = (el.height / 600) * 100;
+                          const w = baseW * scale;
+                          const h = baseH * scale;
+                          const baseL = (el.x / 800) * 100;
+                          const baseT = (el.y / 600) * 100;
+                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                          return (
+                            <div
+                              key={el.id}
+                              className="absolute rounded-md border border-black/30 text-white"
+                              style={{
+                                left: `${l}%`,
+                                top: `${t}%`,
+                                width: `${w}%`,
+                                height: `${h}%`,
+                                backgroundColor: el.color || 'rgba(0,0,0,0.35)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '14px',
+                              }}
+                              title={el.name}
+                            >
+                              <div className="text-center">
+                                <div className="text-lg">{el.icon}</div>
+                                <div className="text-[11px] opacity-90">{el.name}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {(((event as any).mapa_evento?.sectors || []).length ?? 0) > 0 && (
@@ -315,22 +363,35 @@ export default function EventoPage() {
                           Entradas disponibles por sector
                         </h4>
                         <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
-                          {(event as any).mapa_evento.sectors.map((s: any) => (
-                            <li
-                              key={s.id}
-                              className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>{s.name}</span>
-                                <span className="text-stone-400">
-                                  {typeof s.capacity === 'number'
-                                    ? `${s.capacity} entradas`
-                                    : 'Capacidad no definida'}
-                                  {typeof s.price === 'number' ? ` • $${s.price}` : ''}
-                                </span>
-                              </div>
-                            </li>
-                          ))}
+                          {(event as any).mapa_evento.sectors.map((s: any) => {
+                            const matchingCat = (event as any).categorias_entrada?.find(
+                              (c: any) => c.nombre?.toLowerCase() === String(s.name).toLowerCase(),
+                            );
+                            const capText = matchingCat
+                              ? `${matchingCat.stock_disponible ?? matchingCat.stock_total}/${matchingCat.stock_total} entradas`
+                              : typeof s.capacity === 'number'
+                                ? `${s.capacity} entradas`
+                                : 'Capacidad no definida';
+                            const priceText = matchingCat
+                              ? ` • $${matchingCat.precio}`
+                              : typeof s.price === 'number'
+                                ? ` • $${s.price}`
+                                : '';
+                            return (
+                              <li
+                                key={s.id}
+                                className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{s.name}</span>
+                                  <span className="text-stone-400">
+                                    {capText}
+                                    {priceText}
+                                  </span>
+                                </div>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     )}

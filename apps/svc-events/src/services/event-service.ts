@@ -208,6 +208,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          categorias_entrada: true,
         },
       });
 
@@ -257,6 +258,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          categorias_entrada: true,
         },
         orderBy: {
           fecha_inicio_venta: 'desc',
