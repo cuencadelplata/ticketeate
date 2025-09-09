@@ -48,6 +48,7 @@ interface QueueConfig {
 
 interface EventCapacityProps {
   hasWallet: boolean;
+  isPaid?: boolean;
   onCapacityChange: (capacity: {
     unlimited: boolean;
     limit?: number;
@@ -58,7 +59,7 @@ interface EventCapacityProps {
 
 type DialogView = 'main' | 'newTicket' | 'restrictions' | 'ticketTypes' | 'queueSettings';
 
-export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapacityProps) {
+export default function EventCapacity({ hasWallet, isPaid = false, onCapacityChange }: EventCapacityProps) {
   const [isUnlimited, setIsUnlimited] = useState(true);
   const [capacity, setCapacity] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +91,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
     onCapacityChange({
       unlimited: isUnlimited,
       limit: !isUnlimited ? Number(capacity) : undefined,
-      ticketTypes: hasWallet && ticketTypes.length > 0 ? ticketTypes : undefined,
+      ticketTypes: hasWallet && isPaid && ticketTypes.length > 0 ? ticketTypes : undefined,
       queueConfig: queueConfig.enabled ? queueConfig : undefined,
     });
     setIsOpen(false);
@@ -282,49 +283,51 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
               <DialogTitle className="text-stone-100">Configuración del evento</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 pt-2">
-              {/* Configuración de cupo máximo */}
-              <Card className="border-stone-600 bg-[#1A1A1A]">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-stone-400" />
-                    <CardTitle className="text-base text-stone-100">Cupo máximo</CardTitle>
-                  </div>
-                  <CardDescription className="text-stone-400">
-                    Cerrar automáticamente la inscripción cuando se alcance el cupo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="capacity" className="text-sm text-stone-100">
-                        Cantidad de entradas disponibles
-                      </Label>
-                      <Input
-                        id="capacity"
-                        type="number"
-                        value={capacity}
-                        onChange={(e) => setCapacity(e.target.value)}
-                        placeholder="50"
-                        className="border-0 bg-[#2A2A2A] text-stone-100"
-                      />
+              {/* Configuración de cupo máximo (solo eventos gratis) */}
+              {!isPaid && (
+                <Card className="border-stone-600 bg-[#1A1A1A]">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-stone-400" />
+                      <CardTitle className="text-base text-stone-100">Cupo máximo</CardTitle>
                     </div>
+                    <CardDescription className="text-stone-400">
+                      Cerrar automáticamente la inscripción cuando se alcance el cupo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="capacity" className="text-sm text-stone-100">
+                          Cantidad de entradas disponibles
+                        </Label>
+                        <Input
+                          id="capacity"
+                          type="number"
+                          value={capacity}
+                          onChange={(e) => setCapacity(e.target.value)}
+                          placeholder="50"
+                          className="border-0 bg-[#2A2A2A] text-stone-100"
+                        />
+                      </div>
 
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setCapacity('');
-                          setIsUnlimited(true);
-                        }}
-                        className="border-stone-600 bg-transparent text-stone-100 hover:bg-[#2A2A2A]"
-                      >
-                        <InfinityIcon className="mr-2 h-4 w-4" />
-                        {isUnlimited ? 'Ilimitado' : 'Eliminar límite'}
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setCapacity('');
+                            setIsUnlimited(true);
+                          }}
+                          className="border-stone-600 bg-transparent text-stone-100 hover:bg-[#2A2A2A]"
+                        >
+                          <InfinityIcon className="mr-2 h-4 w-4" />
+                          {isUnlimited ? 'Ilimitado' : 'Eliminar límite'}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Configuración de cola - SIEMPRE visible */}
               <Card className="border-stone-600 bg-[#1A1A1A]">
@@ -376,7 +379,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                         El sistema de cola está desactivado
                       </p>
                       <p className="text-xs text-stone-500">
-                        Activa el switch para configurar cuántas personas pueden comprar
+                        Configura cuántas personas pueden comprar
                         simultáneamente
                       </p>
                     </div>
@@ -384,8 +387,8 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
                 </CardContent>
               </Card>
 
-              {/* Tipos de entrada - solo si tiene wallet */}
-              {hasWallet && (
+              {/* Tipos de entrada - solo si tiene wallet y es pago */}
+              {hasWallet && isPaid && (
                 <Card className="border-stone-600 bg-[#1A1A1A]">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base text-stone-100">Tipos de entrada</CardTitle>

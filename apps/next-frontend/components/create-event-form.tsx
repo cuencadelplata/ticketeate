@@ -639,12 +639,14 @@ export default function CreateEventForm() {
                     <EventTicket
                       onTicketChange={setTicketInfo}
                       onConnectWallet={() => router.push('/settings')}
+                      currentTicketInfo={ticketInfo}
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <EventCapacity
                       hasWallet={Boolean(walletData?.wallet_linked)}
+                      isPaid={ticketInfo.type === 'paid'}
                       onCapacityChange={handleCapacityChange}
                     />
                   </div>
