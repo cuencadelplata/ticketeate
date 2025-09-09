@@ -21,38 +21,137 @@
  * @author Sistema de Eventos - Implementación de Arquitectura Limpia
  */
 
-import { NextRequest } from 'next/server';
-import { getEventoController } from './infrastructure/di-container';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Manejador API de Arquitectura Limpia - VERSIÓN FUNCIONAL
- *
- * Implementación completa de Arquitectura Limpia:
- * - Capa de dominio: Entidades, Value Objects, Repositorios
- * - Capa de aplicación: Casos de Uso con lógica de negocio
- * - Capa de infraestructura: Repository con datos mock (temporal)
- * - Capa de presentación: Controladores HTTP
- *
- * USANDO DATOS MOCK: Temporalmente mientras se configura Prisma Client en monorepo
- * TODO: Cambiar a PrismaEventoRepository cuando Prisma esté configurado
- *
- * Funcionalidades soportadas:
- * - GET /api/get-events -> Listar eventos con paginación y filtros
- * - GET /api/get-events?id=123 -> Obtener evento específico
- *
- * @param request NextRequest de Next.js
- * @returns NextResponse con datos de demostración via Arquitectura Limpia
+ * API de Eventos - Arquitectura Limpia con Estilo Next.js
+ * 
+ * NEXT.JS IDIOMÁTICO: Export function directa (no controladores)
+ * ARQUITECTURA LIMPIA: Casos de uso y repositorios organizados por capas
+ * 
+ * Funcionalidades centralizadas:
+ * - Listar eventos con paginación y filtros
+ * - Obtener detalle específico incluyendo imágenes y categorías  
+ * - Disponibilidad en tiempo real
+ * - Validaciones de dominio
+ * 
+ * CENTRALIZACIÓN TOTAL: Todas las consultas de eventos de la aplicación web
+ * pública pasan por esta API siguiendo principios de Arquitectura Limpia.
  */
 export async function GET(request: NextRequest) {
-  console.log('=== API ARQUITECTURA LIMPIA - FUNCIONANDO ===');
-  console.log('Demostrando Arquitectura Limpia con datos mock realistas');
+  try {
+    console.log('=== API EVENTOS - ARQUITECTURA LIMPIA ===');
+    
+    // Obtener casos de uso con inyección de dependencias
+    const { diContainer } = await import('./infrastructure/di-container');
+    const listarEventosUseCase = diContainer.getListarEventosUseCase();
+    const obtenerEventoUseCase = diContainer.getObtenerEventoUseCase();
+    
+    const url = new URL(request.url);
+    const params = url.searchParams;
 
-  // Obtener el controlador configurado con todas sus dependencias
-  // Actualmente usa MockEventoRepository para demostración
-  const eventoController = getEventoController();
+    // ENDPOINT 1: Obtener evento específico (incluye imágenes y categorías)
+    const id = params.get('id');
+    if (id) {
+      return await obtenerEventoEspecifico(id, obtenerEventoUseCase);
+    }
 
-  // Delegar la petición al controlador siguiendo Arquitectura Limpia
-  return eventoController.handleGetRequest(request);
+    // ENDPOINT 2: Listar eventos con filtros y paginación
+    return await listarEventosConFiltros(params, listarEventosUseCase);
+    
+  } catch (error) {
+    console.error('Error en API de eventos:', error);
+    return NextResponse.json({
+      error: 'Error interno del servidor',
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 });
+  }
+}
+
+/**
+ * FUNCIÓN: Obtener evento específico
+ * INCLUYE: Imágenes y categorías completas
+ */
+async function obtenerEventoEspecifico(id: string, obtenerEventoUseCase: any) {
+  try {
+    const resultado = await obtenerEventoUseCase.execute({ id });
+    
+    return NextResponse.json(resultado.evento, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, max-age=300', // Cache 5 minutos
+      },
+    });
+    
+  } catch (error) {
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Evento no encontrado'
+    }, { status: 404 });
+  }
+}
+
+/**
+ * FUNCIÓN: Listar eventos con filtros
+ * SOPORTA: Fecha, ubicación, categoría, precio
+ * INCLUYE: Paginación automática
+ */
+async function listarEventosConFiltros(searchParams: URLSearchParams, listarEventosUseCase: any) {
+  try {
+    // Extraer paginación (soporte dual: page/pagina, limit/limite)
+    const pagina = searchParams.get('page') ?? searchParams.get('pagina');
+    const limite = searchParams.get('limit') ?? searchParams.get('limite');
+
+    // Extraer filtros (fecha/ubicación/categoría/precio)
+    const filtros = extraerFiltrosDeParametros(searchParams);
+
+    // Ejecutar caso de uso con Arquitectura Limpia
+    const resultado = await listarEventosUseCase.execute({
+      pagina,
+      limite,
+      filtros: Object.keys(filtros).length > 0 ? filtros : undefined,
+    });
+
+    return NextResponse.json(resultado, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, max-age=120', // Cache 2 minutos
+        'X-Total-Count': resultado.paginacion.total.toString(),
+        'X-Page': resultado.paginacion.pagina.toString(),
+        'X-Per-Page': resultado.paginacion.limite.toString(),
+        'X-Total-Pages': resultado.paginacion.totalPaginas.toString(),
+      },
+    });
+    
+  } catch (error) {
+    return NextResponse.json({
+      error: 'Error al listar eventos',
+      details: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 });
+  }
+}
+
+/**
+ * FUNCIÓN: Extraer filtros de parámetros HTTP
+ * FILTROS: fecha, ubicación, categoría, precio
+ */
+function extraerFiltrosDeParametros(searchParams: URLSearchParams) {
+  const filtros: any = {};
+
+  const fechaInicio = searchParams.get('fechaInicio');
+  const fechaFin = searchParams.get('fechaFin');
+  const ubicacion = searchParams.get('ubicacion');
+  const categoriaId = searchParams.get('categoriaId');
+  const precioMin = searchParams.get('precioMin');
+  const precioMax = searchParams.get('precioMax');
+
+  if (fechaInicio) filtros.fechaInicio = fechaInicio;
+  if (fechaFin) filtros.fechaFin = fechaFin;
+  if (ubicacion) filtros.ubicacion = ubicacion;
+  if (categoriaId) filtros.categoriaId = categoriaId;
+  if (precioMin) filtros.precioMin = precioMin;
+  if (precioMax) filtros.precioMax = precioMax;
+
+  return filtros;
 }
 
 /*
