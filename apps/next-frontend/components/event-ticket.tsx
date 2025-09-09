@@ -16,7 +16,10 @@ interface EventTicketProps {
   onConnectWallet?: () => void;
 }
 
-export default function EventTicket({ onTicketChange: _onTicketChange, onConnectWallet }: EventTicketProps) {
+export default function EventTicket({
+  onTicketChange: _onTicketChange,
+  onConnectWallet,
+}: EventTicketProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConnectStripe = () => {

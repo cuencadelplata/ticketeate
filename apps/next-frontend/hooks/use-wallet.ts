@@ -57,5 +57,3 @@ export function useUnlinkWallet() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet-status'] }),
   });
 }
-
-
