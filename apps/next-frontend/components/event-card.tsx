@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 import Image from 'next/image';
 
 type EventCardProps = {
@@ -34,7 +34,13 @@ export function EventCard({
 }: EventCardProps) {
   return (
     <div className="border-1.5 border-orange-600 rounded-xl shadow hover:shadow-lg transition overflow-hidden bg-orange-100">
-      <Image src={image} alt={title} width={800} height={320} className="w-full h-48 object-cover" />
+      <Image
+        src={image}
+        alt={title}
+        width={800}
+        height={320}
+        className="w-full h-48 object-cover"
+      />
 
       <div className="p-4">
         <h2 className="text-black font-semibold">{title}</h2>
@@ -52,13 +58,13 @@ export function EventCard({
           {disponibilidad}
         </p>
 
-        <Link href={href || "#"}>
-        <button
-          className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
+        <Link href={href || '#'}>
+          <button
+            className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
                      hover:bg-orange-600 active:bg-orange-700 transition"
-        >
-          Comprar Entradas | Precios desde {price}
-        </button>
+          >
+            Comprar Entradas | Precios desde {price}
+          </button>
         </Link>
       </div>
     </div>

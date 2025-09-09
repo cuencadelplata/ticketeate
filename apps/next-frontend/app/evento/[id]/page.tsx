@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import NavbarHome from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
@@ -11,7 +11,12 @@ import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
 export default function EventoPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : undefined;
+  const id =
+    typeof params?.id === 'string'
+      ? params.id
+      : Array.isArray(params?.id)
+        ? params?.id[0]
+        : undefined;
   const { data: event, isLoading, error } = usePublicEvent(id);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
@@ -58,11 +63,13 @@ export default function EventoPage() {
     }
   }, [event?.ubicacion, isLoaded]);
 
-  const coverImage = event?.imagenes_evento?.find((i) => i.tipo === 'portada')?.url || event?.imagenes_evento?.[0]?.url || undefined;
+  const coverImage =
+    event?.imagenes_evento?.find((i) => i.tipo === 'portada')?.url ||
+    event?.imagenes_evento?.[0]?.url ||
+    undefined;
 
   return (
     <main className="min-h-screen">
-
       {coverImage ? (
         <div
           style={{ backgroundImage: `url(${coverImage})` }}
@@ -79,10 +86,17 @@ export default function EventoPage() {
           {error && <div className="text-red-200">No se pudo cargar el evento.</div>}
           {!isLoading && !error && event && (
             <div className="grid gap-8 md:grid-cols-[330px,1fr]">
-              
               <div className="space-y-2">
                 <div
-                  style={coverImage ? { backgroundImage: `url(${coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                  style={
+                    coverImage
+                      ? {
+                          backgroundImage: `url(${coverImage})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }
+                      : {}
+                  }
                   className={`rounded-xl bg-stone-900 backdrop-blur-lg transition-all duration-300 ${coverImage ? 'h-80' : ''}`}
                 >
                   {!coverImage && (
@@ -100,8 +114,15 @@ export default function EventoPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {event.imagenes_evento.slice(1).map((img) => (
-                        <div key={img.id_imagen} className="aspect-square overflow-hidden rounded-lg">
-                          <img src={img.url} alt={event.titulo} className="h-full w-full object-cover" />
+                        <div
+                          key={img.id_imagen}
+                          className="aspect-square overflow-hidden rounded-lg"
+                        >
+                          <img
+                            src={img.url}
+                            alt={event.titulo}
+                            className="h-full w-full object-cover"
+                          />
                         </div>
                       ))}
                     </div>
@@ -124,15 +145,27 @@ export default function EventoPage() {
                   <div className="text-stone-300 space-y-1">
                     <div>
                       <span className="font-medium">Inicio: </span>
-                      {new Date(event.fecha_inicio_venta).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                      {' '}
-                      {new Date(event.fecha_inicio_venta).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.fecha_inicio_venta).toLocaleDateString('es-AR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}{' '}
+                      {new Date(event.fecha_inicio_venta).toLocaleTimeString('es-AR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </div>
                     <div>
                       <span className="font-medium">Fin: </span>
-                      {new Date(event.fecha_fin_venta).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                      {' '}
-                      {new Date(event.fecha_fin_venta).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.fecha_fin_venta).toLocaleDateString('es-AR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}{' '}
+                      {new Date(event.fecha_fin_venta).toLocaleTimeString('es-AR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </div>
                   </div>
 
@@ -142,9 +175,15 @@ export default function EventoPage() {
                       <ul className="list-disc pl-6 text-stone-200">
                         {event.fechas_evento.map((f) => (
                           <li key={f.id_fecha}>
-                            {new Date(f.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                            {' '}
-                            {new Date(f.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(f.fecha_hora).toLocaleDateString('es-AR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })}{' '}
+                            {new Date(f.fecha_hora).toLocaleTimeString('es-AR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </li>
                         ))}
                       </ul>
@@ -167,7 +206,10 @@ export default function EventoPage() {
                             zoomControl: true,
                             styles: [
                               { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                              { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                              {
+                                elementType: 'labels.text.stroke',
+                                stylers: [{ color: '#242f3e' }],
+                              },
                               { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
                             ],
                           }}

@@ -8,14 +8,14 @@ import { Footer } from '@/components/footer';
 import Carrusel from '@/components/carrusel';
 import { useAllEvents } from '@/hooks/use-events';
 
-
 const estadoEvents: Record<string, string> = {
   ACTIVO: 'Disponibles',
   COMPLETADO: 'Agotadas',
   CANCELADO: 'Agotadas',
 };
 
-function mapEstados(estado?: string) { //mapeo disponibilidad events
+function mapEstados(estado?: string) {
+  //mapeo disponibilidad events
   return estadoEvents[estado ?? ''] ?? 'Disponibles';
 }
 
