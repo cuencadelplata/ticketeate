@@ -47,7 +47,9 @@ export default function EventTicket({
             <span className="text-sm font-medium text-stone-100">Entradas</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-stone-400">{currentTicketInfo?.type === 'paid' ? 'Pago' : 'Gratis'}</span>
+            <span className="text-sm text-stone-400">
+              {currentTicketInfo?.type === 'paid' ? 'Pago' : 'Gratis'}
+            </span>
             <PencilLine className="h-4 w-4 text-stone-400" />
           </div>
         </button>
@@ -75,11 +77,19 @@ export default function EventTicket({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`rounded-md p-2 ${type === 'free' ? 'bg-orange-500/20' : 'bg-stone-700'}`}>
-                    <Gift className={`h-5 w-5 ${type === 'free' ? 'text-orange-400' : 'text-stone-300'}`} />
+                  <div
+                    className={`rounded-md p-2 ${type === 'free' ? 'bg-orange-500/20' : 'bg-stone-700'}`}
+                  >
+                    <Gift
+                      className={`h-5 w-5 ${type === 'free' ? 'text-orange-400' : 'text-stone-300'}`}
+                    />
                   </div>
                   <div>
-                    <div className={`text-base font-medium ${type === 'free' ? 'text-orange-400' : 'text-stone-100'}`}>Gratis</div>
+                    <div
+                      className={`text-base font-medium ${type === 'free' ? 'text-orange-400' : 'text-stone-100'}`}
+                    >
+                      Gratis
+                    </div>
                     <div className="text-xs text-stone-400">Inscripciones sin costo</div>
                   </div>
                 </div>
@@ -93,18 +103,29 @@ export default function EventTicket({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`rounded-md p-2 ${type === 'paid' ? 'bg-orange-500/20' : 'bg-stone-700'}`}>
-                    <CreditCard className={`h-5 w-5 ${type === 'paid' ? 'text-orange-400' : 'text-stone-300'}`} />
+                  <div
+                    className={`rounded-md p-2 ${type === 'paid' ? 'bg-orange-500/20' : 'bg-stone-700'}`}
+                  >
+                    <CreditCard
+                      className={`h-5 w-5 ${type === 'paid' ? 'text-orange-400' : 'text-stone-300'}`}
+                    />
                   </div>
                   <div>
-                    <div className={`text-base font-medium ${type === 'paid' ? 'text-orange-400' : 'text-stone-100'}`}>Pago</div>
+                    <div
+                      className={`text-base font-medium ${type === 'paid' ? 'text-orange-400' : 'text-stone-100'}`}
+                    >
+                      Pago
+                    </div>
                     <div className="text-xs text-stone-400">Configura entradas pagas</div>
                   </div>
                 </div>
               </button>
             </div>
 
-            <Button onClick={handleSavePaid} className="w-full bg-white text-black hover:bg-stone-200">
+            <Button
+              onClick={handleSavePaid}
+              className="w-full bg-white text-black hover:bg-stone-200"
+            >
               Guardar
             </Button>
           </div>

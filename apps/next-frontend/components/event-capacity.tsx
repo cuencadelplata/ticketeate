@@ -59,7 +59,11 @@ interface EventCapacityProps {
 
 type DialogView = 'main' | 'newTicket' | 'restrictions' | 'ticketTypes' | 'queueSettings';
 
-export default function EventCapacity({ hasWallet, isPaid = false, onCapacityChange }: EventCapacityProps) {
+export default function EventCapacity({
+  hasWallet,
+  isPaid = false,
+  onCapacityChange,
+}: EventCapacityProps) {
   const [isUnlimited, setIsUnlimited] = useState(true);
   const [capacity, setCapacity] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
@@ -379,8 +383,7 @@ export default function EventCapacity({ hasWallet, isPaid = false, onCapacityCha
                         El sistema de cola está desactivado
                       </p>
                       <p className="text-xs text-stone-500">
-                        Configura cuántas personas pueden comprar
-                        simultáneamente
+                        Configura cuántas personas pueden comprar simultáneamente
                       </p>
                     </div>
                   )}
