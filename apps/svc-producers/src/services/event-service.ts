@@ -43,6 +43,12 @@ export interface CreateEventData {
     backgroundImage?: string;
   };
   clerkUserId: string;
+  ticket_types?: Array<{
+    nombre: string;
+    descripcion?: string;
+    precio: number;
+    stock_total: number;
+  }>;
 }
 
 export interface EventWithImages {
@@ -138,6 +144,20 @@ export class EventService {
         });
       }
 
+      // Crear categorías de entrada (tipos de tickets) si se enviaron
+      if (data.ticket_types && data.ticket_types.length > 0) {
+        await prisma.categoriaEntrada.createMany({
+          data: data.ticket_types.map((t) => ({
+            id_evento: evento.id_evento,
+            nombre: t.nombre,
+            descripcion: t.descripcion ?? null,
+            precio: t.precio,
+            stock_total: t.stock_total,
+            stock_disponible: t.stock_total,
+          })),
+        });
+      }
+
       // set estadísticas iniciales para el evento
       await prisma.estadistica.create({
         data: {
@@ -163,6 +183,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          categorias_entrada: true,
         },
       });
 

@@ -33,9 +33,10 @@ export interface EventLocationData {
 
 interface EventLocationProps {
   onLocationSelect: (location: EventLocationData | null) => void;
+  allowedSectorNames?: string[];
 }
 
-const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
+const EventLocation = ({ onLocationSelect, allowedSectorNames }: EventLocationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EventLocationData | null>(null);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -470,6 +471,7 @@ const EventLocation = ({ onLocationSelect }: EventLocationProps) => {
         onClose={() => setIsMapModalOpen(false)}
         onSave={handleMapSave}
         initialMapData={selectedLocation?.eventMap}
+        allowedSectorNames={allowedSectorNames}
       />
     </>
   );
