@@ -2,42 +2,42 @@
  * ===============================================================
  * EXCEPCIONES DE DOMINIO - EVENTOS
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este archivo define excepciones específicas del dominio de eventos.
- * Las excepciones de dominio representan violaciones de reglas de 
+ * Las excepciones de dominio representan violaciones de reglas de
  * negocio y situaciones excepcionales del modelo de dominio.
- * 
+ *
  * PATRÓN DOMAIN EXCEPTIONS:
  * - Cada excepción tiene un código y status HTTP específico
  * - Mensajes descriptivos para debugging y logging
  * - Jerarquía clara heredando de DomainException
- * 
+ *
  * VENTAJAS:
  * - Manejo centralizado de errores por tipo
  * - Códigos consistentes para el frontend
  * - Separación entre errores de dominio y técnicos
  * - Fácil identificación de problemas en logs
- * 
+ *
  * PARA EL EQUIPO:
  * - Usa estas excepciones en lugar de Error genérico
  * - Cada excepción mapea a un status HTTP específico
  * - El controlador las maneja automáticamente
  * - Para nuevas reglas de negocio, crea nuevas excepciones aquí
- * 
+ *
  * EJEMPLO DE USO:
  * ```typescript
  * if (!evento.estaActivo()) {
  *   throw new EventoInactivoException(evento.id);
  * }
  * ```
- * 
+ *
  * CÓDIGOS DE ERROR:
  * - EVENTO_NO_ENCONTRADO: 404
  * - EVENTO_INACTIVO: 400
  * - PARAMETRO_INVALIDO: 400
  * - ERROR_BASE_DATOS: 500
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08

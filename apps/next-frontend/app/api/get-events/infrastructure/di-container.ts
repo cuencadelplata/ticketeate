@@ -9,22 +9,22 @@ import { EventoController } from '../presentation/controllers/evento.controller'
  * ===============================================================
  * DEPENDENCY INJECTION CONTAINER
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este container gestiona la creación e inyección de todas las dependencias
  * del sistema. Implementa el patrón Composition Root donde toda la
  * aplicación se ensambla en un punto centralizado.
- * 
+ *
  * PATRÓN SINGLETON:
  * - Una sola instancia del container en toda la aplicación
  * - Evita crear múltiples instancias de servicios costosos
  * - Facilita el manejo del ciclo de vida de dependencias
- * 
+ *
  * LAZY LOADING:
  * - Las dependencias se crean solo cuando se necesitan
  * - Mejora el tiempo de arranque de la aplicación
  * - Evita circular dependencies
- * 
+ *
  * ARQUITECTURA DE DEPENDENCIAS:
  * ```
  * Controller
@@ -33,25 +33,25 @@ import { EventoController } from '../presentation/controllers/evento.controller'
  *    ↓
  * Repository Interface ← Repository Implementation
  * ```
- * 
+ *
  * PARA EL EQUIPO:
  * - Este es el ÚNICO lugar donde se crean instancias concretas
  * - Para agregar nuevos servicios, agrégalos aquí
  * - Para testing, usa registerEventoRepository() con mocks
  * - El método clear() es útil para limpiar entre tests
- * 
+ *
  * TESTING:
  * ```typescript
  * // En tests
  * diContainer.registerEventoRepository(new MockEventoRepository());
  * const controller = diContainer.getEventoController();
  * ```
- * 
+ *
  * EXTENDING:
  * - Para nuevos casos de uso: agregar getter y dependency injection
  * - Para nuevos repositorios: seguir el mismo patrón
  * - Mantener lazy loading para performance
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -59,14 +59,14 @@ import { EventoController } from '../presentation/controllers/evento.controller'
  */
 class DIContainer {
   private static instance: DIContainer;
-  
+
   // Repositorios
   private _eventoRepository?: EventoRepository;
-  
+
   // Casos de uso
   private _listarEventosUseCase?: ListarEventosUseCase;
   private _obtenerEventoUseCase?: ObtenerEventoUseCase;
-  
+
   // Controladores
   private _eventoController?: EventoController;
 
@@ -82,7 +82,7 @@ class DIContainer {
 
   /**
    * Obtiene el repositorio de eventos (lazy loading)
-   * 
+   *
    * USANDO MOCK TEMPORAL: Para demostrar Arquitectura Limpia mientras se configura Prisma
    * TODO: Cambiar a PrismaEventoRepository cuando Prisma esté configurado correctamente
    */
@@ -90,7 +90,7 @@ class DIContainer {
     if (!this._eventoRepository) {
       // TEMPORAL: Usar datos mock para demostrar Arquitectura Limpia
       this._eventoRepository = new MockEventoRepository();
-      
+
       // TODO: Descomentar cuando Prisma funcione correctamente:
       // this._eventoRepository = new PrismaEventoRepository();
     }
@@ -102,9 +102,7 @@ class DIContainer {
    */
   public getListarEventosUseCase(): ListarEventosUseCase {
     if (!this._listarEventosUseCase) {
-      this._listarEventosUseCase = new ListarEventosUseCase(
-        this.getEventoRepository()
-      );
+      this._listarEventosUseCase = new ListarEventosUseCase(this.getEventoRepository());
     }
     return this._listarEventosUseCase;
   }
@@ -114,9 +112,7 @@ class DIContainer {
    */
   public getObtenerEventoUseCase(): ObtenerEventoUseCase {
     if (!this._obtenerEventoUseCase) {
-      this._obtenerEventoUseCase = new ObtenerEventoUseCase(
-        this.getEventoRepository()
-      );
+      this._obtenerEventoUseCase = new ObtenerEventoUseCase(this.getEventoRepository());
     }
     return this._obtenerEventoUseCase;
   }

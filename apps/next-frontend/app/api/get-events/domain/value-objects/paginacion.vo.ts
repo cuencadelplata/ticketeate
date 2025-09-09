@@ -2,38 +2,38 @@
  * ===============================================================
  * VALUE OBJECTS - PAGINACIÓN
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este archivo contiene Value Objects para el manejo de paginación
  * en consultas de eventos. Los VOs encapsulan validaciones y
  * cálculos relacionados con la paginación.
- * 
+ *
  * VALUE OBJECTS DEFINIDOS:
  * - PaginacionVO: Maneja parámetros de paginación con validaciones
  * - RespuestaPaginadaVO: Estructura para respuestas paginadas
- * 
+ *
  * CARACTERÍSTICAS DE VALUE OBJECTS:
  * - Inmutables: Una vez creados, no se pueden modificar
  * - Sin identidad: Se comparan por valor, no por referencia
  * - Validaciones: Contienen reglas de negocio para sus valores
  * - Autocontenidos: Toda la lógica relacionada está encapsulada
- * 
+ *
  * PARA EL EQUIPO:
  * - Usa PaginacionVO.crear() para crear instancias validadas
  * - Los límites están configurados (máx 100, mín 1)
  * - Si necesitas cambiar reglas de paginación, modifica aquí
  * - El skip se calcula automáticamente para Prisma
- * 
+ *
  * EJEMPLO DE USO:
  * ```typescript
  * const paginacion = PaginacionVO.crear('2', '10'); // página 2, 10 items
  * console.log(paginacion.skip); // 10 (se calcula automáticamente)
  * ```
- * 
+ *
  * TESTING:
  * - Prueba casos límite: página 0, límite negativo, etc.
  * - Los VOs lanzan errores descriptivos para valores inválidos
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -62,13 +62,10 @@ export class PaginacionVO {
   }
 
   public static crear(pagina?: string | number, limite?: string | number): PaginacionVO {
-    const paginaNum = typeof pagina === 'string' ? parseInt(pagina) : pagina ?? 1;
-    const limiteNum = typeof limite === 'string' ? parseInt(limite) : limite ?? 10;
-    
-    return new PaginacionVO(
-      Math.max(1, paginaNum),
-      Math.max(1, Math.min(100, limiteNum))
-    );
+    const paginaNum = typeof pagina === 'string' ? parseInt(pagina) : (pagina ?? 1);
+    const limiteNum = typeof limite === 'string' ? parseInt(limite) : (limite ?? 10);
+
+    return new PaginacionVO(Math.max(1, paginaNum), Math.max(1, Math.min(100, limiteNum)));
   }
 
   public calcularTotalPaginas(totalElementos: number): number {
@@ -97,7 +94,7 @@ export class RespuestaPaginadaVO<T> {
       pagina: paginacionVO.pagina,
       limite: paginacionVO.limite,
       total,
-      totalPaginas: paginacionVO.calcularTotalPaginas(total)
+      totalPaginas: paginacionVO.calcularTotalPaginas(total),
     });
   }
 }

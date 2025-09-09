@@ -5,12 +5,12 @@ import { FiltrosEventosVO } from '../../domain/value-objects/filtros-eventos.vo'
 
 /**
  * Implementación Mock del Repositorio de Eventos
- * 
+ *
  * PROPÓSITO:
  * Implementación temporal usando datos mock para probar Arquitectura Limpia
  * sin dependencias de base de datos. Esto permite probar todas las capas
  * arquitectónicas mientras se resuelven problemas de Prisma Client por separado.
- * 
+ *
  * NOTAS PARA EL EQUIPO:
  * - Esta es una implementación TEMPORAL para propósitos de testing
  * - Reemplazar con PrismaEventoRepository una vez resueltos los problemas de Prisma
@@ -18,12 +18,12 @@ import { FiltrosEventosVO } from '../../domain/value-objects/filtros-eventos.vo'
  * - Simula todas las operaciones del repositorio correctamente
  */
 export class MockEventoRepository implements EventoRepository {
-
   private mockEventos: EventoData[] = [
     {
       id: 'cmf20i5j60004u6ust32p9570',
       titulo: 'Concierto de Rock Nacional',
-      descripcion: 'Una noche increíble con las mejores bandas de rock nacional. Ven y disfruta de la música en vivo en un ambiente espectacular.',
+      descripcion:
+        'Una noche increíble con las mejores bandas de rock nacional. Ven y disfruta de la música en vivo en un ambiente espectacular.',
       fechaInicio: '2025-01-15T20:00:00.000Z',
       fechaFin: '2025-01-15T23:30:00.000Z',
       ubicacion: 'Teatro Gran Rex, Buenos Aires',
@@ -33,19 +33,19 @@ export class MockEventoRepository implements EventoRepository {
       categoria: {
         id: 'cat_music_rock',
         nombre: 'Rock Nacional',
-        descripcion: 'Eventos de rock y música nacional'
+        descripcion: 'Eventos de rock y música nacional',
       },
       imagenes: [
         {
           id: 'img1',
           url: 'https://example.com/rock-concert.jpg',
           alt: 'Concierto de Rock Nacional',
-          esPrincipal: true
-        }
+          esPrincipal: true,
+        },
       ],
       estado: 'activo',
       createdAt: '2024-12-01T10:00:00.000Z',
-      updatedAt: '2024-12-05T15:30:00.000Z'
+      updatedAt: '2024-12-05T15:30:00.000Z',
     },
     {
       id: 'cmf20i3u20001u6us8gwtsldy',
@@ -60,19 +60,19 @@ export class MockEventoRepository implements EventoRepository {
       categoria: {
         id: 'cat_teatro',
         nombre: 'Teatro',
-        descripcion: 'Obras teatrales y dramáticas'
+        descripcion: 'Obras teatrales y dramáticas',
       },
       imagenes: [
         {
           id: 'img2',
           url: 'https://example.com/teatro.jpg',
           alt: 'Obra de Teatro Clásica',
-          esPrincipal: true
-        }
+          esPrincipal: true,
+        },
       ],
       estado: 'activo',
       createdAt: '2024-12-02T14:20:00.000Z',
-      updatedAt: '2024-12-06T09:15:00.000Z'
+      updatedAt: '2024-12-06T09:15:00.000Z',
     },
     {
       id: 'cmf20i7x30005u6us9hxvmn12',
@@ -87,13 +87,13 @@ export class MockEventoRepository implements EventoRepository {
       categoria: {
         id: 'cat_music_jazz',
         nombre: 'Jazz',
-        descripcion: 'Eventos de jazz y música instrumental'
+        descripcion: 'Eventos de jazz y música instrumental',
       },
       imagenes: [],
       estado: 'activo',
       createdAt: '2024-12-03T11:45:00.000Z',
-      updatedAt: '2024-12-07T16:20:00.000Z'
-    }
+      updatedAt: '2024-12-07T16:20:00.000Z',
+    },
   ];
 
   async buscarEventos(
@@ -102,42 +102,42 @@ export class MockEventoRepository implements EventoRepository {
   ): Promise<RespuestaPaginadaVO<EventoEntity>> {
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     let eventosFiltrados = this.mockEventos;
-    
+
     // Apply filters
     if (filtros) {
       eventosFiltrados = this.aplicarFiltros(eventosFiltrados, filtros);
     }
-    
+
     // Apply pagination
     const start = paginacion.skip;
     const end = start + paginacion.limite;
     const eventosPaginados = eventosFiltrados.slice(start, end);
-    
+
     // Convert to domain entities
     const entidades = eventosPaginados.map(data => EventoEntity.crear(data));
-    
+
     return RespuestaPaginadaVO.crear(entidades, paginacion, eventosFiltrados.length);
   }
 
   async buscarPorId(id: string): Promise<EventoEntity | null> {
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 50));
-    
+
     const eventoData = this.mockEventos.find(evento => evento.id === id);
-    
+
     if (!eventoData) {
       return null;
     }
-    
+
     return EventoEntity.crear(eventoData);
   }
 
   async calcularDisponibilidad(eventoId: string): Promise<number> {
-    // Simulate async operation  
+    // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 20));
-    
+
     const evento = this.mockEventos.find(e => e.id === eventoId);
     return evento?.disponibles || 0;
   }
@@ -151,15 +151,17 @@ export class MockEventoRepository implements EventoRepository {
     return eventos.filter(evento => {
       // Filter by ubicacion
       if (filtros.ubicacion) {
-        const matchUbicacion = evento.ubicacion.toLowerCase().includes(filtros.ubicacion.toLowerCase());
+        const matchUbicacion = evento.ubicacion
+          .toLowerCase()
+          .includes(filtros.ubicacion.toLowerCase());
         if (!matchUbicacion) return false;
       }
-      
+
       // Filter by categoria
       if (filtros.categoriaId) {
         if (evento.categoria.id !== filtros.categoriaId) return false;
       }
-      
+
       // Filter by precio
       if (filtros.precioMin !== undefined && evento.precio < filtros.precioMin) {
         return false;
@@ -167,7 +169,7 @@ export class MockEventoRepository implements EventoRepository {
       if (filtros.precioMax !== undefined && evento.precio > filtros.precioMax) {
         return false;
       }
-      
+
       // Filter by fechas
       if (filtros.fechaInicio) {
         const eventoFecha = new Date(evento.fechaInicio);
@@ -177,7 +179,7 @@ export class MockEventoRepository implements EventoRepository {
         const eventoFecha = new Date(evento.fechaFin);
         if (eventoFecha > filtros.fechaFin) return false;
       }
-      
+
       return true;
     });
   }

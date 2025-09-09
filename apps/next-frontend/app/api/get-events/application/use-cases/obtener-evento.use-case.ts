@@ -1,6 +1,10 @@
 import { EventoRepository } from '../../domain/repositories/evento.repository';
 import { EventoEntity, EventoJson } from '../../domain/entities/evento.entity';
-import { EventoNoEncontradoException, ErrorBaseDatosException, ParametroInvalidoException } from '../../domain/exceptions/evento.exceptions';
+import {
+  EventoNoEncontradoException,
+  ErrorBaseDatosException,
+  ParametroInvalidoException,
+} from '../../domain/exceptions/evento.exceptions';
 
 // DTO de entrada para el caso de uso
 export interface ObtenerEventoInput {
@@ -16,45 +20,45 @@ export interface ObtenerEventoOutput {
  * ===============================================================
  * CASO DE USO: OBTENER EVENTO POR ID
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este caso de uso maneja la lógica de negocio para obtener
  * el detalle completo de un evento específico por su ID.
- * 
+ *
  * VALIDACIONES INCLUIDAS:
  * - ID requerido y formato válido
  * - Evento debe existir y estar activo
  * - Validaciones de dominio aplicadas
- * 
+ *
  * FLUJO DE EJECUCIÓN:
  * 1. Validar formato y presencia del ID
  * 2. Buscar evento en repositorio
  * 3. Verificar que existe y está activo
  * 4. Aplicar reglas de dominio adicionales
  * 5. Transformar a DTO de respuesta
- * 
+ *
  * SEGURIDAD:
  * - No revela información sobre eventos inactivos
  * - Validación estricta de parámetros de entrada
  * - Manejo consistente de errores
- * 
+ *
  * PARA EL EQUIPO:
  * - Usa este caso de uso para obtener detalles de eventos individuales
  * - Las validaciones están centralizadas aquí
  * - Manejo de errores específico para casos de uso
  * - Fácil de testear y modificar independientemente
- * 
+ *
  * EJEMPLO DE USO:
  * ```typescript
  * const resultado = await obtenerEventoUseCase.execute({ id: 'evento-123' });
  * console.log(resultado.evento.titulo);
  * ```
- * 
+ *
  * ERROR HANDLING:
  * - EventoNoEncontradoException: Evento no existe o inactivo
  * - ParametroInvalidoException: ID inválido o vacío
  * - ErrorBaseDatosException: Error técnico de base de datos
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -83,23 +87,22 @@ export class ObtenerEventoUseCase {
 
       // 5. Convertir entidad de dominio a DTO de salida
       return {
-        evento: evento.toJson()
+        evento: evento.toJson(),
       };
-
     } catch (error) {
       // Manejo de errores con logging
       console.error('Error en ObtenerEventoUseCase:', error);
-      
+
       // Re-lanzar errores de dominio tal como están
       if (this.isDomainException(error)) {
         throw error;
       }
-      
+
       // Convertir errores genéricos a errores de dominio
       if (error instanceof Error) {
         throw new ErrorBaseDatosException('obtener evento', error.message);
       }
-      
+
       throw new ErrorBaseDatosException('obtener evento');
     }
   }
@@ -113,7 +116,11 @@ export class ObtenerEventoUseCase {
     }
 
     if (typeof input.id !== 'string') {
-      throw new ParametroInvalidoException('id', String(input.id), 'ID debe ser una cadena de texto');
+      throw new ParametroInvalidoException(
+        'id',
+        String(input.id),
+        'ID debe ser una cadena de texto'
+      );
     }
 
     if (input.id.trim().length === 0) {

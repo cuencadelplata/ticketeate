@@ -5,45 +5,45 @@ import { DomainException } from '../../domain/exceptions/evento.exceptions';
 
 /**
  * CONTROLADOR DE EVENTOS - MANEJADOR HTTP
- * 
+ *
  * PROPÓSITO:
  * Este controlador maneja las peticiones HTTP para eventos.
  * Actúa como adaptador entre el protocolo HTTP y los casos de uso
  * del dominio, siguiendo el patrón Controller de Arquitectura Limpia.
- * 
+ *
  * RESPONSABILIDADES:
  * - Extraer y validar parámetros HTTP
  * - Delegar lógica de negocio a casos de uso
  * - Transformar respuestas de dominio a HTTP
  * - Manejar errores y códigos de status apropiados
  * - Configurar headers de cache y respuesta
- * 
+ *
  * ENDPOINTS SOPORTADOS:
  * - GET /api/get-events → Listar eventos paginados
  * - GET /api/get-events?id=123 → Obtener evento específico
- * 
+ *
  * CARACTERÍSTICAS HTTP:
  * - Headers de cache configurados por tipo de consulta
  * - Headers informativos (X-Total-Count, X-Page, etc.)
  * - Manejo centralizado de errores con códigos HTTP apropiados
  * - Soporte para múltiples formatos de parámetros (page/pagina, limit/limite)
- * 
+ *
  * PARA EL EQUIPO:
  * - Agrega nuevos endpoints como métodos privados
  * - El manejo de errores es centralizado en manejarError()
  * - Los headers de cache pueden ajustarse según necesidades
  * - Para nuevos filtros, extiende extraerFiltros()
- * 
+ *
  * MANEJO DE ERRORES:
  * - Errores de dominio → Status codes específicos + mensaje descriptivo
  * - Errores de validación → 400 Bad Request
  * - Errores técnicos → 500 Internal Server Error
  * - Timestamps y códigos de error consistentes
- * 
+ *
  * RENDIMIENTO:
  * - Cache headers configurados (5 min evento, 2 min listado)
  * - Headers informativos para paginación eficiente en frontend
- * 
+ *
  * @author Implementación de Arquitectura Limpia - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -70,7 +70,6 @@ export class EventoController {
 
       // Caso contrario, listar eventos con filtros
       return await this.listarEventos(params);
-
     } catch (error) {
       console.error('Error en handleGetRequest:', error);
       return this.manejarError(error);
@@ -83,14 +82,13 @@ export class EventoController {
   private async obtenerEventoEspecifico(id: string): Promise<NextResponse> {
     try {
       const resultado = await this.obtenerEventoUseCase.execute({ id });
-      
+
       return NextResponse.json(resultado.evento, {
         status: 200,
         headers: {
           'Cache-Control': 'public, max-age=300', // Cache por 5 minutos
         },
       });
-
     } catch (error) {
       return this.manejarError(error);
     }
@@ -125,7 +123,6 @@ export class EventoController {
           'X-Total-Pages': resultado.paginacion.totalPaginas.toString(),
         },
       });
-
     } catch (error) {
       return this.manejarError(error);
     }
@@ -161,10 +158,10 @@ export class EventoController {
     // Errores de dominio con manejo específico
     if (error instanceof DomainException) {
       return NextResponse.json(
-        { 
+        {
           error: error.message,
           code: error.code,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
         { status: error.statusCode }
       );
@@ -173,10 +170,10 @@ export class EventoController {
     // Errores de validación
     if (error instanceof Error && error.message.includes('inválido')) {
       return NextResponse.json(
-        { 
+        {
           error: error.message,
           code: 'VALIDATION_ERROR',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
         { status: 400 }
       );
@@ -185,10 +182,10 @@ export class EventoController {
     // Errores genéricos
     console.error('Error no manejado en EventoController:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Error interno del servidor',
         code: 'INTERNAL_SERVER_ERROR',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

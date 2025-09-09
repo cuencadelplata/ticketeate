@@ -7,52 +7,51 @@ import { ErrorBaseDatosException } from '../../domain/exceptions/evento.exceptio
 
 /**
  * Implementación del Repositorio de Eventos usando Prisma ORM
- * 
+ *
  * PROPÓSITO:
  * Esta clase implementa el patrón Repository usando Prisma ORM.
  * Actúa como adaptador entre la capa de dominio y la base de datos PostgreSQL.
- * 
+ *
  * ADAPTACIONES APLICADAS:
  * - Mapea schema de Prisma a entidades de dominio
  * - Convierte filtros de dominio a consultas Prisma
  * - Maneja relaciones complejas (categorias_entrada, imagenes_evento)
  * - Calcula disponibilidad en tiempo real
- * 
+ *
  * CORRECCIONES DE SCHEMA APLICADAS:
  * - id → id_evento
  * - fechaInicio/fechaFin → fecha_inicio_venta/fecha_fin_venta
  * - estado: 'activo' → 'ACTIVO'
  * - imagenes → imagenes_evento
  * - categoria → categorias_entrada (relación uno-a-muchos)
- * 
+ *
  * LÓGICA DE NEGOCIO IMPLEMENTADA:
  * - Disponibilidad = suma(stock_total) - reservas_confirmadas
  * - Solo eventos ACTIVOS son retornados
  * - Precios mínimos calculados desde categorías
  * - Imágenes de portada priorizadas
- * 
+ *
  * NOTAS PARA EL EQUIPO:
  * - Si cambias el schema de Prisma, actualiza los mapeos aquí
  * - Los métodos privados manejan la transformación de datos
  * - Las consultas están optimizadas con includes y ejecución paralela
  * - El manejo de errores convierte excepciones técnicas a de dominio
- * 
+ *
  * RENDIMIENTO:
  * - Consultas paralelas donde es posible
  * - Includes optimizados para evitar consultas N+1
  * - Cálculo de disponibilidad cacheado por request
- * 
+ *
  * DEPURACIÓN:
  * - Logs de error detallados para cada operación
  * - Mapea errores de Prisma a errores de dominio
  * - Validaciones defensivas para datos corruptos
- * 
+ *
  * @author Implementación de Arquitectura Limpia - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
  */
 export class PrismaEventoRepository implements EventoRepository {
-
   /**
    * Busca eventos con paginación y filtros opcionales
    */
@@ -82,7 +81,7 @@ export class PrismaEventoRepository implements EventoRepository {
       ]);
 
       // 3. Calcular disponibilidad para cada evento en paralelo
-      const disponibilidadPromises = eventos.map((evento: any) => 
+      const disponibilidadPromises = eventos.map((evento: any) =>
         this.calcularDisponibilidad(evento.id_evento)
       );
       const disponibilidades = await Promise.all(disponibilidadPromises);
@@ -95,10 +94,12 @@ export class PrismaEventoRepository implements EventoRepository {
 
       // 5. Crear y retornar respuesta paginada
       return RespuestaPaginadaVO.crear(entidadesEvento, paginacion, total);
-
     } catch (error) {
       console.error('Error en buscarEventos:', error);
-      throw new ErrorBaseDatosException('buscar eventos', error instanceof Error ? error.message : undefined);
+      throw new ErrorBaseDatosException(
+        'buscar eventos',
+        error instanceof Error ? error.message : undefined
+      );
     }
   }
 
@@ -130,10 +131,12 @@ export class PrismaEventoRepository implements EventoRepository {
       // 4. Mapear a entidad de dominio
       const eventoData = this.mapearPrismaAEventoData(evento, disponibilidad);
       return EventoEntity.crear(eventoData);
-
     } catch (error) {
       console.error('Error en buscarPorId:', error);
-      throw new ErrorBaseDatosException('buscar evento por ID', error instanceof Error ? error.message : undefined);
+      throw new ErrorBaseDatosException(
+        'buscar evento por ID',
+        error instanceof Error ? error.message : undefined
+      );
     }
   }
 
@@ -153,7 +156,10 @@ export class PrismaEventoRepository implements EventoRepository {
       }
 
       // 2. Sumar capacidad total de todas las categorías
-      const capacidadTotal = categorias.reduce((total: number, cat: any) => total + cat.stock_total, 0);
+      const capacidadTotal = categorias.reduce(
+        (total: number, cat: any) => total + cat.stock_total,
+        0
+      );
 
       // 3. Contar reservas confirmadas
       const reservasConfirmadas = await prisma.reserva.count({
@@ -165,7 +171,6 @@ export class PrismaEventoRepository implements EventoRepository {
 
       // 4. Calcular disponibilidad
       return Math.max(0, capacidadTotal - reservasConfirmadas);
-
     } catch (error) {
       console.error('Error en calcularDisponibilidad:', error);
       // En caso de error, retornamos 0 para ser conservadores
@@ -186,7 +191,6 @@ export class PrismaEventoRepository implements EventoRepository {
       });
 
       return count > 0;
-
     } catch (error) {
       console.error('Error en existeYEstaActivo:', error);
       return false;
@@ -261,21 +265,26 @@ export class PrismaEventoRepository implements EventoRepository {
   private mapearPrismaAEventoData(evento: any, disponibilidad: number): EventoData {
     // Obtener la primera categoría de entrada para datos básicos
     const primeraCategoria = evento.categorias_entrada?.[0];
-    const precioMinimo = evento.categorias_entrada?.length > 0 
-      ? Math.min(...evento.categorias_entrada.map((cat: any) => Number(cat.precio)))
-      : 0;
-    const capacidadTotal = evento.categorias_entrada?.reduce((total: number, cat: any) => total + cat.stock_total, 0) || 0;
+    const precioMinimo =
+      evento.categorias_entrada?.length > 0
+        ? Math.min(...evento.categorias_entrada.map((cat: any) => Number(cat.precio)))
+        : 0;
+    const capacidadTotal =
+      evento.categorias_entrada?.reduce((total: number, cat: any) => total + cat.stock_total, 0) ||
+      0;
 
     return {
       id: evento.id_evento,
       titulo: evento.titulo,
       descripcion: evento.descripcion || '',
-      fechaInicio: evento.fecha_inicio_venta instanceof Date 
-        ? evento.fecha_inicio_venta.toISOString() 
-        : String(evento.fecha_inicio_venta),
-      fechaFin: evento.fecha_fin_venta instanceof Date 
-        ? evento.fecha_fin_venta.toISOString() 
-        : String(evento.fecha_fin_venta),
+      fechaInicio:
+        evento.fecha_inicio_venta instanceof Date
+          ? evento.fecha_inicio_venta.toISOString()
+          : String(evento.fecha_inicio_venta),
+      fechaFin:
+        evento.fecha_fin_venta instanceof Date
+          ? evento.fecha_fin_venta.toISOString()
+          : String(evento.fecha_fin_venta),
       ubicacion: evento.ubicacion || '',
       precio: precioMinimo,
       capacidad: capacidadTotal,
@@ -285,19 +294,22 @@ export class PrismaEventoRepository implements EventoRepository {
         nombre: primeraCategoria?.nombre || 'General',
         descripcion: primeraCategoria?.descripcion,
       },
-      imagenes: evento.imagenes_evento?.map((img: any) => ({
-        id: img.id_imagen,
-        url: img.url,
-        alt: img.url.split('/').pop() || 'Imagen del evento',
-        esPrincipal: img.tipo === 'PORTADA',
-      })) || [],
+      imagenes:
+        evento.imagenes_evento?.map((img: any) => ({
+          id: img.id_imagen,
+          url: img.url,
+          alt: img.url.split('/').pop() || 'Imagen del evento',
+          esPrincipal: img.tipo === 'PORTADA',
+        })) || [],
       estado: evento.estado.toLowerCase(), // Convertir de 'ACTIVO' a 'activo'
-      createdAt: evento.fecha_creacion instanceof Date 
-        ? evento.fecha_creacion.toISOString() 
-        : String(evento.fecha_creacion),
-      updatedAt: evento.fecha_creacion instanceof Date 
-        ? evento.fecha_creacion.toISOString() 
-        : String(evento.fecha_creacion), // Usar fecha_creacion como updatedAt
+      createdAt:
+        evento.fecha_creacion instanceof Date
+          ? evento.fecha_creacion.toISOString()
+          : String(evento.fecha_creacion),
+      updatedAt:
+        evento.fecha_creacion instanceof Date
+          ? evento.fecha_creacion.toISOString()
+          : String(evento.fecha_creacion), // Usar fecha_creacion como updatedAt
     };
   }
 }

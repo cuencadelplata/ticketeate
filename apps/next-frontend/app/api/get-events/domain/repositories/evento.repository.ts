@@ -6,39 +6,39 @@ import { FiltrosEventosVO } from '../value-objects/filtros-eventos.vo';
  * ===============================================================
  * INTERFACE REPOSITORY - EVENTOS
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este archivo define el contrato (interface) que debe cumplir
  * cualquier implementación de persistencia de eventos.
  * Representa el "puerto de salida" en Arquitectura Hexagonal.
- * 
+ *
  * PATRÓN REPOSITORY:
  * - Abstrae el acceso a datos del dominio
  * - Permite intercambiar implementaciones (Prisma, MongoDB, etc.)
  * - El dominio no conoce detalles de persistencia
- * 
+ *
  * MÉTODO INVERSIÓN DE DEPENDENCIAS:
  * - El dominio define QUÉ necesita (esta interface)
  * - La infraestructura implementa CÓMO lo hace (PrismaEventoRepository)
  * - El dominio no depende de la implementación concreta
- * 
+ *
  * PARA EL EQUIPO:
  * - Si necesitas nuevas operaciones de BD, agrégalas aquí primero
  * - Luego implementa en PrismaEventoRepository
  * - Mantén métodos enfocados en el dominio, no en tecnología
  * - Usa tipos del dominio (EventoEntity), no de Prisma
- * 
+ *
  * EJEMPLO DE NUEVA OPERACIÓN:
  * ```typescript
  * interface EventoRepository {
  *   buscarPorCategoria(categoriaId: string): Promise<EventoEntity[]>;
  * }
  * ```
- * 
+ *
  * TESTING:
  * - Puedes crear mocks implementando esta interface
  * - Útil para unit tests de casos de uso
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08

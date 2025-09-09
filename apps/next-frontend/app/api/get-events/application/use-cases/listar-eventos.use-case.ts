@@ -33,40 +33,40 @@ export interface ListarEventosOutput {
  * ===============================================================
  * CASO DE USO: LISTAR EVENTOS
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este caso de uso encapsula toda la lógica de negocio para obtener
  * una lista paginada de eventos con filtros opcionales.
  * Representa una funcionalidad específica del sistema.
- * 
+ *
  * PATRÓN USE CASE:
  * - Encapsula una funcionalidad completa del sistema
  * - Input y Output bien definidos con DTOs
  * - Orquesta operaciones entre entidades y repositorios
  * - Contiene validaciones y transformaciones necesarias
- * 
+ *
  * FLUJO DE EJECUCIÓN:
  * 1. Validar inputs del usuario
  * 2. Crear Value Objects (paginación, filtros)
  * 3. Consultar repositorio con parámetros validados
  * 4. Transformar entidades de dominio a DTOs de salida
  * 5. Retornar respuesta estructurada
- * 
+ *
  * PARA EL EQUIPO:
  * - Este es el punto de entrada para listar eventos desde cualquier capa superior
  * - Modifica aquí si necesitas agregar lógica de negocio al listado
  * - Los DTOs permiten evolucionar la API sin afectar el dominio
  * - El manejo de errores está centralizado aquí
- * 
+ *
  * TESTING:
  * - Mockea EventoRepository para unit tests
  * - Prueba diferentes combinaciones de filtros y paginación
  * - Verifica transformación correcta de entidades a JSON
- * 
+ *
  * EXTENDING:
  * - Para nuevos filtros: modificar ListarEventosInput y lógica de filtros
  * - Para nueva funcionalidad: crear nuevo caso de uso
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -79,7 +79,7 @@ export class ListarEventosUseCase {
     try {
       // 1. Crear Value Objects desde los inputs
       const paginacionVO = PaginacionVO.crear(input.pagina, input.limite);
-      
+
       // 2. Crear filtros si se proporcionan
       let filtrosVO: FiltrosEventosVO | undefined;
       if (input.filtros) {
@@ -94,10 +94,7 @@ export class ListarEventosUseCase {
       }
 
       // 3. Ejecutar la consulta a través del repositorio
-      const respuestaPaginada = await this.eventoRepository.buscarEventos(
-        paginacionVO,
-        filtrosVO
-      );
+      const respuestaPaginada = await this.eventoRepository.buscarEventos(paginacionVO, filtrosVO);
 
       // 4. Convertir entidades de dominio a DTOs de salida
       const eventosJson = respuestaPaginada.datos.map(evento => evento.toJson());
@@ -105,13 +102,12 @@ export class ListarEventosUseCase {
       // 5. Retornar la respuesta estructurada
       return {
         datos: eventosJson,
-        paginacion: respuestaPaginada.paginacion
+        paginacion: respuestaPaginada.paginacion,
       };
-
     } catch (error) {
       // Manejo de errores con logging
       console.error('Error en ListarEventosUseCase:', error);
-      
+
       if (error instanceof Error) {
         // Re-lanzar errores de dominio tal como están
         if (error.name.endsWith('Exception')) {
@@ -120,7 +116,7 @@ export class ListarEventosUseCase {
         // Convertir errores genéricos a errores de dominio
         throw new ErrorBaseDatosException('listar eventos', error.message);
       }
-      
+
       throw new ErrorBaseDatosException('listar eventos');
     }
   }
@@ -131,15 +127,15 @@ export class ListarEventosUseCase {
   private validarInputs(input: ListarEventosInput): void {
     // Las validaciones específicas se delegan a los Value Objects
     // Aquí solo validaciones de alto nivel si fuera necesario
-    
+
     if (input.filtros?.fechaInicio && input.filtros?.fechaFin) {
       const fechaInicio = new Date(input.filtros.fechaInicio);
       const fechaFin = new Date(input.filtros.fechaFin);
-      
+
       if (isNaN(fechaInicio.getTime())) {
         throw new Error('Fecha de inicio inválida');
       }
-      
+
       if (isNaN(fechaFin.getTime())) {
         throw new Error('Fecha de fin inválida');
       }

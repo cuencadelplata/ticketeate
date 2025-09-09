@@ -2,39 +2,39 @@
  * ===============================================================
  * ENTIDADES DE DOMINIO - EVENTOS
  * ===============================================================
- * 
+ *
  * PROPÓSITO:
  * Este archivo contiene las entidades de dominio que representan
  * los conceptos centrales del negocio de eventos. Las entidades
  * encapsulan tanto datos como comportamientos del dominio.
- * 
+ *
  * ARQUITECTURA:
  * - Forma parte de la capa de DOMINIO en Clean Architecture
  * - No depende de frameworks externos (Next.js, Prisma, etc.)
  * - Contiene lógica de negocio pura
- * 
+ *
  * ENTIDADES DEFINIDAS:
  * - EventoEntity: Representa un evento con su lógica de negocio
  * - CategoriaEntity: Representa categorías de eventos
  * - ImagenEventoEntity: Representa imágenes asociadas a eventos
- * 
+ *
  * PATRONES IMPLEMENTADOS:
  * - Entity Pattern: Objetos con identidad e invariantes de negocio
  * - Factory Method: Métodos estáticos 'crear' para instanciación
  * - Value Object: Objetos inmutables con tipos específicos
  * - Domain Model: Lógica de negocio encapsulada en entidades
- * 
+ *
  * PARA EL EQUIPO:
  * - Si necesitas agregar nueva lógica de negocio, hazlo aquí
  * - Los métodos como estaActivo(), tieneDisponibilidad() contienen
  *   las reglas de negocio que pueden cambiar según requerimientos
  * - No agregues dependencias externas (Prisma, Next.js, etc.)
  * - Usa los métodos factory 'crear' para instanciar objetos
- * 
+ *
  * TESTING:
  * - Estas entidades son fáciles de testear por ser independientes
  * - Ejemplo: EventoEntity.crear(mockData).estaActivo()
- * 
+ *
  * @author Clean Architecture Implementation - Sistema de Eventos
  * @version 1.0.0
  * @since 2024-12-08
@@ -112,7 +112,7 @@ export class EventoEntity {
       imagenes: this.imagenes.map(img => img.toJson()),
       estado: this.estado,
       createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString()
+      updatedAt: this.updatedAt.toISOString(),
     };
   }
 }
@@ -132,7 +132,7 @@ export class CategoriaEntity {
     return {
       id: this.id,
       nombre: this.nombre,
-      descripcion: this.descripcion
+      descripcion: this.descripcion,
     };
   }
 }
@@ -154,7 +154,7 @@ export class ImagenEventoEntity {
       id: this.id,
       url: this.url,
       alt: this.alt,
-      esPrincipal: this.esPrincipal
+      esPrincipal: this.esPrincipal,
     };
   }
 }
@@ -163,7 +163,7 @@ export class ImagenEventoEntity {
 export enum EventoEstado {
   ACTIVO = 'activo',
   CANCELADO = 'cancelado',
-  COMPLETADO = 'completado'
+  COMPLETADO = 'completado',
 }
 
 // Tipos para datos primitivos (input)
