@@ -101,7 +101,6 @@ export default function EventCapacity({
         queueConfig: queueConfig.enabled ? queueConfig : undefined,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketTypes]);
 
   const handleSave = () => {
