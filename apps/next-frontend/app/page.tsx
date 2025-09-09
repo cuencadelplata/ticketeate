@@ -10,6 +10,7 @@ import Carrusel from '@/components/carrusel';
 // 🔹 Datos de ejemplo para eventos
 const events = [
   {
+    id: 'cmf20i5j60004u6ust32p9572',
     title: 'El unipersonal de Luciano Mellera',
     description: '',
     price: '$30.000',
@@ -21,6 +22,7 @@ const events = [
     disponibilidad: 'Disponibles',
   },
   {
+    id: 'evt-2',
     title: 'The Life of a Show Girl World Tour',
     description: 'Taylor Swift en vivo.',
     price: '$250.000',
@@ -32,6 +34,7 @@ const events = [
     disponibilidad: 'Agotadas',
   },
   {
+    id: 'evt-3',
     title: 'Maria Becerra',
     description: '360',
     price: '$55.000',
@@ -43,6 +46,7 @@ const events = [
     disponibilidad: 'Agotadas',
   },
   {
+    id: 'evt-4',
     title: 'Andrea Boccelli',
     description: 'Live in Concert',
     price: '$2500000',
@@ -54,6 +58,7 @@ const events = [
     disponibilidad: 'Disponibles',
   },
   {
+    id: 'evt-5',
     title: 'Bad Bunny',
     description: 'Debí tirar mas fotos',
     price: '$70.000',
@@ -65,6 +70,7 @@ const events = [
     disponibilidad: 'Agotadas',
   },
   {
+    id: 'evt-6',
     title: ' GUNS N’ ROSES',
     description: 'DE REGRESO A LA CIUDAD DEL PARAÍSO',
     price: '$50.000',
@@ -76,6 +82,7 @@ const events = [
     disponibilidad: 'Agotadas',
   },
   {
+    id: 'evt-7',
     title: 'Airbag',
     description: 'Gira Mundial 2025',
     price: '$2000000',
@@ -92,11 +99,11 @@ const masVendidos = events.filter((evt) =>
   [
     'El unipersonal de Luciano Mellera',
     'The Life of a Show Girl World Tour',
-    'Maria Becerra',
+    'Pink Floyd',
   ].includes(evt.title),
 );
 const internationalArtists = events.filter((evt) =>
-  ['Andrea Boccelli', 'Bad Bunny', "GUNS N' ROSES"].includes(evt.title),
+  ['Andrea Boccelli', 'Bad Bunny', 'Pink Floyd'].includes(evt.title),
 );
 const artistasNacionales = events.filter((evt) => ['Maria Becerra', 'Airbag'].includes(evt.title));
 
@@ -208,5 +215,5 @@ export default function Home() {
       {/* Footer */}
       <Footer />
     </main>
-  );
+  );
 }
