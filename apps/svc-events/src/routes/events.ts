@@ -30,6 +30,26 @@ events.use(
   }),
 );
 
+// GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
+events.get('/all', async (c) => {
+  try {
+    const events = await EventService.getAllPublicEvents();
+    return c.json({
+      events,
+      total: events.length,
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error getting all events:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500,
+    );
+  }
+});
+
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {

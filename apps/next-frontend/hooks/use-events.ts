@@ -7,6 +7,7 @@ import type {
   CreateEventResponse,
   GetEventsResponse,
   GetEventResponse,
+  GetAllEventsResponse,
 } from '@/types/events';
 
 // Hook para obtener eventos
@@ -34,6 +35,25 @@ export function useEvents() {
       const data: GetEventsResponse = await response.json();
       return data.events || [];
     },
+  });
+}
+
+// hook para obtener todos los eventos - psados y activos
+export function useAllEvents() {
+  return useQuery({
+    queryKey: ['all-events'],
+    queryFn: async (): Promise<Event[]> => {
+      const response = await fetch(API_ENDPOINTS.allEvents);
+      if (!response.ok) {
+        throw new Error('Error al obtener todos los eventos');
+      }
+      const data: GetAllEventsResponse = await response.json();
+      return data.events || [];
+    },
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 }
 

@@ -5,6 +5,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
 export const API_ENDPOINTS = {
   events: `${API_BASE_URL}/api/events`,
   uploadImage: `${API_BASE_URL}/api/events/upload-image`,
+  allEvents: `${API_BASE_URL}/api/events/all`,
 } as const;
 
 // Configuración de Cloudinary (para referencia)

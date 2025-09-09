@@ -223,4 +223,31 @@ export class EventService {
       );
     }
   }
+
+  static async getAllPublicEvents(): Promise<EventWithImages[]> {
+    try {
+      const eventos = await prisma.evento.findMany({
+        where: {
+          estado: {
+            in: ['ACTIVO', 'COMPLETADO'],
+          },
+        },
+        include: {
+          imagenes_evento: true,
+          fechas_evento: true,
+        },
+        orderBy: {
+          fecha_inicio_venta: 'desc',
+        },
+      });
+
+      return eventos as EventWithImages[];
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error getting all public events:', error);
+      throw new Error(
+        `Error al obtener todos los eventos: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
 }
