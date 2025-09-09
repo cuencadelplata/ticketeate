@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validaciones simples
-    if (cantidad <= 0 || cantidad > 10) {
+    if (cantidad <= 0 || cantidad > 5) {
       return NextResponse.json(
         {
-          error: 'Cantidad debe estar entre 1 y 10',
+          error: 'Cantidad debe estar entre 1 y 5',
         },
         { status: 400 },
       );

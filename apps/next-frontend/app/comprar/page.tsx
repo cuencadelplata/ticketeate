@@ -104,11 +104,13 @@ export default function ComprarPage() {
       return;
     }
 
+    const categoriaNombre = sector === 'Entrada_General' ? 'General' : 'VIP';
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
+      id_categoria: categoriaNombre,
       // En un futuro, mapear sector -> categoria en DB
       // id_categoria: ...
       datos_tarjeta: isCardPayment
