@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser, UserButton } from '@clerk/nextjs';
 import { Calendar, MapPin, ArrowRight, Plus, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
+
 import { useEvents } from '@/hooks/use-events';
-import Image from 'next/image';
+import type { Event } from '@/types/events';
 
 // formatear fecha
 const formatEventDate = (dateString: string) => {
@@ -42,18 +42,10 @@ const isEventPast = (fechaFin: string) => {
 };
 
 export default function EventosPage() {
-  const { user, isSignedIn } = useUser();
-
-  if (!isSignedIn) {
-    return <div></div>;
-  }
-
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
-
-  // hook de TanStack Query para obtener eventos
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
 
-  // Función para recargar eventos
+  //force reload
   const loadEvents = async () => {
     try {
       await refetch();
@@ -70,172 +62,159 @@ export default function EventosPage() {
   });
 
   const hasEvents = filteredEvents.length > 0;
-  const role = user?.publicMetadata?.role;
-  if (role === 'admin') {
-    return (
-      <div className="min-h-screen bg-[#121212] text-white">
-        <div className="pb-4">
-          <Navbar />
-        </div>
-        <div className="p-6">
-          <div className="mx-auto max-w-4xl">
-            <div className="mb-10 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h1 className="text-4xl font-bold">Eventos</h1>
-                <button
-                  onClick={loadEvents}
-                  disabled={loading}
-                  className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-3 py-2 text-sm transition-colors hover:bg-[#3A3A3A] disabled:opacity-50"
-                  title="Recargar eventos"
-                >
-                  <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-                  {loading ? 'Cargando...' : 'Actualizar'}
-                </button>
-              </div>
-              <div className="flex rounded-lg bg-[#2A2A2A]">
-                <button
-                  onClick={() => setActiveTab('proximos')}
-                  className={cn(
-                    'rounded-lg px-4 py-2 text-sm',
-                    activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
-                  )}
-                >
-                  Próximos
-                </button>
-                <button
-                  onClick={() => setActiveTab('pasados')}
-                  className={cn(
-                    'rounded-lg px-4 py-2 text-sm',
-                    activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
-                  )}
-                >
-                  Pasados
-                </button>
-              </div>
+
+  return (
+    <div className="min-h-screen bg-[#121212] text-white">
+      <div className="pb-4">
+        <Navbar />
+      </div>
+      <div className="p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-10 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-4xl font-bold">Eventos</h1>
+              <button
+                onClick={loadEvents}
+                disabled={loading}
+                className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-3 py-2 text-sm transition-colors hover:bg-[#3A3A3A] disabled:opacity-50"
+                title="Recargar eventos"
+              >
+                <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+                {loading ? 'Cargando...' : 'Actualizar'}
+              </button>
             </div>
-
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <RefreshCw className="mb-4 h-16 w-16 animate-spin text-gray-500" />
-                <p className="text-gray-400">Cargando eventos...</p>
-              </div>
-            ) : !hasEvents ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="mb-6 rounded-lg bg-[#2A2A2A] p-6">
-                  <Calendar className="h-16 w-16 text-gray-500" />
-                </div>
-                <h2 className="mb-2 text-2xl font-semibold text-gray-300">
-                  Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
-                </h2>
-                <p className="mb-8 text-gray-400">
-                  {activeTab === 'proximos'
-                    ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
-                    : 'No tienes eventos pasados.'}
-                </p>
-                {activeTab === 'proximos' && (
-                  <Link href="/crear" className="flex">
-                    <button className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-4 py-2 transition-colors hover:bg-[#3A3A3A]">
-                      <Plus className="h-5 w-5" />
-                      <span>Crear evento</span>
-                    </button>
-                  </Link>
+            <div className="flex rounded-lg bg-[#2A2A2A]">
+              <button
+                onClick={() => setActiveTab('proximos')}
+                className={cn(
+                  'rounded-lg px-4 py-2 text-sm',
+                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
                 )}
+              >
+                Próximos
+              </button>
+              <button
+                onClick={() => setActiveTab('pasados')}
+                className={cn(
+                  'rounded-lg px-4 py-2 text-sm',
+                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
+                )}
+              >
+                Pasados
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <RefreshCw className="mb-4 h-16 w-16 animate-spin text-gray-500" />
+              <p className="text-gray-400">Cargando eventos...</p>
+            </div>
+          ) : !hasEvents ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="mb-6 rounded-lg bg-[#2A2A2A] p-6">
+                <Calendar className="h-16 w-16 text-gray-500" />
               </div>
-            ) : (
-              <div className="space-y-8">
-                {filteredEvents.map((event) => {
-                  const formattedDate = formatEventDate(event.fecha_inicio_venta);
-                  const hasLocation = !!event.ubicacion;
-                  const coverImage =
-                    event.imagenes_evento?.find((img) => img.tipo === 'portada')?.url ||
-                    event.imagenes_evento?.[0]?.url;
+              <h2 className="mb-2 text-2xl font-semibold text-gray-300">
+                Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
+              </h2>
+              <p className="mb-8 text-gray-400">
+                {activeTab === 'proximos'
+                  ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
+                  : 'No tienes eventos pasados.'}
+              </p>
+              {activeTab === 'proximos' && (
+                <Link href="/crear" className="flex">
+                  <button className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-4 py-2 transition-colors hover:bg-[#3A3A3A]">
+                    <Plus className="h-5 w-5" />
+                    <span>Crear evento</span>
+                  </button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {filteredEvents.map((event) => {
+                const formattedDate = formatEventDate(event.fecha_inicio_venta);
+                const hasLocation = !!event.ubicacion;
+                const coverImage =
+                  event.imagenes_evento?.find((img) => img.tipo === 'portada')?.url ||
+                  event.imagenes_evento?.[0]?.url;
 
-                  return (
-                    <div key={event.id_evento} className="relative">
-                      <div className="absolute left-4 top-0 flex flex-col items-center">
-                        <div className="text-lg font-medium">{formattedDate.date}</div>
-                        <div className="text-sm text-gray-400">{formattedDate.day}</div>
-                      </div>
-                      <div className="absolute left-[4.5rem] top-[1.5rem] h-full w-0.5 bg-[#2A2A2A]"></div>
-                      <div className="absolute left-[4.5rem] top-[1.5rem] h-2 w-2 rounded-full bg-gray-500"></div>
+                return (
+                  <div key={event.id_evento} className="relative">
+                    <div className="absolute left-4 top-0 flex flex-col items-center">
+                      <div className="text-lg font-medium">{formattedDate.date}</div>
+                      <div className="text-sm text-gray-400">{formattedDate.day}</div>
+                    </div>
+                    <div className="absolute left-[4.5rem] top-[1.5rem] h-full w-0.5 bg-[#2A2A2A]"></div>
+                    <div className="absolute left-[4.5rem] top-[1.5rem] h-2 w-2 rounded-full bg-gray-500"></div>
 
-                      <div className="ml-20 flex justify-between rounded-lg bg-[#1E1E1E] p-4">
-                        <div className="flex-1">
-                          <div className="mb-1 text-sm text-gray-400">{formattedDate.time}</div>
-                          <h3 className="mb-2 text-xl font-medium">{event.titulo}</h3>
+                    <div className="ml-20 flex justify-between rounded-lg bg-[#1E1E1E] p-4">
+                      <div className="flex-1">
+                        <div className="mb-1 text-sm text-gray-400">{formattedDate.time}</div>
+                        <h3 className="mb-2 text-xl font-medium">{event.titulo}</h3>
 
-                          {!hasLocation ? (
-                            <div className="mb-1 flex items-center text-sm text-yellow-500">
-                              <span className="mr-1">⚠️</span> Falta la ubicación
-                            </div>
-                          ) : (
-                            <div className="mb-1 flex items-center text-sm text-gray-400">
-                              <MapPin className="mr-1 h-4 w-4" /> {event.ubicacion}
-                            </div>
-                          )}
-
-                          <div className="mb-1 text-sm text-gray-400">
-                            <span className="mr-1">📅</span>
-                            {new Date(event.fecha_inicio_venta).toLocaleDateString('es-ES')} -{' '}
-                            {new Date(event.fecha_fin_venta).toLocaleDateString('es-ES')}
+                        {!hasLocation ? (
+                          <div className="mb-1 flex items-center text-sm text-yellow-500">
+                            <span className="mr-1">⚠️</span> Falta la ubicación
                           </div>
-
-                          <div className="mt-4 flex items-center gap-2">
-                            <Link href={`/event/manage/${event.id_evento}`}>
-                              <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
-                                Gestionar evento
-                                <ArrowRight className="h-4 w-4" />
-                              </button>
-                            </Link>
-                            <span
-                              className={cn(
-                                'rounded px-2 py-1 text-xs',
-                                event.estado === 'ACTIVO'
-                                  ? 'bg-green-500/20 text-green-400'
-                                  : 'bg-yellow-500/20 text-yellow-400',
-                              )}
-                            >
-                              {event.estado === 'ACTIVO' ? 'Activo' : 'Oculto'}
-                            </span>
+                        ) : (
+                          <div className="mb-1 flex items-center text-sm text-gray-400">
+                            <MapPin className="mr-1 h-4 w-4" /> {event.ubicacion}
                           </div>
+                        )}
+
+                        <div className="mb-1 text-sm text-gray-400">
+                          <span className="mr-1">📅</span>
+                          {new Date(event.fecha_inicio_venta).toLocaleDateString('es-ES')} -{' '}
+                          {new Date(event.fecha_fin_venta).toLocaleDateString('es-ES')}
                         </div>
 
-                        <div className="ml-4">
-                          <div className="h-24 w-24 overflow-hidden rounded">
-                            {coverImage ? (
-                              <img
-                                src={coverImage}
-                                alt={event.titulo}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] p-1 text-center text-gray-400">
-                                <Calendar className="mb-1 h-8 w-8" />
-                                <div className="text-xs">Sin imagen</div>
-                              </div>
+                        <div className="mt-4 flex items-center gap-2">
+                          <Link href={`/evento/manage/${event.id_evento}`}>
+                            <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
+                              Gestionar evento
+                              <ArrowRight className="h-4 w-4" />
+                            </button>
+                          </Link>
+                          <span
+                            className={cn(
+                              'rounded px-2 py-1 text-xs',
+                              event.estado === 'ACTIVO'
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-yellow-500/20 text-yellow-400',
                             )}
-                          </div>
+                          >
+                            {event.estado === 'ACTIVO' ? 'Activo' : 'Oculto'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="ml-4">
+                        <div className="h-24 w-24 overflow-hidden rounded">
+                          {coverImage ? (
+                            <img
+                              src={coverImage}
+                              alt={event.titulo}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] p-1 text-center text-gray-400">
+                              <Calendar className="mb-1 h-8 w-8" />
+                              <div className="text-xs">Sin imagen</div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-    );
-  }
-  return (
-    <main className="mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="flex items-center bg-orange-500 p-2 rounded-full">
-          <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={40} priority />
-        </Link>
-        <UserButton />
-      </div>
-      <h1 className="text-4xl font-bold text-orange-500 mb-6">Mis Eventos</h1>
-    </main>
+    </div>
   );
 }

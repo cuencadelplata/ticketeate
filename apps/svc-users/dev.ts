@@ -5,7 +5,7 @@ import app from './src/index.js';
 // Cargar variables de entorno
 config();
 
-const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
 
 console.log(`🚀 Development server running on http://localhost:${port}`);
 
