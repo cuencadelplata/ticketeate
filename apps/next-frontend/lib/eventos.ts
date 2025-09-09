@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/db';
 
 export type Evento = {
   id: string;
@@ -23,16 +23,11 @@ export async function getEventoById(id: string): Promise<Evento | null> {
       return null;
     }
 
-    const event = await prisma.event.findUnique({
-      where: { id },
+    const event = await prisma.evento.findUnique({
+      where: { id_evento: id },
       include: {
-        tickets: true,
-        ticketOptions: true,
-        _count: {
-          select: {
-            tickets: true,
-          },
-        },
+        imagenes_evento: true,
+        fechas_evento: true,
       },
     });
 
@@ -41,18 +36,18 @@ export async function getEventoById(id: string): Promise<Evento | null> {
     }
 
     return {
-      id: event.id,
-      titulo: event.name,
-      descripcion: event.description || undefined,
-      fecha: event.startDate,
-      ubicacion: event.location || undefined,
-      capacidad: event.capacity || undefined,
-      acceso: event.access as 'PUBLIC' | 'PRIVATE',
-      tipoPrecio: event.pricingType as 'FREE' | 'PAID',
-      imagen: event.imageUrl || undefined,
-      createdAt: event.createdAt,
-      updatedAt: event.updatedAt,
-      productorId: event.producerId,
+      id: event.id_evento,
+      titulo: event.titulo,
+      descripcion: event.descripcion || undefined,
+      fecha: event.fechas_evento?.[0]?.fecha_hora || event.fecha_inicio_venta,
+      ubicacion: event.ubicacion || undefined,
+      capacidad: undefined,
+      acceso: 'PUBLIC',
+      tipoPrecio: 'FREE',
+      imagen: event.imagenes_evento?.find((i) => i.tipo === 'portada')?.url || undefined,
+      createdAt: event.fecha_creacion || new Date(),
+      updatedAt: new Date(),
+      productorId: event.id_creador,
     };
   } catch (error) {
     console.error('Error fetching evento by ID:', error);
@@ -82,33 +77,28 @@ export async function getEventoById(id: string): Promise<Evento | null> {
 
 export async function getEventosByProductor(productorId: string): Promise<Evento[]> {
   try {
-    const events = await prisma.event.findMany({
-      where: { producerId: productorId },
-      orderBy: { startDate: 'asc' },
+    const events = await prisma.evento.findMany({
+      where: { id_creador: productorId },
+      orderBy: { fecha_inicio_venta: 'asc' },
       include: {
-        tickets: true,
-        ticketOptions: true,
-        _count: {
-          select: {
-            tickets: true,
-          },
-        },
+        imagenes_evento: true,
+        fechas_evento: true,
       },
     });
 
     return events.map((event: any) => ({
-      id: event.id,
-      titulo: event.name,
-      descripcion: event.description || undefined,
-      fecha: event.startDate,
-      ubicacion: event.location || undefined,
-      capacidad: event.capacity || undefined,
-      acceso: event.access as 'PUBLIC' | 'PRIVATE',
-      tipoPrecio: event.pricingType as 'FREE' | 'PAID',
-      imagen: event.imageUrl || undefined,
-      createdAt: event.createdAt,
-      updatedAt: event.updatedAt,
-      productorId: event.producerId,
+      id: event.id_evento,
+      titulo: event.titulo,
+      descripcion: event.descripcion || undefined,
+      fecha: event.fechas_evento?.[0]?.fecha_hora || event.fecha_inicio_venta,
+      ubicacion: event.ubicacion || undefined,
+      capacidad: undefined,
+      acceso: 'PUBLIC' as const,
+      tipoPrecio: 'FREE' as const,
+      imagen: event.imagenes_evento?.find((i: any) => i.tipo === 'portada')?.url || undefined,
+      createdAt: event.fecha_creacion || new Date(),
+      updatedAt: new Date(),
+      productorId: event.id_creador,
     }));
   } catch (error) {
     console.error('Error fetching eventos by productor:', error);

@@ -43,11 +43,9 @@ const isEventPast = (fechaFin: string) => {
 
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
-
-  // hook de TanStack Query para obtener eventos
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
 
-  // Función para recargar eventos
+  //force reload
   const loadEvents = async () => {
     try {
       await refetch();
@@ -174,7 +172,7 @@ export default function EventosPage() {
                         </div>
 
                         <div className="mt-4 flex items-center gap-2">
-                          <Link href={`/event/manage/${event.id_evento}`}>
+                          <Link href={`/evento/manage/${event.id_evento}`}>
                             <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
                               Gestionar evento
                               <ArrowRight className="h-4 w-4" />

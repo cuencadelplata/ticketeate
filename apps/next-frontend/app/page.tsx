@@ -43,6 +43,7 @@ export default function Home() {
         category: 'Evento',
         category2: evt.ubicacion || '',
         disponibilidad: mapEstados(evt.estado),
+        href: `/evento/${evt.id_evento}`,
       };
     });
   }, [allEvents]);

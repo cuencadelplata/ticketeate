@@ -50,6 +50,27 @@ events.get('/all', async (c) => {
   }
 });
 
+// GET /api/events/public/:id - Público: Obtener evento por id
+events.get('/public/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    const event = await EventService.getEventById(id);
+    if (!event) {
+      return c.json({ error: 'Evento no encontrado' }, 404);
+    }
+    return c.json({ event });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error getting public event:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500,
+    );
+  }
+});
+
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {

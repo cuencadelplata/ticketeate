@@ -8,6 +8,7 @@ import type {
   GetEventsResponse,
   GetEventResponse,
   GetAllEventsResponse,
+  GetPublicEventResponse,
 } from '@/types/events';
 
 // Hook para obtener eventos
@@ -54,6 +55,23 @@ export function useAllEvents() {
     refetchInterval: 60 * 1000,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
+  });
+}
+
+// Hook público para obtener un evento por id
+export function usePublicEvent(id?: string) {
+  return useQuery({
+    queryKey: ['public-event', id],
+    queryFn: async (): Promise<Event> => {
+      const response = await fetch(API_ENDPOINTS.publicEventById(id as string));
+      if (!response.ok) {
+        throw new Error('Error al obtener el evento');
+      }
+      const data: GetPublicEventResponse = await response.json();
+      return data.event;
+    },
+    enabled: Boolean(id),
+    staleTime: 60 * 1000,
   });
 }
 

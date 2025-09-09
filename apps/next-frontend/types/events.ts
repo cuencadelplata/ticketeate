@@ -121,3 +121,7 @@ export interface GetAllEventsResponse {
   events: Event[];
   total: number;
 }
+
+export interface GetPublicEventResponse {
+  event: Event;
+}

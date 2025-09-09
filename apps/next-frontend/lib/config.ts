@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   events: `${API_BASE_URL}/api/events`,
   uploadImage: `${API_BASE_URL}/api/events/upload-image`,
   allEvents: `${API_BASE_URL}/api/events/all`,
+  publicEventById: (id: string) => `${API_BASE_URL}/api/events/public/${id}`,
 } as const;
 
 // Configuración de Cloudinary (para referencia)
