@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
+import { bus } from '@/lib/events/bus';
+import '@/lib/events/register';
 
 // Body esperado:
 // {
@@ -201,6 +203,19 @@ export async function POST(request: NextRequest) {
       }
 
       return { reserva, pago, entradas, monto_total };
+    });
+
+    // Emitir evento de dominio de forma no bloqueante
+    // No esperamos el resultado para responder rápido al cliente
+    void bus.emit('compra.realizada', {
+      reservaId: resultadoTx.reserva.id_reserva,
+      pagoId: resultadoTx.pago.id_pago,
+      usuarioId: String(id_usuario),
+      eventoId: String(id_evento),
+      categoriaId: categoria!.id_categoria,
+      cantidad: Number(cantidad),
+      montoTotal: resultadoTx.monto_total,
+      entradas: resultadoTx.entradas,
     });
 
     return NextResponse.json(
