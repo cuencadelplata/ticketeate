@@ -13,15 +13,18 @@ import { Button } from '@/components/ui/button';
 
 interface EventTicketProps {
   onTicketChange: (ticketInfo: { type: 'free' | 'paid'; price?: number }) => void;
+  onConnectWallet?: () => void;
 }
 
-export default function EventTicket({ onTicketChange: _onTicketChange }: EventTicketProps) {
+export default function EventTicket({
+  onTicketChange: _onTicketChange,
+  onConnectWallet,
+}: EventTicketProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConnectStripe = () => {
-    // Aquí iría la lógica para conectar con Stripe
+    onConnectWallet?.();
     setIsOpen(false);
-    // call the prop with a default value to indicate no changes
     _onTicketChange?.({ type: 'free' });
   };
 
