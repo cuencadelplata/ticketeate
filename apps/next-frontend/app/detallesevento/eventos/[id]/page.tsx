@@ -54,7 +54,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
         {/* Header con navegación */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/admin/events">
+            <Link href="/detallesevento/eventos">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a Eventos
             </Link>

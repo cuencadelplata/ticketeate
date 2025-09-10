@@ -65,13 +65,13 @@ export default function HomePage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button asChild variant="outline" className="h-20 flex-col bg-transparent">
-                <Link href="/admin/events">
+                <Link href="/detallesevento/eventos">
                   <CalendarDays className="w-6 h-6 mb-2" />
                   Gestionar Eventos
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-20 flex-col bg-transparent">
-                <Link href="/admin/events/new">
+                <Link href="/crear">
                   <Plus className="w-6 h-6 mb-2" />
                   Crear Nuevo Evento
                 </Link>
