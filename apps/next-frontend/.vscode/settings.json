@@ -1,22 +1,29 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit"
+  "jest.jestCommandLine": "npm test --",
+  "jest.autoRun": "off",
+  "jest.showCoverageOnLoad": false,
+  "jest.pathToJest": "npm test --",
+  "jest.rootPath": ".",
+  "jest.testExplorer": {
+    "enabled": true
   },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "jest.runAllTestsFirst": true,
+  "jest.clearOutputOnRun": true,
+  "jest.outputConfig": {
+    "clearOnRun": "terminal"
   },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  "jest.debugMode": true,
+  "jest.autoRevealOutput": "on-exec-error",
+  "jest.showInlineErrorMessages": true,
+  "jest.showFailureMessages": true,
+  "jest.enableCodeLens": true,
+  "jest.autoRevealOutput": "on-exec-error",
+  "jest.showInlineErrorMessages": true,
+  "jest.showFailureMessages": true,
+  "jest.enableCodeLens": true,
+  "jest.testExplorer.enabled": true,
+  "jest.testExplorer.showClassicStatus": true,
+  "jest.testExplorer.showInlineError": true
 }

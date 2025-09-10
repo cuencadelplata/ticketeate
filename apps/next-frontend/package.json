@@ -18,7 +18,8 @@
     "db:seed": "cd ../../packages/db && npm run db:seed",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:ide": "jest --verbose --clearCache --no-cache"
   },
   "dependencies": {
     "@clerk/localizations": "^3.24.0",
