@@ -6,7 +6,6 @@ type EventCardProps = {
   id?: string;
   title: string;
   description: string;
-  price: string;
   date: string;
   image: string;
   category: string;
@@ -26,7 +25,6 @@ export function EventCard({
   id,
   title,
   description,
-  price,
   date,
   image,
   category,
@@ -70,7 +68,7 @@ export function EventCard({
           className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white
                      hover:bg-orange-600 active:bg-orange-700 transition"
         >
-          Comprar Entradas | Precios desde {price}
+          Comprar Entradas
         </button>
       </div>
     </div>
