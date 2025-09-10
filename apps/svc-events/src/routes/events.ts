@@ -5,6 +5,7 @@ import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
 import { config } from 'dotenv';
 
+// Configuración de rutas para la API de Eventos
 // Cargar variables de entorno
 config();
 const events = new Hono();
