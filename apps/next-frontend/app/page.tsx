@@ -31,14 +31,16 @@ export default function Home() {
       const portada = evt.imagenes_evento?.find((i) => i.tipo === 'portada')?.url;
       const primera = evt.imagenes_evento?.[0]?.url;
       const image = portada || primera || '/icon-ticketeate.png';
-      const date = evt.fechas_evento?.[0]?.fecha_hora
-        ? new Date(evt.fechas_evento[0].fecha_hora).toLocaleDateString()
-        : new Date(evt.fecha_inicio_venta).toLocaleDateString();
+      const eventDate = evt.fechas_evento?.[0]?.fecha_hora
+        ? new Date(evt.fechas_evento[0].fecha_hora)
+        : new Date(evt.fecha_inicio_venta);
+      const date = eventDate.toLocaleDateString();
       return {
         title: evt.titulo,
         description: evt.descripcion || '',
         price: 'Consultar',
         date,
+        eventDate, // Agregamos la fecha como objeto Date para filtrar
         image,
         category: 'Evento',
         category2: evt.ubicacion || '',
@@ -59,6 +61,17 @@ export default function Home() {
         (e.category2 && e.category2.toLowerCase().includes(qLower)),
     );
   }, [q, uiEvents]);
+
+  // Filtrar eventos por fecha
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return uiEvents.filter((event) => event.eventDate > now);
+  }, [uiEvents]);
+
+  const pastEvents = useMemo(() => {
+    const now = new Date();
+    return uiEvents.filter((event) => event.eventDate <= now);
+  }, [uiEvents]);
 
   const handleClear = () => {
     router.push('/'); // quita ?search y vuelve a home
@@ -109,6 +122,30 @@ export default function Home() {
               )}
             </div>
           </section>
+
+          {/* Sección de Próximos Eventos */}
+          {upcomingEvents.length > 0 && (
+            <section className="rounded-small bg-blue-900 container mx-auto px-2 py-8 mt-5">
+              <h1 className="text-2xl font-bold mb-6 text-blue-100">Próximos Eventos</h1>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {upcomingEvents.map((event, i) => (
+                  <EventCard key={`upcoming-${i}`} {...event} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Sección de Eventos Pasados */}
+          {pastEvents.length > 0 && (
+            <section className="rounded-small bg-gray-800 container mx-auto px-2 py-8 mt-5">
+              <h1 className="text-2xl font-bold mb-6 text-gray-100">Eventos Pasados</h1>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {pastEvents.map((event, i) => (
+                  <EventCard key={`past-${i}`} {...event} />
+                ))}
+              </div>
+            </section>
+          )}
 
           <div className="flex justify-center mt-12">
             <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
