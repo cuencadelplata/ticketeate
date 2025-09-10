@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   FileText,
   Lightbulb,
-  X,
+  X as _X,
   Brain,
   Briefcase,
   PartyPopper,
@@ -15,7 +15,7 @@ import { useDescriptionGenerator } from '@/hooks/use-description-generator';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
+  DialogHeader as _DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';

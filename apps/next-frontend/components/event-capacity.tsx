@@ -131,7 +131,7 @@ export default function EventCapacity({ hasWallet, onCapacityChange }: EventCapa
     );
   };
 
-  const renderBasicCapacityDialog = () => (
+  const _renderBasicCapacityDialog = () => (
     <>
       <DialogHeader>
         <DialogTitle className="text-stone-100">Cupo máximo</DialogTitle>

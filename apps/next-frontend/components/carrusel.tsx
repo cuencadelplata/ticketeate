@@ -25,7 +25,7 @@ const featured = [
       'https://cdn.getcrowder.com/images/2c298c07-dac1-4232-8080-704fac5256bb-gunsnroses-bannersaa-nuevafecha1920x720.jpg',
   },
 ];
-export default function carrusel() {
+export default function Carrusel() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
