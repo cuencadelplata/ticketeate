@@ -55,8 +55,6 @@ model Usuario {
   telefono       String?  @db.VarChar(20)
   fecha_registro DateTime @default(now()) @db.Timestamptz(6)
   estado         String   @default("activo") @db.VarChar(20)
-  wallet_linked  Boolean  @default(false)
-  wallet_provider String? @db.VarChar(50)
 
   // Relaciones
   eventos_creados Evento[]     @relation("EventosCreados")
@@ -103,7 +101,6 @@ model FechaEvento {
   id_fecha   String   @id @default(cuid()) @db.VarChar(255)
   id_evento  String   @db.VarChar(255)
   fecha_hora DateTime @db.Timestamptz(6)
-  fecha_fin  DateTime? @db.Timestamptz(6)
   
   evento   Evento     @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
   reservas Reserva[]

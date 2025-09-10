@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
-import { wallet } from './wallet';
+import { events } from './events';
 
 const api = new Hono();
 
 api.use('*', clerkMiddleware());
 
 // clerk auth middleware inyectado en todas las rutas
-api.route('/wallet', wallet);
+api.route('/events', events);
 
 // GET /api/users/:id
 api.get('/users/:id', (c) => {

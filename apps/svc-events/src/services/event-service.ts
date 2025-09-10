@@ -43,12 +43,6 @@ export interface CreateEventData {
     backgroundImage?: string;
   };
   clerkUserId: string;
-  ticket_types?: Array<{
-    nombre: string;
-    descripcion?: string;
-    precio: number;
-    stock_total: number;
-  }>;
 }
 
 export interface EventWithImages {
@@ -131,30 +125,15 @@ export class EventService {
         });
       }
 
-      // Crear fechas adicionales del evento (inicio y fin)
+      // Crear fechas adicionales del evento
       if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
         const fechasData = data.fechas_adicionales.map((fecha) => ({
           id_evento: evento.id_evento,
           fecha_hora: fecha.fecha_inicio,
-          fecha_fin: fecha.fecha_fin,
         }));
 
         await prisma.fechaEvento.createMany({
           data: fechasData,
-        });
-      }
-
-      // Crear categorías de entrada (tipos de tickets) si se enviaron
-      if (data.ticket_types && data.ticket_types.length > 0) {
-        await prisma.categoriaEntrada.createMany({
-          data: data.ticket_types.map((t) => ({
-            id_evento: evento.id_evento,
-            nombre: t.nombre,
-            descripcion: t.descripcion ?? null,
-            precio: t.precio,
-            stock_total: t.stock_total,
-            stock_disponible: t.stock_total,
-          })),
         });
       }
 
@@ -183,7 +162,6 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categorias_entrada: true,
         },
       });
 
@@ -208,7 +186,6 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categorias_entrada: true,
         },
       });
 
@@ -243,34 +220,6 @@ export class EventService {
       console.error('Error getting user events:', error);
       throw new Error(
         `Error al obtener los eventos del usuario: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-
-  static async getAllPublicEvents(): Promise<EventWithImages[]> {
-    try {
-      const eventos = await prisma.evento.findMany({
-        where: {
-          estado: {
-            in: ['ACTIVO', 'COMPLETADO'],
-          },
-        },
-        include: {
-          imagenes_evento: true,
-          fechas_evento: true,
-          categorias_entrada: true,
-        },
-        orderBy: {
-          fecha_inicio_venta: 'desc',
-        },
-      });
-
-      return eventos as EventWithImages[];
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error getting all public events:', error);
-      throw new Error(
-        `Error al obtener todos los eventos: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

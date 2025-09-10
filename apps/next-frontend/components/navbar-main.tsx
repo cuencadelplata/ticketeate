@@ -29,7 +29,7 @@ function NavbarHome() {
   };
 
   return (
-    <div className="flex h-14 items-center justify-between bg-transparent px-6 z-10">
+    <div className="flex h-14 items-center justify-between bg-transparent px-6">
       {/* Logo + links */}
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2 bg-orange-500 p-2 rounded-full">

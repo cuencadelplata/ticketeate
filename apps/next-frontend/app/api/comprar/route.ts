@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@repo/db';
+import { bus } from '@/lib/events/bus';
+import '@/lib/events/register';
 
 // Body esperado:
 // {
@@ -12,7 +15,14 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id_usuario, id_evento, cantidad, metodo_pago, datos_tarjeta } = body ?? {};
+    const {
+      id_usuario,
+      id_evento,
+      id_categoria, // opcional si se compra por categoria de entrada
+      cantidad,
+      metodo_pago,
+      datos_tarjeta,
+    } = body ?? {};
 
     if (!id_usuario || !id_evento || !cantidad || !metodo_pago) {
       return NextResponse.json(
@@ -25,10 +35,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validaciones simples
-    if (cantidad <= 0 || cantidad > 10) {
+    if (cantidad <= 0 || cantidad > 5) {
       return NextResponse.json(
         {
-          error: 'Cantidad debe estar entre 1 y 10',
+          error: 'Cantidad debe estar entre 1 y 5',
         },
         { status: 400 },
       );
@@ -70,53 +80,164 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Simular procesamiento de compra
-    const timestamp = Date.now();
-    const id_reserva = Math.floor(Math.random() * 10000) + 1000;
-    const precio_unitario = 25.0; // Precio fijo para simulación
-    const monto_total = precio_unitario * cantidad;
-
-    // Simular respuesta exitosa
-    const resultado = {
-      reserva: {
-        id_reserva,
-        id_usuario,
-        id_evento,
-        cantidad,
-        estado: 'pendiente',
-        fecha_reserva: new Date().toISOString(),
+    // 1) Validar usuario, evento y categoría
+    // Crear el usuario si no existe (placeholder)
+    const _usuario = await prisma.usuario.upsert({
+      where: { id_usuario: String(id_usuario) },
+      update: {},
+      create: {
+        id_usuario: String(id_usuario),
+        nombre: 'Invitado',
+        apellido: 'App',
+        email: `${String(id_usuario)}@placeholder.local`,
       },
-      pago: {
-        id_pago: Math.floor(Math.random() * 10000) + 2000,
-        id_reserva,
-        metodo_pago,
-        monto_total: monto_total.toFixed(2),
-        estado: 'pendiente',
-        fecha_pago: new Date().toISOString(),
-        // Por seguridad, no devolveremos los datos completos de la tarjeta
-        tarjeta: datos_tarjeta
-          ? { dni: datos_tarjeta.dni, ultimos4: datos_tarjeta.numero?.slice(-4) }
-          : undefined,
-      },
-      entradas: Array.from({ length: cantidad }, (_, idx) => ({
-        id_entrada: Math.floor(Math.random() * 10000) + 3000 + idx,
-        id_reserva,
-        codigo_qr: `${id_reserva}-${timestamp}-${idx}`,
-        estado: 'valida',
-      })),
-      resumen: {
-        total_entradas: cantidad,
-        precio_unitario: precio_unitario.toFixed(2),
-        monto_total: monto_total.toFixed(2),
-        metodo_pago,
-        estado: 'Compra procesada exitosamente',
-      },
-    };
+    });
 
-    // Simular delay de procesamiento
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const evento = await prisma.evento.findUnique({ where: { id_evento: String(id_evento) } });
+    if (!evento) {
+      return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 });
+    }
 
-    return NextResponse.json(resultado, { status: 201 });
+    // Buscar una fecha válida del evento (si no existe, se creará en la transacción)
+    const fecha = await prisma.fechaEvento.findFirst({ where: { id_evento: String(id_evento) } });
+
+    let categoria = null as null | { id_categoria: string; precio: any; stock_disponible: number };
+    if (id_categoria) {
+      // Permitir id o nombre de categoría (asociada al evento)
+      categoria = (await prisma.categoriaEntrada.findUnique({
+        where: { id_categoria: String(id_categoria) },
+        select: { id_categoria: true, precio: true, stock_disponible: true },
+      })) as any;
+      if (!categoria) {
+        categoria = (await prisma.categoriaEntrada.findFirst({
+          where: { id_evento: String(id_evento), nombre: String(id_categoria) },
+          select: { id_categoria: true, precio: true, stock_disponible: true },
+        })) as any;
+      }
+      if (!categoria) {
+        return NextResponse.json({ error: 'Categoría no encontrada' }, { status: 404 });
+      }
+    } else {
+      // tomar la primera categoría disponible del evento
+      categoria = (await prisma.categoriaEntrada.findFirst({
+        where: { id_evento: String(id_evento), stock_disponible: { gt: 0 } },
+        orderBy: { precio: 'asc' },
+        select: { id_categoria: true, precio: true, stock_disponible: true },
+      })) as any;
+      if (!categoria) {
+        return NextResponse.json({ error: 'Sin categorías disponibles' }, { status: 409 });
+      }
+    }
+
+    // 2) Ejecutar transacción atómica
+    const resultadoTx = await prisma.$transaction(async (tx: any) => {
+      // Revalidar stock con bloqueo optimista (chequeo y update condicional)
+      const catActual = await tx.categoriaEntrada.findUnique({
+        where: { id_categoria: categoria!.id_categoria },
+        select: { stock_disponible: true, precio: true },
+      });
+      if (!catActual || catActual.stock_disponible < cantidad) {
+        throw new Error('Stock insuficiente');
+      }
+
+      // Descontar stock
+      await tx.categoriaEntrada.update({
+        where: { id_categoria: categoria!.id_categoria },
+        data: { stock_disponible: { decrement: cantidad } },
+      });
+
+      // Asegurar fecha: si no existe, crear una por defecto usando fecha_inicio_venta o NOW
+      let fechaId = fecha?.id_fecha as string | undefined;
+      if (!fechaId) {
+        const nuevaFecha = await tx.fechaEvento.create({
+          data: {
+            id_evento: String(id_evento),
+            fecha_hora: (evento as any).fecha_inicio_venta ?? new Date(),
+          },
+        });
+        fechaId = nuevaFecha.id_fecha;
+      }
+
+      // Crear reserva en estado PENDIENTE con relaciones conectadas
+      console.log('[api/comprar] creando reserva con connect', {
+        id_usuario: String(id_usuario),
+        id_evento: String(id_evento),
+        id_fecha: String(fechaId),
+        id_categoria: categoria!.id_categoria,
+        cantidad: Number(cantidad),
+      });
+      const reserva = await tx.reserva.create({
+        data: {
+          usuario: { connect: { id_usuario: String(id_usuario) } },
+          evento: { connect: { id_evento: String(id_evento) } },
+          fecha: { connect: { id_fecha: String(fechaId) } },
+          categoria: { connect: { id_categoria: categoria!.id_categoria } },
+          cantidad: Number(cantidad),
+          estado: 'PENDIENTE',
+        },
+      });
+
+      // Crear pago
+      const monto_total = Number(catActual.precio) * Number(cantidad);
+      const pago = await tx.pago.create({
+        data: {
+          id_reserva: reserva.id_reserva,
+          metodo_pago: String(metodo_pago),
+          monto_total,
+          estado: 'PENDIENTE',
+        },
+      });
+
+      // Crear entradas
+      const entradas = [] as Array<{ id_entrada: string; codigo_qr: string }>;
+      for (let i = 0; i < Number(cantidad); i++) {
+        const qr = `${reserva.id_reserva}-${Date.now()}-${i}`;
+        const ent = await tx.entrada.create({
+          data: {
+            id_reserva: reserva.id_reserva,
+            codigo_qr: qr,
+            estado: 'VALIDA',
+          },
+        });
+        entradas.push({ id_entrada: ent.id_entrada, codigo_qr: qr });
+      }
+
+      return { reserva, pago, entradas, monto_total };
+    });
+
+    // Emitir evento de dominio de forma no bloqueante
+    // No esperamos el resultado para responder rápido al cliente
+    void bus.emit('compra.realizada', {
+      reservaId: resultadoTx.reserva.id_reserva,
+      pagoId: resultadoTx.pago.id_pago,
+      usuarioId: String(id_usuario),
+      eventoId: String(id_evento),
+      categoriaId: categoria!.id_categoria,
+      cantidad: Number(cantidad),
+      montoTotal: resultadoTx.monto_total,
+      entradas: resultadoTx.entradas,
+    });
+
+    return NextResponse.json(
+      {
+        reserva: resultadoTx.reserva,
+        pago: {
+          ...resultadoTx.pago,
+          tarjeta: datos_tarjeta
+            ? { dni: datos_tarjeta.dni, ultimos4: String(datos_tarjeta.numero || '').slice(-4) }
+            : undefined,
+        },
+        entradas: resultadoTx.entradas,
+        resumen: {
+          total_entradas: cantidad,
+          precio_unitario: undefined,
+          monto_total: resultadoTx.monto_total,
+          metodo_pago,
+          estado: 'Compra procesada exitosamente',
+        },
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error('Error en /api/comprar', error);
     return NextResponse.json(

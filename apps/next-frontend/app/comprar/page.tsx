@@ -1,35 +1,27 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
-type SectorKey = 'Entrada_General' | 'Entrada_VIP';
-
-const SECTORES: Record<
-  SectorKey,
-  { nombre: string; precioDesde: number; fee?: number; numerado: boolean; color: string }
-> = {
-  Entrada_General: {
-    nombre: 'Entrada General',
-    precioDesde: 85000,
-    fee: 12000,
-    numerado: false,
-    color: '#a5d6a7',
-  },
-  Entrada_VIP: {
-    nombre: 'Entrada V.I.P',
-    precioDesde: 180000,
-    fee: 27000,
-    numerado: true,
-    color: '#43a047',
-  },
+type Categoria = {
+  id_categoria: string;
+  nombre: string;
+  descripcion: string | null;
+  precio: number;
+  stock_total: number;
+  stock_disponible: number;
+  max_por_usuario: number;
 };
 
 export default function ComprarPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const [idUsuario] = useState<number>(1);
-  const [idEvento] = useState<number>(1);
+  const [idEvento, setIdEvento] = useState<string>('');
+  const [eventoTitulo, setEventoTitulo] = useState<string>('');
+  const [eventoFecha, setEventoFecha] = useState<string>('2025-09-18');
+  const [eventoHora, setEventoHora] = useState<string>('22:00');
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -39,7 +31,18 @@ export default function ComprarPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
-  const [sector, setSector] = useState<SectorKey>('Entrada_General');
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriasLoading, setCategoriasLoading] = useState<boolean>(false);
+  const [selectedCategoriaId, setSelectedCategoriaId] = useState<string>('');
+  // Temporizador de reserva (5 minutos)
+  const HOLD_SECONDS = 5 * 60;
+  const [holdLeft, setHoldLeft] = useState<number>(HOLD_SECONDS);
+  const [holdActive, setHoldActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    const id = search.get('id_evento');
+    if (id) setIdEvento(id);
+  }, [search]);
 
   // Campos de tarjeta
   const [cardNumber, setCardNumber] = useState<string>('');
@@ -47,32 +50,124 @@ export default function ComprarPage() {
   const [cardCvv, setCardCvv] = useState<string>('');
   const [cardDni, setCardDni] = useState<string>('');
 
-  // Simulación de disponibilidad por sector
-  const DISPONIBILIDAD: Record<SectorKey, number> = {
-    Entrada_General: 120,
-    Entrada_VIP: 35,
+  // Cargar categorías reales desde la API
+  useEffect(() => {
+    const load = async () => {
+      if (!idEvento) return;
+      try {
+        setCategoriasLoading(true);
+        // detalle del evento (título)
+        try {
+          const d = await fetch(`/api/evento/detalle?id_evento=${encodeURIComponent(idEvento)}`);
+          const djson = await d.json();
+          if (d.ok) {
+            if (djson?.titulo) setEventoTitulo(String(djson.titulo));
+            const rawFecha = djson?.fecha_inicio_venta || djson?.fecha_fin_venta;
+            if (rawFecha) {
+              const dt = new Date(rawFecha);
+              if (!isNaN(dt.getTime())) {
+                const yyyy = dt.getFullYear();
+                const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                const dd = String(dt.getDate()).padStart(2, '0');
+                const hh = String(dt.getHours()).padStart(2, '0');
+                const mi = String(dt.getMinutes()).padStart(2, '0');
+                setEventoFecha(`${yyyy}-${mm}-${dd}`);
+                setEventoHora(`${hh}:${mi}`);
+              }
+            }
+          }
+        } catch {}
+        const res = await fetch(`/api/evento/categorias?id_evento=${encodeURIComponent(idEvento)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'No se pudieron cargar las categorías');
+        const cats: Categoria[] = Array.isArray(data?.categorias) ? data.categorias : [];
+        setCategorias(cats);
+        if (cats.length > 0) {
+          setSelectedCategoriaId(cats[0].id_categoria);
+          setHoldLeft(HOLD_SECONDS);
+          setHoldActive(true);
+        } else {
+          setSelectedCategoriaId('');
+          setHoldActive(false);
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Error cargando categorías');
+      } finally {
+        setCategoriasLoading(false);
+      }
+    };
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idEvento]);
+
+  // Reiniciar temporizador al cambiar de categoría
+  useEffect(() => {
+    if (!selectedCategoriaId) return;
+    setHoldLeft(HOLD_SECONDS);
+    setHoldActive(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategoriaId]);
+
+  // Tick del temporizador
+  useEffect(() => {
+    if (!holdActive || showSuccess) return;
+    const interval = setInterval(() => {
+      setHoldLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setHoldActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [holdActive, showSuccess]);
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const formatARS = (n: number) =>
     n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
 
+  const selectedCategoria = useMemo(
+    () => categorias.find((c) => c.id_categoria === selectedCategoriaId) || categorias[0],
+    [categorias, selectedCategoriaId],
+  );
+
   const { precioUnitario, total } = useMemo(() => {
-    const s = SECTORES[sector];
-    const unit = s.precioDesde + (s.fee || 0);
+    const unit = selectedCategoria ? Number(selectedCategoria.precio) : 0;
     return { precioUnitario: unit, total: unit * cantidad };
-  }, [sector, cantidad]);
+  }, [selectedCategoria, cantidad]);
+
+  const maxCantidad = useMemo(() => {
+    if (!selectedCategoria) return 1;
+    const limites = [
+      Number(selectedCategoria.max_por_usuario || 1),
+      Number(selectedCategoria.stock_disponible || 0),
+      5,
+    ];
+    const max = Math.max(1, Math.min(...limites));
+    return max;
+  }, [selectedCategoria]);
 
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
   const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
-  const formatCardNumber = (v: string) =>
-    sanitizeNumber(v)
-      .slice(0, 19)
-      .replace(/(\d{4})(?=\d)/g, '$1 ');
+  const formatCardNumber = (v: string) => {
+    const digits = sanitizeNumber(v).slice(0, 19);
+    const groups = digits.match(/\d{1,4}/g);
+    return groups ? groups.join(' ') : '';
+  };
   const formatExpiry = (v: string) => {
-    const n = sanitizeNumber(v).slice(0, 4);
-    if (n.length <= 2) return n;
-    return `${n.slice(0, 2)}/${n.slice(2)}`;
+    const digits = sanitizeNumber(v).slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
   const isValidCardInputs = () => {
@@ -97,11 +192,15 @@ export default function ComprarPage() {
       return;
     }
 
+    const categoriaId = selectedCategoria?.id_categoria;
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: idEvento,
       cantidad,
       metodo_pago: metodo,
+      id_categoria: categoriaId,
+      // En un futuro, mapear sector -> categoria en DB
+      // id_categoria: ...
       datos_tarjeta: isCardPayment
         ? {
             numero: sanitizeNumber(cardNumber),
@@ -128,7 +227,7 @@ export default function ComprarPage() {
 
       if (!res.ok) throw new Error(data.error || 'Error');
 
-      setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
+      setResultado({ ...data, ui_sector: selectedCategoria?.nombre, ui_total: total });
       setShowSuccess(true);
 
       // Resetear formulario después de 10 segundos
@@ -136,7 +235,7 @@ export default function ComprarPage() {
         setShowSuccess(false);
         setResultado(null);
         setCantidad(1);
-        setSector('Entrada_General');
+        setSelectedCategoriaId(categorias[0]?.id_categoria || '');
         setMetodo('tarjeta_debito');
         router.push('/'); // Redirigir al menú principal
       }, 10000);
@@ -153,7 +252,7 @@ export default function ComprarPage() {
     setResultado(null);
     setError(null);
     setCantidad(1);
-    setSector('Entrada_General');
+    setSelectedCategoriaId(categorias[0]?.id_categoria || '');
     setMetodo('tarjeta_debito');
     setCardNumber('');
     setCardExpiry('');
@@ -254,13 +353,9 @@ export default function ComprarPage() {
     pdf.setFontSize(12.5);
     const left = cardX + 12;
     cursorY += 6;
-    pdf.text(`${cantidad} entrada(s) para ${SECTORES[sector].nombre}`, left, cursorY);
+    pdf.text(`${cantidad} entrada(s) para ${selectedCategoria?.nombre ?? '—'}`, left, cursorY);
     cursorY += 12;
-    pdf.text(
-      `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
-      left,
-      cursorY,
-    );
+    pdf.text(`Total: ${formatARS(precioUnitario * cantidad)}`, left, cursorY);
     cursorY += 12;
     pdf.text(
       `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
@@ -275,13 +370,18 @@ export default function ComprarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
+    <div className="min-h-screen bg-gray-50 p-4 text-black">
       {/* Contenedor principal con scroll */}
       <div className="mx-auto max-w-[1200px] space-y-4">
         {/* Header de la página */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Comprar Entradas</h1>
-          <p className="text-white">Selecciona tu sector y completa tu compra</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {eventoTitulo ? eventoTitulo : 'Comprar Entradas'}
+          </h1>
+          <div className="mt-1 text-sm font-medium text-gray-700">
+            {eventoFecha} · {eventoHora}
+          </div>
+          <p className="text-gray-900">Selecciona tu sector y completa tu compra</p>
         </div>
 
         {/* Contenedor de 2 columnas: mapa (izq) + panel (der) */}
@@ -312,54 +412,57 @@ export default function ComprarPage() {
               </button>
             </div>
 
-            {/* Lista de sectores con scroll */}
+            {/* Lista de categorías con scroll */}
             <div className="max-h-[300px] flex-1 overflow-y-auto p-2">
-              {(Object.keys(SECTORES) as SectorKey[]).map((key) => {
-                const s = SECTORES[key];
-                const activo = key === sector;
-                return (
-                  <label
-                    key={key}
-                    className={[
-                      'm-1 grid cursor-pointer items-center gap-3 rounded-xl border bg-white p-3',
-                      '[grid-template-columns:24px_1fr_auto]',
-                      activo
-                        ? 'border-transparent bg-blue-50 ring-2 ring-blue-500'
-                        : 'border-gray-200 hover:bg-gray-50',
-                    ].join(' ')}
-                  >
-                    <div className="flex items-center justify-center">
-                      <span
-                        className="inline-block h-3.5 w-3.5 rounded border border-black/10"
-                        style={{ background: s.color }}
+              {categoriasLoading && (
+                <div className="m-2 text-sm text-gray-500">Cargando categorías...</div>
+              )}
+              {!categoriasLoading && categorias.length === 0 && (
+                <div className="m-2 text-sm text-gray-500">No hay categorías disponibles</div>
+              )}
+              {!categoriasLoading &&
+                categorias.map((cat, idx) => {
+                  const activo = cat.id_categoria === selectedCategoriaId;
+                  const colores = ['#a5d6a7', '#43a047', '#8bc34a', '#66bb6a'];
+                  const color = colores[idx % colores.length];
+                  return (
+                    <label
+                      key={cat.id_categoria}
+                      className={[
+                        'm-1 grid cursor-pointer items-center gap-3 rounded-xl border bg-white p-3',
+                        '[grid-template-columns:24px_1fr_auto]',
+                        activo
+                          ? 'border-transparent bg-blue-50 ring-2 ring-blue-500'
+                          : 'border-gray-200 hover:bg-gray-50',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-center justify-center">
+                        <span
+                          className="inline-block h-3.5 w-3.5 rounded border border-black/10"
+                          style={{ background: color }}
+                        />
+                      </div>
+
+                      <div className="flex flex-col">
+                        <div className="font-bold">{cat.nombre}</div>
+                        <div className="mt-0.5 text-sm">{formatARS(Number(cat.precio))}</div>
+                        <div className="mt-0.5 text-xs">
+                          <span className="font-semibold text-green-700">
+                            {cat.stock_disponible} disponibles
+                          </span>
+                        </div>
+                      </div>
+
+                      <input
+                        type="radio"
+                        name="categoria"
+                        checked={activo}
+                        onChange={() => setSelectedCategoriaId(cat.id_categoria)}
+                        className="h-4 w-4"
                       />
-                    </div>
-
-                    <div className="flex flex-col">
-                      <div className="font-bold">{s.nombre}</div>
-                      <div className="mt-0.5 text-sm">
-                        Desde $ {s.precioDesde.toLocaleString('es-AR')}
-                        {s.fee ? ` + $ ${s.fee.toLocaleString('es-AR')},00` : ''}
-                      </div>
-                      <div className="mt-0.5 text-xs">
-                        {s.numerado ? '🔢 Numerado' : '🔘 Sin numerar'}
-                        {' · '}
-                        <span className="font-semibold text-green-700">
-                          {DISPONIBILIDAD[key]} disponibles
-                        </span>
-                      </div>
-                    </div>
-
-                    <input
-                      type="radio"
-                      name="sector"
-                      checked={activo}
-                      onChange={() => setSector(key)}
-                      className="h-4 w-4"
-                    />
-                  </label>
-                );
-              })}
+                    </label>
+                  );
+                })}
             </div>
 
             {/* Checkout fijo en la parte inferior */}
@@ -371,9 +474,9 @@ export default function ComprarPage() {
                   value={String(cantidad)}
                   onChange={(e) => setCantidad(parseInt(e.target.value || '1'))}
                   className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={showSuccess}
+                  disabled={showSuccess || !selectedCategoria}
                 >
-                  {[1, 2, 3, 4, 5].map((n) => (
+                  {Array.from({ length: maxCantidad }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n}>
                       {n}
                     </option>
@@ -409,7 +512,7 @@ export default function ComprarPage() {
                       placeholder="#### #### #### ####"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -424,7 +527,7 @@ export default function ComprarPage() {
                         placeholder="MM/AA"
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="col-span-1 flex flex-col">
@@ -438,7 +541,7 @@ export default function ComprarPage() {
                         onChange={(e) =>
                           setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
                         }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div className="col-span-1 flex flex-col">
@@ -451,7 +554,7 @@ export default function ComprarPage() {
                         onChange={(e) =>
                           setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
                         }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded-lg border border-gray-300 bg-white text-black placeholder:text-gray-500 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -467,7 +570,7 @@ export default function ComprarPage() {
               <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
                 <div>
                   <div className="text-xs text-gray-500">Sector</div>
-                  <div className="font-bold">{SECTORES[sector].nombre}</div>
+                  <div className="font-bold">{selectedCategoria?.nombre ?? '—'}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-xs text-gray-500">Precio unitario</div>
@@ -486,18 +589,35 @@ export default function ComprarPage() {
                 </div>
               </div>
 
+              {/* Temporizador de reserva */}
+              <div className="mb-4 flex items-center justify-between rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-3">
+                <div className="font-medium text-yellow-800">Reserva temporal</div>
+                <div className="font-bold text-yellow-900 tabular-nums">
+                  {holdActive ? `Tiempo restante: ${formatTime(holdLeft)}` : 'Tiempo expirado'}
+                </div>
+              </div>
+
               {/* Botón de compra */}
               {!showSuccess ? (
                 <button
                   onClick={comprar}
-                  disabled={loading || (isCardPayment && !isValidCardInputs())}
+                  disabled={
+                    loading ||
+                    !selectedCategoria ||
+                    cantidad < 1 ||
+                    (isCardPayment && !isValidCardInputs()) ||
+                    !holdActive ||
+                    holdLeft === 0
+                  }
                   className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
                   {loading
                     ? 'Comprando...'
                     : isCardPayment && !isValidCardInputs()
                       ? 'Completa los datos de tarjeta'
-                      : 'Comprar'}
+                      : holdActive
+                        ? 'Comprar'
+                        : 'Tiempo expirado'}
                 </button>
               ) : (
                 <button
@@ -522,7 +642,7 @@ export default function ComprarPage() {
                     <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
                     <div className="space-y-1 text-sm text-green-700">
                       <p>
-                        ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
+                        ✅ {cantidad} entrada(s) para {selectedCategoria?.nombre}
                       </p>
                       <p>💰 Total: {formatARS(total)}</p>
                       <p>

@@ -1,4 +1,4 @@
-import type { Evento, ImagenEvento, FechaEvento, CategoriaEntrada } from '@repo/db';
+import type { Evento, ImagenEvento, FechaEvento } from '@repo/db';
 
 // Tipos para eventos - usando los tipos de Prisma del paquete @db
 export interface Event extends Omit<Evento, 'id_evento'> {
@@ -11,11 +11,6 @@ export interface Event extends Omit<Evento, 'id_evento'> {
   fechas_evento?: Array<
     Omit<FechaEvento, 'id_fecha' | 'id_evento'> & {
       id_fecha: string;
-    }
-  >;
-  categorias_entrada?: Array<
-    Omit<CategoriaEntrada, 'id_categoria' | 'id_evento'> & {
-      id_categoria: string;
     }
   >;
 }
@@ -62,12 +57,6 @@ export interface CreateEventData {
     }>;
     backgroundImage?: string;
   };
-  ticket_types?: Array<{
-    nombre: string;
-    descripcion?: string;
-    precio: number;
-    stock_total: number;
-  }>;
 }
 
 export interface EventImage {
@@ -126,13 +115,4 @@ export interface GetEventsResponse {
 export interface GetEventResponse {
   event: Event;
   userId: string;
-}
-
-export interface GetAllEventsResponse {
-  events: Event[];
-  total: number;
-}
-
-export interface GetPublicEventResponse {
-  event: Event;
 }

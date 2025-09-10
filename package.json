@@ -5,7 +5,6 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=Ticketeate",
-    "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=Ticketeate",
     "lint": "turbo run lint --filter=./apps/* --output-logs=full",
     "lint:ci": "set CI=1 && turbo run lint --filter=./apps/* --no-cache --output-logs=full",
     "lint:apps": "turbo run lint --filter=apps/*",
