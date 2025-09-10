@@ -1,5 +1,16 @@
 {
   "extends": ["next/core-web-vitals"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "globals": {
+    "URL": "readonly",
+    "fetch": "readonly",
+    "HTMLDivElement": "readonly",
+    "FileReader": "readonly"
+  },
   "ignorePatterns": [
     ".next/**",
     "dist/**",

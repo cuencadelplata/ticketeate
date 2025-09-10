@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     // 1) Validar usuario, evento y categoría
     // Crear el usuario si no existe (placeholder)
-    const usuario = await prisma.usuario.upsert({
+    const _usuario = await prisma.usuario.upsert({
       where: { id_usuario: String(id_usuario) },
       update: {},
       create: {
