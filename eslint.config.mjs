@@ -77,7 +77,8 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
 
       // Básicas
-      'no-undef': 'error',
+      // Desactivar no-undef en TS/TSX: TypeScript ya chequea y permite tipos DOM
+      'no-undef': 'off',
       'no-redeclare': 'error',
 
       // TS
