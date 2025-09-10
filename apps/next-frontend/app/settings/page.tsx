@@ -18,7 +18,7 @@ export default function SettingsPage() {
     <div className="mx-auto max-w-2xl p-6">
       <h1 className="mb-4 text-2xl font-semibold">Configuración de pagos</h1>
       <div className="rounded-md border border-stone-700 bg-stone-900 p-4">
-        <p className="mb-2 text-sm text-stone-300">Proveedor: Mercado Pago (ponele)</p>
+        <p className="mb-2 text-sm text-stone-300">Proveedor: Mercado Pago</p>
         <p className="mb-4 text-sm text-stone-400">
           Estado: {linked ? 'Vinculado' : 'No vinculado'}
         </p>
