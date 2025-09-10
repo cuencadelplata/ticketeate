@@ -1,5 +1,27 @@
 {
   "extends": ["next/core-web-vitals"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "globals": {
+    "FormData": "readonly",
+    "FileReader": "readonly",
+    "URL": "readonly",
+    "fetch": "readonly"
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ]
+  },
   "ignorePatterns": [
     ".next/**",
     "dist/**",
