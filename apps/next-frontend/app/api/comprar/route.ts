@@ -100,9 +100,9 @@ export async function POST(request: NextRequest) {
           categorias_entrada: true,
         },
       });
-      
+
       console.log('Evento encontrado (sin filtro):', eventoDebug);
-      
+
       return NextResponse.json(
         {
           error: 'Evento no encontrado o no disponible',
