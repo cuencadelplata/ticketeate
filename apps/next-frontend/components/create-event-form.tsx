@@ -518,11 +518,11 @@ export default function CreateEventForm() {
                     className="bg-stone-900 p-0"
                   >
                     {Object.entries(visibilityOptions).map(
-                      ([key, { label, description, icon }], index) => (
+                      ([key, { label, description, icon }], _index) => (
                         <DropdownItem
                           key={key}
                           className={`!rounded-md !border-0 bg-stone-900 px-3 py-3 transition-colors hover:bg-stone-800 ${
-                            index > 0 ? 'mt-1' : ''
+                            _index > 0 ? 'mt-1' : ''
                           }`}
                         >
                           <div className="flex items-start">

@@ -111,7 +111,7 @@ export default function EventMapModal({
   );
 
   const handleCanvasClick = useCallback(
-    (e: React.MouseEvent) => {
+    (_e: React.MouseEvent) => {
       // Solo deseleccionar sector o elemento si hay uno seleccionado
       if (selectedSector) {
         setSelectedSector(null);
@@ -295,7 +295,7 @@ export default function EventMapModal({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [sectors],
+    [sectors, snapToGrid, gridSize],
   );
 
   const handleElementResize = useCallback(
@@ -369,7 +369,7 @@ export default function EventMapModal({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [elements],
+    [elements, snapToGrid, gridSize],
   );
 
   const updateSectorProperty = (sectorId: string, property: keyof EventSector, value: any) => {
@@ -575,7 +575,7 @@ export default function EventMapModal({
                 <h3 className="mb-2 text-sm font-medium">Elementos de Infraestructura</h3>
                 <p className="mb-3 text-xs text-gray-500">Haz clic para agregar al canvas</p>
                 <div className="space-y-2">
-                  {elementTypes.map(({ type, label, icon, color }) => (
+                  {elementTypes.map(({ type, label, icon, color: _color }) => (
                     <button
                       key={type}
                       onClick={() =>
