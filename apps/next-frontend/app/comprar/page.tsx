@@ -19,6 +19,7 @@ export default function ComprarPage() {
   const search = useSearchParams();
   const [idUsuario] = useState<number>(1);
   const [idEvento, setIdEvento] = useState<string>('');
+  const [eventoTitulo, setEventoTitulo] = useState<string>('');
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -31,6 +32,10 @@ export default function ComprarPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriasLoading, setCategoriasLoading] = useState<boolean>(false);
   const [selectedCategoriaId, setSelectedCategoriaId] = useState<string>('');
+  // Temporizador de reserva (5 minutos)
+  const HOLD_SECONDS = 5 * 60;
+  const [holdLeft, setHoldLeft] = useState<number>(HOLD_SECONDS);
+  const [holdActive, setHoldActive] = useState<boolean>(false);
 
   useEffect(() => {
     const id = search.get('id_evento');
@@ -49,6 +54,12 @@ export default function ComprarPage() {
       if (!idEvento) return;
       try {
         setCategoriasLoading(true);
+        // detalle del evento (título)
+        try {
+          const d = await fetch(`/api/evento/detalle?id_evento=${encodeURIComponent(idEvento)}`);
+          const djson = await d.json();
+          if (d.ok && djson?.titulo) setEventoTitulo(String(djson.titulo));
+        } catch {}
         const res = await fetch(`/api/evento/categorias?id_evento=${encodeURIComponent(idEvento)}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || 'No se pudieron cargar las categorías');
@@ -56,8 +67,11 @@ export default function ComprarPage() {
         setCategorias(cats);
         if (cats.length > 0) {
           setSelectedCategoriaId(cats[0].id_categoria);
+          setHoldLeft(HOLD_SECONDS);
+          setHoldActive(true);
         } else {
           setSelectedCategoriaId('');
+          setHoldActive(false);
         }
       } catch (e: any) {
         setError(e?.message || 'Error cargando categorías');
@@ -68,6 +82,38 @@ export default function ComprarPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idEvento]);
+
+  // Reiniciar temporizador al cambiar de categoría
+  useEffect(() => {
+    if (!selectedCategoriaId) return;
+    setHoldLeft(HOLD_SECONDS);
+    setHoldActive(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategoriaId]);
+
+  // Tick del temporizador
+  useEffect(() => {
+    if (!holdActive || showSuccess) return;
+    const interval = setInterval(() => {
+      setHoldLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setHoldActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [holdActive, showSuccess]);
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   const formatARS = (n: number) =>
     n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
@@ -312,7 +358,9 @@ export default function ComprarPage() {
       <div className="mx-auto max-w-[1200px] space-y-4">
         {/* Header de la página */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Comprar Entradas</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {eventoTitulo ? eventoTitulo : 'Comprar Entradas'}
+          </h1>
           <p className="text-gray-900">Selecciona tu sector y completa tu compra</p>
         </div>
 
@@ -521,6 +569,14 @@ export default function ComprarPage() {
                 </div>
               </div>
 
+              {/* Temporizador de reserva */}
+              <div className="mb-4 flex items-center justify-between rounded-xl border border-yellow-200 bg-yellow-50 px-3 py-3">
+                <div className="font-medium text-yellow-800">Reserva temporal</div>
+                <div className="font-bold text-yellow-900 tabular-nums">
+                  {holdActive ? `Tiempo restante: ${formatTime(holdLeft)}` : 'Tiempo expirado'}
+                </div>
+              </div>
+
               {/* Botón de compra */}
               {!showSuccess ? (
                 <button
@@ -529,7 +585,9 @@ export default function ComprarPage() {
                     loading ||
                     !selectedCategoria ||
                     cantidad < 1 ||
-                    (isCardPayment && !isValidCardInputs())
+                    (isCardPayment && !isValidCardInputs()) ||
+                    !holdActive ||
+                    holdLeft === 0
                   }
                   className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
                 >
@@ -537,7 +595,9 @@ export default function ComprarPage() {
                     ? 'Comprando...'
                     : isCardPayment && !isValidCardInputs()
                       ? 'Completa los datos de tarjeta'
-                      : 'Comprar'}
+                      : holdActive
+                        ? 'Comprar'
+                        : 'Tiempo expirado'}
                 </button>
               ) : (
                 <button
