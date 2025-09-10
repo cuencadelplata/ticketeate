@@ -3,13 +3,43 @@
   "env": {
     "browser": true,
     "node": true,
-    "es2022": true
+    "es2022": true,
+    "webextensions": true
   },
   "globals": {
     "URL": "readonly",
+    "URLSearchParams": "readonly",
     "fetch": "readonly",
+    "FormData": "readonly",
+    "FileReader": "readonly",
+    "File": "readonly",
+    "Blob": "readonly",
     "HTMLDivElement": "readonly",
-    "FileReader": "readonly"
+    "HTMLInputElement": "readonly",
+    "HTMLButtonElement": "readonly",
+    "HTMLElement": "readonly",
+    "Element": "readonly",
+    "Event": "readonly",
+    "EventTarget": "readonly",
+    "localStorage": "readonly",
+    "sessionStorage": "readonly",
+    "window": "readonly",
+    "document": "readonly",
+    "navigator": "readonly",
+    "console": "readonly",
+    "process": "readonly",
+    "Buffer": "readonly",
+    "global": "readonly"
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
   },
   "ignorePatterns": [
     ".next/**",
