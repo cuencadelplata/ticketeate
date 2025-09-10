@@ -132,7 +132,7 @@ export default function EventCapacity({
         price: 0,
         requiresApproval: false,
       });
-      setCurrentView('ticketTypes');
+      setCurrentView('main');
     }
   };
 
