@@ -6,7 +6,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-orange-800 text-white py-9 mt-12">
       <div className="container mx-auto px-4 text-center">
-        <h1>&copy; 2024 Ticketeate. Todos los derechos reservados.</h1>
+        <h1>&copy; 2025 Ticketeate. Todos los derechos reservados.</h1>
         <Link
           href="/sobre-nosotros"
           className="text-center font-medium text-white hover:text-gray-300 "
