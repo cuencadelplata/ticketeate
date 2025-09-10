@@ -12,7 +12,7 @@ describe('API Comprar', () => {
   describe('Validacion de Datos de Compra', () => {
     it('campos requeridos para la compra', () => {
       const requiredFields = ['id_usuario', 'id_evento', 'cantidad', 'metodo_pago'];
-      
+
       const validPurchaseData = {
         id_usuario: 1,
         id_evento: 1,
@@ -21,7 +21,7 @@ describe('API Comprar', () => {
       };
 
       // Verificar que todos los campos requeridos están presentes
-      requiredFields.forEach(field => {
+      requiredFields.forEach((field) => {
         expect(validPurchaseData).toHaveProperty(field);
       });
     });
@@ -30,12 +30,12 @@ describe('API Comprar', () => {
       const validCantidades = [1, 2, 3, 4, 5];
       const invalidCantidades = [0, -1, 6, 10];
 
-      validCantidades.forEach(cantidad => {
+      validCantidades.forEach((cantidad) => {
         expect(cantidad).toBeGreaterThan(0);
         expect(cantidad).toBeLessThanOrEqual(5);
       });
 
-      invalidCantidades.forEach(cantidad => {
+      invalidCantidades.forEach((cantidad) => {
         const isValid = cantidad > 0 && cantidad <= 5;
         expect(isValid).toBe(false);
       });
@@ -45,11 +45,11 @@ describe('API Comprar', () => {
       const validPaymentMethods = ['tarjeta_credito', 'tarjeta_debito'];
       const invalidPaymentMethods = ['paypal', 'efectivo', 'bitcoin'];
 
-      validPaymentMethods.forEach(method => {
+      validPaymentMethods.forEach((method) => {
         expect(['tarjeta_credito', 'tarjeta_debito']).toContain(method);
       });
 
-      invalidPaymentMethods.forEach(method => {
+      invalidPaymentMethods.forEach((method) => {
         expect(['tarjeta_credito', 'tarjeta_debito']).not.toContain(method);
       });
     });
@@ -64,13 +64,13 @@ describe('API Comprar', () => {
 
       // Validar formato de número de tarjeta (16 dígitos)
       expect(validCardData.numero).toMatch(/^\d{16}$/);
-      
+
       // Validar formato de vencimiento (MM/AA)
       expect(validCardData.vencimiento).toMatch(/^\d{2}\/\d{2}$/);
-      
+
       // Validar formato de CVV (3 dígitos)
       expect(validCardData.cvv).toMatch(/^\d{3}$/);
-      
+
       // Validar formato de DNI (8 dígitos)
       expect(validCardData.dni).toMatch(/^\d{8}$/);
     });
@@ -241,7 +241,7 @@ describe('API Comprar', () => {
 
       const cantidad = 2;
 
-      categorias.forEach(categoria => {
+      categorias.forEach((categoria) => {
         const total = categoria.precio * cantidad;
         expect(total).toBeGreaterThan(0);
         expect(total).toBe(categoria.precio * cantidad);
@@ -252,16 +252,16 @@ describe('API Comprar', () => {
   describe('Estados de Reserva y Pago', () => {
     it('deberia tener los estados validos', () => {
       const estadosValidos = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'EXPIRADA'];
-      
-      estadosValidos.forEach(estado => {
+
+      estadosValidos.forEach((estado) => {
         expect(['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'EXPIRADA']).toContain(estado);
       });
     });
 
     it('deberia tener los estados de pago validos', () => {
       const estadosValidos = ['PENDIENTE', 'APROBADO', 'RECHAZADO', 'REEMBOLSADO'];
-      
-      estadosValidos.forEach(estado => {
+
+      estadosValidos.forEach((estado) => {
         expect(['PENDIENTE', 'APROBADO', 'RECHAZADO', 'REEMBOLSADO']).toContain(estado);
       });
     });
