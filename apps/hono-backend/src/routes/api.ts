@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 
 const api = new Hono();
 
-// GET /api/users
 api.get('/users', c => {
   return c.json({
     users: [
@@ -12,17 +11,6 @@ api.get('/users', c => {
   });
 });
 
-// GET /api/users/:id
-api.get('/users/:id', c => {
-  const id = c.req.param('id');
-  return c.json({
-    id: parseInt(id),
-    name: 'John Doe',
-    email: 'john@example.com',
-  });
-});
-
-// POST /api/users
 api.post('/users', async c => {
   const body = await c.req.json();
   return c.json(
@@ -34,27 +22,33 @@ api.post('/users', async c => {
   );
 });
 
-// PUT /api/users/:id
-api.put('/api/users/:id', async c => {
+api.get('/users/:id', c => {
+  const id = c.req.param('id');
+  return c.json({
+    id: parseInt(id, 10),
+    name: 'John Doe',
+    email: 'john@example.com',
+  });
+});
+
+api.put('/users/:id', async c => {
   const id = c.req.param('id');
   const body = await c.req.json();
   return c.json({
     message: 'User updated successfully',
-    id: parseInt(id),
+    id: parseInt(id, 10),
     user: body,
   });
 });
 
-// DELETE /api/users/:id
 api.delete('/users/:id', c => {
   const id = c.req.param('id');
   return c.json({
     message: 'User deleted successfully',
-    id: parseInt(id),
+    id: parseInt(id, 10),
   });
 });
 
-// Example of middleware usage
 api.use('/protected/*', async (c, next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -63,7 +57,6 @@ api.use('/protected/*', async (c, next) => {
   await next();
 });
 
-// Protected route example
 api.get('/protected/profile', c => {
   return c.json({
     message: 'This is a protected route',
