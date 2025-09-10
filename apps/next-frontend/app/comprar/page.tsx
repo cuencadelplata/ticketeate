@@ -20,6 +20,8 @@ export default function ComprarPage() {
   const [idUsuario] = useState<number>(1);
   const [idEvento, setIdEvento] = useState<string>('');
   const [eventoTitulo, setEventoTitulo] = useState<string>('');
+  const [eventoFecha, setEventoFecha] = useState<string>('2025-09-18');
+  const [eventoHora, setEventoHora] = useState<string>('22:00');
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -58,7 +60,22 @@ export default function ComprarPage() {
         try {
           const d = await fetch(`/api/evento/detalle?id_evento=${encodeURIComponent(idEvento)}`);
           const djson = await d.json();
-          if (d.ok && djson?.titulo) setEventoTitulo(String(djson.titulo));
+          if (d.ok) {
+            if (djson?.titulo) setEventoTitulo(String(djson.titulo));
+            const rawFecha = djson?.fecha_inicio_venta || djson?.fecha_fin_venta;
+            if (rawFecha) {
+              const dt = new Date(rawFecha);
+              if (!isNaN(dt.getTime())) {
+                const yyyy = dt.getFullYear();
+                const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                const dd = String(dt.getDate()).padStart(2, '0');
+                const hh = String(dt.getHours()).padStart(2, '0');
+                const mi = String(dt.getMinutes()).padStart(2, '0');
+                setEventoFecha(`${yyyy}-${mm}-${dd}`);
+                setEventoHora(`${hh}:${mi}`);
+              }
+            }
+          }
         } catch {}
         const res = await fetch(`/api/evento/categorias?id_evento=${encodeURIComponent(idEvento)}`);
         const data = await res.json();
@@ -361,6 +378,9 @@ export default function ComprarPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             {eventoTitulo ? eventoTitulo : 'Comprar Entradas'}
           </h1>
+          <div className="mt-1 text-sm font-medium text-gray-700">
+            {eventoFecha} · {eventoHora}
+          </div>
           <p className="text-gray-900">Selecciona tu sector y completa tu compra</p>
         </div>
 
