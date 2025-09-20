@@ -1,0 +1,183 @@
+<mxfile host="app.diagrams.net" modified="2024-01-15T10:00:00.000Z" agent="5.0" etag="abc123" version="22.1.16" type="device">
+  <diagram name="C4-Summary" id="c4-summary">
+    <mxGraphModel dx="1422" dy="754" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Sistema de Gestión de Eventos (svc-events) - Resumen Arquitectura C4" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 1 - Context -->
+        <mxCell id="level1-title" value="Nivel 1 - Contexto" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="level1-box" value="Sistema de Gestión de Eventos&#xa;&#xa;Usuarios:&#xa;• Organizadores de eventos&#xa;• Visitantes/Compradores&#xa;• Administradores del sistema&#xa;&#xa;Integraciones:&#xa;• Clerk (Autenticación)&#xa;• Cloudinary (Imágenes)&#xa;• PostgreSQL (Base de datos)&#xa;• AWS Lambda (Runtime)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="50" y="120" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2 - Containers -->
+        <mxCell id="level2-title" value="Nivel 2 - Contenedores" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="level2-box" value="Arquitectura de Contenedores:&#xa;&#xa;• AWS Lambda Handler&#xa;• Hono Application&#xa;• API Routes (Clerk Auth)&#xa;• Events Routes (CRUD)&#xa;• Health Routes&#xa;• Event Service (Lógica de negocio)&#xa;• Image Upload Service&#xa;• Prisma Client (ORM)&#xa;• Cloudinary Config" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 3 - Components -->
+        <mxCell id="level3-title" value="Nivel 3 - Componentes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="80" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="level3-box" value="Estructura de Componentes:&#xa;&#xa;• Lambda Handler (lambda.ts)&#xa;• Hono App (app.ts)&#xa;• API Routes (routes/api.ts)&#xa;• Events Routes (routes/events.ts)&#xa;• Health Routes (routes/health.ts)&#xa;• Event Service (services/event-service.ts)&#xa;• Image Service (services/image-upload.ts)&#xa;• Prisma Client (config/prisma.ts)&#xa;• Cloudinary Config (config/cloudinary.ts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="750" y="120" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 4 - Code -->
+        <mxCell id="level4-title" value="Nivel 4 - Código" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="80" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="level4-box" value="Clases y Métodos Principales:&#xa;&#xa;• EventService.createEvent()&#xa;• EventService.getEventById()&#xa;• EventService.getUserEvents()&#xa;• ImageUploadService.uploadImage()&#xa;• PrismaClient.evento&#xa;• PrismaClient.imagenEvento&#xa;• Interfaces: CreateEventData, EventWithImages&#xa;• Models: Evento, ImagenEvento, CategoriaEntrada" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="120" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Architecture Flow -->
+        <mxCell id="flow-title" value="Flujo de Arquitectura" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="350" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Flow Diagram -->
+        <mxCell id="client" value="Cliente Web&#xa;(Next.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-gateway" value="API Gateway&#xa;(AWS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="200" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lambda" value="AWS Lambda&#xa;(Runtime)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="350" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hono-app" value="Hono App&#xa;(Framework)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="500" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="routes" value="Routes&#xa;(API/Events)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="650" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="services" value="Services&#xa;(Business Logic)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="800" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="database" value="PostgreSQL&#xa;(Database)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="950" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cloudinary" value="Cloudinary&#xa;(CDN)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="400" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Flow Arrows -->
+        <mxCell id="arrow1" value="HTTPS" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="client" target="api-gateway">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="430" as="sourcePoint" />
+            <mxPoint x="210" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="api-gateway" target="lambda">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="430" as="sourcePoint" />
+            <mxPoint x="360" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow3" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="lambda" target="hono-app">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="460" y="430" as="sourcePoint" />
+            <mxPoint x="510" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow4" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hono-app" target="routes">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="610" y="430" as="sourcePoint" />
+            <mxPoint x="660" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow5" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="routes" target="services">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="430" as="sourcePoint" />
+            <mxPoint x="810" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow6" value="Query" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="services" target="database">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="910" y="430" as="sourcePoint" />
+            <mxPoint x="960" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow7" value="Upload" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="services" target="cloudinary">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="910" y="430" as="sourcePoint" />
+            <mxPoint x="1110" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Technology Stack -->
+        <mxCell id="tech-title" value="Stack Tecnológico" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="520" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-stack" value="Tecnologías Utilizadas:&#xa;&#xa;• Runtime: Node.js 18.x&#xa;• Framework: Hono 4.0&#xa;• ORM: Prisma 6.15&#xa;• Database: PostgreSQL&#xa;• Authentication: Clerk&#xa;• CDN: Cloudinary&#xa;• Cloud: AWS Lambda&#xa;• Language: TypeScript&#xa;• Build: Serverless Framework" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="50" y="560" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Key Features -->
+        <mxCell id="features-title" value="Características Principales" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="520" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="features" value="Funcionalidades del Sistema:&#xa;&#xa;• CRUD completo de eventos&#xa;• Autenticación con Clerk&#xa;• Upload y gestión de imágenes&#xa;• Eventos públicos y privados&#xa;• Mapa de eventos interactivo&#xa;• Gestión de tipos de tickets&#xa;• Health checks y monitoreo&#xa;• API RESTful&#xa;• CORS configurado&#xa;• Manejo de errores centralizado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="400" y="560" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- API Endpoints -->
+        <mxCell id="api-title" value="Endpoints de API" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="520" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-endpoints" value="Rutas Disponibles:&#xa;&#xa;• GET / - Health check&#xa;• GET /health - Health status&#xa;• GET /api/events/all - Eventos públicos&#xa;• GET /api/events/public/:id - Evento público&#xa;• POST /api/events - Crear evento&#xa;• POST /api/events/upload-image - Subir imagen&#xa;• GET /api/events - Eventos del usuario&#xa;• GET /api/events/:id - Evento específico&#xa;• GET /api/users/:id - Usuario específico&#xa;• POST /api/users - Crear usuario" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="750" y="560" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Models -->
+        <mxCell id="models-title" value="Modelos de Datos" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="520" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-models" value="Entidades Principales:&#xa;&#xa;• Evento (id, título, descripción, ubicación, fechas, estado, mapa)&#xa;• ImagenEvento (id, evento_id, url, tipo)&#xa;• FechaEvento (id, evento_id, fecha_hora, fecha_fin)&#xa;• CategoriaEntrada (id, evento_id, nombre, precio, stock)&#xa;• Usuario (id, nombre, apellido, email)&#xa;• Estadistica (evento_id, vendidos, cancelados, ingresos)&#xa;• ColaEvento (evento_id, max_concurrentes, max_usuarios)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="560" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend" value="Leyenda de Diagramas C4:&#xa;&#xa;• Nivel 1: Contexto del sistema&#xa;• Nivel 2: Contenedores y servicios&#xa;• Nivel 3: Componentes internos&#xa;• Nivel 4: Clases y métodos&#xa;&#xa;Archivos generados:&#xa;• c4-context-diagram.drawio&#xa;• c4-container-diagram.drawio&#xa;• c4-component-diagram.drawio&#xa;• c4-code-diagram.drawio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="800" width="400" height="150" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
+
