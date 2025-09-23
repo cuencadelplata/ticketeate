@@ -8,9 +8,216 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ========================================
-// ENUMS
-// ========================================
+model Usuario {
+  usuarioid       String      @id @db.VarChar(255)
+  nombre          String      @db.VarChar(100)
+  apellido        String      @db.VarChar(100)
+  email           String      @unique @db.VarChar(150)
+  telefono        String?     @db.VarChar(20)
+  fecha_registro  DateTime    @default(now()) @db.Timestamptz(6)
+  estado          String      @default("activo") @db.VarChar(20)
+  wallet_linked   Boolean     @default(false)
+  wallet_provider String?     @db.VarChar(50)
+  rol             String?     @default("cliente")
+  cola_turnos     ColaTurno[]
+  eventos         Evento[]
+  logs_eventos    LogEvento[]
+  reservas        Reserva[]
+  sesiones        Sesion[]
+
+  @@map("usuarios")
+}
+
+model Evento {
+  eventoid           String             @id @db.VarChar(255)
+  titulo             String             @db.VarChar(200)
+  descripcion        String?
+  ubicacion          String?            @db.VarChar(255)
+  fecha_creacion     DateTime           @default(now()) @db.Timestamptz(6)
+  fecha_inicio_venta DateTime           @db.Timestamptz(6)
+  fecha_fin_venta    DateTime           @db.Timestamptz(6)
+  creadorid          String             @db.VarChar(255)
+  estado             String             @default("OCULTO") @db.VarChar(20)
+  mapa_evento        Json?
+  categoriaentrada   categoriaentrada[]
+  categorias_entrada CategoriaEntrada[]
+  catevento          catevento[]
+  colas_evento       ColaEvento[]
+  estadisticas       Estadistica[]
+  usuarios           Usuario            @relation(fields: [creadorid], references: [usuarioid], onDelete: Cascade)
+  fechas_evento      FechaEvento[]
+  imagenes_evento    ImagenEvento[]
+  logs_eventos       LogEvento[]
+  reservas           Reserva[]
+
+  @@map("eventos")
+}
+
+model FechaEvento {
+  fechaid    String    @id @db.VarChar(255)
+  eventoid   String    @db.VarChar(255)
+  fecha_hora DateTime  @db.Timestamptz(6)
+  fecha_fin  DateTime? @db.Timestamptz(6)
+  eventos    Evento    @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  reservas   Reserva[]
+
+  @@map("fechas_evento")
+}
+
+model ImagenEvento {
+  imagenid String @id @db.VarChar(255)
+  eventoid String @db.VarChar(255)
+  url      String @db.VarChar(500)
+  tipo     String @default("GALERIA") @db.VarChar(20)
+  eventos  Evento @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+
+  @@map("imagenes_evento")
+}
+
+model CategoriaEntrada {
+  categoriaid      String    @id @db.VarChar(255)
+  eventoid         String    @db.VarChar(255)
+  nombre           String    @db.VarChar(100)
+  descripcion      String?
+  precio           Decimal   @db.Decimal(10, 2)
+  stock_total      Int
+  stock_disponible Int
+  max_por_usuario  Int       @default(4)
+  eventos          Evento    @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  reservas         Reserva[]
+
+  @@map("categorias_entrada")
+}
+
+model Reserva {
+  reservaid          String           @id @db.VarChar(255)
+  usuarioid          String           @db.VarChar(255)
+  eventoid           String           @db.VarChar(255)
+  fechaid            String           @db.VarChar(255)
+  categoriaid        String           @db.VarChar(255)
+  cantidad           Int
+  fecha_reserva      DateTime         @default(now()) @db.Timestamptz(6)
+  estado             String           @default("PENDIENTE") @db.VarChar(20)
+  entradas           Entrada[]
+  pagos              Pago[]
+  categorias_entrada CategoriaEntrada @relation(fields: [categoriaid], references: [categoriaid], onDelete: Cascade)
+  eventos            Evento           @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  fechas_evento      FechaEvento      @relation(fields: [fechaid], references: [fechaid], onDelete: Cascade)
+  usuarios           Usuario          @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+
+  @@map("reservas")
+}
+
+model Entrada {
+  entradaid String  @id @db.VarChar(255)
+  reservaid String  @db.VarChar(255)
+  codigo_qr String  @unique @db.VarChar(255)
+  estado    String  @default("VALIDA") @db.VarChar(20)
+  reservas  Reserva @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+
+  @@map("entradas")
+}
+
+model Pago {
+  pagoid      String    @id @db.VarChar(255)
+  reservaid   String    @db.VarChar(255)
+  metodo_pago String    @db.VarChar(50)
+  monto_total Decimal   @db.Decimal(10, 2)
+  fecha_pago  DateTime? @default(now()) @db.Timestamptz(6)
+  estado      String    @default("PENDIENTE") @db.VarChar(20)
+  reservas    Reserva   @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+
+  @@map("pagos")
+}
+
+model ColaEvento {
+  colaid           String      @id @db.VarChar(255)
+  eventoid         String      @db.VarChar(255)
+  max_concurrentes Int
+  max_usuarios     Int
+  fecha_creacion   DateTime    @default(now()) @db.Timestamptz(6)
+  cola_turnos      ColaTurno[]
+  eventos          Evento      @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+
+  @@map("colas_evento")
+}
+
+model ColaTurno {
+  turnoid        String     @id @db.VarChar(255)
+  colaid         String     @db.VarChar(255)
+  usuarioid      String     @db.VarChar(255)
+  estado         String     @default("esperando") @db.VarChar(20)
+  posicion       Int
+  fecha_ingreso  DateTime   @default(now()) @db.Timestamptz(6)
+  fecha_atencion DateTime?  @db.Timestamptz(6)
+  colas_evento   ColaEvento @relation(fields: [colaid], references: [colaid], onDelete: Cascade)
+  usuarios       Usuario    @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+
+  @@map("cola_turnos")
+}
+
+model Estadistica {
+  estadisticaid        String   @id @db.VarChar(255)
+  eventoid             String   @db.VarChar(255)
+  total_vendidos       Int      @default(0)
+  total_cancelados     Int      @default(0)
+  total_ingresos       Decimal  @default(0) @db.Decimal(12, 2)
+  ultima_actualizacion DateTime @default(now()) @db.Timestamptz(6)
+  eventos              Evento   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+
+  @@map("estadisticas")
+}
+
+model LogEvento {
+  logid     String   @id @db.VarChar(255)
+  eventoid  String   @db.VarChar(255)
+  usuarioid String?  @db.VarChar(255)
+  accion    String   @db.VarChar(100)
+  detalle   String?
+  fecha     DateTime @default(now()) @db.Timestamptz(6)
+  eventos   Evento   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  usuarios  Usuario? @relation(fields: [usuarioid], references: [usuarioid])
+
+  @@map("logs_eventos")
+}
+
+model Sesion {
+  sesionid         String   @id @db.VarChar(255)
+  usuarioid        String   @db.VarChar(255)
+  token            String   @unique @db.VarChar(255)
+  fecha_inicio     DateTime @default(now()) @db.Timestamptz(6)
+  fecha_expiracion DateTime @db.Timestamptz(6)
+  usuarios         Usuario  @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+
+  @@map("sesiones")
+}
+
+model categoriaentrada {
+  categoriaentradaid BigInt  @id @default(autoincrement())
+  eventoid           String  @db.VarChar
+  nombre             String  @db.VarChar(100)
+  precio             Decimal @db.Decimal(10, 2)
+  stock_total        Int
+  stock_disponible   Int
+  max_por_usuario    Int?    @default(4)
+  eventos            Evento  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model categoriaevento {
+  categoriaeventoid BigInt      @id @default(autoincrement())
+  nombre            String      @unique @db.VarChar(100)
+  descripcion       String?
+  catevento         catevento[]
+}
+
+model catevento {
+  eventoid          String          @db.VarChar
+  categoriaeventoid BigInt
+  categoriaevento   categoriaevento @relation(fields: [categoriaeventoid], references: [categoriaeventoid], onDelete: Cascade, onUpdate: NoAction)
+  eventos           Evento          @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([eventoid, categoriaeventoid])
+}
 
 enum EventoEstado {
   ACTIVO
@@ -42,222 +249,3 @@ enum EstadoEntrada {
   USADA
   CANCELADA
 }
-
-// ========================================
-// MODELOS PRINCIPALES
-// ========================================
-
-model Usuario {
-  id_usuario     String   @id @db.VarChar(255) // Clerk ID
-  nombre         String   @db.VarChar(100)
-  apellido       String   @db.VarChar(100)
-  email          String   @unique @db.VarChar(150)
-  telefono       String?  @db.VarChar(20)
-  fecha_registro DateTime @default(now()) @db.Timestamptz(6)
-  estado         String   @default("activo") @db.VarChar(20)
-  wallet_linked  Boolean  @default(false)
-  wallet_provider String? @db.VarChar(50)
-
-  // Relaciones
-  eventos_creados Evento[]     @relation("EventosCreados")
-  reservas        Reserva[]
-  logs_eventos    LogEvento[]
-  sesiones        Sesion[]
-  cola_turnos     ColaTurno[]
-
-  @@map("usuarios")
-}
-
-model Evento {
-  id_evento          String        @id @default(cuid()) @db.VarChar(255)
-  titulo             String        @db.VarChar(200)
-  descripcion        String?
-  ubicacion          String?       @db.VarChar(255)
-  fecha_creacion     DateTime      @default(now()) @db.Timestamptz(6)
-  fecha_inicio_venta DateTime      @db.Timestamptz(6)
-  fecha_fin_venta    DateTime      @db.Timestamptz(6)
-  estado             String        @default("OCULTO") @db.VarChar(20)
-  mapa_evento        Json?         // Mapa del canvas con sectores y elementos
-  
-  // Relación con el creador
-  id_creador         String        @db.VarChar(255)
-  creador            Usuario       @relation("EventosCreados", fields: [id_creador], references: [id_usuario], onDelete: Cascade)
-
-  // Relaciones
-  categorias_entrada CategoriaEntrada[]
-  fechas_evento      FechaEvento[]
-  imagenes_evento    ImagenEvento[]
-  colas_evento       ColaEvento[]
-  estadisticas       Estadistica[]
-  logs_eventos       LogEvento[]
-  reservas           Reserva[]
-
-  @@map("eventos")
-}
-
-// ========================================
-// MODELOS DE FECHAS E IMÁGENES
-// ========================================
-
-model FechaEvento {
-  id_fecha   String   @id @default(cuid()) @db.VarChar(255)
-  id_evento  String   @db.VarChar(255)
-  fecha_hora DateTime @db.Timestamptz(6)
-  fecha_fin  DateTime? @db.Timestamptz(6)
-  
-  evento   Evento     @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  reservas Reserva[]
-
-  @@map("fechas_evento")
-}
-
-model ImagenEvento {
-  id_imagen String      @id @default(cuid()) @db.VarChar(255)
-  id_evento String      @db.VarChar(255)
-  url       String      @db.VarChar(500)
-  tipo      String      @default("GALERIA") @db.VarChar(20)
-  
-  evento Evento @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-
-  @@map("imagenes_evento")
-}
-
-// ========================================
-// MODELOS DE ENTRADAS Y RESERVAS
-// ========================================
-
-model CategoriaEntrada {
-  id_categoria     String  @id @default(cuid()) @db.VarChar(255)
-  id_evento        String  @db.VarChar(255)
-  nombre           String  @db.VarChar(100)
-  descripcion      String?
-  precio           Decimal @db.Decimal(10, 2)
-  stock_total      Int
-  stock_disponible Int
-  max_por_usuario  Int     @default(4)
-  
-  evento   Evento     @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  reservas Reserva[]
-
-  @@map("categorias_entrada")
-}
-
-model Reserva {
-  id_reserva    String        @id @default(cuid()) @db.VarChar(255)
-  id_usuario    String        @db.VarChar(255)
-  id_evento     String        @db.VarChar(255)
-  id_fecha      String        @db.VarChar(255)
-  id_categoria  String        @db.VarChar(255)
-  cantidad      Int
-  estado        String        @default("PENDIENTE") @db.VarChar(20)
-  fecha_reserva DateTime      @default(now()) @db.Timestamptz(6)
-  
-  usuario   Usuario          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  evento    Evento           @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  fecha     FechaEvento      @relation(fields: [id_fecha], references: [id_fecha], onDelete: Cascade)
-  categoria CategoriaEntrada @relation(fields: [id_categoria], references: [id_categoria], onDelete: Cascade)
-  
-  entradas Entrada[]
-  pagos    Pago[]
-
-  @@map("reservas")
-}
-
-model Entrada {
-  id_entrada String        @id @default(cuid()) @db.VarChar(255)
-  id_reserva String        @db.VarChar(255)
-  codigo_qr  String        @unique @db.VarChar(255)
-  estado     String        @default("VALIDA") @db.VarChar(20)
-  
-  reserva Reserva @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade)
-
-  @@map("entradas")
-}
-
-model Pago {
-  id_pago     String      @id @default(cuid()) @db.VarChar(255)
-  id_reserva  String      @db.VarChar(255)
-  metodo_pago String      @db.VarChar(50)
-  monto_total Decimal     @db.Decimal(10, 2)
-  estado      String       @default("PENDIENTE") @db.VarChar(20)
-  fecha_pago  DateTime?   @default(now()) @db.Timestamptz(6)
-  
-  reserva Reserva @relation(fields: [id_reserva], references: [id_reserva], onDelete: Cascade)
-
-  @@map("pagos")
-}
-
-// ========================================
-// MODELOS DE COLA Y ESTADÍSTICAS
-// ========================================
-
-model ColaEvento {
-  id_cola          String      @id @default(cuid()) @db.VarChar(255)
-  id_evento        String      @db.VarChar(255)
-  max_concurrentes Int
-  max_usuarios     Int
-  fecha_creacion   DateTime    @default(now()) @db.Timestamptz(6)
-  
-  evento      Evento      @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  cola_turnos ColaTurno[]
-
-  @@map("colas_evento")
-}
-
-model ColaTurno {
-  id_turno       String    @id @default(cuid()) @db.VarChar(255)
-  id_cola        String    @db.VarChar(255)
-  id_usuario     String    @db.VarChar(255)
-  estado         String    @default("esperando") @db.VarChar(20)
-  posicion       Int
-  fecha_ingreso  DateTime  @default(now()) @db.Timestamptz(6)
-  fecha_atencion DateTime? @db.Timestamptz(6)
-  
-  cola    ColaEvento @relation(fields: [id_cola], references: [id_cola], onDelete: Cascade)
-  usuario Usuario    @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@map("cola_turnos")
-}
-
-model Estadistica {
-  id_estadistica       String   @id @default(cuid()) @db.VarChar(255)
-  id_evento            String   @db.VarChar(255)
-  total_vendidos       Int      @default(0)
-  total_cancelados     Int      @default(0)
-  total_ingresos       Decimal  @default(0) @db.Decimal(12, 2)
-  ultima_actualizacion DateTime @default(now()) @db.Timestamptz(6)
-  
-  evento Evento @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-
-  @@map("estadisticas")
-}
-
-// ========================================
-// MODELOS DE AUDITORÍA Y SESIONES
-// ========================================
-
-model LogEvento {
-  id_log     String   @id @default(cuid()) @db.VarChar(255)
-  id_evento  String   @db.VarChar(255)
-  id_usuario String?  @db.VarChar(255)
-  accion     String   @db.VarChar(100)
-  detalle    String?
-  fecha      DateTime @default(now()) @db.Timestamptz(6)
-  
-  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario Usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull)
-
-  @@map("logs_eventos")
-}
-
-model Sesion {
-  id_sesion        String   @id @default(cuid()) @db.VarChar(255)
-  id_usuario       String   @db.VarChar(255)
-  token            String   @unique @db.VarChar(255)
-  fecha_inicio     DateTime @default(now()) @db.Timestamptz(6)
-  fecha_expiracion DateTime @db.Timestamptz(6)
-  
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@map("sesiones")
-} 

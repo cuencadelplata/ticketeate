@@ -36,8 +36,9 @@ cargo build --release
 # build cli
 cargo build --release
 
-# deploy a aws lambda
-./target/release/cli.exe deploy-micro --name "svc-events" --image-uri "123456789.dkr.ecr.us-east-1.amazonaws.com/svc-events:latest"
+# deploy a aws lambda (elige el micro)
+# opciones: events | users | producers | checkout
+./target/release/cli.exe deploy-micro --micro events --image-uri "123456789.dkr.ecr.us-east-1.amazonaws.com/svc-events:latest"
 ```
 
 ### deploy frontend
