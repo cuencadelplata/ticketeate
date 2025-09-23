@@ -4,23 +4,24 @@ import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
 
 const navigationItems = [
   {
     title: "Introducción",
-    href: "/design-system",
+    href: "/diseno",
   },
   {
     title: "Fundamentos",
     items: [
-      { name: "Colores", href: "/design-system/colores" },
-      { name: "Íconos", href: "/design-system/iconos" },
-      { name: "Recursos de Marca", href: "/design-system/recursos-de-marca" },
+      { name: "Colores", href: "/diseno/colores" },
+      { name: "Íconos", href: "/diseno/iconos" },
+      { name: "Recursos de Marca", href: "/diseno/recursos-de-marca" },
     ],
   },
   {
     title: "Componentes",
-    items: [{ name: "Componentes UI", href: "/design-system/componentes" }],
+    items: [{ name: "Componentes UI", href: "/diseno/componentes" }],
   },
 ]
 
@@ -36,10 +37,7 @@ export function Sidebar() {
     <div className="w-80 bg-stone-950 border-r border-stone-800 h-screen overflow-y-auto">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
-          <h1 className="text-xl font-semibold">Sistema de Diseño Ticketeate</h1>
+          <Image src="/wordmark-light.png" alt="Ticketeate" width={200} height={200} />
         </div>
 
         <nav className="space-y-2">

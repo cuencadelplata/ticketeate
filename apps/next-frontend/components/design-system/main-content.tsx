@@ -4,9 +4,9 @@ import { Sparkles, Package, Grid3X3, Calendar, Star, Ticket } from "lucide-react
 export function MainContent() {
   return (
     <div className="flex-1 p-8 max-w-6xl">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold mb-4">Sistema de Diseño Ticketeate</h1>
-        <p className="text-xl text-stone-400">
+      <div className="mb-8">
+        <h1 className="text-4xl mb-2">Sistema de Diseño Ticketeate</h1>
+        <p className="text-base text-stone-400">
           Sistema de diseño unificado para crear experiencias consistentes en la plataforma de eventos.
         </p>
       </div>
