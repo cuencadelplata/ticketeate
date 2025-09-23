@@ -1,14 +1,16 @@
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Users, Star, Download } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, MapPin, Users, Star, Download } from 'lucide-react';
 
 export function ComponentsSection() {
   return (
     <section id="components" className="bg-stone-900 rounded-xl p-6 border border-stone-800">
       <h2 className="text-2xl font-semibold mb-4">Componentes</h2>
-      <p className="text-stone-400 mb-6">Componentes reutilizables para la interfaz de Ticketeate.</p>
+      <p className="text-stone-400 mb-6">
+        Componentes reutilizables para la interfaz de Ticketeate.
+      </p>
 
       <div className="space-y-8">
         <div>
@@ -44,7 +46,9 @@ export function ComponentsSection() {
                 <span className="text-white font-semibold">Imagen del Evento</span>
               </div>
               <h4 className="font-semibold mb-2">Concierto de Rock 2024</h4>
-              <p className="text-stone-400 text-sm mb-3">Una noche épica con las mejores bandas de rock nacional.</p>
+              <p className="text-stone-400 text-sm mb-3">
+                Una noche épica con las mejores bandas de rock nacional.
+              </p>
               <div className="flex items-center gap-4 text-sm text-stone-400 mb-3">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -61,8 +65,12 @@ export function ComponentsSection() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
-                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Música</Badge>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Disponible</Badge>
+                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                    Música
+                  </Badge>
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    Disponible
+                  </Badge>
                 </div>
                 <span className="font-semibold text-orange-400">$25.000</span>
               </div>
@@ -70,7 +78,9 @@ export function ComponentsSection() {
 
             <Card className="p-4 bg-stone-800 border-stone-700">
               <h4 className="font-semibold mb-2">Teatro Clásico</h4>
-              <p className="text-stone-400 text-sm mb-3">Una obra maestra del teatro contemporáneo.</p>
+              <p className="text-stone-400 text-sm mb-3">
+                Una obra maestra del teatro contemporáneo.
+              </p>
               <div className="flex items-center gap-4 text-sm text-stone-400 mb-3">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -83,8 +93,12 @@ export function ComponentsSection() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
-                  <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Teatro</Badge>
-                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Últimas entradas</Badge>
+                  <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                    Teatro
+                  </Badge>
+                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                    Últimas entradas
+                  </Badge>
                 </div>
                 <span className="font-semibold text-orange-400">$18.000</span>
               </div>
@@ -138,7 +152,9 @@ export function ComponentsSection() {
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-orange-500">Destacado</Badge>
                 <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Concierto</Badge>
-                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Teatro</Badge>
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                  Teatro
+                </Badge>
                 <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Comedia</Badge>
                 <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">Deportes</Badge>
               </div>
@@ -146,8 +162,12 @@ export function ComponentsSection() {
             <div>
               <h4 className="text-sm font-medium text-stone-300 mb-2">Estados de Disponibilidad</h4>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Disponible</Badge>
-                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pocas entradas</Badge>
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  Disponible
+                </Badge>
+                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                  Pocas entradas
+                </Badge>
                 <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Agotado</Badge>
                 <Badge variant="outline" className="border-stone-600 text-stone-400">
                   Próximamente
@@ -187,5 +207,5 @@ export function ComponentsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

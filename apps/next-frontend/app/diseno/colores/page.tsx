@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/design-system/sidebar"
-import { ColorsSection } from "@/components/design-system/sections/colors"
+import { Sidebar } from '@/components/design-system/sidebar';
+import { ColorsSection } from '@/components/design-system/sections/colors';
 
 export default function ColorsPage() {
   return (
@@ -11,5 +11,5 @@ export default function ColorsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

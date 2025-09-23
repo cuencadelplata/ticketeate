@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/design-system/sidebar"
-import { BrandAssetsSection } from "@/components/design-system/sections/brand-assets"
+import { Sidebar } from '@/components/design-system/sidebar';
+import { BrandAssetsSection } from '@/components/design-system/sections/brand-assets';
 
 export default function BrandAssetsPage() {
   return (
@@ -11,5 +11,5 @@ export default function BrandAssetsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

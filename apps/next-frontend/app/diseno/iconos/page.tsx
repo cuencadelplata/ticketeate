@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/design-system/sidebar"
-import { IconsSection } from "@/components/design-system/sections/icons"
+import { Sidebar } from '@/components/design-system/sidebar';
+import { IconsSection } from '@/components/design-system/sections/icons';
 
 export default function IconsPage() {
   return (
@@ -11,5 +11,5 @@ export default function IconsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

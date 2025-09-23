@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/design-system/sidebar"
-import { ComponentsSection } from "@/components/design-system/sections/components"
+import { Sidebar } from '@/components/design-system/sidebar';
+import { ComponentsSection } from '@/components/design-system/sections/components';
 
 export default function ComponentsPage() {
   return (
@@ -11,5 +11,5 @@ export default function ComponentsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

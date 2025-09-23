@@ -1,37 +1,39 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { ChevronDown, ChevronRight } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import Image from "next/image"
+import { useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 const navigationItems = [
   {
-    title: "Introducción",
-    href: "/diseno",
+    title: 'Introducción',
+    href: '/diseno',
   },
   {
-    title: "Fundamentos",
+    title: 'Fundamentos',
     items: [
-      { name: "Colores", href: "/diseno/colores" },
-      { name: "Íconos", href: "/diseno/iconos" },
-      { name: "Recursos de Marca", href: "/diseno/recursos-de-marca" },
+      { name: 'Colores', href: '/diseno/colores' },
+      { name: 'Íconos', href: '/diseno/iconos' },
+      { name: 'Recursos de Marca', href: '/diseno/recursos-de-marca' },
     ],
   },
   {
-    title: "Componentes",
-    items: [{ name: "Componentes UI", href: "/diseno/componentes" }],
+    title: 'Componentes',
+    items: [{ name: 'Componentes UI', href: '/diseno/componentes' }],
   },
-]
+];
 
 export function Sidebar() {
-  const [expandedSections, setExpandedSections] = useState<string[]>(["Fundamentos"])
-  const pathname = usePathname()
+  const [expandedSections, setExpandedSections] = useState<string[]>(['Fundamentos']);
+  const pathname = usePathname();
 
   const toggleSection = (title: string) => {
-    setExpandedSections((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
-  }
+    setExpandedSections((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
+    );
+  };
 
   return (
     <div className="w-80 bg-stone-950 border-r border-stone-800 h-screen overflow-y-auto">
@@ -48,8 +50,8 @@ export function Sidebar() {
                   href={section.href}
                   className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     pathname === section.href
-                      ? "text-orange-300 bg-orange-500/20 border border-orange-500/30"
-                      : "text-stone-300 hover:text-white hover:bg-stone-800"
+                      ? 'text-orange-300 bg-orange-500/20 border border-orange-500/30'
+                      : 'text-stone-300 hover:text-white hover:bg-stone-800'
                   }`}
                 >
                   {section.title}
@@ -76,8 +78,8 @@ export function Sidebar() {
                           href={item.href}
                           className={`block px-3 py-2 text-sm rounded-md transition-colors ${
                             pathname === item.href
-                              ? "text-orange-300 bg-orange-500/20 border border-orange-500/30"
-                              : "text-stone-400 hover:text-white hover:bg-stone-800"
+                              ? 'text-orange-300 bg-orange-500/20 border border-orange-500/30'
+                              : 'text-stone-400 hover:text-white hover:bg-stone-800'
                           }`}
                         >
                           {item.name}
@@ -92,5 +94,5 @@ export function Sidebar() {
         </nav>
       </div>
     </div>
-  )
+  );
 }

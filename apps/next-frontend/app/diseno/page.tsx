@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/design-system/sidebar"
-import { MainContent } from "@/components/design-system/main-content"
+import { Sidebar } from '@/components/design-system/sidebar';
+import { MainContent } from '@/components/design-system/main-content';
 
 export default function DesignSystemPage() {
   return (
@@ -9,5 +9,5 @@ export default function DesignSystemPage() {
         <MainContent />
       </div>
     </div>
-  )
+  );
 }
