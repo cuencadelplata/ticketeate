@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
@@ -15,9 +15,9 @@ struct Cli {
 enum Commands {
     /// deploy aws lambda
     DeployMicro {
-        /// micro uno a uno
+        /// micro a desplegar
         #[arg(short, long)]
-        name: String,
+        micro: Micro,
         /// Docker uri image
         #[arg(short, long)]
         image_uri: String,
@@ -30,13 +30,35 @@ enum Commands {
     },
 }
 
+#[derive(Clone, Debug, ValueEnum)]
+enum Micro {
+    /// Servicio de eventos
+    Events,
+    /// Servicio de usuarios
+    Users,
+    /// Servicio de productoras
+    Producers,
+    /// Servicio de checkout
+    Checkout,
+}
+
+fn micro_to_lambda_name(m: &Micro) -> &'static str {
+    match m {
+        Micro::Events => "svc-events",
+        Micro::Users => "svc-users",
+        Micro::Producers => "svc-producers",
+        Micro::Checkout => "svc-checkout",
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::DeployMicro { name, image_uri } => {
-            deploy_microservice(&name, &image_uri).await?;
+        Commands::DeployMicro { micro, image_uri } => {
+            let lambda_name = micro_to_lambda_name(&micro);
+            deploy_microservice(lambda_name, &image_uri).await?;
         }
         Commands::DeployFront { host } => {
             deploy_frontend(&host).await?;
