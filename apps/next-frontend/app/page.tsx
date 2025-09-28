@@ -84,7 +84,7 @@ export default function Home() {
       {!showingSearch && <Carrusel />}
 
       {showingSearch ? (
-        <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
+        <section className="rounded-small bg-orange-500 container mx-auto px-4 py-8 mt-5">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-orange-100">
               Resultados para: <span className="italic">“{q}”</span>
@@ -112,7 +112,7 @@ export default function Home() {
         </section>
       ) : (
         <>
-          <section className="rounded-small bg-orange-900 container mx-auto px-2 py-8 mt-5">
+          <section className="rounded-small bg-orange-600 container mx-auto px-2 py-8 mt-5">
             <h1 className="text-2xl font-bold mb-6 text-orange-100">Ver Todo</h1>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {isLoading ? (
@@ -148,7 +148,7 @@ export default function Home() {
           )}
 
           <div className="flex justify-center mt-12">
-            <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
+            <button className="rounded-full bg-red-700 px-12 py-6 text-white hover:bg-red-700 text-lg">
               Botón de Arrepentimiento
             </button>
           </div>
