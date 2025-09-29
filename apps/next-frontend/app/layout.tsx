@@ -30,10 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={esES}>
-      <html lang="es" className="dark">
+      <html lang="es" suppressHydrationWarning>
         <body className={inter.className}>
           <Providers>{children}</Providers>
-          <Toaster position="top-right" theme="dark" richColors closeButton expand={true} />
+          <Toaster position="top-right" richColors closeButton expand={true} />
         </body>
       </html>
     </ClerkProvider>

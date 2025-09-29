@@ -1,81 +1,116 @@
 'use client';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Play } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { NavbarMain } from './navbar-main';
+import { motion } from 'framer-motion';
 
 export function Hero() {
   return (
-    <div>
-      <section className="relative h-screen overflow-hidden dark:text-white">
-        <div className="z-20 grid grid-cols-3 items-center bg-transparent px-12 py-4">
-          <div className="flex items-center">
-            <Image
-              src="/wordmark-ticketeate.png"
-              alt="Wordmark logo"
-              width={80}
-              height={10}
-              className="z-20"
-            />
-          </div>
+    <section className="relative h-screen overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        src="https://ease-one.vercel.app/bg/something.mp4"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      
+      {/* Overlay con gradiente sutil */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60" />
+      
+      {/* Contenido principal */}
+      <div className="relative z-10 flex h-full items-center justify-center">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="space-y-8"
+          >
+            {/* Badge de destacado */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="inline-flex items-center gap-2 rounded-full bg-orange-500/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm border border-orange-400/30"
+            >
+              <Play className="h-4 w-4" />
+              ¡Nuevo! Bad Bunny en vivo
+            </motion.div>
 
-          <div className="flex justify-center">
-            <NavbarMain />
-          </div>
+            {/* Título principal */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+            >
+              Eventos sin{' '}
+              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
+                límites
+              </span>
+              , infraestructura sin complicaciones
+            </motion.h1>
 
-          <div></div>
-        </div>
+            {/* Subtítulo */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="mx-auto max-w-2xl text-lg text-gray-200 sm:text-xl"
+            >
+              Crea, gestiona y vende entradas en minutos con Ticketeate. 
+              La plataforma más completa para la gestión de eventos.
+            </motion.p>
 
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          src="https://ease-one.vercel.app/bg/something.mp4"
-          className="z-2 absolute left-0 top-0 h-full w-full object-cover opacity-40"
-        />
-
-        <div className="z-5 relative mx-auto px-12 sm:px-6 md:px-0">
-          <div className="pb-12 pt-4 md:pt-28">
-            <div className="pb-6 text-center md:pb-16">
-              <h1
-                className="mx-auto mb-6 max-w-3xl border-y text-5xl font-normal tracking-tighter [border-image:linear-gradient(to_right,transparent,theme(colors.slate.300/.),transparent)1] dark:border-none md:text-6xl"
-                data-aos="zoom-y-out"
-                data-aos-delay={150}
+            {/* Botones de acción */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+            >
+              <Link
+                href="/crear"
+                className="group inline-flex items-center gap-2 rounded-full bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:bg-orange-700 hover:scale-105 hover:shadow-xl"
               >
-                Eventos sin límites, infraestructura sin complicaciones.
-              </h1>
-              <div className="relative mx-auto max-w-3xl">
-                <p className="mb-8 text-lg text-white" data-aos="zoom-y-out" data-aos-delay={300}>
-                  Crea, gestiona y vende entradas en minutos con Ticketeate.
-                </p>
-                <div
-                  className="absolute left-0 top-0 h-80 w-[90%] overflow-x-hidden bg-[rgb(54,157,253)] bg-opacity-40 opacity-60 blur-[337.4px]"
-                  style={{ transform: 'rotate(-30deg)' }}
-                />
-                <div className="relative before:absolute before:inset-0 before:border-y before:[border-image:linear-gradient(to_right,transparent,theme(colors.slate.300/.8),transparent)1] dark:before:border-none">
-                  <div
-                    className="z-20 mx-auto mb-[20px] mt-[-20px] max-w-xs items-center gap-5 sm:flex sm:max-w-none sm:justify-center"
-                    data-aos="zoom-y-out"
-                    data-aos-delay={450}
-                  >
-                    <Link
-                      href="/crear"
-                      className="bg-page-gradient text-md font-geistSans group ml-3 mt-2 inline-flex w-fit items-center justify-center gap-x-2 rounded-xl border border-white/30 px-5 py-3 text-lg text-white backdrop-blur-md duration-200 hover:border-zinc-600 hover:bg-transparent/10 hover:text-zinc-100"
-                    >
-                      Crear tu primer evento
-                      <div className="relative ml-1 flex h-5 w-5 items-center justify-center overflow-hidden">
-                        <ArrowUpRight className="absolute transition-all duration-500 group-hover:-translate-y-5 group-hover:translate-x-4" />
-                        <ArrowUpRight className="absolute -translate-x-4 -translate-y-5 transition-all duration-500 group-hover:translate-x-0 group-hover:translate-y-0" />
-                      </div>
-                    </Link>
-                  </div>
-                </div>
+                Crear tu primer evento
+                <ArrowUpRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Link>
+              
+              <Link
+                href="/eventos"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-8 py-4 text-lg font-semibold text-white backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105"
+              >
+                Explorar eventos
+              </Link>
+            </motion.div>
+
+            {/* Estadísticas */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+              className="grid grid-cols-3 gap-8 pt-8"
+            >
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white sm:text-3xl">500+</div>
+                <div className="text-sm text-gray-300">Eventos creados</div>
               </div>
-            </div>
-          </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white sm:text-3xl">50K+</div>
+                <div className="text-sm text-gray-300">Entradas vendidas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white sm:text-3xl">98%</div>
+                <div className="text-sm text-gray-300">Satisfacción</div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

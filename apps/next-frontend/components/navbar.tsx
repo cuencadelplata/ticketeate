@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@heroui/react';
 import { useAuth } from '@clerk/nextjs';
 import UserNav from './usernav';
+import DarkMode from './DarkMode';
 
 export function Navbar() {
   const { isSignedIn } = useAuth();
@@ -56,7 +57,7 @@ export function Navbar() {
           isIconOnly
           variant="ghost"
           size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
+          className="rounded-full text-zinc-200 hover:text-white dark:text-zinc-300 dark:hover:text-white"
         >
           <Search className="h-4 w-4" />
         </Button>
@@ -64,10 +65,12 @@ export function Navbar() {
           isIconOnly
           variant="ghost"
           size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
+          className="rounded-full text-zinc-200 hover:text-white dark:text-zinc-300 dark:hover:text-white"
         >
           <Bell className="h-4 w-4" />
         </Button>
+
+        <DarkMode />
 
         <div className="px-2">
           <UserNav />
