@@ -158,6 +158,7 @@ export function useCreateEvent() {
 // Hook para actualizar un evento
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -167,10 +168,12 @@ export function useUpdateEvent() {
       id: string;
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
-      const response = await fetch(`/api/events/${id}`, {
+      const token = await getToken();
+      const response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token ?? ''}`,
         },
         body: JSON.stringify(eventData),
       });
@@ -180,7 +183,8 @@ export function useUpdateEvent() {
         throw new Error(error.error || 'Error al actualizar el evento');
       }
 
-      return response.json();
+      const data = await response.json();
+      return data.event as Event;
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
@@ -194,11 +198,16 @@ export function useUpdateEvent() {
 // Hook para eliminar un evento
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const response = await fetch(`/api/events/${id}`, {
+      const token = await getToken();
+      const response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token ?? ''}`,
+        },
       });
 
       if (!response.ok) {
@@ -217,4 +226,32 @@ export function useDeleteEvent() {
       });
     },
   });
+}
+
+export function useEventCategories() {
+  const { getToken } = useAuth();
+  return {
+    add: async (eventId: string, categories: Array<{ id?: number; nombre?: string }>) => {
+      const token = await getToken();
+      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token ?? ''}`,
+        },
+        body: JSON.stringify({ categories }),
+      });
+      if (!res.ok) throw new Error('Error al agregar categorías');
+      return res.json();
+    },
+    remove: async (eventId: string, categoryId: number) => {
+      const token = await getToken();
+      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token ?? ''}` },
+      });
+      if (!res.ok) throw new Error('Error al remover categoría');
+      return res.json();
+    },
+  };
 }

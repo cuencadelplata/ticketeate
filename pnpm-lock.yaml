@@ -21,6 +21,8 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  apps/cli: {}
+
   apps/next-frontend:
     dependencies:
       '@clerk/localizations':
