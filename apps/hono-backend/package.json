@@ -15,7 +15,18 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.0.0",
+<<<<<<< Updated upstream:apps/hono-backend/package.json
     "hono": "^4.0.0"
+=======
+    "@prisma/client": "^6.15.0",
+    "@repo/db": "workspace:*",
+    "@types/multer": "^2.0.0",
+    "cloudinary": "^2.7.0",
+    "dotenv": "^16.0.0",
+    "hono": "^4.0.0",
+    "multer": "^2.0.2",
+    "opossum": "^9.0.0"
+>>>>>>> Stashed changes:apps/svc-events/package.json
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
