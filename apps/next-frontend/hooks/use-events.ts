@@ -24,17 +24,24 @@ export function useEvents() {
           Authorization: `Bearer ${token ?? ''}`,
         },
       });
+      // Limitar reintento a solo una vez
       if (response.status === 401) {
         const newToken = await getToken();
         response = await fetch(API_ENDPOINTS.events, {
           headers: { Authorization: `Bearer ${newToken ?? ''}` },
         });
+        if (response.status === 401) {
+          throw new Error('Token inválido. Por favor, inicia sesión nuevamente.');
+        }
       }
       if (!response.ok) {
         throw new Error('Error al obtener eventos');
       }
       const data: GetEventsResponse = await response.json();
-      return data.events || [];
+      if (!data || !Array.isArray(data.events)) {
+        throw new Error('Respuesta inesperada del servidor');
+      }
+      return data.events;
     },
   });
 }
@@ -130,17 +137,30 @@ export function useCreateEvent() {
           },
           body: JSON.stringify(eventData),
         });
+        if (response.status === 401) {
+          throw new Error('Token inválido. Por favor, inicia sesión nuevamente.');
+        }
       }
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al crear el evento');
+        let errorMsg = 'Error al crear el evento';
+        try {
+          const error = await response.json();
+          errorMsg = error.error || errorMsg;
+        } catch {
+          // Si el backend no responde con JSON válido
+        }
+        throw new Error(errorMsg);
       }
 
       const data: CreateEventResponse = await response.json();
+      if (!data || !data.event) {
+        throw new Error('Respuesta inesperada del servidor');
+      }
       return data.event;
     },
     onSuccess: (newEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] }); // Invalida también la lista global
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
@@ -179,15 +199,23 @@ export function useUpdateEvent() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al actualizar el evento');
+        let errorMsg = 'Error al actualizar el evento';
+        try {
+          const error = await response.json();
+          errorMsg = error.error || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
+      if (!data || !data.event) {
+        throw new Error('Respuesta inesperada del servidor');
+      }
       return data.event as Event;
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
 
       queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
@@ -211,12 +239,17 @@ export function useDeleteEvent() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al eliminar el evento');
+        let errorMsg = 'Error al eliminar el evento';
+        try {
+          const error = await response.json();
+          errorMsg = error.error || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
     },
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
@@ -231,7 +264,8 @@ export function useDeleteEvent() {
 export function useEventCategories() {
   const { getToken } = useAuth();
   return {
-    add: async (eventId: string, categories: Array<{ id?: number; nombre?: string }>) => {
+    // Unificar tipo de id a string
+    add: async (eventId: string, categories: Array<{ id?: string; nombre?: string }>) => {
       const token = await getToken();
       const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories`, {
         method: 'POST',
@@ -244,7 +278,7 @@ export function useEventCategories() {
       if (!res.ok) throw new Error('Error al agregar categorías');
       return res.json();
     },
-    remove: async (eventId: string, categoryId: number) => {
+    remove: async (eventId: string, categoryId: string) => {
       const token = await getToken();
       const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories/${categoryId}`, {
         method: 'DELETE',
