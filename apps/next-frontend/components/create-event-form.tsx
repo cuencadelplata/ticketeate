@@ -705,9 +705,7 @@ export default function CreateEventForm() {
                       }}
                     >
                       {cat.name}
-                      {selectedCategories.includes(cat.id) && (
-                        <X className="h-3 w-3 ml-1" />
-                      )}
+                      {selectedCategories.includes(cat.id) && <X className="h-3 w-3 ml-1" />}
                     </button>
                   ))}
                 </div>

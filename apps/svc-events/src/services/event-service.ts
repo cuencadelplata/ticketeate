@@ -241,7 +241,12 @@ export class EventService {
 
         const images: Array<{ imagenid: string; eventoid: string; url: string; tipo: string }> = [];
         if (data.imageUrl) {
-          images.push({ imagenid: randomUUID(), eventoid: id, url: data.imageUrl, tipo: 'PORTADA' });
+          images.push({
+            imagenid: randomUUID(),
+            eventoid: id,
+            url: data.imageUrl,
+            tipo: 'PORTADA',
+          });
         }
         if (data.galeria_imagenes && data.galeria_imagenes.length > 0) {
           for (const url of data.galeria_imagenes) {
@@ -402,10 +407,7 @@ export class EventService {
     const evento = await prisma.evento.findFirst({
       where: {
         eventoid: id,
-        OR: [
-          { estado: 'COMPLETADO' },
-          { estado: 'ACTIVO', fecha_inicio_venta: { lte: now } },
-        ],
+        OR: [{ estado: 'COMPLETADO' }, { estado: 'ACTIVO', fecha_inicio_venta: { lte: now } }],
       },
       include: { imagenes_evento: true, fechas_evento: true, categorias_entrada: true },
     });
@@ -417,14 +419,22 @@ export class EventService {
       where: { eventoid: eventId },
       include: { categoriaevento: true },
     });
-    return links.map((l: { categoriaeventoid: bigint; categoriaevento: { nombre: string; descripcion: string | null } }) => ({
-      categoriaeventoid: l.categoriaeventoid,
-      nombre: l.categoriaevento.nombre,
-      descripcion: l.categoriaevento.descripcion ?? undefined,
-    }));
+    return links.map(
+      (l: {
+        categoriaeventoid: bigint;
+        categoriaevento: { nombre: string; descripcion: string | null };
+      }) => ({
+        categoriaeventoid: l.categoriaeventoid,
+        nombre: l.categoriaevento.nombre,
+        descripcion: l.categoriaevento.descripcion ?? undefined,
+      }),
+    );
   }
 
-  static async addCategoriesToEvent(eventId: string, categories: Array<{ id?: number; nombre?: string }>) {
+  static async addCategoriesToEvent(
+    eventId: string,
+    categories: Array<{ id?: number; nombre?: string }>,
+  ) {
     // ensure categories exist (by id or create by nombre)
     const ensuredIds: number[] = [];
     for (const c of categories) {
@@ -442,7 +452,9 @@ export class EventService {
     // link
     for (const catId of ensuredIds) {
       await prisma.catevento.upsert({
-        where: { eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(catId) } },
+        where: {
+          eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(catId) },
+        },
         update: {},
         create: { eventoid: eventId, categoriaeventoid: BigInt(catId) },
       });
@@ -452,7 +464,9 @@ export class EventService {
 
   static async removeCategoryFromEvent(eventId: string, categoryId: number) {
     await prisma.catevento.delete({
-      where: { eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(categoryId) } },
+      where: {
+        eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(categoryId) },
+      },
     });
     return this.listEventCategories(eventId);
   }
