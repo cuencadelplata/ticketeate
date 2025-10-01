@@ -1,51 +1,47 @@
 'use client';
 import React from 'react';
-import Image from 'next/image';
+import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
+import { Button } from '@heroui/react';
 
 const DarkMode = () => {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>(
-    (typeof window !== 'undefined' && (localStorage.getItem('theme') as 'light' | 'dark')) ||
-      'light',
-  );
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
-  const element = typeof document !== 'undefined' ? document.documentElement : null;
-
+  // Evitar hidration mismatch
   React.useEffect(() => {
-    if (!element) return;
+    setMounted(true);
+  }, []);
 
-    if (theme === 'dark') {
-      element.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      element.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [theme, element]);
+  if (!mounted) {
+    return (
+      <Button
+        isIconOnly
+        variant="ghost"
+        size="sm"
+        className="rounded-full"
+        aria-label="Toggle theme"
+      >
+        <div className="h-4 w-4" />
+      </Button>
+    );
+  }
 
   return (
-    <div className="relative">
-      {/* Botón Light */}
-      <Image
-        src="https://static.vecteezy.com/system/resources/thumbnails/011/888/106/small/neumorphism-toggle-switch-button-free-png.png"
-        alt="Light mode"
-        width={48}
-        height={48}
-        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        className={`w-12 cursor-pointer transition-all duration-300 absolute right-0 z-10 ${
-          theme === 'dark' ? 'opacity-0' : 'opacity-100'
-        }`}
-      />
-
-      {/* Botón Dark */}
-      <Image
-        src="https://static.vecteezy.com/system/resources/thumbnails/011/888/103/small_2x/neumorphism-ui-toggle-switch-free-png.png"
-        alt="Dark mode"
-        width={48}
-        height={48}
-        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        className="w-12 cursor-pointer transition-all duration-300"
-      />
-    </div>
+    <Button
+      isIconOnly
+      variant="ghost"
+      size="sm"
+      className="rounded-full text-foreground hover:text-primary transition-colors"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      aria-label={`Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+    >
+      {theme === 'dark' ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
+    </Button>
   );
 };
 

@@ -49,7 +49,7 @@ export default function UserNav() {
     try {
       await signOut();
       toast.success('Sesión cerrada exitosamente');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Error al cerrar sesión', { description: 'No se pudo cerrar la sesión' });
     }
   };

@@ -1,5 +1,5 @@
 // Configuración de Clerk para Next.js 15
-export const clerkConfigOptions = {
+/*export const clerkConfigOptions = {
   // Configuración personalizada si es necesaria
   publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -24,4 +24,4 @@ export const clerkConfigOptions = {
 // Función helper para verificar si Clerk está configurado
 export const isClerkConfigured = () => {
   return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY;
-};
+};/*/

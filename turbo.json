@@ -27,6 +27,12 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "cli#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "Cargo.toml", "src/**/*.rs"],
+      "outputs": ["target/**"],
+      "cache": true
     }
   }
 }

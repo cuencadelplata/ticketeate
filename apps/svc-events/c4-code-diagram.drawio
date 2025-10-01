@@ -1,0 +1,202 @@
+<mxfile host="app.diagrams.net" modified="2024-01-15T10:00:00.000Z" agent="5.0" etag="abc123" version="22.1.16" type="device">
+  <diagram name="C4-Code" id="c4-code">
+    <mxGraphModel dx="1422" dy="754" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Sistema de Eventos - Diagrama de Código C4 (Event Service Classes)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Lambda Handler Class -->
+        <mxCell id="lambda-class" value="&lt;&lt;class&gt;&gt;&#xa;LambdaHandler&#xa;&#xa;+ handler(request: APIGatewayProxyEvent): APIGatewayProxyResult&#xa;&#xa;~ handle(app: Hono): APIGatewayProxyHandler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="250" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Hono App Class -->
+        <mxCell id="hono-app-class" value="&lt;&lt;class&gt;&gt;&#xa;HonoApp&#xa;&#xa;+ app: Hono&#xa;&#xa;+ use(middleware): void&#xa;+ get(path, handler): void&#xa;+ post(path, handler): void&#xa;+ put(path, handler): void&#xa;+ delete(path, handler): void&#xa;+ route(prefix, routes): void&#xa;+ notFound(handler): void&#xa;+ onError(handler): void" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="100" y="250" width="250" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- API Routes Class -->
+        <mxCell id="api-routes-class" value="&lt;&lt;class&gt;&gt;&#xa;APIRoutes&#xa;&#xa;+ api: Hono&#xa;&#xa;+ use(middleware): void&#xa;+ get(path, handler): void&#xa;+ post(path, handler): void&#xa;+ put(path, handler): void&#xa;+ delete(path, handler): void&#xa;+ route(prefix, routes): void" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="100" y="450" width="250" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Events Routes Class -->
+        <mxCell id="events-routes-class" value="&lt;&lt;class&gt;&gt;&#xa;EventsRoutes&#xa;&#xa;+ events: Hono&#xa;&#xa;+ use(middleware): void&#xa;+ get(path, handler): void&#xa;+ post(path, handler): void&#xa;+ put(path, handler): void&#xa;+ delete(path, handler): void&#xa;&#xa;~ getAllEvents(c: Context): Promise&lt;Response&gt;&#xa;~ getPublicEvent(c: Context): Promise&lt;Response&gt;&#xa;~ createEvent(c: Context): Promise&lt;Response&gt;&#xa;~ uploadImage(c: Context): Promise&lt;Response&gt;&#xa;~ getUserEvents(c: Context): Promise&lt;Response&gt;&#xa;~ getEventById(c: Context): Promise&lt;Response&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="100" y="620" width="250" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Health Routes Class -->
+        <mxCell id="health-routes-class" value="&lt;&lt;class&gt;&gt;&#xa;HealthRoutes&#xa;&#xa;+ health: Hono&#xa;&#xa;+ get(path, handler): void&#xa;&#xa;~ healthCheck(c: Context): Response&#xa;~ readinessCheck(c: Context): Response&#xa;~ livenessCheck(c: Context): Response" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="100" y="870" width="250" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Event Service Class -->
+        <mxCell id="event-service-class" value="&lt;&lt;class&gt;&gt;&#xa;EventService&#xa;&#xa;+ createEvent(data: CreateEventData): Promise&lt;EventWithImages&gt;&#xa;+ getEventById(id: string): Promise&lt;EventWithImages | null&gt;&#xa;+ getUserEvents(clerkUserId: string): Promise&lt;EventWithImages[]&gt;&#xa;+ getAllPublicEvents(): Promise&lt;EventWithImages[]&gt;&#xa;&#xa;~ prisma: PrismaClient&#xa;~ validateEventData(data: CreateEventData): boolean&#xa;~ createEventImages(eventId: string, images: string[]): Promise&lt;void&gt;&#xa;~ createEventDates(eventId: string, dates: Date[]): Promise&lt;void&gt;&#xa;~ createTicketTypes(eventId: string, types: TicketType[]): Promise&lt;void&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="450" y="100" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Image Upload Service Class -->
+        <mxCell id="image-service-class" value="&lt;&lt;class&gt;&gt;&#xa;ImageUploadService&#xa;&#xa;+ uploadImage(fileBuffer: Buffer, folder?: string): Promise&lt;UploadResult&gt;&#xa;+ deleteImage(publicId: string): Promise&lt;void&gt;&#xa;&#xa;~ cloudinary: Cloudinary&#xa;~ optimizeImage(buffer: Buffer): Buffer&#xa;~ generatePublicId(): string&#xa;~ validateImageFormat(buffer: Buffer): boolean" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="450" y="350" width="300" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- Prisma Client Class -->
+        <mxCell id="prisma-client-class" value="&lt;&lt;class&gt;&gt;&#xa;PrismaClient&#xa;&#xa;+ evento: EventoDelegate&#xa;+ imagenEvento: ImagenEventoDelegate&#xa;+ fechaEvento: FechaEventoDelegate&#xa;+ categoriaEntrada: CategoriaEntradaDelegate&#xa;+ usuario: UsuarioDelegate&#xa;+ estadistica: EstadisticaDelegate&#xa;+ colaEvento: ColaEventoDelegate&#xa;&#xa;+ $connect(): Promise&lt;void&gt;&#xa;+ $disconnect(): Promise&lt;void&gt;&#xa;+ $transaction(operations): Promise&lt;T&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="450" y="550" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <!-- Cloudinary Config Class -->
+        <mxCell id="cloudinary-config-class" value="&lt;&lt;class&gt;&gt;&#xa;CloudinaryConfig&#xa;&#xa;+ cloudinary: Cloudinary&#xa;&#xa;~ config(): void&#xa;~ uploadStream(options): UploadStream&#xa;~ destroy(publicId): Promise&lt;Result&gt;&#xa;~ url(publicId, options): string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="450" y="780" width="300" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Interfaces -->
+        <mxCell id="create-event-data-interface" value="&lt;&lt;interface&gt;&gt;&#xa;CreateEventData&#xa;&#xa;+ titulo: string&#xa;+ descripcion?: string&#xa;+ ubicacion?: string&#xa;+ fecha_inicio_venta: Date&#xa;+ fecha_fin_venta: Date&#xa;+ estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO'&#xa;+ imageUrl?: string&#xa;+ galeria_imagenes?: string[]&#xa;+ fechas_adicionales?: FechaAdicional[]&#xa;+ eventMap?: EventMap&#xa;+ clerkUserId: string&#xa;+ ticket_types?: TicketType[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="850" y="100" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="event-with-images-interface" value="&lt;&lt;interface&gt;&gt;&#xa;EventWithImages&#xa;&#xa;+ id_evento: string&#xa;+ titulo: string&#xa;+ descripcion?: string&#xa;+ ubicacion?: string&#xa;+ fecha_creacion?: Date&#xa;+ fecha_inicio_venta: Date&#xa;+ fecha_fin_venta: Date&#xa;+ estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO'&#xa;+ mapa_evento?: any&#xa;+ id_creador: string&#xa;+ imagenes_evento: ImagenEvento[]&#xa;+ fechas_evento?: FechaEvento[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="850" y="350" width="300" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="upload-result-interface" value="&lt;&lt;interface&gt;&gt;&#xa;UploadResult&#xa;&#xa;+ url: string&#xa;+ publicId: string&#xa;+ format: string&#xa;+ size: number" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="850" y="580" width="300" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-response-interface" value="&lt;&lt;interface&gt;&gt;&#xa;ApiResponse&lt;T&gt;&#xa;&#xa;+ data?: T&#xa;+ message?: string&#xa;+ error?: string&#xa;+ timestamp: string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="850" y="720" width="300" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Database Models -->
+        <mxCell id="evento-model" value="&lt;&lt;model&gt;&gt;&#xa;Evento&#xa;&#xa;+ id_evento: string (PK)&#xa;+ titulo: string&#xa;+ descripcion?: string&#xa;+ ubicacion?: string&#xa;+ fecha_creacion: DateTime&#xa;+ fecha_inicio_venta: DateTime&#xa;+ fecha_fin_venta: DateTime&#xa;+ estado: EventoEstado&#xa;+ mapa_evento?: Json&#xa;+ id_creador: string (FK)&#xa;&#xa;+ imagenes_evento: ImagenEvento[]&#xa;+ fechas_evento: FechaEvento[]&#xa;+ categorias_entrada: CategoriaEntrada[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="100" width="300" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="imagen-evento-model" value="&lt;&lt;model&gt;&gt;&#xa;ImagenEvento&#xa;&#xa;+ id_imagen: string (PK)&#xa;+ id_evento: string (FK)&#xa;+ url: string&#xa;+ tipo?: string&#xa;+ fecha_subida: DateTime&#xa;&#xa;+ evento: Evento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="350" width="300" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="categoria-entrada-model" value="&lt;&lt;model&gt;&gt;&#xa;CategoriaEntrada&#xa;&#xa;+ id_categoria: string (PK)&#xa;+ id_evento: string (FK)&#xa;+ nombre: string&#xa;+ descripcion?: string&#xa;+ precio: Decimal&#xa;+ stock_total: Int&#xa;+ stock_disponible: Int&#xa;&#xa;+ evento: Evento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="500" width="300" height="150" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="usuario-model" value="&lt;&lt;model&gt;&gt;&#xa;Usuario&#xa;&#xa;+ id_usuario: string (PK)&#xa;+ nombre: string&#xa;+ apellido: string&#xa;+ email: string&#xa;+ fecha_registro: DateTime&#xa;&#xa;+ eventos_creados: Evento[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="680" width="300" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationships -->
+        <mxCell id="rel1" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="lambda-class" target="hono-app-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="150" as="sourcePoint" />
+            <mxPoint x="410" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel2" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hono-app-class" target="api-routes-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="325" as="sourcePoint" />
+            <mxPoint x="410" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel3" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="api-routes-class" target="events-routes-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="510" as="sourcePoint" />
+            <mxPoint x="410" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel4" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="events-routes-class" target="event-service-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="720" as="sourcePoint" />
+            <mxPoint x="410" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel5" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="events-routes-class" target="image-service-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="720" as="sourcePoint" />
+            <mxPoint x="410" y="425" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel6" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="event-service-class" target="prisma-client-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="200" as="sourcePoint" />
+            <mxPoint x="410" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel7" value="uses" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="image-service-class" target="cloudinary-config-class">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="425" as="sourcePoint" />
+            <mxPoint x="410" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel8" value="implements" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="event-service-class" target="create-event-data-interface">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="200" as="sourcePoint" />
+            <mxPoint x="820" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel9" value="implements" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="event-service-class" target="event-with-images-interface">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="200" as="sourcePoint" />
+            <mxPoint x="820" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel10" value="implements" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="image-service-class" target="upload-result-interface">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="425" as="sourcePoint" />
+            <mxPoint x="820" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel11" value="maps to" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="prisma-client-class" target="evento-model">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="640" as="sourcePoint" />
+            <mxPoint x="1220" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel12" value="maps to" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="prisma-client-class" target="imagen-evento-model">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="640" as="sourcePoint" />
+            <mxPoint x="1220" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel13" value="maps to" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="prisma-client-class" target="categoria-entrada-model">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="640" as="sourcePoint" />
+            <mxPoint x="1220" y="575" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel14" value="maps to" style="endArrow=open;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="prisma-client-class" target="usuario-model">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="760" y="640" as="sourcePoint" />
+            <mxPoint x="1220" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend" value="Leyenda:&#xa;• Clases principales&#xa;• Interfaces&#xa;• Modelos de datos&#xa;• Relaciones de dependencia&#xa;• Relaciones de implementación" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;verticalAlign=top;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="200" height="120" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
+
+
