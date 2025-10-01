@@ -50,11 +50,11 @@ events.get('/all', async (c) => {
   }
 });
 
-// GET /api/events/public/:id - Público: Obtener evento por id
+// GET /api/events/public/:id - Público: Obtener evento por id (respetando visibilidad)
 events.get('/public/:id', async (c) => {
   try {
     const id = c.req.param('id');
-    const event = await EventService.getEventById(id);
+    const event = await EventService.getPublicEventVisibleById(id);
     if (!event) {
       return c.json({ error: 'Evento no encontrado' }, 404);
     }
@@ -231,6 +231,125 @@ events.get('/:id', async (c) => {
       {
         error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
+      500,
+    );
+  }
+});
+
+// PUT /api/events/:id - Actualizar un evento
+events.put('/:id', async (c) => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const updated = await EventService.updateEvent(id, auth.userId, {
+      titulo: body.titulo,
+      descripcion: body.descripcion,
+      ubicacion: body.ubicacion,
+      fecha_inicio_venta: body.fecha_inicio_venta ? new Date(body.fecha_inicio_venta) : undefined,
+      fecha_fin_venta: body.fecha_fin_venta ? new Date(body.fecha_fin_venta) : undefined,
+      estado: body.estado,
+      imageUrl: body.imageUrl,
+      galeria_imagenes: body.galeria_imagenes,
+      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
+        fecha_inicio: new Date(fecha.fecha_inicio),
+        fecha_fin: new Date(fecha.fecha_fin),
+      })),
+      eventMap: body.eventMap,
+      ticket_types: body.ticket_types,
+    });
+
+    return c.json({
+      message: 'Evento actualizado exitosamente',
+      event: updated,
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error updating event:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// DELETE /api/events/:id - Borrado lógico
+events.delete('/:id', async (c) => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const id = c.req.param('id');
+    await EventService.softDeleteEvent(id, auth.userId);
+    return c.json({ message: 'Evento cancelado (borrado lógico) correctamente' });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error deleting event:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// POST /api/events/:id/categories - agregar categorías a un evento
+events.post('/:id/categories', async (c) => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const id = c.req.param('id');
+    const body = await c.req.json();
+    const categories = Array.isArray(body?.categories) ? body.categories : [];
+
+    // Verificar owner
+    const event = await EventService.getEventById(id);
+    if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
+    if (event.creadorid !== auth.userId) return c.json({ error: 'No autorizado' }, 403);
+
+    const linked = await EventService.addCategoriesToEvent(id, categories);
+    return c.json({ message: 'Categorías actualizadas', categories: linked });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error adding categories:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// DELETE /api/events/:id/categories/:categoryId - quitar categoría de un evento
+events.delete('/:id/categories/:categoryId', async (c) => {
+  try {
+    const auth = getAuth(c);
+    if (!auth?.userId) {
+      return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+
+    const id = c.req.param('id');
+    const categoryId = Number(c.req.param('categoryId'));
+
+    const event = await EventService.getEventById(id);
+    if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
+    if (event.creadorid !== auth.userId) return c.json({ error: 'No autorizado' }, 403);
+
+    const remaining = await EventService.removeCategoryFromEvent(id, categoryId);
+    return c.json({ message: 'Categoría removida', categories: remaining });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error removing category:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
     );
   }
