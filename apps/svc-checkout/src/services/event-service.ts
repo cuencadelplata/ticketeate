@@ -72,7 +72,7 @@ export interface EventWithImages {
 export class EventService {
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
-      await prisma.usuario.upsert({
+      await prisma.usuarios.upsert({
         where: { usuarioid: data.clerkUserId },
         update: {},
         create: {
@@ -84,7 +84,7 @@ export class EventService {
       });
 
       // Crear el evento
-      const evento = await prisma.evento.create({
+      const evento = await prisma.eventos.create({
         data: {
           eventoid: randomUUID(),
           titulo: data.titulo,
@@ -126,7 +126,7 @@ export class EventService {
 
       // Crear todas las imágenes en batch
       if (imagenesData.length > 0) {
-        await prisma.imagenEvento.createMany({
+        await prisma.imagenes_evento.createMany({
           data: imagenesData,
         });
       }
@@ -140,13 +140,13 @@ export class EventService {
           fecha_fin: fecha.fecha_fin,
         }));
 
-        await prisma.fechaEvento.createMany({
+        await prisma.fechas_evento.createMany({
           data: fechasData,
         });
       }
 
       // set estadísticas iniciales para el evento
-      await prisma.estadistica.create({
+      await prisma.estadisticas.create({
         data: {
           estadisticaid: randomUUID(),
           eventoid: evento.eventoid,
@@ -157,7 +157,7 @@ export class EventService {
       });
 
       // set cola de evento
-      await prisma.colaEvento.create({
+      await prisma.colas_evento.create({
         data: {
           colaid: randomUUID(),
           eventoid: evento.eventoid,
@@ -167,7 +167,7 @@ export class EventService {
       });
 
       // get evento con sus imágenes y fechas
-      const eventoCompleto = await prisma.evento.findUnique({
+      const eventoCompleto = await prisma.eventos.findUnique({
         where: { eventoid: evento.eventoid },
         include: {
           imagenes_evento: true,
@@ -191,7 +191,7 @@ export class EventService {
 
   static async getEventById(id: string): Promise<EventWithImages | null> {
     try {
-      const evento = await prisma.evento.findUnique({
+      const evento = await prisma.eventos.findUnique({
         where: { eventoid: id },
         include: {
           imagenes_evento: true,
@@ -211,7 +211,7 @@ export class EventService {
 
   static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
     try {
-      const eventos = await prisma.evento.findMany({
+      const eventos = await prisma.eventos.findMany({
         where: {
           creadorid: clerkUserId,
         },

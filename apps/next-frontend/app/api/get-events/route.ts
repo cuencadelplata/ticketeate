@@ -105,7 +105,7 @@ export async function listarEventos(
 
     // Ejecutar consulta con paginación
     const [eventos, total] = await Promise.all([
-      prisma.evento.findMany({
+      prisma.eventos.findMany({
         where,
         include: {
           categoria: true,
@@ -117,7 +117,7 @@ export async function listarEventos(
           fechaInicio: 'asc',
         },
       }),
-      prisma.evento.count({ where }),
+      prisma.eventos.count({ where }),
     ]);
 
     // Calcular disponibilidad para cada evento en paralelo
@@ -165,7 +165,7 @@ export async function listarEventos(
 export async function obtenerDetalleEvento(id: string): Promise<Evento> {
   try {
     // Usar findFirst para poder filtrar por estado además del id
-    const evento = await prisma.evento.findFirst({
+    const evento = await prisma.eventos.findFirst({
       where: {
         id,
         estado: 'activo', // Solo eventos activos
@@ -227,7 +227,7 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
 // Función auxiliar para calcular disponibilidad en tiempo real
 export async function calcularDisponibilidad(eventoId: string): Promise<number> {
   try {
-    const evento = await prisma.evento.findUnique({
+    const evento = await prisma.eventos.findUnique({
       where: { id: eventoId },
       select: { capacidad: true },
     });
