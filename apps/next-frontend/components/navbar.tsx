@@ -22,6 +22,12 @@ export function Navbar() {
                 Mis Eventos
               </Link>
               <Link
+                href="/mis-compras"
+                className="text-sm font-medium text-zinc-200 hover:text-white"
+              >
+                Mis Compras
+              </Link>
+              <Link
                 href="/productoras"
                 className="text-sm font-medium text-zinc-200 hover:text-white"
               >

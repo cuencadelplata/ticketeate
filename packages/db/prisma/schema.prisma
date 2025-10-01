@@ -7,28 +7,96 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Example models
+model Event {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime?
+  location      String?
+  capacity      Int?
+  access        String   @default("PUBLIC") // PUBLIC, PRIVATE
+  pricingType   String   @default("FREE")  // FREE, PAID
+  imageUrl      String?
+  producerId    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relaciones
+  tickets       Ticket[]
+  ticketOptions TicketOption[]
+  purchases     Purchase[]
+  
+  @@map("events")
+}
+
+model Ticket {
+  id         String   @id @default(cuid())
+  eventId    String
+  userId     String?
+  purchaseId String?
+  status     String   @default("AVAILABLE") // AVAILABLE, SOLD, USED
+  createdAt  DateTime @default(now())
+  
+  // Relaciones
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  purchase Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  
+  @@map("tickets")
+}
+
+model TicketOption {
+  id          String   @id @default(cuid())
+  eventId     String
+  name        String
+  description String?
+  price       Decimal  @default(0)
+  quantity    Int
+  createdAt   DateTime @default(now())
+  
+  // Relaciones
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  purchases Purchase[]
+  
+  @@map("ticket_options")
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  posts     Post[]
-
+  
+  // Relaciones
+  purchases Purchase[]
+  tickets   Ticket[]
+  
   @@map("users")
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("posts")
+model Purchase {
+  id            String   @id @default(cuid())
+  userId        String
+  eventId       String
+  ticketOptionId String?
+  quantity      Int      @default(1)
+  totalAmount   Decimal  @default(0)
+  status        String   @default("PENDING") // PENDING, COMPLETED, CANCELLED, REFUNDED
+  paymentMethod String?  // STRIPE, PAYPAL, FREE, etc.
+  paymentId     String?  // ID del pago en el sistema de pagos
+  purchaseDate  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relaciones
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketOption TicketOption? @relation(fields: [ticketOptionId], references: [id], onDelete: SetNull)
+  tickets      Ticket[]
+  
+  @@map("purchases")
 }
 

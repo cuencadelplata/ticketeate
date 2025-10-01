@@ -1,36 +1,29 @@
 {
-  "name": "@ticketeate/hono-backend",
+  "name": "@ticketeate/svc-events",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch dev.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "deploy": "npm run build && serverless deploy",
-    "deploy:dev": "npm run build && serverless deploy --stage dev",
-    "deploy:prod": "npm run build && serverless deploy --stage production",
     "lint": "eslint src",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"
   },
   "dependencies": {
-    "@hono/node-server": "^1.0.0",
     "@prisma/client": "^6.15.0",
     "@repo/db": "workspace:*",
-    "@types/multer": "^2.0.0",
     "cloudinary": "^2.7.0",
     "dotenv": "^16.0.0",
     "hono": "^4.0.0",
-    "multer": "^2.0.2",
     "opossum": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
-    "serverless": "^3.38.0",
-    "serverless-offline": "^13.3.0",
     "tsx": "^4.0.0",
     "typescript": "5.9.2"
   }
