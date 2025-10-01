@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, MapPin, ArrowRight, Plus, RefreshCw } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { useEvents } from '@/hooks/use-events';
+import { useEvents, useDeleteEvent } from '@/hooks/use-events';
 import type { Event } from '@/types/events';
 
 // formatear fecha
@@ -44,6 +44,7 @@ const isEventPast = (fechaFin: string) => {
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
+  const deleteEventMutation = useDeleteEvent();
 
   //force reload
   const loadEvents = async () => {
@@ -178,6 +179,20 @@ export default function EventosPage() {
                               <ArrowRight className="h-4 w-4" />
                             </button>
                           </Link>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await deleteEventMutation.mutateAsync(event.id_evento);
+                                toast.success('Evento eliminado');
+                              } catch (e: any) {
+                                toast.error(e?.message || 'Error al eliminar');
+                              }
+                            }}
+                            className="flex items-center gap-1 rounded bg-red-600/20 px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-600/30"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Eliminar
+                          </button>
                           <span
                             className={cn(
                               'rounded px-2 py-1 text-xs',
