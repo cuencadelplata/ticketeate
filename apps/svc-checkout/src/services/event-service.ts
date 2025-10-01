@@ -52,10 +52,7 @@ export interface EventWithImages {
   descripcion?: string;
   ubicacion?: string;
   fecha_creacion?: Date;
-  fecha_inicio_venta: Date;
-  fecha_fin_venta: Date;
-  estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
-  mapa_evento?: any; // JSON del mapa de evento
+  mapa_evento?: any;
   creadorid: string;
   imagenes_evento: Array<{
     imagenid: string;
@@ -66,6 +63,17 @@ export interface EventWithImages {
     fechaid: string;
     fecha_hora: Date;
     fecha_fin?: Date;
+  }>;
+  stock_entrada?: Array<{
+    stockid: string;
+    nombre: string;
+    precio: bigint;
+    cant_max: number;
+  }>;
+  evento_estado?: Array<{
+    stateventid: string;
+    Estado: string;
+    fecha_de_cambio: Date;
   }>;
 }
 
@@ -89,11 +97,8 @@ export class EventService {
           eventoid: randomUUID(),
           titulo: data.titulo,
           descripcion: data.descripcion,
-          ubicacion: data.ubicacion,
-          fecha_inicio_venta: data.fecha_inicio_venta,
-          fecha_fin_venta: data.fecha_fin_venta,
-          estado: data.estado || 'OCULTO',
-          mapa_evento: data.eventMap ?? undefined,
+          ubicacion: data.ubicacion || '',
+          mapa_evento: data.eventMap ?? {},
           creadorid: data.clerkUserId,
         },
       });
@@ -166,12 +171,28 @@ export class EventService {
         },
       });
 
+      // Crear estado inicial del evento
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: evento.eventoid,
+          Estado: data.estado || 'OCULTO',
+          usuarioid: data.clerkUserId,
+        },
+      });
+
       // get evento con sus imágenes y fechas
       const eventoCompleto = await prisma.eventos.findUnique({
         where: { eventoid: evento.eventoid },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
       });
 
