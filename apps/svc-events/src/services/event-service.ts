@@ -58,9 +58,6 @@ export interface EventWithImages {
   descripcion?: string;
   ubicacion?: string;
   fecha_creacion?: Date;
-  fecha_inicio_venta: Date;
-  fecha_fin_venta: Date;
-  estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
   mapa_evento?: any;
   creadorid: string;
   imagenes_evento: Array<{
@@ -73,12 +70,23 @@ export interface EventWithImages {
     fecha_hora: Date;
     fecha_fin?: Date;
   }>;
+  stock_entrada?: Array<{
+    stockid: string;
+    nombre: string;
+    precio: bigint;
+    cant_max: number;
+  }>;
+  evento_estado?: Array<{
+    stateventid: string;
+    Estado: string;
+    fecha_de_cambio: Date;
+  }>;
 }
 
 export class EventService {
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
-      await prisma.usuario.upsert({
+      await prisma.usuarios.upsert({
         where: { usuarioid: data.clerkUserId },
         update: {},
         create: {
@@ -90,16 +98,13 @@ export class EventService {
       });
 
       // Crear el evento
-      const evento = await prisma.evento.create({
+      const evento = await prisma.eventos.create({
         data: {
           eventoid: randomUUID(),
           titulo: data.titulo,
           descripcion: data.descripcion,
-          ubicacion: data.ubicacion,
-          fecha_inicio_venta: data.fecha_inicio_venta,
-          fecha_fin_venta: data.fecha_fin_venta,
-          estado: data.estado || 'OCULTO',
-          mapa_evento: data.eventMap ?? undefined,
+          ubicacion: data.ubicacion || '',
+          mapa_evento: data.eventMap ?? {},
           creadorid: data.clerkUserId,
         },
       });
@@ -132,7 +137,7 @@ export class EventService {
 
       // Crear todas las imágenes en batch
       if (imagenesData.length > 0) {
-        await prisma.imagenEvento.createMany({
+        await prisma.imagenes_evento.createMany({
           data: imagenesData,
         });
       }
@@ -146,28 +151,26 @@ export class EventService {
           fecha_fin: fecha.fecha_fin,
         }));
 
-        await prisma.fechaEvento.createMany({
+        await prisma.fechas_evento.createMany({
           data: fechasData,
         });
       }
 
       // Crear categorías de entrada (tipos de tickets) si se enviaron
       if (data.ticket_types && data.ticket_types.length > 0) {
-        await prisma.categoriaEntrada.createMany({
+        await prisma.stock_entrada.createMany({
           data: data.ticket_types.map((t) => ({
-            categoriaid: randomUUID(),
+            stockid: randomUUID(),
             eventoid: evento.eventoid,
             nombre: t.nombre,
-            descripcion: t.descripcion ?? null,
-            precio: t.precio,
-            stock_total: t.stock_total,
-            stock_disponible: t.stock_total,
+            precio: BigInt(t.precio),
+            cant_max: t.stock_total,
           })),
         });
       }
 
       // set estadísticas iniciales para el evento
-      await prisma.estadistica.create({
+      await prisma.estadisticas.create({
         data: {
           estadisticaid: randomUUID(),
           eventoid: evento.eventoid,
@@ -178,7 +181,7 @@ export class EventService {
       });
 
       // set cola de evento
-      await prisma.colaEvento.create({
+      await prisma.colas_evento.create({
         data: {
           colaid: randomUUID(),
           eventoid: evento.eventoid,
@@ -187,13 +190,29 @@ export class EventService {
         },
       });
 
+      // Crear estado inicial del evento
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: evento.eventoid,
+          Estado: data.estado || 'OCULTO',
+          usuarioid: data.clerkUserId,
+        },
+      });
+
       // get evento con sus imágenes y fechas
-      const eventoCompleto = await prisma.evento.findUnique({
+      const eventoCompleto = await prisma.eventos.findUnique({
         where: { eventoid: evento.eventoid },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categorias_entrada: true,
+          stock_entrada: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
       });
 
@@ -217,19 +236,16 @@ export class EventService {
     data: Partial<Omit<CreateEventData, 'clerkUserId'>>,
   ): Promise<EventWithImages> {
     try {
-      const existing = await prisma.evento.findUnique({ where: { eventoid: id } });
+      const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== clerkUserId) throw new Error('No autorizado');
 
-      const updated = await prisma.evento.update({
+      const updated = await prisma.eventos.update({
         where: { eventoid: id },
         data: {
           titulo: data.titulo ?? undefined,
           descripcion: data.descripcion ?? undefined,
           ubicacion: data.ubicacion ?? undefined,
-          fecha_inicio_venta: data.fecha_inicio_venta ?? undefined,
-          fecha_fin_venta: data.fecha_fin_venta ?? undefined,
-          estado: data.estado ?? undefined,
           mapa_evento: data.eventMap ?? undefined,
         },
       });
@@ -237,7 +253,7 @@ export class EventService {
       // Opcionales: actualizar imágenes principales sencillas (PORTADA + GALERIA)
       if (data.imageUrl || (data.galeria_imagenes && data.galeria_imagenes.length >= 0)) {
         // borrar existentes y recrear simples
-        await prisma.imagenEvento.deleteMany({ where: { eventoid: id } });
+        await prisma.imagenes_evento.deleteMany({ where: { eventoid: id } });
 
         const images: Array<{ imagenid: string; eventoid: string; url: string; tipo: string }> = [];
         if (data.imageUrl) {
@@ -254,43 +270,51 @@ export class EventService {
           }
         }
         if (images.length > 0) {
-          await prisma.imagenEvento.createMany({ data: images });
+          await prisma.imagenes_evento.createMany({ data: images });
         }
       }
 
       // Opcional: actualizar fechas adicionales (reemplazo simple)
       if (data.fechas_adicionales) {
-        await prisma.fechaEvento.deleteMany({ where: { eventoid: id } });
+        await prisma.fechas_evento.deleteMany({ where: { eventoid: id } });
         const fechasData = data.fechas_adicionales.map((f) => ({
           fechaid: randomUUID(),
           eventoid: id,
           fecha_hora: f.fecha_inicio,
           fecha_fin: f.fecha_fin,
         }));
-        if (fechasData.length > 0) await prisma.fechaEvento.createMany({ data: fechasData });
+        if (fechasData.length > 0) await prisma.fechas_evento.createMany({ data: fechasData });
       }
 
       // Opcional: actualizar categorías/tickets (reemplazo simple)
       if (data.ticket_types) {
-        await prisma.categoriaEntrada.deleteMany({ where: { eventoid: id } });
+        await prisma.stock_entrada.deleteMany({ where: { eventoid: id } });
         if (data.ticket_types.length > 0) {
-          await prisma.categoriaEntrada.createMany({
+          await prisma.stock_entrada.createMany({
             data: data.ticket_types.map((t) => ({
-              categoriaid: randomUUID(),
+              stockid: randomUUID(),
               eventoid: id,
               nombre: t.nombre,
-              descripcion: t.descripcion ?? null,
-              precio: t.precio,
-              stock_total: t.stock_total,
-              stock_disponible: t.stock_total,
+              precio: BigInt(t.precio),
+              cant_max: t.stock_total,
             })),
           });
         }
       }
 
-      const full = await prisma.evento.findUnique({
+      const full = await prisma.eventos.findUnique({
         where: { eventoid: updated.eventoid },
-        include: { imagenes_evento: true, fechas_evento: true, categorias_entrada: true },
+        include: {
+          imagenes_evento: true,
+          fechas_evento: true,
+          stock_entrada: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
+        },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
       return full as EventWithImages;
@@ -305,14 +329,18 @@ export class EventService {
 
   static async softDeleteEvent(id: string, clerkUserId: string): Promise<void> {
     try {
-      const existing = await prisma.evento.findUnique({ where: { eventoid: id } });
+      const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== clerkUserId) throw new Error('No autorizado');
 
-      // Borrado lógico: marcar como CANCELADO y opcionalmente ocultar
-      await prisma.evento.update({
-        where: { eventoid: id },
-        data: { estado: 'CANCELADO' },
+      // Borrado lógico: crear registro de estado CANCELADO
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: id,
+          Estado: 'CANCELADO',
+          usuarioid: clerkUserId,
+        },
       });
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -325,12 +353,18 @@ export class EventService {
 
   static async getEventById(id: string): Promise<EventWithImages | null> {
     try {
-      const evento = await prisma.evento.findUnique({
+      const evento = await prisma.eventos.findUnique({
         where: { eventoid: id },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categorias_entrada: true,
+          stock_entrada: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
       });
 
@@ -346,13 +380,19 @@ export class EventService {
 
   static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
     try {
-      const eventos = await prisma.evento.findMany({
+      const eventos = await prisma.eventos.findMany({
         where: {
           creadorid: clerkUserId,
         },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
         orderBy: {
           fecha_creacion: 'desc',
@@ -371,28 +411,30 @@ export class EventService {
 
   static async getAllPublicEvents(): Promise<EventWithImages[]> {
     try {
-      const now = new Date();
-      const eventos = await prisma.evento.findMany({
-        where: {
-          OR: [
-            { estado: 'COMPLETADO' },
-            {
-              estado: 'ACTIVO',
-              fecha_inicio_venta: { lte: now },
-            },
-          ],
-        },
+      const eventos = await prisma.eventos.findMany({
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categorias_entrada: true,
+          stock_entrada: true,
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
         orderBy: {
-          fecha_inicio_venta: 'desc',
+          fecha_creacion: 'desc',
         },
       });
 
-      return eventos as EventWithImages[];
+      // Filtrar eventos públicos basado en el estado más reciente
+      const eventosPublicos = eventos.filter((evento) => {
+        const estadoActual = evento.evento_estado[0]?.Estado;
+        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
+      });
+
+      return eventosPublicos as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting all public events:', error);
@@ -403,15 +445,32 @@ export class EventService {
   }
 
   static async getPublicEventVisibleById(id: string): Promise<EventWithImages | null> {
-    const now = new Date();
-    const evento = await prisma.evento.findFirst({
+    const evento = await prisma.eventos.findFirst({
       where: {
         eventoid: id,
-        OR: [{ estado: 'COMPLETADO' }, { estado: 'ACTIVO', fecha_inicio_venta: { lte: now } }],
       },
-      include: { imagenes_evento: true, fechas_evento: true, categorias_entrada: true },
+      include: {
+        imagenes_evento: true,
+        fechas_evento: true,
+        stock_entrada: true,
+        evento_estado: {
+          orderBy: {
+            fecha_de_cambio: 'desc',
+          },
+          take: 1,
+        },
+      },
     });
-    return (evento as EventWithImages) ?? null;
+
+    if (!evento) return null;
+
+    // Verificar si el evento es público basado en el estado más reciente
+    const estadoActual = evento.evento_estado[0]?.Estado;
+    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
+      return evento as EventWithImages;
+    }
+
+    return null;
   }
 
   static async listEventCategories(eventId: string) {

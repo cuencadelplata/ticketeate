@@ -262,19 +262,6 @@ export default function CreateEventForm() {
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
 
-  useEffect(() => {
-    const checkAuthAndShowModal = () => {
-      try {
-        setHasCheckedAuth(true);
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        setHasCheckedAuth(true);
-      }
-    };
-
-    checkAuthAndShowModal();
-  }, [hasCheckedAuth]);
-
   const handleCreateEvent = async () => {
     if (!isSignedIn) {
       toast.error('Debes iniciar sesión para crear eventos');
