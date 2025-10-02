@@ -1,5 +1,6 @@
 'use client';
 
+// Elimina imports duplicados y mantén solo uno de cada
 import { useState, useMemo, useEffect } from 'react';
 import {
   Globe,
@@ -10,6 +11,9 @@ import {
   Calendar,
   Trash,
   GripVertical,
+  Tag,
+  X,
+  Lock,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -19,13 +23,9 @@ import {
   DialogTitle,
   DialogHeader,
 } from '@/components/ui/dialog';
-
 import { Navbar } from './navbar';
-import { Lock } from 'lucide-react';
-
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import React from 'react';
-
 import UploadImageModal from './UploadImageModal';
 import { DateSelect } from './date-select';
 import { TimeSelect } from './time-select';
@@ -40,6 +40,7 @@ import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
 import { useAuth } from '@clerk/nextjs';
 import type { CreateEventData } from '@/types/events';
+import { categories } from '@/data/categories';
 import {
   DndContext,
   closestCenter,
@@ -146,6 +147,7 @@ export default function CreateEventForm() {
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [eventName, setEventName] = useState('');
   const [selected, setSelected] = useState<'public' | 'private'>('public');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -260,19 +262,6 @@ export default function CreateEventForm() {
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
 
-  useEffect(() => {
-    const checkAuthAndShowModal = () => {
-      try {
-        setHasCheckedAuth(true);
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        setHasCheckedAuth(true);
-      }
-    };
-
-    checkAuthAndShowModal();
-  }, [hasCheckedAuth]);
-
   const handleCreateEvent = async () => {
     if (!isSignedIn) {
       toast.error('Debes iniciar sesión para crear eventos');
@@ -365,6 +354,7 @@ export default function CreateEventForm() {
             isMain: true,
           },
         ]);
+        setSelectedCategories([]);
       },
       onError: (error) => {
         toast.error(error.message || 'Error al crear el evento');
@@ -676,6 +666,40 @@ export default function CreateEventForm() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Selector de categorías */}
+              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                <div className="flex items-center gap-2 pb-1">
+                  <Tag className="h-3.5 w-3.5 text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-stone-200">Categorías del evento</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        selectedCategories.includes(cat.id)
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
+                      }`}
+                      onClick={() => {
+                        setSelectedCategories((prev) =>
+                          prev.includes(cat.id)
+                            ? prev.filter((id) => id !== cat.id)
+                            : [...prev, cat.id],
+                        );
+                      }}
+                    >
+                      {cat.name}
+                      {selectedCategories.includes(cat.id) && <X className="h-3 w-3 ml-1" />}
+                    </button>
+                  ))}
+                </div>
+                {selectedCategories.length === 0 && (
+                  <p className="text-xs text-red-400 mt-1">Selecciona al menos una categoría.</p>
+                )}
+              </div>
 
               <Button
                 onClick={handleCreateEvent}

@@ -4,7 +4,7 @@ export class WalletService {
   static async getWalletStatus(
     userId: string,
   ): Promise<{ wallet_linked: boolean; wallet_provider: string | null }> {
-    const user = await prisma.usuario.findUnique({ where: { usuarioid: userId } });
+    const user = await prisma.usuarios.findUnique({ where: { usuarioid: userId } });
     return {
       wallet_linked: user?.wallet_linked ?? false,
       wallet_provider: user?.wallet_provider ?? null,
@@ -15,7 +15,7 @@ export class WalletService {
     userId: string,
     provider: string = 'mercado_pago',
   ): Promise<{ wallet_linked: boolean; wallet_provider: string | null }> {
-    const user = await prisma.usuario.upsert({
+    const user = await prisma.usuarios.upsert({
       where: { usuarioid: userId },
       update: { wallet_linked: true, wallet_provider: provider || 'mercado_pago' },
       create: {
@@ -33,7 +33,7 @@ export class WalletService {
   static async unlinkWallet(
     userId: string,
   ): Promise<{ wallet_linked: boolean; wallet_provider: string | null }> {
-    const user = await prisma.usuario.update({
+    const user = await prisma.usuarios.update({
       where: { usuarioid: userId },
       data: { wallet_linked: false, wallet_provider: null },
     });
