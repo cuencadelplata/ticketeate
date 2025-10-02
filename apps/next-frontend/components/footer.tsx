@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import DarkMode from './DarkMode';
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -22,15 +23,15 @@ export const Footer: React.FC = () => {
           >
             <div className="flex items-center space-x-2">
               <Image
-                src="/wordmark-ticketeate.png"
+                src="/wordmark-light.png"
                 alt="Ticketeate"
                 width={120}
                 height={35}
-                className="filter brightness-0 invert"
+                className="filter brightness-0 invert object-contain"
               />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              La plataforma más completa para crear, gestionar y vender entradas de eventos. 
+              La plataforma más completa para crear, gestionar y vender entradas de eventos.
               Simplificamos la experiencia tanto para organizadores como para asistentes.
             </p>
             <div className="text-sm text-gray-400">
@@ -99,10 +100,10 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            {/* Redes sociales */}
+            {/* Redes sociales y dark mode */}
             <div className="space-y-4">
               <h4 className="text-sm font-medium text-white">Síguenos</h4>
-              <div className="flex space-x-4">
+              <div className="flex space-x-4 mb-4">
                 <motion.a
                   href="https://www.instagram.com/"
                   target="_blank"
@@ -133,6 +134,12 @@ export const Footer: React.FC = () => {
                 >
                   <Twitter className="h-5 w-5" />
                 </motion.a>
+              </div>
+
+              {/* Dark Mode Toggle */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-300">Tema:</span>
+                <DarkMode />
               </div>
             </div>
           </motion.div>
