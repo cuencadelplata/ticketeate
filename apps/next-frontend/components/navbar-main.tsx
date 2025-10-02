@@ -35,13 +35,13 @@ function NavbarHome() {
         <div className="flex items-center space-x-8">
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="relative">
-              <Image 
-                src="/wordmark-ticketeate.png" 
-                alt="Ticketeate" 
-                width={140} 
-                height={40} 
-                priority 
-                className="transition-transform duration-300 group-hover:scale-105"
+              <Image
+                src="/wordmark-light.png"
+                alt="Ticketeate"
+                width={140}
+                height={40}
+                priority
+                className="transition-transform duration-300 group-hover:scale-105 object-contain"
               />
             </div>
           </Link>

@@ -94,7 +94,8 @@ export default function Home() {
               className="flex items-center justify-between mb-8"
             >
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Resultados para: <span className="text-orange-600 dark:text-orange-400 italic">"{q}"</span>
+                Resultados para:{' '}
+                <span className="text-orange-600 dark:text-orange-400 italic">"{q}"</span>
               </h1>
               <button
                 onClick={handleClear}
@@ -103,7 +104,9 @@ export default function Home() {
                 Limpiar búsqueda
               </button>
             </motion.div>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">{results.length} resultado(s) encontrado(s)</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+              {results.length} resultado(s) encontrado(s)
+            </p>
 
             {results.length > 0 ? (
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -153,29 +156,27 @@ export default function Home() {
               </motion.div>
 
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {isLoading ? (
-                  Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl h-64 mb-4"></div>
-                      <div className="space-y-2">
-                        <div className="bg-gray-200 dark:bg-gray-700 h-4 rounded w-3/4"></div>
-                        <div className="bg-gray-200 dark:bg-gray-700 h-3 rounded w-1/2"></div>
+                {isLoading
+                  ? Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="bg-gray-200 dark:bg-gray-700 rounded-2xl h-64 mb-4"></div>
+                        <div className="space-y-2">
+                          <div className="bg-gray-200 dark:bg-gray-700 h-4 rounded w-3/4"></div>
+                          <div className="bg-gray-200 dark:bg-gray-700 h-3 rounded w-1/2"></div>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  uiEvents.map((event, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: i * 0.1 }}
-                      viewport={{ once: true }}
-                    >
-                      <EventCard {...event} />
-                    </motion.div>
-                  ))
-                )}
+                    ))
+                  : uiEvents.map((event, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <EventCard {...event} />
+                      </motion.div>
+                    ))}
               </div>
             </div>
           </section>
@@ -260,9 +261,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 className="space-y-6"
               >
-                <h2 className="text-3xl font-bold text-white">
-                  ¿Listo para crear tu evento?
-                </h2>
+                <h2 className="text-3xl font-bold text-white">¿Listo para crear tu evento?</h2>
                 <p className="text-xl text-orange-100">
                   Únete a miles de organizadores que ya confían en Ticketeate
                 </p>

@@ -16,10 +16,10 @@ export function Hero() {
         src="https://ease-one.vercel.app/bg/something.mp4"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      
+
       {/* Overlay con gradiente sutil */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60" />
-      
+
       {/* Contenido principal */}
       <div className="relative z-10 flex h-full items-center justify-center">
         <div className="mx-auto max-w-4xl px-6 text-center">
@@ -61,8 +61,8 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="mx-auto max-w-2xl text-lg text-gray-200 sm:text-xl"
             >
-              Crea, gestiona y vende entradas en minutos con Ticketeate. 
-              La plataforma más completa para la gestión de eventos.
+              Crea, gestiona y vende entradas en minutos con Ticketeate. La plataforma más completa
+              para la gestión de eventos.
             </motion.p>
 
             {/* Botones de acción */}
@@ -79,7 +79,7 @@ export function Hero() {
                 Crear tu primer evento
                 <ArrowUpRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
-              
+
               <Link
                 href="/eventos"
                 className="inline-flex items-center gap-2 rounded-full bg-white/10 px-8 py-4 text-lg font-semibold text-white backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105"

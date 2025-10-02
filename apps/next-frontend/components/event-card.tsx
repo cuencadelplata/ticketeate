@@ -20,20 +20,20 @@ function getDisponibilidadBadge(disponibilidad: string) {
     return {
       text: 'Agotado',
       className: 'bg-red-500 text-white',
-      icon: '🔴'
+      icon: '🔴',
     };
   }
   if (disponibilidad.toLowerCase().includes('disponible')) {
     return {
       text: 'Disponible',
       className: 'bg-green-500 text-white',
-      icon: '🟢'
+      icon: '🟢',
     };
   }
   return {
     text: disponibilidad,
     className: 'bg-gray-500 text-white',
-    icon: '⚪'
+    icon: '⚪',
   };
 }
 
@@ -67,13 +67,15 @@ export function EventCard({
           height={320}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        
+
         {/* Overlay con gradiente */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        
+
         {/* Badge de disponibilidad */}
         <div className="absolute top-3 right-3">
-          <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${badge.className}`}>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${badge.className}`}
+          >
             <span className="text-xs">{badge.icon}</span>
             {badge.text}
           </span>
@@ -88,9 +90,7 @@ export function EventCard({
         </h3>
 
         {/* Descripción */}
-        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-          {description}
-        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{description}</p>
 
         {/* Información del evento */}
         <div className="space-y-2">
@@ -98,7 +98,7 @@ export function EventCard({
             <Calendar className="h-4 w-4" />
             <span>{date}</span>
           </div>
-          
+
           {category2 && (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <MapPin className="h-4 w-4" />

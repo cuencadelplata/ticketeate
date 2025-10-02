@@ -14,7 +14,14 @@ export function Navbar() {
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/wordmark-light.png" alt="Picture of the author" width={130} height={40} />
+          <Image
+            src="/wordmark-light.png"
+            alt="Ticketeate"
+            width={130}
+            height={40}
+            priority
+            className="object-contain"
+          />
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
