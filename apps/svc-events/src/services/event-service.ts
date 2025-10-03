@@ -50,6 +50,10 @@ export interface CreateEventData {
     precio: number;
     stock_total: number;
   }>;
+  categorias?: Array<{
+    id?: number;
+    nombre: string;
+  }>;
 }
 
 export interface EventWithImages {
@@ -80,6 +84,13 @@ export interface EventWithImages {
     stateventid: string;
     Estado: string;
     fecha_de_cambio: Date;
+  }>;
+  catevento?: Array<{
+    categoriaeventoid: bigint;
+    categoriaevento: {
+      nombre: string;
+      descripcion?: string;
+    };
   }>;
 }
 
@@ -200,6 +211,11 @@ export class EventService {
         },
       });
 
+      // Crear categorías del evento si se enviaron
+      if (data.categorias && data.categorias.length > 0) {
+        await this.addCategoriesToEvent(evento.eventoid, data.categorias);
+      }
+
       // get evento con sus imágenes y fechas
       const eventoCompleto = await prisma.eventos.findUnique({
         where: { eventoid: evento.eventoid },
@@ -207,6 +223,11 @@ export class EventService {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
+          catevento: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -302,12 +323,25 @@ export class EventService {
         }
       }
 
+      // Opcional: actualizar categorías (reemplazo simple)
+      if (data.categorias) {
+        await prisma.catevento.deleteMany({ where: { eventoid: id } });
+        if (data.categorias.length > 0) {
+          await this.addCategoriesToEvent(id, data.categorias);
+        }
+      }
+
       const full = await prisma.eventos.findUnique({
         where: { eventoid: updated.eventoid },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
+          catevento: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -359,6 +393,11 @@ export class EventService {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
+          catevento: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -387,6 +426,11 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          catevento: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -416,6 +460,11 @@ export class EventService {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
+          catevento: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -453,6 +502,11 @@ export class EventService {
         imagenes_evento: true,
         fechas_evento: true,
         stock_entrada: true,
+        catevento: {
+          include: {
+            categoriaevento: true,
+          },
+        },
         evento_estado: {
           orderBy: {
             fecha_de_cambio: 'desc',

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/config';
+import { API_BASE_URL, API_ENDPOINTS } from '@/lib/config';
 import { useAuth } from '@clerk/nextjs';
 import type {
   Event,
@@ -119,7 +119,7 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
       const token = await getToken();
-      let response = await fetch(API_ENDPOINTS.events, {
+      let response = await fetch(`${API_BASE_URL}/api/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -216,9 +216,9 @@ export function useUpdateEvent() {
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
+      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
 
-      queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
+      queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
     },
   });
 }
@@ -253,7 +253,7 @@ export function useDeleteEvent() {
 
       queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
         if (oldEvents) {
-          return oldEvents.filter((event) => event.id_evento !== deletedId);
+          return oldEvents.filter((event) => event.eventoid !== deletedId);
         }
         return [];
       });
@@ -288,4 +288,20 @@ export function useEventCategories() {
       return res.json();
     },
   };
+}
+
+// Hook para obtener todas las categorías disponibles
+export function useCategories() {
+  return useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/categories`);
+      if (!response.ok) {
+        throw new Error('Error al obtener categorías');
+      }
+      const data = await response.json();
+      return data.categories || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
 }
