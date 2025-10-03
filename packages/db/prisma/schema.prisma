@@ -34,8 +34,8 @@ model Evento {
   descripcion        String?
   ubicacion          String?            @db.VarChar(255)
   fecha_creacion     DateTime           @default(now()) @db.Timestamptz(6)
-  fecha_inicio_venta DateTime           @db.Timestamptz(6)
-  fecha_fin_venta    DateTime           @db.Timestamptz(6)
+  fecha_inicio_venta DateTime           @default(now()) @db.Timestamptz(6)  // 👈 default agregado
+  fecha_fin_venta    DateTime           @default(now()) @db.Timestamptz(6)  // 👈 default agregado
   creadorid          String             @db.VarChar(255)
   estado             String             @default("OCULTO") @db.VarChar(20)
   mapa_evento        Json?
@@ -248,4 +248,65 @@ enum EstadoEntrada {
   VALIDA
   USADA
   CANCELADA
+}
+
+/// Better Auth models
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String   @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
 }

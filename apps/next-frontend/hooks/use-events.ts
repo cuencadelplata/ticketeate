@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 import type {
   Event,
   CreateEventData,
@@ -11,44 +11,34 @@ import type {
   GetPublicEventResponse,
 } from '@/types/events';
 
-// Hook para obtener eventos
+// Hook para obtener eventos (protegido)
 export function useEvents() {
-  const { getToken } = useAuth();
+  const session = useSession();
+  const isAuthenticated = !!session.data?.user;
 
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      const token = await getToken();
-      let response = await fetch(API_ENDPOINTS.events, {
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+      const res = await fetch(API_ENDPOINTS.events, {
+        // con Better Auth, si el endpoint está en el mismo dominio, las cookies httpOnly viajan solas
+        credentials: 'include',
       });
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(API_ENDPOINTS.events, {
-          headers: { Authorization: `Bearer ${newToken ?? ''}` },
-        });
-      }
-      if (!response.ok) {
-        throw new Error('Error al obtener eventos');
-      }
-      const data: GetEventsResponse = await response.json();
+      if (!res.ok) throw new Error('Error al obtener eventos');
+      const data: GetEventsResponse = await res.json();
       return data.events || [];
     },
+    enabled: isAuthenticated,
   });
 }
 
-// hook para obtener todos los eventos - psados y activos
+// hook para obtener todos los eventos - pasados y activos 
 export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
     queryFn: async (): Promise<Event[]> => {
-      const response = await fetch(API_ENDPOINTS.allEvents);
-      if (!response.ok) {
-        throw new Error('Error al obtener todos los eventos');
-      }
-      const data: GetAllEventsResponse = await response.json();
+      const res = await fetch(API_ENDPOINTS.allEvents, { credentials: 'include' });
+      if (!res.ok) throw new Error('Error al obtener todos los eventos');
+      const data: GetAllEventsResponse = await res.json();
       return data.events || [];
     },
     staleTime: 60 * 1000,
@@ -63,11 +53,9 @@ export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
     queryFn: async (): Promise<Event> => {
-      const response = await fetch(API_ENDPOINTS.publicEventById(id as string));
-      if (!response.ok) {
-        throw new Error('Error al obtener el evento');
-      }
-      const data: GetPublicEventResponse = await response.json();
+      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), { credentials: 'include' });
+      if (!res.ok) throw new Error('Error al obtener el evento');
+      const data: GetPublicEventResponse = await res.json();
       return data.event;
     },
     enabled: Boolean(id),
@@ -75,79 +63,51 @@ export function usePublicEvent(id?: string) {
   });
 }
 
-// Hook para obtener un evento específico
+// Hook para obtener un evento específico (protegido)
 export function useEvent(id: string) {
-  const { getToken } = useAuth();
+  const session = useSession();
+  const isAuthenticated = !!session.data?.user;
 
   return useQuery({
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
-      const token = await getToken();
-      let response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-        },
-      });
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
-          headers: { Authorization: `Bearer ${newToken ?? ''}` },
-        });
-      }
-      if (!response.ok) {
-        throw new Error('Error al obtener el evento');
-      }
-      const data: GetEventResponse = await response.json();
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Error al obtener el evento');
+      const data: GetEventResponse = await res.json();
       return data.event;
     },
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
   });
 }
 
-// Hook para crear un evento
+// Hook para crear un evento 
 export function useCreateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
-      const token = await getToken();
-      let response = await fetch(API_ENDPOINTS.events, {
+      const res = await fetch(API_ENDPOINTS.events, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(eventData),
       });
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(API_ENDPOINTS.events, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${newToken ?? ''}`,
-          },
-          body: JSON.stringify(eventData),
-        });
+      if (!res.ok) {
+        let msg = 'Error al crear el evento';
+        try {
+          const err = await res.json();
+          msg = err.error || msg;
+        } catch {}
+        throw new Error(msg);
       }
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al crear el evento');
-      }
-
-      const data: CreateEventResponse = await response.json();
+      const data: CreateEventResponse = await res.json();
       return data.event;
     },
     onSuccess: (newEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-
-      queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
-        if (oldEvents) {
-          return [...oldEvents, newEvent];
-        }
-        return [newEvent];
-      });
+      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
+        old ? [...old, newEvent] : [newEvent]
+      );
     },
     onError: (error) => {
       console.error('Error al crear evento:', error);
@@ -155,7 +115,7 @@ export function useCreateEvent() {
   });
 }
 
-// Hook para actualizar un evento
+// Hook para actualizar un evento 
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
 
@@ -167,54 +127,54 @@ export function useUpdateEvent() {
       id: string;
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
-      const response = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(eventData),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al actualizar el evento');
+      if (!res.ok) {
+        let msg = 'Error al actualizar el evento';
+        try {
+          const err = await res.json();
+          msg = err.error || msg;
+        } catch {}
+        throw new Error(msg);
       }
-
-      return response.json();
+      return res.json();
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
-
       queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
     },
   });
 }
 
-// Hook para eliminar un evento
+// Hook para eliminar un evento 
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const response = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al eliminar el evento');
+      if (!res.ok) {
+        let msg = 'Error al eliminar el evento';
+        try {
+          const err = await res.json();
+          msg = err.error || msg;
+        } catch {}
+        throw new Error(msg);
       }
     },
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-
-      queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
-        if (oldEvents) {
-          return oldEvents.filter((event) => event.id_evento !== deletedId);
-        }
-        return [];
-      });
+      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
+        old ? old.filter((e) => e.id_evento !== deletedId) : []
+      );
     },
   });
 }

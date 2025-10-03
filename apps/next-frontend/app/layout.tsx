@@ -3,8 +3,6 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
-import { ClerkProvider } from '@clerk/nextjs';
-import { esES } from '@clerk/localizations';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -16,26 +14,23 @@ export const metadata: Metadata = {
   },
 };
 
-// font inter
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter', // optional css variable
+  variable: '--font-inter',
   display: 'swap',
 });
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider localization={esES}>
-      <html lang="es" suppressHydrationWarning>
-        <body className={inter.className}>
-          <Providers>{children}</Providers>
-          <Toaster position="top-right" richColors closeButton expand={true} />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="es" suppressHydrationWarning>
+      <body className={inter.className}>
+        <Providers>
+          {children}
+          <Toaster position="top-right" theme="dark" richColors closeButton expand />
+        </Providers>
+      </body>
+    </html>
   );
 }

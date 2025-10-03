@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-// Export a singleton instance
-export const prisma = new PrismaClient();
+export { prisma }; // <-- Agrega esta línea
 
 // Export Prisma types for use in other packages
 export type {

@@ -1,23 +1,32 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-const isProtectedRoute = createRouteMatcher([
-  '/eventos(.*)',
-  '/crear(.*)',
-  '/productoras(.*)',
-  '/evento/manage(.*)',
-]);
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+
+const COOKIE_NAME = "better-auth.session_token";
+
+export function middleware(req: NextRequest) {
+  
+  let hasSession = !!getSessionCookie(req);
+ 
+  if (!hasSession) hasSession = !!req.cookies.get(COOKIE_NAME)?.value;
+
+  if (!hasSession) {
+    const url = new URL("/sign-in", req.url);
+    // preserva a dónde quería ir la persona
+    url.searchParams.set("redirect_url", req.nextUrl.pathname);
+    return NextResponse.redirect(url);
   }
-});
+
+  return NextResponse.next();
+}
+
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    "/eventos/:path*",
+    "/crear/:path*",
+    "/productoras/:path*",
+    "/evento/manage/:path*",
   ],
 };
