@@ -363,7 +363,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
   noiseAmount = 0, // Disabled by default for performance
   performanceMode = 'low', // Default to low performance mode
   pointDensity = 1.0, // Balanced density
-  }) => {
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const visibilityRef = useRef({ visible: true });
   const speedRef = useRef(speed);
@@ -429,7 +429,18 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
           throttleRate: 2,
         };
     }
-  }, [performanceMode, pointDensity, antialias, patternScale, patternDensity, liquid, enableRipples, speed, pixelSizeJitter, edgeFade]);
+  }, [
+    performanceMode,
+    pointDensity,
+    antialias,
+    patternScale,
+    patternDensity,
+    liquid,
+    enableRipples,
+    speed,
+    pixelSizeJitter,
+    edgeFade,
+  ]);
 
   const threeRef = useRef<{
     renderer: THREE.WebGLRenderer;
@@ -470,7 +481,12 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     if (!container) return;
     speedRef.current = speed;
     const needsReinitKeys = ['antialias', 'liquid', 'noiseAmount', 'performanceMode'];
-    const cfg = { antialias: performanceConfig.antialias, liquid: performanceConfig.liquid, noiseAmount, performanceMode };
+    const cfg = {
+      antialias: performanceConfig.antialias,
+      liquid: performanceConfig.liquid,
+      noiseAmount,
+      performanceMode,
+    };
     let mustReinit = false;
     if (!threeRef.current) mustReinit = true;
     else if (prevConfigRef.current) {
@@ -634,7 +650,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
           if (uStrength) uStrength.value = 0;
         }
       };
-      
+
       const onPointerLeave = () => {
         setIsHovered(false);
         // Re-enable liquid effect strength when not hovering
@@ -659,17 +675,18 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       let raf = 0;
       let frameSkip = 0;
       const ANIMATION_THROTTLE = 2; // Reduce animation frequency for performance
-      
+
       const animate = () => {
         if (autoPauseOffscreen && !visibilityRef.current.visible) {
           raf = requestAnimationFrame(animate);
           return;
         }
-        
+
         // Throttle animation for better performance when liquid is disabled
         frameSkip++;
-        const shouldUpdate = !performanceConfig.throttleFrames || frameSkip % performanceConfig.throttleRate === 0;
-        
+        const shouldUpdate =
+          !performanceConfig.throttleFrames || frameSkip % performanceConfig.throttleRate === 0;
+
         if (!shouldUpdate) {
           raf = requestAnimationFrame(animate);
           return;
