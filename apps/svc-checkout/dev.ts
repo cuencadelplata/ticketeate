@@ -14,11 +14,11 @@ const envContent = readFileSync(envPath, 'utf-8');
 const envVars = Object.fromEntries(
   envContent
     .split('\n')
-    .filter(line => line && !line.startsWith('#') && line.includes('='))
-    .map(line => {
+    .filter((line) => line && !line.startsWith('#') && line.includes('='))
+    .map((line) => {
       const [key, ...values] = line.split('=');
       return [key.trim(), values.join('=').trim()];
-    })
+    }),
 );
 
 // Usar la variable del archivo .env directamente
