@@ -256,7 +256,6 @@ export default function CreateEventForm() {
     }
   };
 
-
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
 

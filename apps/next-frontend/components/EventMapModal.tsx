@@ -104,18 +104,15 @@ export default function EventMapModal({
     [snapToGrid, gridSize],
   );
 
-  const handleCanvasClick = useCallback(
-    () => {
-      // Solo deseleccionar sector o elemento si hay uno seleccionado
-      if (selectedSector) {
-        setSelectedSector(null);
-      }
-      if (selectedElement) {
-        setSelectedElement(null);
-      }
-    },
-    [selectedSector, selectedElement],
-  );
+  const handleCanvasClick = useCallback(() => {
+    // Solo deseleccionar sector o elemento si hay uno seleccionado
+    if (selectedSector) {
+      setSelectedSector(null);
+    }
+    if (selectedElement) {
+      setSelectedElement(null);
+    }
+  }, [selectedSector, selectedElement]);
 
   const handleSectorMouseDown = useCallback(
     (e: React.MouseEvent, sectorId: string) => {
@@ -420,6 +417,7 @@ export default function EventMapModal({
     setSectors((prev) => [...prev, newSector]);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _addSectorToCanvas = (type: 'general' | 'vip' | 'premium' | 'custom') => {
     const { x, y } = snapToGridPosition(50, 50);
     const newSector: EventSector = {
@@ -577,11 +575,7 @@ export default function EventMapModal({
                           type as 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking',
                         )
                       }
-                      className={`w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md ${
-                        selectedElementType === type
-                          ? 'bg-stone-850 border-blue-500'
-                          : 'border-gray-800 hover:border-gray-900'
-                      }`}
+                      className="w-full cursor-pointer rounded-md border-2 border-dashed p-3 text-left transition-all hover:shadow-md border-gray-800 hover:border-gray-900"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{icon}</span>

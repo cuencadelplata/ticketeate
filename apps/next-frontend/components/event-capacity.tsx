@@ -148,6 +148,7 @@ export default function EventCapacity({
     );
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const renderBasicCapacityDialog = () => (
     <>
       <DialogHeader>
