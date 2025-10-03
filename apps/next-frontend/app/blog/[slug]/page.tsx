@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
+import { User, Clock, ArrowLeft } from 'lucide-react';
 import '@/app/blog/styles.css';
 import { getPostBySlug, getAllPostSlugs } from '@/lib/blog';
 

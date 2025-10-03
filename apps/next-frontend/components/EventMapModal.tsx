@@ -81,12 +81,6 @@ export default function EventMapModal({
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [selectedType, setSelectedType] = useState<'general' | 'vip' | 'premium' | 'custom'>(
-    'general',
-  );
-  const [selectedElementType, setSelectedElementType] = useState<
-    'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking'
-  >('stage');
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(
     initialMapData?.backgroundImage,
   );
@@ -111,7 +105,7 @@ export default function EventMapModal({
   );
 
   const handleCanvasClick = useCallback(
-    (_e: React.MouseEvent) => {
+    () => {
       // Solo deseleccionar sector o elemento si hay uno seleccionado
       if (selectedSector) {
         setSelectedSector(null);
@@ -426,7 +420,7 @@ export default function EventMapModal({
     setSectors((prev) => [...prev, newSector]);
   };
 
-  const addSectorToCanvas = (type: 'general' | 'vip' | 'premium' | 'custom') => {
+  const _addSectorToCanvas = (type: 'general' | 'vip' | 'premium' | 'custom') => {
     const { x, y } = snapToGridPosition(50, 50);
     const newSector: EventSector = {
       id: Date.now().toString(),
@@ -575,7 +569,7 @@ export default function EventMapModal({
                 <h3 className="mb-2 text-sm font-medium">Elementos de Infraestructura</h3>
                 <p className="mb-3 text-xs text-gray-500">Haz clic para agregar al canvas</p>
                 <div className="space-y-2">
-                  {elementTypes.map(({ type, label, icon, color: _color }) => (
+                  {elementTypes.map(({ type, label, icon }) => (
                     <button
                       key={type}
                       onClick={() =>

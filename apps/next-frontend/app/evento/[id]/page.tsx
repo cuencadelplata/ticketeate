@@ -2,7 +2,6 @@
 
 import NavbarHome from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';

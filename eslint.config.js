@@ -93,7 +93,13 @@ module.exports = [
   ,
   HTMLOListElement: "readonly"
         ,
-        KeyboardEvent: "readonly"
+        KeyboardEvent: "readonly",
+        // Browser APIs for WebGL and animation
+        ResizeObserver: "readonly",
+        requestAnimationFrame: "readonly",
+        cancelAnimationFrame: "readonly",
+        WebGL2RenderingContext: "readonly",
+        PointerEvent: "readonly"
       }
     },
     plugins: {

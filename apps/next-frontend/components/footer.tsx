@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Heart, Circle } from 'lucide-react';
 
 const SystemStatus: React.FC = () => {
-  const [isSystemUp, setIsSystemUp] = React.useState(true);
+  const [isSystemUp] = React.useState(true);
 
   return (
     <button

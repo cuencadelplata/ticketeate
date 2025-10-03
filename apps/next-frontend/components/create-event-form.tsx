@@ -1,7 +1,7 @@
 'use client';
 
 // Elimina imports duplicados y mantén solo uno de cada
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Globe,
   Upload,
@@ -167,7 +167,6 @@ export default function CreateEventForm() {
   const { data: walletData } = useWalletStatus();
 
   const [description, setDescription] = useState('');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [ticketInfo, setTicketInfo] = useState<{
     type: 'free' | 'paid';
     price?: number;
@@ -257,7 +256,6 @@ export default function CreateEventForm() {
     }
   };
 
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
@@ -550,7 +548,7 @@ export default function CreateEventForm() {
                   <h3 className="text-sm font-semibold text-stone-200">Fechas del evento</h3>
                 </div>
 
-                {eventDates.map((eventDate, index) => (
+                {eventDates.map((eventDate) => (
                   <div
                     key={eventDate.id}
                     className={`relative rounded-md border-1 p-2 ${

@@ -86,7 +86,7 @@ export default function EventosPage() {
   const loadEvents = async () => {
     try {
       await refetch();
-    } catch (error) {
+    } catch {
       console.error('Error loading events:', error);
       toast.error('Error al cargar los eventos');
     }

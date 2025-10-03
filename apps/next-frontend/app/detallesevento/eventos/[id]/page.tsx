@@ -47,7 +47,7 @@ const metrics = {
   pageViews: 3600,
 };
 
-export default function EventDetailsPage({ params }: { params: { id: string } }) {
+export default function EventDetailsPage({ params: { id } }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">

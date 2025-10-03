@@ -148,7 +148,7 @@ export default function EventCapacity({
     );
   };
 
-  const _renderBasicCapacityDialog = () => (
+  const renderBasicCapacityDialog = () => (
     <>
       <DialogHeader>
         <DialogTitle className="text-stone-100">Cupo máximo</DialogTitle>

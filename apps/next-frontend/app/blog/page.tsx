@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, User, Clock } from 'lucide-react';
 import { getAllPosts, BlogPost } from '@/lib/blog';
 
 const categories = [
