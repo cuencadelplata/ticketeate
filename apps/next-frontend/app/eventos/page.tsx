@@ -1,7 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, MapPin, ArrowRight, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  ArrowRight,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Tag,
+  Eye,
+  EyeOff,
+  Users,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
@@ -36,9 +47,34 @@ const formatEventDate = (dateString: string) => {
   };
 };
 
+// Obtener el estado actual del evento
+const getEventStatus = (event: Event) => {
+  const estadoActual = event.evento_estado?.[0]?.Estado;
+  return estadoActual || 'OCULTO';
+};
+
+// Obtener categorías del evento
+const getEventCategories = (event: Event) => {
+  return event.catevento?.map((cat) => cat.categoriaevento.nombre) || [];
+};
+
+// Obtener imagen de portada
+const getCoverImage = (event: Event) => {
+  return (
+    event.imagenes_evento?.find((img) => img.tipo === 'PORTADA')?.url ||
+    event.imagenes_evento?.[0]?.url
+  );
+};
+
 // Determinar si un evento es pasado
-const isEventPast = (fechaFin: string) => {
-  return new Date(fechaFin) < new Date();
+const isEventPast = (event: Event) => {
+  // Usar la fecha de fin del evento o la fecha de creación como fallback
+  const fechaFin = event.fechas_evento?.[0]?.fecha_fin || event.fecha_creacion;
+
+  // Asegurar que fechaFin sea un string o Date válido
+  const fechaFinDate = typeof fechaFin === 'string' ? new Date(fechaFin) : fechaFin;
+
+  return fechaFinDate < new Date();
 };
 
 export default function EventosPage() {
@@ -57,169 +93,289 @@ export default function EventosPage() {
   };
 
   // filter events
-  const filteredEvents = events.filter((event) => {
-    const isPast = isEventPast(event.fecha_fin_venta);
-    return activeTab === 'proximos' ? !isPast : isPast;
-  });
+  const proximosEvents = events.filter((event) => !isEventPast(event));
+  const pasadosEvents = events.filter((event) => isEventPast(event));
+  const filteredEvents = activeTab === 'proximos' ? proximosEvents : pasadosEvents;
 
   const hasEvents = filteredEvents.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="pb-4">
         <Navbar />
       </div>
       <div className="p-6">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-10 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-bold">Eventos</h1>
-              <button
-                onClick={loadEvents}
-                disabled={loading}
-                className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-3 py-2 text-sm transition-colors hover:bg-[#3A3A3A] disabled:opacity-50"
-                title="Recargar eventos"
-              >
-                <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-                {loading ? 'Cargando...' : 'Actualizar'}
-              </button>
-            </div>
-            <div className="flex rounded-lg bg-[#2A2A2A]">
-              <button
-                onClick={() => setActiveTab('proximos')}
-                className={cn(
-                  'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'proximos' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
-                )}
-              >
-                Próximos
-              </button>
-              <button
-                onClick={() => setActiveTab('pasados')}
-                className={cn(
-                  'rounded-lg px-4 py-2 text-sm',
-                  activeTab === 'pasados' ? 'bg-[#3A3A3A] text-white' : 'text-gray-400',
-                )}
-              >
-                Pasados
-              </button>
+        <div className="mx-auto max-w-6xl">
+          {/* Header mejorado */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex-1">
+                <h1 className="text-6xl font-instrument-serif font-light bg-gradient-to-r from-white to-stone-300 bg-clip-text text-transparent mb-2">
+                  Mis Eventos
+                </h1>
+                <p className="text-stone-400 text-md">Gestiona y organiza todos tus eventos</p>
+              </div>
+
+              {/* Switch pequeño a la derecha */}
+              <div className="flex items-center gap-3 px-4">
+                <div className="flex rounded-lg bg-[#1A1A1A] p-0.5 border border-[#3A3A3A]">
+                  <button
+                    onClick={() => setActiveTab('proximos')}
+                    className={cn(
+                      'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                      activeTab === 'proximos'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]',
+                    )}
+                  >
+                    Próximos ({proximosEvents.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('pasados')}
+                    className={cn(
+                      'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                      activeTab === 'pasados'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]',
+                    )}
+                  >
+                    Pasados ({pasadosEvents.length})
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={loadEvents}
+                  disabled={loading}
+                  className="flex items-center gap-2 rounded-xl bg-[#2A2A2A] px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-[#3A3A3A] hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  title="Recargar eventos"
+                >
+                  <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+                  {loading ? 'Cargando...' : 'Actualizar'}
+                </button>
+                <Link href="/crear">
+                  <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-lg">
+                    <Plus className="h-4 w-4" />
+                    Crear Evento
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <RefreshCw className="mb-4 h-16 w-16 animate-spin text-gray-500" />
-              <p className="text-gray-400">Cargando eventos...</p>
+              <div className="relative">
+                <RefreshCw className="mb-4 h-16 w-16 animate-spin text-orange-500" />
+                <div className="absolute inset-0 h-16 w-16 rounded-full border-2 border-orange-500/20"></div>
+              </div>
+              <p className="text-gray-400 text-lg">Cargando eventos...</p>
             </div>
           ) : !hasEvents ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="mb-6 rounded-lg bg-[#2A2A2A] p-6">
-                <Calendar className="h-16 w-16 text-gray-500" />
+              <div className="mb-8 rounded-2xl bg-gradient-to-br from-[#2A2A2A] to-[#3A3A3A] p-8 border border-[#4A4A4A]">
+                <Calendar className="h-20 w-20 text-gray-400 mx-auto" />
               </div>
-              <h2 className="mb-2 text-2xl font-semibold text-gray-300">
+              <h2 className="mb-4 text-3xl font-bold text-gray-200">
                 Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
               </h2>
-              <p className="mb-8 text-gray-400">
+              <p className="mb-8 text-gray-400 text-lg text-center max-w-md">
                 {activeTab === 'proximos'
                   ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
                   : 'No tienes eventos pasados.'}
               </p>
               {activeTab === 'proximos' && (
-                <Link href="/crear" className="flex">
-                  <button className="flex items-center gap-2 rounded-md bg-[#2A2A2A] px-4 py-2 transition-colors hover:bg-[#3A3A3A]">
+                <Link href="/crear">
+                  <button className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-lg font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
                     <Plus className="h-5 w-5" />
-                    <span>Crear evento</span>
+                    <span>Crear mi primer evento</span>
                   </button>
                 </Link>
               )}
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6">
               {filteredEvents.map((event) => {
-                const formattedDate = formatEventDate(event.fecha_inicio_venta);
+                const formattedDate = formatEventDate(
+                  typeof event.fecha_creacion === 'string'
+                    ? event.fecha_creacion
+                    : event.fecha_creacion.toISOString(),
+                );
                 const hasLocation = !!event.ubicacion;
-                const coverImage =
-                  event.imagenes_evento?.find((img) => img.tipo === 'portada')?.url ||
-                  event.imagenes_evento?.[0]?.url;
+                const coverImage = getCoverImage(event);
+                const eventStatus = getEventStatus(event);
+                const categories = getEventCategories(event);
+                const hasTickets = event.stock_entrada && event.stock_entrada.length > 0;
 
                 return (
-                  <div key={event.id_evento} className="relative">
-                    <div className="absolute left-4 top-0 flex flex-col items-center">
-                      <div className="text-lg font-medium">{formattedDate.date}</div>
-                      <div className="text-sm text-gray-400">{formattedDate.day}</div>
-                    </div>
-                    <div className="absolute left-[4.5rem] top-[1.5rem] h-full w-0.5 bg-[#2A2A2A]"></div>
-                    <div className="absolute left-[4.5rem] top-[1.5rem] h-2 w-2 rounded-full bg-gray-500"></div>
-
-                    <div className="ml-20 flex justify-between rounded-lg bg-[#1E1E1E] p-4">
-                      <div className="flex-1">
-                        <div className="mb-1 text-sm text-gray-400">{formattedDate.time}</div>
-                        <h3 className="mb-2 text-xl font-medium">{event.titulo}</h3>
-
-                        {!hasLocation ? (
-                          <div className="mb-1 flex items-center text-sm text-yellow-500">
-                            <span className="mr-1">⚠️</span> Falta la ubicación
-                          </div>
-                        ) : (
-                          <div className="mb-1 flex items-center text-sm text-gray-400">
-                            <MapPin className="mr-1 h-4 w-4" /> {event.ubicacion}
-                          </div>
-                        )}
-
-                        <div className="mb-1 text-sm text-gray-400">
-                          <span className="mr-1">📅</span>
-                          {new Date(event.fecha_inicio_venta).toLocaleDateString('es-ES')} -{' '}
-                          {new Date(event.fecha_fin_venta).toLocaleDateString('es-ES')}
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-2">
-                          <Link href={`/evento/manage/${event.id_evento}`}>
-                            <button className="flex items-center gap-1 rounded bg-[#2A2A2A] px-3 py-1.5 text-sm transition-colors hover:bg-[#3A3A3A]">
-                              Gestionar evento
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          </Link>
-                          <button
-                            onClick={async () => {
-                              try {
-                                await deleteEventMutation.mutateAsync(event.id_evento);
-                                toast.success('Evento eliminado');
-                              } catch (e: any) {
-                                toast.error(e?.message || 'Error al eliminar');
-                              }
-                            }}
-                            className="flex items-center gap-1 rounded bg-red-600/20 px-3 py-1.5 text-sm text-red-400 transition-colors hover:bg-red-600/30"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Eliminar
-                          </button>
-                          <span
-                            className={cn(
-                              'rounded px-2 py-1 text-xs',
-                              event.estado === 'ACTIVO'
-                                ? 'bg-green-500/20 text-green-400'
-                                : 'bg-yellow-500/20 text-yellow-400',
-                            )}
-                          >
-                            {event.estado === 'ACTIVO' ? 'Activo' : 'Oculto'}
-                          </span>
-                        </div>
+                  <div
+                    key={event.eventoid}
+                    className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A] border border-[#3A3A3A] transition-all duration-300 hover:border-[#4A4A4A] hover:shadow-xl"
+                  >
+                    {/* Imagen de fondo con overlay */}
+                    {coverImage && (
+                      <div className="absolute inset-0 opacity-10">
+                        <img
+                          src={coverImage}
+                          alt={event.titulo}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
+                    )}
 
-                      <div className="ml-4">
-                        <div className="h-24 w-24 overflow-hidden rounded">
-                          {coverImage ? (
-                            <img
-                              src={coverImage}
-                              alt={event.titulo}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] p-1 text-center text-gray-400">
-                              <Calendar className="mb-1 h-8 w-8" />
-                              <div className="text-xs">Sin imagen</div>
+                    <div className="relative p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-4">
+                          {/* Header con fecha y estado */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-center rounded-lg bg-[#3A3A3A] px-3 py-2">
+                                <div className="text-lg font-bold text-white">
+                                  {formattedDate.date}
+                                </div>
+                                <div className="text-xs text-gray-400">{formattedDate.day}</div>
+                              </div>
+                              <div className="text-sm text-gray-400">{formattedDate.time}</div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={cn(
+                                  'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium',
+                                  eventStatus === 'ACTIVO'
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : eventStatus === 'CANCELADO'
+                                      ? 'bg-red-500/20 text-red-400'
+                                      : 'bg-yellow-500/20 text-yellow-400',
+                                )}
+                              >
+                                {eventStatus === 'ACTIVO' ? (
+                                  <Eye className="h-3 w-3" />
+                                ) : (
+                                  <EyeOff className="h-3 w-3" />
+                                )}
+                                {eventStatus === 'ACTIVO'
+                                  ? 'Activo'
+                                  : eventStatus === 'CANCELADO'
+                                    ? 'Cancelado'
+                                    : 'Oculto'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Título y descripción */}
+                          <div>
+                            <h3 className="mb-2 text-2xl font-bold text-white group-hover:text-orange-400 transition-colors">
+                              {event.titulo}
+                            </h3>
+                            {event.descripcion && (
+                              <p className="text-gray-400 line-clamp-2">{event.descripcion}</p>
+                            )}
+                          </div>
+
+                          {/* Información del evento */}
+                          <div className="space-y-2">
+                            {/* Ubicación */}
+                            {hasLocation ? (
+                              <div className="flex items-center gap-2 text-sm text-gray-300">
+                                <MapPin className="h-4 w-4 text-gray-500" />
+                                <span>{event.ubicacion}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-sm text-yellow-500">
+                                <span>⚠️</span>
+                                <span>Falta la ubicación</span>
+                              </div>
+                            )}
+
+                            {/* Fechas */}
+                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                              <Calendar className="h-4 w-4 text-gray-500" />
+                              <span>
+                                {new Date(event.fecha_creacion).toLocaleDateString('es-ES')}
+                                {event.fechas_evento && event.fechas_evento.length > 0 && (
+                                  <>
+                                    {' '}
+                                    -{' '}
+                                    {new Date(event.fechas_evento[0].fecha_hora).toLocaleDateString(
+                                      'es-ES',
+                                    )}
+                                  </>
+                                )}
+                              </span>
+                            </div>
+
+                            {/* Tickets */}
+                            {hasTickets && (
+                              <div className="flex items-center gap-2 text-sm text-gray-300">
+                                <Users className="h-4 w-4 text-gray-500" />
+                                <span>{event.stock_entrada?.length} tipo(s) de entrada</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Categorías */}
+                          {categories.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {categories.slice(0, 3).map((category, index) => (
+                                <span
+                                  key={index}
+                                  className="flex items-center gap-1 rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-300"
+                                >
+                                  <Tag className="h-3 w-3" />
+                                  {category}
+                                </span>
+                              ))}
+                              {categories.length > 3 && (
+                                <span className="rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-400">
+                                  +{categories.length - 3} más
+                                </span>
+                              )}
                             </div>
                           )}
+
+                          {/* Acciones */}
+                          <div className="flex items-center gap-3 pt-2">
+                            <Link href={`/evento/manage/${event.eventoid}`}>
+                              <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                Gestionar evento
+                                <ArrowRight className="h-4 w-4" />
+                              </button>
+                            </Link>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await deleteEventMutation.mutateAsync(event.eventoid);
+                                  toast.success('Evento eliminado');
+                                } catch (e: any) {
+                                  toast.error(e?.message || 'Error al eliminar');
+                                }
+                              }}
+                              className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Imagen del evento */}
+                        <div className="ml-6">
+                          <div className="h-32 w-32 overflow-hidden rounded-lg border border-[#3A3A3A]">
+                            {coverImage ? (
+                              <img
+                                src={coverImage}
+                                alt={event.titulo}
+                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] text-gray-400">
+                                <Calendar className="mb-2 h-8 w-8" />
+                                <div className="text-xs">Sin imagen</div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

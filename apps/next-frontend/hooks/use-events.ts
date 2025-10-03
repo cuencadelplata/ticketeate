@@ -51,11 +51,26 @@ export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
     queryFn: async (): Promise<Event[]> => {
+      console.log('🔍 Fetching events from:', API_ENDPOINTS.allEvents);
       const response = await fetch(API_ENDPOINTS.allEvents);
       if (!response.ok) {
         throw new Error('Error al obtener todos los eventos');
       }
       const data: GetAllEventsResponse = await response.json();
+      console.log('📦 Raw response data:', data);
+      console.log('📋 Events array:', data.events);
+
+      // Debug específico para categorías
+      if (data.events && data.events.length > 0) {
+        data.events.forEach((event, index) => {
+          console.log(`🎯 Event ${index}:`, {
+            titulo: event.titulo,
+            catevento: event.catevento,
+            hasCategories: event.catevento && event.catevento.length > 0,
+          });
+        });
+      }
+
       return data.events || [];
     },
     staleTime: 60 * 1000,

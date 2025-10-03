@@ -1,90 +1,105 @@
 'use client';
-import { ArrowUpRight, Play } from 'lucide-react';
-import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import PixelBlast from './pixel-blast';
 
 export function Hero() {
   return (
-    <section className="relative h-screen overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        src="https://ease-one.vercel.app/bg/something.mp4"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-
-      {/* Overlay con gradiente sutil */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60" />
+    <section className="relative min-h-screen flex items-center pt-10">
+      {/* PixelBlast como fondo de pantalla completa */}
+      <div className="absolute inset-0 z-0 bg-black overflow-hidden">
+        <PixelBlast
+          variant="circle"
+          pixelSize={6}
+          color="#c9400e"
+          patternScale={3}
+          patternDensity={1.2}
+          pixelSizeJitter={0.5}
+          enableRipples
+          rippleSpeed={0.4}
+          rippleThickness={0.12}
+          rippleIntensityScale={1.5}
+          liquid
+          liquidStrength={0.12}
+          liquidRadius={1.2}
+          liquidWobbleSpeed={5}
+          speed={0.6}
+          edgeFade={0.25}
+          transparent={false}
+          className="!w-full !h-full"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'block',
+          }}
+        />
+      </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10 flex h-full items-center justify-center">
-        <div className="mx-auto max-w-4xl px-6 text-center">
+      <div className="max-w-6xl mx-auto px-16 w-full relative z-10">
+        <div className="flex flex-col items-center justify-center text-center">
+          {/* Contenido de texto y botones centrado */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-8"
+            className="space-y-8 max-w-4xl"
           >
-            {/* Badge de destacado */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="inline-flex items-center gap-2 rounded-full bg-orange-500/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm border border-orange-400/30"
-            >
-              <Play className="h-4 w-4" />
-              ¡Nuevo! Bad Bunny en vivo
-            </motion.div>
-
             {/* Título principal */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-4xl font-normal tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-7xl font-instrument-serif"
             >
               Eventos sin{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent italic inline-block px-1 font-instrument-serif">
                 límites
               </span>
-              , infraestructura sin complicaciones
+              ,
+              <br />
+              gestión sin{' '}
+              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent italic inline-block px-1 font-instrument-serif">
+                complicaciones
+              </span>
+              .
             </motion.h1>
 
             {/* Subtítulo */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="mx-auto max-w-2xl text-lg text-gray-200 sm:text-xl"
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-md text-gray-200 sm:text-lg max-w-2xl mx-auto"
             >
-              Crea, gestiona y vende entradas en minutos con Ticketeate. La plataforma más completa
-              para la gestión de eventos.
+              Crea, gestiona y vende entradas en minutos con{' '}
+              <span className="text-white">Ticketeate</span>.
             </motion.p>
 
             {/* Botones de acción */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
-              className="flex flex-col items-center justify-center gap-4 sm:flex-row"
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link
                 href="/crear"
-                className="group inline-flex items-center gap-2 rounded-full bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:bg-orange-700 hover:scale-105 hover:shadow-xl"
+                className="group inline-flex items-center justify-center gap-2 rounded-md bg-orange-600 px-3 py-2 text-base text-white shadow-lg transition-all duration-300 hover:bg-orange-700 "
               >
                 Crear tu primer evento
-                <ArrowUpRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </Link>
 
               <Link
-                href="/eventos"
-                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-8 py-4 text-lg font-semibold text-white backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20 hover:scale-105"
+                href="/descubrir"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20"
               >
-                Explorar eventos
+                Descubrir eventos
               </Link>
             </motion.div>
 
@@ -92,8 +107,8 @@ export function Hero() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="grid grid-cols-3 gap-8 pt-8"
+              transition={{ duration: 0.8, delay: 1 }}
+              className="grid grid-cols-3 gap-8 pt-8 max-w-md mx-auto"
             >
               <div className="text-center">
                 <div className="text-2xl font-bold text-white sm:text-3xl">500+</div>

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { ClerkProvider } from '@clerk/nextjs';
 import { esES } from '@clerk/localizations';
+import { ConditionalNavbar } from '@/components/conditional-navbar';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -16,10 +17,18 @@ export const metadata: Metadata = {
   },
 };
 
-// font inter
-const inter = Inter({
+// font jakarta
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter', // optional css variable
+  variable: '--font-jakarta', // optional css variable
+  display: 'swap',
+});
+
+// font instrument serif
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-instrument-serif',
   display: 'swap',
 });
 
@@ -31,8 +40,11 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={esES}>
       <html lang="es" suppressHydrationWarning>
-        <body className={inter.className}>
-          <Providers>{children}</Providers>
+        <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
+          <Providers>
+            <ConditionalNavbar />
+            {children}
+          </Providers>
           <Toaster position="top-right" richColors closeButton expand={true} />
         </body>
       </html>
