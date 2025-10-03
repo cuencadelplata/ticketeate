@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
@@ -14,9 +14,18 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({
+// font jakarta
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-jakarta', // optional css variable
+  display: 'swap',
+});
+
+// font instrument serif
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-instrument-serif',
   display: 'swap',
 });
 
@@ -24,13 +33,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster position="top-right" theme="dark" richColors closeButton expand />
-        </Providers>
-      </body>
-    </html>
+      <html lang="es" suppressHydrationWarning>
+        <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
+          <Providers>
+            <ConditionalNavbar />
+            {children}
+          </Providers>
+          <Toaster position="top-right" richColors closeButton expand={true} />
+        </body>
+      </html>
   );
 }

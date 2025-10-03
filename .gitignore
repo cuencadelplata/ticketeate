@@ -38,3 +38,7 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+
+
+#Ignore cursor AI rules
+.cursor\rules\codacy.mdc

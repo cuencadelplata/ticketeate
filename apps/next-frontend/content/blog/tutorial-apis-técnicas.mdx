@@ -1,0 +1,399 @@
+---
+title: "Tutorial: Integración con APIs Técnicas"
+excerpt: "Aprende a integrar Ticketeate con tus herramientas existentes usando nuestra API REST completa"
+category: "ingenieria"
+featured: false
+publishedAt: "2024-12-23"
+updatedAt: "2024-12-28"
+author: "Tech Team"
+tags: ["tutorial", "api", "integracion"]
+image: "/icon-ticketeate.png"
+---
+
+# Tutorial: Integración con APIs Técnicas 🔧
+
+Aprende a integrar Ticketeate con tus herramientas existentes usando nuestra API REST completa. Cubrimos desde autenticación hasta casos de uso avanzados.
+
+## Configuración Inicial ⚙️
+
+### Obteniendo Credenciales API
+```bash
+# Primero, necesitas obtener tu API Key
+curl -X POST https://api.ticketeate.com/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "tu@email.com",
+    "password": "tu_password"
+  }'
+```
+
+Respuesta esperada:
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+### Configuración de Variables de Entorno
+```javascript
+// .env
+TICKETEATE_API_BASE_URL=https://api.ticketeate.com/v1
+TICKETEATE_API_KEY=tu_access_token_aqui
+TICKETEATE_WEBHOOK_SECRET=tu_webhook_secret
+```
+
+## Creación de Eventos Programáticamente 📅
+
+### Evento Básico
+```javascript
+const createEvent = async (eventData) => {
+  const response = await fetch(`${process.env.TICKETEATE_API_BASE_URL}/events`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.TICKETEATE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: eventData.title,
+      description: eventData.description,
+      start_date: eventData.startDate,
+      end_date: eventData.endDate,
+      venue: {
+        name: eventData.venueName,
+        address: eventData.venueAddress,
+        city: eventData.city,
+      },
+      tickets: [
+        {
+          name: "General",
+          price: 2500,
+          quantity: 100,
+          description: "Entrada general al evento"
+        }
+      ]
+    })
+  });
+  
+  return await response.json();
+};
+```
+
+### Eventos con Tickets Dinámicos
+```python
+import requests
+import json
+from datetime import datetime, timedelta
+
+def create_tiered_event(event_info):
+    """Crear evento con múltiples tipos de tickets"""
+    
+    url = f"{os.getenv('TICKETEATE_API_BASE_URL')}/events"
+    headers = {
+        'Authorization': f"Bearer {os.getenv('TICKETEATE_API_KEY')}",
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {
+        "title": event_info['title'],
+        "description": event_info['description'],
+        "category": "tech_conf",
+        "tickets": [
+            {
+                "name": "Early Bird",
+                "price": 1500,
+                "quantity": 50,
+                "sale_start": event_info['early_start'],
+                "sale_end": event_info['early_end']
+            },
+            {
+                "name": "Regular",
+                "price": 2500,
+                "quantity": 200,
+                "sale_start": event_info['regular_start']
+            },
+            {
+                "name": "VIP",
+                "price": 5000,
+                "quantity": 20,
+                "includes": ["networking", "dinner", "swag"]
+            }
+        ]
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
+```
+
+## Gestión de Reservas y Asistentes 🎫
+
+### Obtener Lista de Asistentes
+```javascript
+const getAttendees = async (eventId, params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${process.env.TICKETEATE_API_BASE_URL}/events/${eventId}/attendees?${queryString}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${process.env.TICKETEATE_API_KEY}`,
+    }
+  });
+  
+  return await response.json();
+};
+
+// Uso práctico
+const attendeesList = await getAttendees('event_123', {
+  status: 'confirmed',
+  export_format: 'csv',
+  include_checkout_data: true
+});
+```
+
+### Verificación de Tickets
+```python
+import hashlib
+import hmac
+
+def verify_ticket_signature(ticket_content, received_signature):
+    """Verificar la autenticidad de un ticket usando HMAC"""
+    
+    secret = os.getenv('TICKETEATE_WEBHOOK_SECRET')
+    expected_signature = hmac.new(
+        secret.encode('utf-8'),
+        ticket_content.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(received_signature, expected_signature)
+
+# Integración en tu sistema de entrada
+@app.post("/checkin-ticket")
+async def check_in_ticket(ticket_data: dict, signature: str):
+    if not verify_ticket_signature(json.dumps(ticket_data), signature):
+        raise HTTPException(401, "Ticket signature invalid")
+    
+    # Procesar check-in
+    ticket_id = ticket_data['ticket_id']
+    # Tu lógica de registro de entrada aquí
+    
+    return {"status": "checked_in", "timestamp": datetime.now().isoformat()}
+```
+
+## Webhooks y Notificaciones 🔔
+
+### Configuración de Webhooks
+```javascript
+const setupWebhook = async (webhookConfig) => {
+  const response = await fetch(`${process.env.TICKETEATE_API_BASE_URL}/webhooks`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.TICKETEATE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      url: webhookConfig.url,
+      events: ['ticket.purchased', 'ticket.checked_in', 'event.cancelled'],
+      secret: webhookConfig.secret,
+      retry_policy: {
+        max_attempts: 3,
+        backoff_multiplier: 2
+      }
+    })
+  });
+  
+  return await response.json();
+};
+```
+
+### Procesador de Webhooks
+```python
+from fastapi import FastAPI, Request
+import json
+
+app = FastAPI()
+
+@app.post("/webhook/ticketeate")
+async def handle_ticketeate_webhook(request: Request):
+    body = await request.body()
+    signature = request.headers.get('X-Ticketeate-Signature')
+    
+    # Verificar firma del webhook
+    if not verify_webhook_signature(body, signature):
+        return {"error": "Invalid signature"}
+    
+    data = json.loads(body)
+    event_type = data['event_type']
+    
+    if event_type == 'ticket.purchased':
+        await handle_ticket_purchase(data['data'])
+    elif event_type == 'ticket.checked_in':
+        await handle_ticket_checkin(data['data'])
+    elif event_type == 'event.cancelled':
+        await handle_event_cancellation(data['data'])
+    
+    return {"status": "processed"}
+
+async def handle_ticket_purchase(purchase_data):
+    """Lógica para cuando se compra un ticket"""
+    attendee_email = purchase_data['attendee_email']
+    event_title = purchase_data['event_title']
+    
+    # Enviar email de confirmación personalizado
+    await send_confirmation_email(attendee_email, event_title)
+    
+    # Actualizar CRM
+    await update_crm_record(attendee_email, purchase_data)
+```
+
+## Analytics y Reportes Personalizados 📊
+
+### Obtención de Métricas
+```javascript
+const getEventAnalytics = async (eventId, metrics) => {
+  const response = await fetch(`${process.env.TICKETEATE_API_BASE_URL}/analytics/events/${eventId}`, {
+    headers: {
+      'Authorization': `Bearer ${process.env.TICKETEATE_API_KEY}`,
+    }
+  });
+  
+  const data = await response.json();
+  
+  // Filtrar métricas específicas
+  return metrics.reduce((acc, metric) => {
+    acc[metric] = data[metric];
+    return acc;
+  }, {});
+};
+
+// Uso
+const metrics = await getEventAnalytics('event_123', [
+  'total_revenue',
+  'conversion_rate',
+  'top_selling_tickets',
+  'attendance_percentage'
+]);
+```
+
+### Exportación Personalizada
+```python
+import pandas as pd
+from io import StringIO
+
+def export_custom_report(event_id, filters=None):
+    """Exportar reporte personalizado"""
+    
+    url = f"{os.getenv('TICKETEATE_API_BASE_URL')}/analytics/events/{event_id}/export"
+    headers = {'Authorization': f"Bearer {os.getenv('TICKETEATE_API_KEY')}"}
+    
+    params = {
+        'format': 'json',
+        'include': ['attendees', 'revenue', 'demographics']
+    }
+    if filters:
+        params.update(filters)
+    
+    response = requests.get(url, headers=headers, params=params)
+    data = response.json()
+    
+    # Convertir a DataFrame para análisis
+    df = pd.json_normalize(data['attendees'])
+    
+    # Generar insights personalizados
+    insights = {
+        'avg_age': df['age'].mean(),
+        'gender_distribution': df['gender'].value_counts(),
+        'city_distribution': df['city'].value_counts().head(10),
+        'source_traffic': df['referral_source'].value_counts()
+    }
+    
+    return insights
+```
+
+## Casos de Uso Avanzados 🔥
+
+### Sistema de Waitlist Inteligente
+```javascript
+class WaitlistManager {
+  async addToWaitlist(eventId, userData) {
+    const response = await fetch(`${process.env.TICKETEATE_API_BASE_URL}/waitlist/${eventId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.TICKETEATE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: userData.email,
+        phone: userData.phone,
+        preferences: {
+          ticket_types: userData.preferredTicketTypes,
+          max_price: userData.maxPrice,
+          notification_channels: ['email', 'sms']
+        }
+      })
+    });
+    
+    return await response.json();
+  }
+  
+  async processWaitlist(eventId) {
+    // Ejecutar cada hora para procesar waitlist
+    const waitlist = await this.getWaitlist(eventId);
+    const availableTickets = await this.getAvailableInventory(eventId);
+    
+    for (const user of waitlist.slice(0, availableTickets)) {
+      await this.notifyTicketAvailable(user.email, eventId);
+    }
+  }
+}
+```
+
+### Integración con Calendarios
+```python
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+def sync_to_google_calendar(event_data, calendar_id="primary"):
+    """Sincronizar evento con Google Calendar"""
+    
+    credentials = service_account.Credentials.from_service_account_file(
+        'service-account.json',
+        scopes=['https://www.googleapis.com/auth/calendar']
+    )
+    
+    service = build('calendar', 'v3', credentials=credentials)
+    
+    event = {
+        'summary': event_data['title'],
+        'description': f"{event_data['description']}\n\nTickets: {event_data['ticket_url']}",
+        'start': {
+            'dateTime': event_data['start_date'],
+            'timeZone': event_data['timezone']
+        },
+        'end': {
+            'dateTime': event_data['end_date'],
+            'timeZone': event_data['timezone']
+        },
+        'location': event_data['venue_address'],
+        'attendees': [
+            {'email': attendee['email']} 
+            for attendee in event_data['confirmed_attendees']
+        ]
+    }
+    
+    created_event = service.events().insert(
+        calendarId=calendar_id, 
+        body=event
+    ).execute()
+    
+    return created_event['id']
+```
+
+---
+
+**¿Necesitas ayuda con tu integración?** **[Comunícate con nuestro equipo técnico](mailto:api@ticketeate.com)** 🔧
+
+---
+
+*Este tutorial cubre los casos más comunes. Para integraciones más específicas, consulta nuestra [documentación completa de API](https://docs.ticketeate.com/api).*

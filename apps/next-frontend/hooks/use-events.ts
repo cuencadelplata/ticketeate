@@ -116,6 +116,7 @@ export function useCreateEvent() {
 
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -151,6 +152,7 @@ export function useUpdateEvent() {
 
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
@@ -173,5 +175,50 @@ export function useDeleteEvent() {
         old ? old.filter((e) => e.id_evento !== deletedId) : []
       );
     },
+  });
+}
+
+export function useEventCategories() {
+  const { getToken } = useAuth();
+  return {
+    // Unificar tipo de id a string
+    add: async (eventId: string, categories: Array<{ id?: string; nombre?: string }>) => {
+      const token = await getToken();
+      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token ?? ''}`,
+        },
+        body: JSON.stringify({ categories }),
+      });
+      if (!res.ok) throw new Error('Error al agregar categorías');
+      return res.json();
+    },
+    remove: async (eventId: string, categoryId: string) => {
+      const token = await getToken();
+      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token ?? ''}` },
+      });
+      if (!res.ok) throw new Error('Error al remover categoría');
+      return res.json();
+    },
+  };
+}
+
+// Hook para obtener todas las categorías disponibles
+export function useCategories() {
+  return useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/categories`);
+      if (!response.ok) {
+        throw new Error('Error al obtener categorías');
+      }
+      const data = await response.json();
+      return data.categories || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }
