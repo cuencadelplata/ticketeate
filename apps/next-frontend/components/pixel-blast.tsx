@@ -27,6 +27,8 @@ type PixelBlastProps = {
   transparent?: boolean;
   edgeFade?: number;
   noiseAmount?: number;
+  performanceMode?: 'low' | 'medium' | 'high'; // New prop for performance control
+  pointDensity?: number; // New prop for controlling point density (1.0 = default, higher = more dense)
 };
 
 const createTouchTexture = () => {
@@ -211,7 +213,7 @@ float Bayer2(vec2 a) {
 #define Bayer4(a) (Bayer2(.5*(a))*0.25 + Bayer2(a))
 #define Bayer8(a) (Bayer4(.5*(a))*0.25 + Bayer2(a))
 
-#define FBM_OCTAVES     5
+#define FBM_OCTAVES     3 // Reduced from 5 for performance
 #define FBM_LACUNARITY  1.25
 #define FBM_GAIN        1.0
 
@@ -280,15 +282,15 @@ void main(){
   vec2 pixelId = floor(fragCoord / pixelSize);
   vec2 pixelUV = fract(fragCoord / pixelSize);
 
-  float cellPixelSize = 8.0 * pixelSize;
+  float cellPixelSize = 7.0 * pixelSize; // Balanced cell size
   vec2 cellId = floor(fragCoord / cellPixelSize);
   vec2 cellCoord = cellId * cellPixelSize;
   vec2 uv = cellCoord / uResolution * vec2(aspectRatio, 1.0);
 
   float base = fbm2(uv, uTime * 0.05);
-  base = base * 0.5 - 0.65;
+  base = base * 0.5 - 0.6; // Balanced threshold
 
-  float feed = base + (uDensity - 0.5) * 0.3;
+  float feed = base + (uDensity - 0.5) * 0.3; // Balanced density multiplier
 
   float speed     = uRippleSpeed;
   float thickness = uRippleThickness;
@@ -299,7 +301,7 @@ void main(){
     for (int i = 0; i < MAX_CLICKS; ++i){
       vec2 pos = uClickPos[i];
       if (pos.x < 0.0) continue;
-      float cellPixelSize = 8.0 * pixelSize;
+      float cellPixelSize = 7.0 * pixelSize; // Balanced cell size
       vec2 cuv = (((pos - uResolution * .5 - cellPixelSize * .5) / (uResolution))) * vec2(aspectRatio, 1.0);
       float t = max(uTime - uClickTimes[i], 0.0);
       float r = distance(uv, cuv);
@@ -310,8 +312,8 @@ void main(){
     }
   }
 
-  float bayer = Bayer8(fragCoord / uPixelSize) - 0.5;
-  float bw = step(0.5, feed + bayer);
+  float bayer = Bayer8(fragCoord / uPixelSize) - 0.5; // Restore original threshold
+  float bw = step(0.5, feed + bayer); // Restore original threshold
 
   float h = fract(sin(dot(floor(fragCoord / uPixelSize), vec2(127.1, 311.7))) * 43758.5453);
   float jitterScale = 1.0 + (h - 0.5) * uPixelJitter;
@@ -338,31 +340,96 @@ const MAX_CLICKS = 10;
 
 const PixelBlast: React.FC<PixelBlastProps> = ({
   variant = 'square',
-  pixelSize = 3,
+  pixelSize = 2.5, // Balanced pixel size
   color = '#B19EEF',
   className,
   style,
-  antialias = true,
-  patternScale = 2,
-  patternDensity = 1,
-  liquid = false,
-  liquidStrength = 0.1,
-  liquidRadius = 1,
-  pixelSizeJitter = 0,
-  enableRipples = true,
-  rippleIntensityScale = 1,
-  rippleThickness = 0.1,
-  rippleSpeed = 0.3,
-  liquidWobbleSpeed = 4.5,
+  antialias = false, // Reduced for performance
+  patternScale = 1.8, // Balanced scale
+  patternDensity = 0.9, // Moderate density
+  liquid = false, // Disabled by default for performance
+  liquidStrength = 0.05, // Reduced for performance
+  liquidRadius = 0.8, // Reduced for performance
+  pixelSizeJitter = 0.1, // Minimal jitter for performance
+  enableRipples = false, // Disabled by default for performance
+  rippleIntensityScale = 0.5, // Reduced for performance
+  rippleThickness = 0.2, // Increased for better performance
+  rippleSpeed = 0.2, // Reduced for performance
+  liquidWobbleSpeed = 2.5, // Reduced for performance
   autoPauseOffscreen = true,
-  speed = 0.5,
+  speed = 0.3, // Reduced for performance
   transparent = true,
-  edgeFade = 0.5,
-  noiseAmount = 0,
-}) => {
+  edgeFade = 0.3, // Reduced for performance
+  noiseAmount = 0, // Disabled by default for performance
+  performanceMode = 'low', // Default to low performance mode
+  pointDensity = 1.0, // Balanced density
+  }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const visibilityRef = useRef({ visible: true });
   const speedRef = useRef(speed);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  // Apply performance optimizations based on mode
+  const performanceConfig = React.useMemo(() => {
+    switch (performanceMode) {
+      case 'low':
+        return {
+          antialias: false,
+          patternScale: 1.4,
+          patternDensity: pointDensity * 0.8, // Reduce density
+          liquid: false,
+          enableRipples: false,
+          speed: 0.2,
+          pixelSizeJitter: 0.05, // Small jitter for variation
+          edgeFade: 0.1,
+          pixelRatio: 1,
+          throttleFrames: true,
+          throttleRate: 3,
+        };
+      case 'medium':
+        return {
+          antialias: false,
+          patternScale: 1.6,
+          patternDensity: pointDensity * 1.0, // Balanced density
+          liquid: false,
+          enableRipples: false,
+          speed: 0.3,
+          pixelSizeJitter: 0.08, // More variation
+          edgeFade: 0.3,
+          pixelRatio: 1.2,
+          throttleFrames: true,
+          throttleRate: 2,
+        };
+      case 'high':
+        return {
+          antialias: true,
+          patternScale: 2,
+          patternDensity: pointDensity * 1.2, // Moderate increase in high mode
+          liquid: true,
+          enableRipples: true,
+          speed: 0.5,
+          pixelSizeJitter: 0.3,
+          edgeFade: 0.5,
+          pixelRatio: 1.5,
+          throttleFrames: false,
+          throttleRate: 1,
+        };
+      default:
+        return {
+          antialias,
+          patternScale,
+          patternDensity,
+          liquid,
+          enableRipples,
+          speed,
+          pixelSizeJitter,
+          edgeFade,
+          pixelRatio: 1.5,
+          throttleFrames: true,
+          throttleRate: 2,
+        };
+    }
+  }, [performanceMode, pointDensity, antialias, patternScale, patternDensity, liquid, enableRipples, speed, pixelSizeJitter, edgeFade]);
 
   const threeRef = useRef<{
     renderer: THREE.WebGLRenderer;
@@ -395,14 +462,15 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     composer?: EffectComposer;
     touch?: ReturnType<typeof createTouchTexture>;
     liquidEffect?: Effect;
+    removeEventListeners?: () => void;
   } | null>(null);
   const prevConfigRef = useRef<any>(null);
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     speedRef.current = speed;
-    const needsReinitKeys = ['antialias', 'liquid', 'noiseAmount'];
-    const cfg = { antialias, liquid, noiseAmount };
+    const needsReinitKeys = ['antialias', 'liquid', 'noiseAmount', 'performanceMode'];
+    const cfg = { antialias: performanceConfig.antialias, liquid: performanceConfig.liquid, noiseAmount, performanceMode };
     let mustReinit = false;
     if (!threeRef.current) mustReinit = true;
     else if (prevConfigRef.current) {
@@ -415,6 +483,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     if (mustReinit) {
       if (threeRef.current) {
         const t = threeRef.current;
+        t.removeEventListeners?.();
         t.resizeObserver?.disconnect();
         cancelAnimationFrame(t.raf!);
         t.quad?.geometry.dispose();
@@ -436,7 +505,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       });
       renderer.domElement.style.width = '100%';
       renderer.domElement.style.height = '100%';
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, performanceConfig.pixelRatio));
       container.appendChild(renderer.domElement);
       const uniforms = {
         uResolution: { value: new THREE.Vector2(0, 0) },
@@ -448,14 +517,14 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         uClickTimes: { value: new Float32Array(MAX_CLICKS) },
         uShapeType: { value: SHAPE_MAP[variant] ?? 0 },
         uPixelSize: { value: pixelSize * renderer.getPixelRatio() },
-        uScale: { value: patternScale },
-        uDensity: { value: patternDensity },
-        uPixelJitter: { value: pixelSizeJitter },
-        uEnableRipples: { value: enableRipples ? 1 : 0 },
+        uScale: { value: performanceConfig.patternScale },
+        uDensity: { value: performanceConfig.patternDensity },
+        uPixelJitter: { value: performanceConfig.pixelSizeJitter },
+        uEnableRipples: { value: performanceConfig.enableRipples ? 1 : 0 },
         uRippleSpeed: { value: rippleSpeed },
         uRippleThickness: { value: rippleThickness },
         uRippleIntensity: { value: rippleIntensityScale },
-        uEdgeFade: { value: edgeFade },
+        uEdgeFade: { value: performanceConfig.edgeFade },
       };
       const scene = new THREE.Scene();
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -496,7 +565,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       let composer: EffectComposer | undefined;
       let touch: ReturnType<typeof createTouchTexture> | undefined;
       let liquidEffect: Effect | undefined;
-      if (liquid) {
+      if (performanceConfig.liquid) {
         touch = createTouchTexture();
         touch.radiusScale = liquidRadius;
         composer = new EffectComposer(renderer);
@@ -553,26 +622,62 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         if (threeRef.current) threeRef.current.clickIx = (ix + 1) % MAX_CLICKS;
       };
       const onPointerMove = (e: PointerEvent) => {
-        if (!touch) return;
+        if (!touch || !liquid || isHovered) return;
         const { fx, fy, w, h } = mapToPixels(e);
         touch.addTouch({ x: fx / w, y: fy / h });
       };
+      const onPointerEnter = () => {
+        setIsHovered(true);
+        // Disable liquid effect strength when hovering
+        if (liquidEffect) {
+          const uStrength = liquidEffect.uniforms.get('uStrength');
+          if (uStrength) uStrength.value = 0;
+        }
+      };
+      
+      const onPointerLeave = () => {
+        setIsHovered(false);
+        // Re-enable liquid effect strength when not hovering
+        if (liquidEffect) {
+          const uStrength = liquidEffect.uniforms.get('uStrength');
+          if (uStrength) uStrength.value = liquidStrength;
+        }
+      };
+
       renderer.domElement.addEventListener('pointerdown', onPointerDown, {
         passive: true,
       });
       renderer.domElement.addEventListener('pointermove', onPointerMove, {
         passive: true,
       });
+      renderer.domElement.addEventListener('pointerenter', onPointerEnter, {
+        passive: true,
+      });
+      renderer.domElement.addEventListener('pointerleave', onPointerLeave, {
+        passive: true,
+      });
       let raf = 0;
+      let frameSkip = 0;
+      const ANIMATION_THROTTLE = 2; // Reduce animation frequency for performance
+      
       const animate = () => {
         if (autoPauseOffscreen && !visibilityRef.current.visible) {
+          raf = requestAnimationFrame(animate);
+          return;
+        }
+        
+        // Throttle animation for better performance when liquid is disabled
+        frameSkip++;
+        const shouldUpdate = !performanceConfig.throttleFrames || frameSkip % performanceConfig.throttleRate === 0;
+        
+        if (!shouldUpdate) {
           raf = requestAnimationFrame(animate);
           return;
         }
         uniforms.uTime.value = timeOffset + clock.getElapsedTime() * speedRef.current;
         if (liquidEffect) (liquidEffect as any).uniforms.get('uTime').value = uniforms.uTime.value;
         if (composer) {
-          if (touch) touch.update();
+          if (touch && !isHovered) touch.update();
           composer.passes.forEach((p) => {
             const effs = (p as any).effects;
             if (effs)
@@ -601,6 +706,12 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         composer,
         touch,
         liquidEffect,
+        removeEventListeners: () => {
+          renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+          renderer.domElement.removeEventListener('pointermove', onPointerMove);
+          renderer.domElement.removeEventListener('pointerenter', onPointerEnter);
+          renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
+        },
       };
     } else {
       const t = threeRef.current!;
@@ -630,6 +741,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       if (threeRef.current && mustReinit) return;
       if (!threeRef.current) return;
       const t = threeRef.current;
+      t.removeEventListeners?.();
       t.resizeObserver?.disconnect();
       cancelAnimationFrame(t.raf!);
       t.quad?.geometry.dispose();
@@ -641,6 +753,7 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       threeRef.current = null;
     };
   }, [
+    performanceMode,
     antialias,
     liquid,
     noiseAmount,
