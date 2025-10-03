@@ -48,7 +48,6 @@ export function useAllEvents() {
   });
 }
 
-// Hook público para obtener un evento por id
 export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
@@ -63,7 +62,6 @@ export function usePublicEvent(id?: string) {
   });
 }
 
-// Hook para obtener un evento específico (protegido)
 export function useEvent(id: string) {
   const session = useSession();
   const isAuthenticated = !!session.data?.user;
@@ -80,7 +78,7 @@ export function useEvent(id: string) {
   });
 }
 
-// Hook para crear un evento 
+ 
 export function useCreateEvent() {
   const queryClient = useQueryClient();
 
@@ -115,7 +113,7 @@ export function useCreateEvent() {
   });
 }
 
-// Hook para actualizar un evento 
+
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
 
@@ -151,7 +149,6 @@ export function useUpdateEvent() {
   });
 }
 
-// Hook para eliminar un evento 
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
 
