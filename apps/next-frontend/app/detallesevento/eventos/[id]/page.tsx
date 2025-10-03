@@ -47,6 +47,7 @@ const metrics = {
   pageViews: 3600,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function EventDetailsPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-background">

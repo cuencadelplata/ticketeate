@@ -10,7 +10,20 @@ app.use('*', logger());
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: (origin) => {
+      // En desarrollo, permitir cualquier origen
+      if (process.env.NODE_ENV === 'development') {
+        return origin || '*';
+      }
+      // En producción, lista blanca específica
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://ticketeate.online',
+        'https://www.ticketeate.online',
+      ];
+      return allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0];
+    },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@heroui/react';
 import { useAuth } from '@clerk/nextjs';
 import UserNav from './usernav';
+import DarkMode from './DarkMode';
 
 export function Navbar() {
   const { isSignedIn } = useAuth();
@@ -13,7 +14,14 @@ export function Navbar() {
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/wordmark-light.png" alt="Picture of the author" width={130} height={40} />
+          <Image
+            src="/wordmark-light.png"
+            alt="Ticketeate"
+            width={130}
+            height={40}
+            priority
+            className="object-contain"
+          />
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
@@ -56,7 +64,7 @@ export function Navbar() {
           isIconOnly
           variant="ghost"
           size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
+          className="rounded-full text-zinc-200 hover:text-white dark:text-zinc-300 dark:hover:text-white"
         >
           <Search className="h-4 w-4" />
         </Button>
@@ -64,10 +72,12 @@ export function Navbar() {
           isIconOnly
           variant="ghost"
           size="sm"
-          className="rounded-full text-zinc-200 hover:text-white"
+          className="rounded-full text-zinc-200 hover:text-white dark:text-zinc-300 dark:hover:text-white"
         >
           <Bell className="h-4 w-4" />
         </Button>
+
+        <DarkMode />
 
         <div className="px-2">
           <UserNav />

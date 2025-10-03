@@ -23,7 +23,7 @@ export async function getEventoById(id: string): Promise<Evento | null> {
       return null;
     }
 
-    const event = await prisma.evento.findUnique({
+    const event = await prisma.eventos.findUnique({
       where: { id_evento: id },
       include: {
         imagenes_evento: true,
@@ -77,7 +77,7 @@ export async function getEventoById(id: string): Promise<Evento | null> {
 
 export async function getEventosByProductor(productorId: string): Promise<Evento[]> {
   try {
-    const events = await prisma.evento.findMany({
+    const events = await prisma.eventos.findMany({
       where: { id_creador: productorId },
       orderBy: { fecha_inicio_venta: 'asc' },
       include: {

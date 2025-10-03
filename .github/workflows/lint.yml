@@ -44,7 +44,9 @@ jobs:
       - name: Generate Prisma client and build database package
         env:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-        run: pnpm db:generate
+        run: |
+          pnpm db:generate
+          pnpm --filter @repo/db build
 
       - name: Run linting
         run: pnpm lint

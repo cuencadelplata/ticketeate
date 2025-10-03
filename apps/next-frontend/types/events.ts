@@ -1,23 +1,41 @@
-import type { Evento, ImagenEvento, FechaEvento, CategoriaEntrada } from '@repo/db';
-
-// Tipos para eventos - usando los tipos de Prisma del paquete @db
-export interface Event extends Omit<Evento, 'id_evento'> {
-  id_evento: string;
-  imagenes_evento: Array<
-    Omit<ImagenEvento, 'id_imagen' | 'id_evento'> & {
-      id_imagen: string;
-    }
-  >;
-  fechas_evento?: Array<
-    Omit<FechaEvento, 'id_fecha' | 'id_evento'> & {
-      id_fecha: string;
-    }
-  >;
-  categorias_entrada?: Array<
-    Omit<CategoriaEntrada, 'id_categoria' | 'id_evento'> & {
-      id_categoria: string;
-    }
-  >;
+// Definición de tipos
+export interface Event {
+  eventoid: string;
+  titulo: string;
+  descripcion?: string;
+  ubicacion: string;
+  fecha_creacion: string | Date;
+  creadorid: string;
+  mapa_evento: any;
+  fecha_cambio: string | Date;
+  imagenes_evento: Array<{
+    imagenid: string;
+    url: string;
+    tipo: string;
+  }>;
+  fechas_evento?: Array<{
+    fechaid: string;
+    fecha_hora: string | Date;
+    fecha_fin?: string | Date;
+  }>;
+  stock_entrada?: Array<{
+    stockid: string;
+    nombre: string;
+    precio: bigint;
+    cant_max: number;
+  }>;
+  evento_estado?: Array<{
+    stateventid: string;
+    Estado: string;
+    fecha_de_cambio: string | Date;
+  }>;
+  catevento?: Array<{
+    categoriaeventoid: bigint;
+    categoriaevento: {
+      nombre: string;
+      descripcion?: string;
+    };
+  }>;
 }
 
 export interface CreateEventData {
@@ -67,6 +85,10 @@ export interface CreateEventData {
     descripcion?: string;
     precio: number;
     stock_total: number;
+  }>;
+  categorias?: Array<{
+    id?: number;
+    nombre: string;
   }>;
 }
 
