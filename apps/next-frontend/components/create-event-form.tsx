@@ -332,6 +332,16 @@ export default function CreateEventForm() {
               stock_total: t.capacity,
             }))
           : undefined,
+      categorias:
+        selectedCategories.length > 0
+          ? selectedCategories.map((catId) => {
+              const category = categories.find((cat) => cat.id === catId);
+              return {
+                id: category?.id ? parseInt(category.id) : undefined,
+                nombre: category?.name || catId,
+              };
+            })
+          : undefined,
     };
 
     createEventMutation.mutate(eventData, {
