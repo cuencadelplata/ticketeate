@@ -4,10 +4,10 @@ export interface Event {
   titulo: string;
   descripcion?: string;
   ubicacion: string;
-  fecha_creacion: Date;
+  fecha_creacion: string | Date;
   creadorid: string;
   mapa_evento: any;
-  fecha_cambio: Date;
+  fecha_cambio: string | Date;
   imagenes_evento: Array<{
     imagenid: string;
     url: string;
@@ -15,8 +15,8 @@ export interface Event {
   }>;
   fechas_evento?: Array<{
     fechaid: string;
-    fecha_hora: Date;
-    fecha_fin?: Date;
+    fecha_hora: string | Date;
+    fecha_fin?: string | Date;
   }>;
   stock_entrada?: Array<{
     stockid: string;
@@ -27,7 +27,7 @@ export interface Event {
   evento_estado?: Array<{
     stateventid: string;
     Estado: string;
-    fecha_de_cambio: Date;
+    fecha_de_cambio: string | Date;
   }>;
   catevento?: Array<{
     categoriaeventoid: bigint;

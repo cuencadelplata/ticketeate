@@ -1,0 +1,166 @@
+/* Estilos específicos para el contenido del blog */
+
+.blog-content {
+  color: #d1d5db;
+  line-height: 1.8;
+  text-align: left;
+}
+
+.blog-content .prose {
+  text-align: left;
+  color: #d1d5db;
+}
+
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4,
+.blog-content h5,
+.blog-content h6 {
+  color: #e3e6ea;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.blog-content h1 {
+  font-size: 2.5rem;
+}
+
+.blog-content h2 {
+  font-size: 2rem;
+}
+
+.blog-content h3 {
+  font-size: 1.5rem;
+}
+
+.blog-content h4 {
+  font-size: 1.25rem;
+}
+
+.blog-content p {
+  margin-bottom: 1.5rem;
+  text-align: left;
+  color: #d1d5db;
+}
+
+.blog-content ul,
+.blog-content ol {
+  margin-bottom: 1.5rem;
+  margin-left: 0;
+  padding-left: 0;
+  text-align: left;
+  color: #d1d5db;
+}
+
+.blog-content li {
+  margin-bottom: 0.5rem;
+  margin-left: 2rem;
+  position: relative;
+  text-align: left;
+  color: #d1d5db;
+}
+
+.blog-content ul li::before {
+  content: "•";
+  color: #d1d5db;
+  position: absolute;
+  left: -1.5rem;
+}
+
+.blog-content ol {
+  counter-reset: item;
+}
+
+.blog-content ol li {
+  counter-increment: item;
+}
+
+.blog-content ol li::before {
+  content: counter(item) ".";
+  color: #d1d5db;
+  position: absolute;
+  left: -2rem;
+}
+
+.blog-content blockquote {
+  border-left: 4px solid #f97316;
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  background: #1f2937;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  font-style: italic;
+  text-align: left;
+  color: #d1d5db;
+}
+
+.blog-content code {
+  background: #e4cfcf;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.blog-content pre {
+  background: #696969;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.blog-content pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.blog-content a {
+  color: #f97316;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.blog-content a:hover {
+  color: #ea580c;
+}
+
+.blog-content strong {
+  color: #d1d5db;
+  font-weight: 600;
+}
+
+.blog-content em {
+  color: #d1d5db;
+}
+
+.blog-content img {
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  max-width: 100%;
+  height: auto;
+}
+
+.blog-content hr {
+  border: none;
+  border-top: 1px solid #474747;
+  margin: 3rem 0;
+}
+
+/* Utility classes */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,3 +1,13 @@
+import withMDX from '@next/mdx'
+
+const nextMDX = withMDX({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -15,6 +25,7 @@ const nextConfig = {
       },
     ],
   },
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   experimental: {
     turbo: {
       rules: {
@@ -38,4 +49,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default nextMDX(nextConfig);
