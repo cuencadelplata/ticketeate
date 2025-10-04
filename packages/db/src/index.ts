@@ -1,9 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 
-export { prisma }; // <-- Agrega esta línea
+export const prisma = new PrismaClient();
 
-// Export Prisma types for use in other packages
 export type {
   eventos,
   imagenes_evento,
@@ -24,5 +22,4 @@ export type {
   movimientos_entradas,
 } from '@prisma/client';
 
-// Export the PrismaClient type
 export type { PrismaClient } from '@prisma/client';

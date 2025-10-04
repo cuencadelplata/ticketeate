@@ -10,9 +10,7 @@ import {
 } from '@heroui/react';
 import { toast } from 'sonner';
 import Image from 'next/image';
-
-import { useAuth } from '@/hooks/use-auth';
-import { useClerk } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 // server-only currentUser import intentionally omitted in client component
 
 export const PlusIcon = (props: any) => {
@@ -42,8 +40,9 @@ export const PlusIcon = (props: any) => {
 };
 
 export default function UserNav() {
-  const { user, isSignedIn, isLoading } = useAuth();
-  const { signOut } = useClerk();
+  const { data: session, isPending, error } = useSession();
+  const isAuthenticated = !!session;
+  const isLoading = isPending;
 
   const handleSignOut = async () => {
     try {
@@ -62,7 +61,7 @@ export default function UserNav() {
     );
   }
 
-  if (!isSignedIn || !user) {
+  if (!isAuthenticated || !session?.user) {
     return null;
   }
 
@@ -71,9 +70,9 @@ export default function UserNav() {
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
           <div className="relative cursor-pointer">
-            {user.imageUrl ? (
+            {session?.user.imageUrl ? (
               <Image
-                src={user.imageUrl}
+                src={session?.user.imageUrl}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -84,7 +83,9 @@ export default function UserNav() {
             <div
               className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${user.imageUrl ? 'hidden' : ''}`}
             >
-              {user.firstName?.[0] || user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+              {session?.user.firstName?.[0] ||
+                session?.user.emailAddresses[0]?.emailAddress?.[0] ||
+                'U'}
             </div>
           </div>
         </DropdownTrigger>

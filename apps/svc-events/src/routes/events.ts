@@ -35,17 +35,6 @@ events.get('/all', async (c) => {
   try {
     const events = await EventService.getAllPublicEvents();
 
-    // Debug: verificar categorías en el backend
-    console.log('🔍 Backend - Total events:', events.length);
-    events.forEach((event, index) => {
-      console.log(`🎯 Backend Event ${index}:`, {
-        titulo: event.titulo,
-        catevento: event.catevento,
-        hasCategories: event.catevento && event.catevento.length > 0,
-        categoriaCount: event.catevento?.length || 0,
-      });
-    });
-
     return c.json({
       events,
       total: events.length,

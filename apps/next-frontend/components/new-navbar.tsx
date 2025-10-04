@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/use-auth';
+import { useSession } from '@/lib/auth-client';
 
 export function NewNavbar() {
   return <Navbar />;
@@ -13,7 +13,9 @@ export function NewNavbar() {
 function Navbar() {
   const [active, setActive] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isSignedIn, isLoading } = useAuth();
+  const { data: session, isPending, error } = useSession();
+  const isAuthenticated = !!session;
+  const isLoading = isPending;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,7 +36,6 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-3 py-3">
         <div className="flex items-center justify-between">
-          {/* Ticketeate Wordmark */}
           <Link href="/" className="flex-shrink-0 mr-20">
             <Image
               src="/wordmark-light.png"
@@ -113,7 +114,7 @@ function Navbar() {
               </div>
             ) : (
               <>
-                {isSignedIn ? (
+                {isAuthenticated ? (
                   <Link
                     href="/eventos"
                     className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"

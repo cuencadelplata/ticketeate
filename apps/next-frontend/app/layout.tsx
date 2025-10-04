@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
-import Navbar from '../components/navbar'; // <-- Agrega esta línea
+import { ConditionalNavbar } from '../components/conditional-navbar';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" suppressHydrationWarning>
       <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
         <Providers>
-          <Navbar /> {/* <-- Cambia ConditionalNavbar por Navbar */}
+          <ConditionalNavbar />
           {children}
         </Providers>
         <Toaster position="top-right" richColors closeButton expand={true} />
