@@ -64,9 +64,6 @@ export interface EventWithImages {
   fecha_creacion?: Date;
   mapa_evento?: any;
   creadorid: string;
-  estado: string;
-  fecha_inicio_venta: Date;
-  fecha_fin_venta: Date;
   imagenes_evento: Array<{
     imagenid: string;
     url: string;
@@ -77,22 +74,11 @@ export interface EventWithImages {
     fecha_hora: Date;
     fecha_fin?: Date;
   }>;
-  categoriaentrada?: Array<{
-    categoriaentradaid: bigint;
+  stock_entrada?: Array<{
+    stockid: string;
     nombre: string;
-    precio: number;
-    stock_total: number;
-    stock_disponible: number;
-    max_por_usuario?: number;
-  }>;
-  categorias_entrada?: Array<{
-    categoriaid: string;
-    nombre: string;
-    descripcion?: string;
-    precio: number;
-    stock_total: number;
-    stock_disponible: number;
-    max_por_usuario: number;
+    precio: bigint;
+    cant_max: number;
   }>;
   catevento?: Array<{
     categoriaeventoid: bigint;
@@ -100,6 +86,11 @@ export interface EventWithImages {
       nombre: string;
       descripcion?: string;
     };
+  }>;
+  evento_estado?: Array<{
+    stateventid: string;
+    Estado: string;
+    fecha_de_cambio: Date;
   }>;
 }
 
@@ -178,15 +169,13 @@ export class EventService {
 
       // Crear categorías de entrada (tipos de tickets) si se enviaron
       if (data.ticket_types && data.ticket_types.length > 0) {
-        await prisma.categoriaentrada.createMany({
+        await prisma.stock_entrada.createMany({
           data: data.ticket_types.map((t) => ({
-            categoriaentradaid: BigInt(0), // Se auto-incrementa
+            stockid: randomUUID(),
             eventoid: evento.eventoid,
             nombre: t.nombre,
-            precio: t.precio,
-            stock_total: t.stock_total,
-            stock_disponible: t.stock_total,
-            max_por_usuario: 4,
+            precio: BigInt(t.precio),
+            cant_max: t.stock_total,
           })),
         });
       }
@@ -212,7 +201,15 @@ export class EventService {
         },
       });
 
-      // El estado se maneja directamente en el modelo eventos
+      // Crear estado inicial del evento (por defecto OCULTO si no se envía)
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: evento.eventoid,
+          Estado: data.estado || 'OCULTO',
+          usuarioid: data.clerkUserId,
+        },
+      });
 
       // Crear categorías del evento si se enviaron
       if (data.categorias && data.categorias.length > 0) {
@@ -225,8 +222,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
+          stock_entrada: true,
           catevento: {
             include: {
               categoriaevento: true,
@@ -307,17 +303,15 @@ export class EventService {
 
       // Opcional: actualizar categorías/tickets (reemplazo simple)
       if (data.ticket_types) {
-        await prisma.categoriaentrada.deleteMany({ where: { eventoid: id } });
+        await prisma.stock_entrada.deleteMany({ where: { eventoid: id } });
         if (data.ticket_types.length > 0) {
-          await prisma.categoriaentrada.createMany({
+          await prisma.stock_entrada.createMany({
             data: data.ticket_types.map((t) => ({
-              categoriaentradaid: BigInt(0), // Se auto-incrementa
+              stockid: randomUUID(),
               eventoid: id,
               nombre: t.nombre,
-              precio: t.precio,
-              stock_total: t.stock_total,
-              stock_disponible: t.stock_total,
-              max_por_usuario: 4,
+              precio: BigInt(t.precio),
+              cant_max: t.stock_total,
             })),
           });
         }
@@ -336,8 +330,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
+          stock_entrada: true,
           catevento: {
             include: {
               categoriaevento: true,
@@ -421,6 +414,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           catevento: {
             include: {
               categoriaevento: true,
@@ -454,12 +448,15 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
+          stock_entrada: true,
           catevento: {
             include: {
               categoriaevento: true,
             },
+          },
+          evento_estado: {
+            orderBy: { fecha_de_cambio: 'desc' },
+            take: 1,
           },
         },
         orderBy: {
@@ -467,11 +464,10 @@ export class EventService {
         },
       });
 
-      // Filtrar eventos públicos basado en el estado
-      const eventosPublicos = eventos.filter((evento) => {
-        return (
-          evento.estado === 'ACTIVO' || evento.estado === 'COMPLETADO' || evento.estado === 'OCULTO'
-        );
+      // Filtrar eventos visibles basado en el último estado
+      const eventosPublicos = eventos.filter((evento: any) => {
+        const estadoActual = evento.evento_estado?.[0]?.Estado;
+        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
       });
 
       return eventosPublicos as EventWithImages[];
@@ -492,20 +488,24 @@ export class EventService {
       include: {
         imagenes_evento: true,
         fechas_evento: true,
-        categoriaentrada: true,
-        categorias_entrada: true,
+        stock_entrada: true,
         catevento: {
           include: {
             categoriaevento: true,
           },
+        },
+        evento_estado: {
+          orderBy: { fecha_de_cambio: 'desc' },
+          take: 1,
         },
       },
     });
 
     if (!evento) return null;
 
-    // Verificar si el evento es público basado en el estado
-    if (evento.estado === 'ACTIVO' || evento.estado === 'COMPLETADO') {
+    // Verificar si el evento es público basado en el último estado
+    const estadoActual = (evento as any).evento_estado?.[0]?.Estado;
+    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
       return evento as EventWithImages;
     }
 

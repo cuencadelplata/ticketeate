@@ -58,11 +58,11 @@ if (process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY) {
 // GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
 events.get('/all', async (c) => {
   try {
-    const events = await EventService.getAllPublicEvents();
-
+    const publicEvents = await EventService.getAllPublicEvents();
+    const safe = toJSONSafe(publicEvents) as unknown as any[];
     return c.json({
       events: safe,
-      total: (safe as any[]).length,
+      total: safe.length,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
