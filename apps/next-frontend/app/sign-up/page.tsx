@@ -47,7 +47,7 @@ export default function SignUpPage() {
       await signUp.email({
         email,
         password,
-        name: email, 
+        name: email,
       });
 
       // redirige

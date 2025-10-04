@@ -92,7 +92,10 @@ function NavbarHome() {
         <div className="flex items-center space-x-4">
           {/* Barra de búsqueda */}
           <form onSubmit={onSubmit} className="relative hidden lg:flex">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden />
+            <Search
+              className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500"
+              aria-hidden
+            />
             <input
               type="search"
               aria-label="Buscar por artista o eventos"
@@ -142,7 +145,10 @@ function NavbarHome() {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 dark:text-gray-300 max-w-[180px] truncate" title={session?.user?.email ?? ''}>
+                <span
+                  className="text-sm text-gray-700 dark:text-gray-300 max-w-[180px] truncate"
+                  title={session?.user?.email ?? ''}
+                >
                   {session?.user?.email ?? 'Mi cuenta'}
                 </span>
                 <button

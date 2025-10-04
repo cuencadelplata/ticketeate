@@ -31,7 +31,7 @@ export function useEvents() {
   });
 }
 
-// hook para obtener todos los eventos - pasados y activos 
+// hook para obtener todos los eventos - pasados y activos
 export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
@@ -48,11 +48,14 @@ export function useAllEvents() {
   });
 }
 
+// Hook público para obtener un evento por id
 export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
     queryFn: async (): Promise<Event> => {
-      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), { credentials: 'include' });
+      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Error al obtener el evento');
       const data: GetPublicEventResponse = await res.json();
       return data.event;
@@ -62,6 +65,7 @@ export function usePublicEvent(id?: string) {
   });
 }
 
+// Hook para obtener un evento específico (protegido)
 export function useEvent(id: string) {
   const session = useSession();
   const isAuthenticated = !!session.data?.user;
@@ -78,7 +82,7 @@ export function useEvent(id: string) {
   });
 }
 
- 
+// Hook para crear un evento
 export function useCreateEvent() {
   const queryClient = useQueryClient();
 
@@ -104,7 +108,7 @@ export function useCreateEvent() {
     onSuccess: (newEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? [...old, newEvent] : [newEvent]
+        old ? [...old, newEvent] : [newEvent],
       );
     },
     onError: (error) => {
@@ -113,10 +117,9 @@ export function useCreateEvent() {
   });
 }
 
-
+// Hook para actualizar un evento
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -150,9 +153,9 @@ export function useUpdateEvent() {
   });
 }
 
+// Hook para eliminar un evento
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
@@ -172,53 +175,8 @@ export function useDeleteEvent() {
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? old.filter((e) => e.id_evento !== deletedId) : []
+        old ? old.filter((e) => e.id !== deletedId) : [],
       );
     },
-  });
-}
-
-export function useEventCategories() {
-  const { getToken } = useAuth();
-  return {
-    // Unificar tipo de id a string
-    add: async (eventId: string, categories: Array<{ id?: string; nombre?: string }>) => {
-      const token = await getToken();
-      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
-        body: JSON.stringify({ categories }),
-      });
-      if (!res.ok) throw new Error('Error al agregar categorías');
-      return res.json();
-    },
-    remove: async (eventId: string, categoryId: string) => {
-      const token = await getToken();
-      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories/${categoryId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token ?? ''}` },
-      });
-      if (!res.ok) throw new Error('Error al remover categoría');
-      return res.json();
-    },
-  };
-}
-
-// Hook para obtener todas las categorías disponibles
-export function useCategories() {
-  return useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/api/categories`);
-      if (!response.ok) {
-        throw new Error('Error al obtener categorías');
-      }
-      const data = await response.json();
-      return data.categories || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }

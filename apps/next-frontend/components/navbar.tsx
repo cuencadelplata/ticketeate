@@ -63,16 +63,25 @@ export function Navbar() {
               >
                 Mis Eventos
               </Link>
-              <Link href="/productoras" className="text-sm font-medium text-zinc-200 hover:text-white">
+              <Link
+                href="/productoras"
+                className="text-sm font-medium text-zinc-200 hover:text-white"
+              >
                 Productoras
               </Link>
-              <Link href="/descubrir" className="text-sm font-medium text-zinc-200 hover:text-white">
+              <Link
+                href="/descubrir"
+                className="text-sm font-medium text-zinc-200 hover:text-white"
+              >
                 Descubrir
               </Link>
             </>
           ) : (
             <>
-              <Link href="/descubrir" className="text-sm font-medium text-zinc-200 hover:text-white">
+              <Link
+                href="/descubrir"
+                className="text-sm font-medium text-zinc-200 hover:text-white"
+              >
                 Descubrir
               </Link>
               <Link
