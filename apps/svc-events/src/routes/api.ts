@@ -4,7 +4,22 @@ import { events } from './events';
 
 const api = new Hono();
 
-api.use('*', clerkMiddleware());
+// Aplicar Clerk solo a rutas protegidas. Rutas públicas libres: /events/all, /events/public/:id
+api.use('*', async (c, next) => {
+  const path = c.req.path;
+  const isPublic = path.includes('/events/all') || path.includes('/events/public/');
+  if (isPublic) return next();
+
+  // Si no hay claves en dev, no forzar auth (las rutas protegidas responderán 401 en los handlers)
+  if (!process.env.CLERK_SECRET_KEY || !process.env.CLERK_PUBLISHABLE_KEY) {
+    return next();
+  }
+
+  return clerkMiddleware({
+    secretKey: process.env.CLERK_SECRET_KEY,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+  })(c, next);
+});
 
 // clerk auth middleware inyectado en todas las rutas
 api.route('/events', events);

@@ -83,20 +83,20 @@ export default function ComprarPage() {
 
   // Obtener disponibilidad real de las categorías de entrada
   const getDisponibilidad = (sectorKey: SectorKey): number => {
-    if (!selectedEvent?.categorias_entrada) return 0;
+    if (!selectedEvent?.stock_entrada) return 0;
 
-    const categoria = selectedEvent.categorias_entrada.find(
+    const categoria = selectedEvent.stock_entrada.find(
       (cat) => cat.nombre?.toLowerCase() === SECTORES[sectorKey].nombre.toLowerCase(),
     );
 
-    return categoria?.stock_disponible || 0;
+    return categoria?.cant_max || 0;
   };
 
   // Función para seleccionar evento
   const handleEventSelection = (event: Event) => {
     setSelectedEvent(event);
     setShowEventSelection(false);
-    router.push(`/comprar?evento=${event.id_evento}`);
+    router.push(`/comprar?evento=${event.eventoid}`);
   };
 
   const formatARS = (n: number) =>
@@ -173,7 +173,7 @@ export default function ComprarPage() {
 
     const datosCompra = {
       id_usuario: idUsuario,
-      id_evento: selectedEvent.id_evento, // Enviar UUID como string
+      id_evento: selectedEvent.eventoid, // Enviar UUID como string
       cantidad,
       metodo_pago: metodo,
       datos_tarjeta: isCardPayment
@@ -384,16 +384,16 @@ export default function ComprarPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allEvents.map((event) => {
-              const portada = event.imagenes_evento?.find((i) => i.tipo === 'portada')?.url;
+              const portada = event.imagenes_evento?.find((i) => i.tipo === 'PORTADA' || i.tipo === 'portada')?.url;
               const primera = event.imagenes_evento?.[0]?.url;
               const image = portada || primera || '/icon-ticketeate.png';
               const fecha = event.fechas_evento?.[0]?.fecha_hora
-                ? new Date(event.fechas_evento[0].fecha_hora)
-                : new Date(event.fecha_inicio_venta);
+                ? new Date(event.fechas_evento[0].fecha_hora as any)
+                : new Date(event.fecha_creacion as any);
 
               return (
                 <div
-                  key={event.id_evento}
+                  key={event.eventoid}
                   onClick={() => handleEventSelection(event)}
                   className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
                 >

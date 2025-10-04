@@ -9,6 +9,28 @@ import { config } from 'dotenv';
 config();
 const events = new Hono();
 
+// Helper: convertir BigInt a Number de forma recursiva para respuestas JSON
+function toJSONSafe<T = unknown>(value: T): T {
+  if (value instanceof Date) {
+    return value.toISOString() as unknown as T;
+  }
+  if (typeof value === 'bigint') {
+    // Precios/IDs en este proyecto son seguros para Number
+    return Number(value) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return (value as unknown as any[]).map((v) => toJSONSafe(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = toJSONSafe(v);
+    }
+    return out as unknown as T;
+  }
+  return value;
+}
+
 // CORS para permitir Authorization y cookies (credenciales)
 events.use(
   '*',
@@ -22,13 +44,16 @@ events.use(
   }),
 );
 
-events.use(
-  '*',
-  clerkMiddleware({
-    secretKey: process.env.CLERK_SECRET_KEY,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-  }),
-);
+// Aplicar Clerk solo si hay claves; si no, las rutas públicas funcionarán y las protegidas verán 401 en handlers
+if (process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY) {
+  events.use(
+    '*',
+    clerkMiddleware({
+      secretKey: process.env.CLERK_SECRET_KEY,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    }),
+  );
+}
 
 // GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
 events.get('/all', async (c) => {
@@ -36,8 +61,8 @@ events.get('/all', async (c) => {
     const events = await EventService.getAllPublicEvents();
 
     return c.json({
-      events,
-      total: events.length,
+      events: safe,
+      total: (safe as any[]).length,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -59,7 +84,7 @@ events.get('/public/:id', async (c) => {
     if (!event) {
       return c.json({ error: 'Evento no encontrado' }, 404);
     }
-    return c.json({ event });
+    return c.json({ event: toJSONSafe(event) });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error getting public event:', error);
