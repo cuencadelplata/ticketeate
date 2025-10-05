@@ -240,60 +240,122 @@ export class EventService {
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== clerkUserId) throw new Error('No autorizado');
 
-      const updated = await prisma.eventos.update({
-        where: { eventoid: id },
+      // Crear nueva versión del evento (auditoría completa)
+      const newEventId = randomUUID();
+      
+      // Crear el nuevo evento con los datos actualizados
+      const updatedEvent = await prisma.eventos.create({
         data: {
-          titulo: data.titulo ?? undefined,
-          descripcion: data.descripcion ?? undefined,
-          ubicacion: data.ubicacion ?? undefined,
-          mapa_evento: data.eventMap ?? undefined,
+          eventoid: newEventId,
+          titulo: data.titulo ?? existing.titulo,
+          descripcion: data.descripcion ?? existing.descripcion,
+          ubicacion: data.ubicacion ?? existing.ubicacion,
+          mapa_evento: data.eventMap ?? existing.mapa_evento,
+          creadorid: clerkUserId,
         },
       });
 
-      // Opcionales: actualizar imágenes principales sencillas (PORTADA + GALERIA)
-      if (data.imageUrl || (data.galeria_imagenes && data.galeria_imagenes.length >= 0)) {
-        // borrar existentes y recrear simples
-        await prisma.imagenes_evento.deleteMany({ where: { eventoid: id } });
+      // Copiar imágenes del evento original si no se proporcionan nuevas
+      if (!data.imageUrl && !data.galeria_imagenes) {
+        const existingImages = await prisma.imagenes_evento.findMany({
+          where: { eventoid: id }
+        });
+        
+        if (existingImages.length > 0) {
+          await prisma.imagenes_evento.createMany({
+            data: existingImages.map(img => ({
+              imagenid: randomUUID(),
+              eventoid: newEventId,
+              url: img.url,
+              tipo: img.tipo,
+            }))
+          });
+        }
+      } else {
+        // Crear nuevas imágenes si se proporcionan
+        const imagenesData: Array<{ imagenid: string; eventoid: string; url: string; tipo: string }> = [];
 
-        const images: Array<{ imagenid: string; eventoid: string; url: string; tipo: string }> = [];
         if (data.imageUrl) {
-          images.push({
+          imagenesData.push({
             imagenid: randomUUID(),
-            eventoid: id,
+            eventoid: newEventId,
             url: data.imageUrl,
             tipo: 'PORTADA',
           });
         }
+
         if (data.galeria_imagenes && data.galeria_imagenes.length > 0) {
-          for (const url of data.galeria_imagenes) {
-            images.push({ imagenid: randomUUID(), eventoid: id, url, tipo: 'GALERIA' });
-          }
+          data.galeria_imagenes.forEach((url) => {
+            imagenesData.push({
+              imagenid: randomUUID(),
+              eventoid: newEventId,
+              url: url,
+              tipo: 'GALERIA',
+            });
+          });
         }
-        if (images.length > 0) {
-          await prisma.imagenes_evento.createMany({ data: images });
+
+        if (imagenesData.length > 0) {
+          await prisma.imagenes_evento.createMany({
+            data: imagenesData,
+          });
         }
       }
 
-      // Opcional: actualizar fechas adicionales (reemplazo simple)
-      if (data.fechas_adicionales) {
-        await prisma.fechas_evento.deleteMany({ where: { eventoid: id } });
-        const fechasData = data.fechas_adicionales.map((f) => ({
+      // Copiar fechas del evento original si no se proporcionan nuevas
+      if (!data.fechas_adicionales) {
+        const existingDates = await prisma.fechas_evento.findMany({
+          where: { eventoid: id }
+        });
+        
+        if (existingDates.length > 0) {
+          await prisma.fechas_evento.createMany({
+            data: existingDates.map(date => ({
+              fechaid: randomUUID(),
+              eventoid: newEventId,
+              fecha_hora: date.fecha_hora,
+              fecha_fin: date.fecha_fin,
+            }))
+          });
+        }
+      } else {
+        // Crear nuevas fechas si se proporcionan
+        const fechasData = data.fechas_adicionales.map((fecha) => ({
           fechaid: randomUUID(),
-          eventoid: id,
-          fecha_hora: f.fecha_inicio,
-          fecha_fin: f.fecha_fin,
+          eventoid: newEventId,
+          fecha_hora: fecha.fecha_inicio,
+          fecha_fin: fecha.fecha_fin,
         }));
-        if (fechasData.length > 0) await prisma.fechas_evento.createMany({ data: fechasData });
+
+        await prisma.fechas_evento.createMany({
+          data: fechasData,
+        });
       }
 
-      // Opcional: actualizar categorías/tickets (reemplazo simple)
-      if (data.ticket_types) {
-        await prisma.stock_entrada.deleteMany({ where: { eventoid: id } });
+      // Copiar tipos de tickets del evento original si no se proporcionan nuevos
+      if (!data.ticket_types) {
+        const existingTickets = await prisma.stock_entrada.findMany({
+          where: { eventoid: id }
+        });
+        
+        if (existingTickets.length > 0) {
+          await prisma.stock_entrada.createMany({
+            data: existingTickets.map(ticket => ({
+              stockid: randomUUID(),
+              eventoid: newEventId,
+              nombre: ticket.nombre,
+              precio: ticket.precio,
+              cant_max: ticket.cant_max,
+            }))
+          });
+        }
+      } else {
+        // Crear nuevos tipos de tickets si se proporcionan
         if (data.ticket_types.length > 0) {
           await prisma.stock_entrada.createMany({
             data: data.ticket_types.map((t) => ({
               stockid: randomUUID(),
-              eventoid: id,
+              eventoid: newEventId,
               nombre: t.nombre,
               precio: BigInt(t.precio),
               cant_max: t.stock_total,
@@ -302,8 +364,27 @@ export class EventService {
         }
       }
 
-      const full = await prisma.eventos.findUnique({
-        where: { eventoid: updated.eventoid },
+      // Opcional: actualizar categorías (reemplazo simple)
+      if (data.categorias) {
+        await prisma.catevento.deleteMany({ where: { eventoid: id } });
+        if (data.categorias.length > 0) {
+          await this.addCategoriesToEvent(id, data.categorias);
+        }
+      }
+
+      // Crear registro de auditoría: marcar evento original como EDITADO
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: id, // Evento original
+          Estado: 'EDITADO',
+          usuarioid: clerkUserId,
+        },
+      });
+
+      // Obtener el evento completo con todas sus relaciones
+      const eventoCompleto = await prisma.eventos.findUnique({
+        where: { eventoid: newEventId },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
@@ -316,8 +397,12 @@ export class EventService {
           },
         },
       });
-      if (!full) throw new Error('Error al recuperar el evento actualizado');
-      return full as EventWithImages;
+
+      if (!eventoCompleto) {
+        throw new Error('Error al recuperar el evento actualizado');
+      }
+
+      return eventoCompleto as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error updating event:', error);

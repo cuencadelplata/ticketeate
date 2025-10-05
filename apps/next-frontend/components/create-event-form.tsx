@@ -1,7 +1,7 @@
 'use client';
 
 // Elimina imports duplicados y mantén solo uno de cada
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Globe,
   Upload,
@@ -11,8 +11,6 @@ import {
   Calendar,
   Trash,
   GripVertical,
-  Tag,
-  X,
   Lock,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,9 +21,12 @@ import {
   DialogTitle,
   DialogHeader,
 } from '@/components/ui/dialog';
-import { Navbar } from './navbar';
+
+import { Navbar } from './navbar';  
+
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import React from 'react';
+
 import UploadImageModal from './UploadImageModal';
 import { DateSelect } from './date-select';
 import { TimeSelect } from './time-select';
@@ -40,7 +41,6 @@ import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
 import { useAuth } from '@clerk/nextjs';
 import type { CreateEventData } from '@/types/events';
-import { categories } from '@/data/categories';
 import {
   DndContext,
   closestCenter,
@@ -50,6 +50,11 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
+import { categories } from '@/data/categories';
+import { Tag, X } from 'lucide-react';
+
+
+
 import {
   arrayMove,
   SortableContext,
@@ -262,6 +267,19 @@ export default function CreateEventForm() {
   const createEventMutation = useCreateEvent();
   const { isSignedIn } = useAuth();
 
+  useEffect(() => {
+    const checkAuthAndShowModal = () => {
+      try {
+        setHasCheckedAuth(true);
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        setHasCheckedAuth(true);
+      }
+    };
+
+    checkAuthAndShowModal();
+  }, [hasCheckedAuth]);
+
   const handleCreateEvent = async () => {
     if (!isSignedIn) {
       toast.error('Debes iniciar sesión para crear eventos');
@@ -280,6 +298,11 @@ export default function CreateEventForm() {
 
     if (!description.trim()) {
       toast.error('Por favor agrega una descripción del evento');
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      toast.error('Por favor selecciona al menos una categoría para el evento');
       return;
     }
 
@@ -307,6 +330,7 @@ export default function CreateEventForm() {
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
       galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
+      categorias: selectedCategories.map(categoryName => ({ nombre: categoryName })),
       fechas_adicionales: eventDates
         .filter((date) => !date.isMain)
         .map((date) => ({
@@ -645,6 +669,74 @@ export default function CreateEventForm() {
                 eventType="Evento"
               />
 
+              {/* Sección de Categorías */}
+              <Card className="border-1 bg-stone-900 bg-opacity-60">
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-orange-500" />
+                    <h3 className="text-sm font-semibold text-stone-200">Categorías del evento</h3>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-xs text-stone-400">
+                      Selecciona las categorías que mejor describan tu evento
+                    </p>
+                    
+                    {/* Categorías seleccionadas */}
+                    {selectedCategories.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCategories.map((categoryName) => (
+                          <div
+                            key={categoryName}
+                            className="flex items-center gap-1 rounded-full bg-orange-500/20 px-3 py-1 text-sm text-orange-300"
+                          >
+                            <span>{categoryName}</span>
+                            <button
+                              onClick={() => {
+                                setSelectedCategories(prev => 
+                                  prev.filter(cat => cat !== categoryName)
+                                );
+                              }}
+                              className="ml-1 rounded-full hover:bg-orange-500/30 p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Lista de categorías disponibles */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {categories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => {
+                            if (!selectedCategories.includes(category.name)) {
+                              setSelectedCategories(prev => [...prev, category.name]);
+                            }
+                          }}
+                          disabled={selectedCategories.includes(category.name)}
+                          className={`rounded-lg border p-2 text-left text-sm transition-colors ${
+                            selectedCategories.includes(category.name)
+                              ? 'border-orange-500/50 bg-orange-500/10 text-orange-300 cursor-not-allowed'
+                              : 'border-stone-600 bg-stone-800/30 text-stone-300 hover:border-orange-500/50 hover:bg-stone-800/50'
+                          }`}
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {selectedCategories.length === 0 && (
+                      <p className="text-xs text-red-400">
+                        ⚠️ Debes seleccionar al menos una categoría
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="border-1 bg-stone-900 bg-opacity-60">
                 <CardContent className="space-y-1 p-2">
                   <h3 className="pb-1 text-sm font-semibold text-stone-200">Opciones del evento</h3>
@@ -666,40 +758,6 @@ export default function CreateEventForm() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Selector de categorías */}
-              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                <div className="flex items-center gap-2 pb-1">
-                  <Tag className="h-3.5 w-3.5 text-zinc-400" />
-                  <h3 className="text-sm font-semibold text-stone-200">Categorías del evento</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        selectedCategories.includes(cat.id)
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-                      }`}
-                      onClick={() => {
-                        setSelectedCategories((prev) =>
-                          prev.includes(cat.id)
-                            ? prev.filter((id) => id !== cat.id)
-                            : [...prev, cat.id],
-                        );
-                      }}
-                    >
-                      {cat.name}
-                      {selectedCategories.includes(cat.id) && <X className="h-3 w-3 ml-1" />}
-                    </button>
-                  ))}
-                </div>
-                {selectedCategories.length === 0 && (
-                  <p className="text-xs text-red-400 mt-1">Selecciona al menos una categoría.</p>
-                )}
-              </div>
 
               <Button
                 onClick={handleCreateEvent}

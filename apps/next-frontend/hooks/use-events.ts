@@ -114,7 +114,7 @@ export function useEvent(id: string) {
 // Hook para crear un evento
 export function useCreateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
 
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
@@ -135,7 +135,10 @@ export function useCreateEvent() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${newToken ?? ''}`,
           },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify({
+            ...eventData,
+            clerkUserId: userId, // Agregar el userId de Clerk
+          }),
         });
         if (response.status === 401) {
           throw new Error('Token inválido. Por favor, inicia sesión nuevamente.');
@@ -178,7 +181,7 @@ export function useCreateEvent() {
 // Hook para actualizar un evento
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -226,7 +229,7 @@ export function useUpdateEvent() {
 // Hook para eliminar un evento
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {

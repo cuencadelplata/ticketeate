@@ -262,6 +262,7 @@ events.put('/:id', async (c) => {
       })),
       eventMap: body.eventMap,
       ticket_types: body.ticket_types,
+      categorias: body.categorias, // Agregar categorías
     });
 
     return c.json({
