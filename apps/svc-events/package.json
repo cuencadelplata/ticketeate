@@ -18,15 +18,17 @@
     "db:studio": "cd ../../packages/db && npm run db:studio"
   },
   "dependencies": {
-    "@clerk/backend": "^2.10.1",
-    "@hono/clerk-auth": "^3.0.3",
     "@hono/node-server": "^1.0.0",
     "@prisma/client": "^6.15.0",
     "@repo/db": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
+    "better-auth": "^1.0.0",
     "cloudinary": "^2.7.0",
     "dotenv": "^16.0.0",
     "hono": "^4.0.0",
+    "jose": "^6.1.0",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2"
   },
   "devDependencies": {

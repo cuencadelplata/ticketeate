@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
-import { useSession } from '@/lib/auth-client';
 import type {
   Event,
   CreateEventData,
@@ -11,23 +10,45 @@ import type {
   GetPublicEventResponse,
 } from '@/types/events';
 
+// Helper function to get JWT token
+async function getAuthHeaders() {
+  try {
+    const res = await fetch('/api/auth/token', {
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    }
+
+    const data = await res.json();
+
+    if (!data.token) {
+      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    }
+
+    return {
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json',
+    };
+  } catch (error) {
+    throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+  }
+}
+
 // Hook para obtener eventos (protegido)
 export function useEvents() {
-  const session = useSession();
-  const isAuthenticated = !!session.data?.user;
-
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
+      const headers = await getAuthHeaders();
       const res = await fetch(API_ENDPOINTS.events, {
-        // con Better Auth, si el endpoint está en el mismo dominio, las cookies httpOnly viajan solas
-        credentials: 'include',
+        headers,
       });
       if (!res.ok) throw new Error('Error al obtener eventos');
       const data: GetEventsResponse = await res.json();
       return data.events || [];
     },
-    enabled: isAuthenticated,
   });
 }
 
@@ -67,18 +88,16 @@ export function usePublicEvent(id?: string) {
 
 // Hook para obtener un evento específico (protegido)
 export function useEvent(id: string) {
-  const session = useSession();
-  const isAuthenticated = !!session.data?.user;
-
   return useQuery({
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { credentials: 'include' });
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { headers });
       if (!res.ok) throw new Error('Error al obtener el evento');
       const data: GetEventResponse = await res.json();
       return data.event;
     },
-    enabled: !!id && isAuthenticated,
+    enabled: !!id,
   });
 }
 
@@ -88,10 +107,10 @@ export function useCreateEvent() {
 
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
+      const headers = await getAuthHeaders();
       const res = await fetch(API_ENDPOINTS.events, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(eventData),
       });
       if (!res.ok) {
@@ -129,10 +148,10 @@ export function useUpdateEvent() {
       id: string;
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
+      const headers = await getAuthHeaders();
       const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(eventData),
       });
       if (!res.ok) {
@@ -147,8 +166,8 @@ export function useUpdateEvent() {
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
-      queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
+      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
+      queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
     },
   });
 }
@@ -159,9 +178,10 @@ export function useDeleteEvent() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
+      const headers = await getAuthHeaders();
       const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers,
       });
       if (!res.ok) {
         let msg = 'Error al eliminar el evento';
@@ -175,7 +195,7 @@ export function useDeleteEvent() {
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? old.filter((e) => e.id !== deletedId) : [],
+        old ? old.filter((e) => e.eventoid !== deletedId) : [],
       );
     },
   });

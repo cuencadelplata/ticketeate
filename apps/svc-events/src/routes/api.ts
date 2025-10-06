@@ -1,34 +1,20 @@
 import { Hono } from 'hono';
-import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { events } from './events';
 
 const api = new Hono();
 
-// Aplicar Clerk solo a rutas protegidas. Rutas públicas libres: /events/all, /events/public/:id
-api.use('*', async (c, next) => {
-  const path = c.req.path;
-  const isPublic = path.includes('/events/all') || path.includes('/events/public/');
-  if (isPublic) return next();
+// Helper function to get JWT payload from context
+function getJwtPayload(c: any) {
+  return c.get('jwtPayload');
+}
 
-  // Si no hay claves en dev, no forzar auth (las rutas protegidas responderán 401 en los handlers)
-  if (!process.env.CLERK_SECRET_KEY || !process.env.CLERK_PUBLISHABLE_KEY) {
-    return next();
-  }
-
-  return clerkMiddleware({
-    secretKey: process.env.CLERK_SECRET_KEY,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-  })(c, next);
-});
-
-// clerk auth middleware inyectado en todas las rutas
 api.route('/events', events);
 
 // GET /api/users/:id
 api.get('/users/:id', (c) => {
-  const auth = getAuth(c);
+  const jwtPayload = getJwtPayload(c);
 
-  if (!auth?.userId) {
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -37,15 +23,16 @@ api.get('/users/:id', (c) => {
     id: parseInt(id),
     name: 'John Doe',
     email: 'john@example.com',
-    authenticatedUserId: auth.userId,
+    authenticatedUserId: jwtPayload.id,
+    userRole: jwtPayload.role,
   });
 });
 
 // POST /api/users
 api.post('/users', async (c) => {
-  const auth = getAuth(c);
+  const jwtPayload = getJwtPayload(c);
 
-  if (!auth?.userId) {
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -54,7 +41,8 @@ api.post('/users', async (c) => {
     {
       message: 'User created successfully',
       user: body,
-      authenticatedUserId: auth.userId,
+      authenticatedUserId: jwtPayload.id,
+      userRole: jwtPayload.role,
     },
     201,
   );
@@ -62,9 +50,9 @@ api.post('/users', async (c) => {
 
 // PUT /api/users/:id
 api.put('/users/:id', async (c) => {
-  const auth = getAuth(c);
+  const jwtPayload = getJwtPayload(c);
 
-  if (!auth?.userId) {
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -74,15 +62,16 @@ api.put('/users/:id', async (c) => {
     message: 'User updated successfully',
     id: parseInt(id),
     user: body,
-    authenticatedUserId: auth.userId,
+    authenticatedUserId: jwtPayload.id,
+    userRole: jwtPayload.role,
   });
 });
 
 // DELETE /api/users/:id
 api.delete('/users/:id', (c) => {
-  const auth = getAuth(c);
+  const jwtPayload = getJwtPayload(c);
 
-  if (!auth?.userId) {
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -90,24 +79,26 @@ api.delete('/users/:id', (c) => {
   return c.json({
     message: 'User deleted successfully',
     id: parseInt(id),
-    authenticatedUserId: auth.userId,
+    authenticatedUserId: jwtPayload.id,
+    userRole: jwtPayload.role,
   });
 });
 
 // Protected route example
 api.get('/protected/profile', (c) => {
-  const auth = getAuth(c);
+  const jwtPayload = getJwtPayload(c);
 
-  if (!auth?.userId) {
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
   return c.json({
     message: 'This is a protected route',
     user: {
-      id: auth.userId,
-      name: 'John Doe',
-      role: 'admin',
+      id: jwtPayload.id,
+      name: jwtPayload.name,
+      email: jwtPayload.email,
+      role: jwtPayload.role,
     },
   });
 });

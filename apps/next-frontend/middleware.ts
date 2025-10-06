@@ -1,23 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
-const COOKIE_NAME = 'better-auth.session_token';
+import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes } from './routes';
 
-export function middleware(req: NextRequest) {
-  let hasSession = !!getSessionCookie(req);
+export async function middleware(request: NextRequest) {
+  const session = getSessionCookie(request);
 
-  if (!hasSession) hasSession = !!req.cookies.get(COOKIE_NAME)?.value;
+  const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
 
-  if (!hasSession) {
-    const url = new URL('/sign-in', req.url);
-    // preserva a dónde quería ir la persona
-    url.searchParams.set('redirect_url', req.nextUrl.pathname);
-    return NextResponse.redirect(url);
+  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
+
+  const isAuthRoute = () => {
+    return authRoutes.some((path) => request.nextUrl.pathname.startsWith(path));
+  };
+
+  if (isApiAuth) {
+    return NextResponse.next();
+  }
+
+  if (isAuthRoute()) {
+    if (session) {
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (!session && !isPublicRoute) {
+    return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/eventos/:path*', '/crear/:path*', '/productoras/:path*', '/evento/manage/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

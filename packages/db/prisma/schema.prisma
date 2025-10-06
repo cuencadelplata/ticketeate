@@ -9,68 +9,13 @@ datasource db {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime
-  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([providerId, accountId])
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model categoriaentrada {
-  categoriaentradaid BigInt  @id @default(autoincrement())
-  eventoid           String  @db.VarChar
-  nombre             String  @db.VarChar(100)
-  precio             Decimal @db.Decimal(10, 2)
-  stock_total        Int
-  stock_disponible   Int
-  max_por_usuario    Int?    @default(4)
-  eventos            eventos @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade, onUpdate: NoAction)
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model categoriaevento {
-  categoriaeventoid BigInt      @id @default(autoincrement())
-  nombre            String      @unique @db.VarChar(100)
+  categoriaeventoid Int      @id @default(autoincrement())
+  nombre            String   @unique @db.VarChar(100)
   descripcion       String?
-  catevento         catevento[]
+  eventos           evento_categorias[]
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model categorias_entrada {
-  categoriaid      String     @id @db.VarChar(255)
-  eventoid         String     @db.VarChar(255)
-  nombre           String     @db.VarChar(100)
-  descripcion      String?
-  precio           Decimal    @db.Decimal(10, 2)
-  stock_total      Int
-  stock_disponible Int
-  max_por_usuario  Int        @default(4)
-  eventos          eventos    @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  reservas         reservas[]
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model catevento {
-  eventoid          String          @db.VarChar
-  categoriaeventoid BigInt
-  categoriaevento   categoriaevento @relation(fields: [categoriaeventoid], references: [categoriaeventoid], onDelete: Cascade, onUpdate: NoAction)
-  eventos           eventos         @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade, onUpdate: NoAction)
-
-  @@id([eventoid, categoriaeventoid])
-}
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model cola_turnos {
@@ -82,7 +27,7 @@ model cola_turnos {
   fecha_ingreso  DateTime     @default(now()) @db.Timestamptz(6)
   fecha_atencion DateTime?    @db.Timestamptz(6)
   colas_evento   colas_evento @relation(fields: [colaid], references: [colaid], onDelete: Cascade)
-  usuarios       usuarios     @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+  user           user         @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -103,6 +48,8 @@ model entradas {
   codigo_qr String   @unique @db.VarChar(255)
   estado    String   @default("VALIDA") @db.VarChar(20)
   reservas  reservas @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+
+  @@index([reservaid], map: "idx_entradas_reservaid")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -116,28 +63,50 @@ model estadisticas {
   eventos              eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evento_estado {
+  stateventid     String   @id @db.VarChar
+  eventoid        String   @db.VarChar
+  Estado          String   @default("Oculto") @db.VarChar
+  fecha_de_cambio DateTime @default(now()) @db.Timestamptz(6)
+  usuarioid       String   @db.VarChar
+  eventos         eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user            user     @relation(fields: [usuarioid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([eventoid, fecha_de_cambio(sort: Desc)], map: "idx_evento_estado_eventoid_fecha")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model eventos {
-  eventoid           String               @id @db.VarChar(255)
-  titulo             String               @db.VarChar(200)
+  eventoid           String            @id @db.VarChar(255)
+  titulo             String            @db.VarChar(200)
   descripcion        String?
-  ubicacion          String?              @db.VarChar(255)
-  fecha_creacion     DateTime             @default(now()) @db.Timestamptz(6)
-  creadorid          String               @db.VarChar(255)
-  mapa_evento        Json?
-  estado             String               @default("OCULTO") @db.VarChar(20)
-  fecha_fin_venta    DateTime             @default(now()) @db.Timestamptz(6)
-  fecha_inicio_venta DateTime             @default(now()) @db.Timestamptz(6)
-  categoriaentrada   categoriaentrada[]
-  categorias_entrada categorias_entrada[]
-  catevento          catevento[]
+  ubicacion          String            @db.VarChar(255)
+  fecha_creacion     DateTime          @default(now()) @db.Timestamptz(6)
+  creadorid          String            @db.VarChar(255)
+  mapa_evento        Json
+  fecha_cambio       DateTime          @default(now()) @db.Timestamptz(6)
+  evento_categorias  evento_categorias[]
   colas_evento       colas_evento[]
   estadisticas       estadisticas[]
-  usuarios           usuarios             @relation(fields: [creadorid], references: [usuarioid], onDelete: Cascade)
+  evento_estado      evento_estado[]
+  user               user              @relation(fields: [creadorid], references: [id], onDelete: Cascade)
   fechas_evento      fechas_evento[]
   imagenes_evento    imagenes_evento[]
   logs_eventos       logs_eventos[]
   reservas           reservas[]
+  stock_entrada      stock_entrada[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evento_categorias {
+  eventoid           String          @db.VarChar(255)
+  categoriaeventoid Int
+  eventos           eventos         @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  categoriaevento   categoriaevento @relation(fields: [categoriaeventoid], references: [categoriaeventoid], onDelete: Cascade)
+
+  @@id([eventoid, categoriaeventoid])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -168,7 +137,22 @@ model logs_eventos {
   detalle   String?
   fecha     DateTime  @default(now()) @db.Timestamptz(6)
   eventos   eventos   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  usuarios  usuarios? @relation(fields: [usuarioid], references: [usuarioid])
+  user      user?     @relation(fields: [usuarioid], references: [id])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model movimientos_entradas {
+  movimientoid  String        @id @db.VarChar
+  stockid       String        @db.VarChar
+  usuarioid     String        @db.VarChar
+  cantidad      Int
+  tipo          String        @db.VarChar
+  fecha_mov     DateTime      @default(now()) @db.Timestamptz(6)
+  stock_entrada stock_entrada @relation(fields: [stockid], references: [stockid], onDelete: NoAction, onUpdate: NoAction)
+  user          user          @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+
+  @@index([stockid, fecha_mov(sort: Desc)], map: "idx_movimientos_stockid_fecha")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -184,20 +168,22 @@ model pagos {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model reservas {
-  reservaid          String             @id @db.VarChar(255)
-  usuarioid          String             @db.VarChar(255)
-  eventoid           String             @db.VarChar(255)
-  fechaid            String             @db.VarChar(255)
-  categoriaid        String             @db.VarChar(255)
-  cantidad           Int
-  fecha_reserva      DateTime           @default(now()) @db.Timestamptz(6)
-  estado             String             @default("PENDIENTE") @db.VarChar(20)
-  entradas           entradas[]
-  pagos              pagos[]
-  categorias_entrada categorias_entrada @relation(fields: [categoriaid], references: [categoriaid], onDelete: Cascade)
-  eventos            eventos            @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  fechas_evento      fechas_evento      @relation(fields: [fechaid], references: [fechaid], onDelete: Cascade)
-  usuarios           usuarios           @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+  reservaid     String        @id @db.VarChar(255)
+  usuarioid     String        @db.VarChar(255)
+  eventoid      String        @db.VarChar(255)
+  fechaid       String        @db.VarChar(255)
+  categoriaid   String        @db.VarChar(255)
+  cantidad      Int
+  fecha_reserva DateTime      @default(now()) @db.Timestamptz(6)
+  estado        String        @default("PENDIENTE") @db.VarChar(20)
+  entradas      entradas[]
+  pagos         pagos[]
+  stock_entrada stock_entrada @relation(fields: [categoriaid], references: [stockid], onDelete: Cascade)
+  eventos       eventos       @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  fechas_evento fechas_evento @relation(fields: [fechaid], references: [fechaid], onDelete: Cascade)
+  user          user          @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+
+  @@index([usuarioid, eventoid], map: "idx_reservas_usuario_evento")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -207,63 +193,24 @@ model sesiones {
   token            String   @unique @db.VarChar(255)
   fecha_inicio     DateTime @default(now()) @db.Timestamptz(6)
   fecha_expiracion DateTime @db.Timestamptz(6)
-  usuarios         usuarios @relation(fields: [usuarioid], references: [usuarioid], onDelete: Cascade)
+  user             user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model stock_entrada {
+  stockid              String                 @id @db.VarChar
+  eventoid             String                 @db.VarChar
+  nombre               String                 @db.VarChar
+  precio               BigInt
+  cant_max             Int
+  fecha_creacion       DateTime               @default(now()) @db.Timestamptz(6)
+  fecha_limite         DateTime               @default(dbgenerated("(now() + '1 year'::interval)")) @db.Timestamptz(6)
+  movimientos_entradas movimientos_entradas[]
+  reservas             reservas[]
+  eventos              eventos                @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model user {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime
-  account       account[]
-  session       session[]
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model usuarios {
-  usuarioid       String         @id @db.VarChar(255)
-  nombre          String         @db.VarChar(100)
-  apellido        String         @db.VarChar(100)
-  email           String         @unique @db.VarChar(150)
-  telefono        String?        @db.VarChar(20)
-  fecha_registro  DateTime       @default(now()) @db.Timestamptz(6)
-  estado          String         @default("activo") @db.VarChar(20)
-  wallet_linked   Boolean        @default(false)
-  wallet_provider String?        @db.VarChar(50)
-  rol             String?        @default("cliente")
-  cola_turnos     cola_turnos[]
-  eventos         eventos[]
-  logs_eventos    logs_eventos[]
-  reservas        reservas[]
-  sesiones        sesiones[]
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime
-}
 
 enum EstadoEntrada {
   VALIDA
@@ -294,4 +241,79 @@ enum EventoEstado {
 enum TipoImagen {
   PORTADA
   GALERIA
+}
+
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+
+  role          Role      @default(USUARIO) 
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  account       account[]
+  session       session[]
+  
+  // Relaciones con el sistema de eventos
+  cola_turnos          cola_turnos[]
+  evento_estado        evento_estado[]
+  eventos              eventos[]
+  logs_eventos         logs_eventos[]
+  movimientos_entradas movimientos_entradas[]
+  reservas             reservas[]
+  sesiones             sesiones[]
+}
+
+enum Role {
+  ORGANIZADOR
+  COLABORADOR
+  USUARIO
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model jwks {
+  id         String   @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
 }

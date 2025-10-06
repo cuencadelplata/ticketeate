@@ -10,7 +10,7 @@ import {
 } from '@heroui/react';
 import { toast } from 'sonner';
 import Image from 'next/image';
-import { useSession } from '@/lib/auth-client';
+import { useSession, signOut } from '@/lib/auth-client';
 // server-only currentUser import intentionally omitted in client component
 
 export const PlusIcon = (props: any) => {

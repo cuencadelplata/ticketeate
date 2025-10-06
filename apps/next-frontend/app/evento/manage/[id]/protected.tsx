@@ -1,14 +1,20 @@
 'use client';
 
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Protected({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SignedIn>{children}</SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-    </>
-  );
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session, isPending } = useSession();
+
+  if (isPending) return null;
+
+  if (!session) {
+    const back = encodeURIComponent(pathname ?? '/');
+    router.push(`/sign-in?redirect_url=${back}`);
+    return null;
+  }
+
+  return <>{children}</>;
 }
