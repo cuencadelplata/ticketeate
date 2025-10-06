@@ -167,8 +167,8 @@ export function useUpdateEvent() {
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.id_evento] });
-      queryClient.setQueryData(['events', updatedEvent.id_evento], updatedEvent);
+      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
+      queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
     },
   });
 }
@@ -196,7 +196,7 @@ export function useDeleteEvent() {
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? old.filter((e) => e.id !== deletedId) : [],
+        old ? old.filter((e) => e.eventoid !== deletedId) : [],
       );
     },
   });
