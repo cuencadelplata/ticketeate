@@ -15,7 +15,7 @@ export interface CategoriesResponse {
 // Hook para obtener categorías estáticas (sin query)
 export function useCategories() {
   // Convertir las categorías estáticas al formato esperado
-  const categories: Category[] = staticCategories.map(cat => ({
+  const categories: Category[] = staticCategories.map((cat) => ({
     id: parseInt(cat.id),
     name: cat.name,
   }));
@@ -32,8 +32,8 @@ export function useCategoriesSync() {
   return useQuery({
     queryKey: ['categories-sync'],
     queryFn: async (): Promise<Category[]> => {
-      const res = await fetch(`${API_ENDPOINTS.events}/categories`, { 
-        credentials: 'include' 
+      const res = await fetch(`${API_ENDPOINTS.events}/categories`, {
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Error al obtener categorías');
       const data: CategoriesResponse = await res.json();

@@ -19,9 +19,12 @@ export async function POST(req: Request) {
     } else if (role === 'COLABORADOR') {
       // COLABORADOR requiere código de invitación
       if (!inviteCode) {
-        return NextResponse.json({ error: 'Código de invitación requerido para COLABORADOR' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Código de invitación requerido para COLABORADOR' },
+          { status: 400 },
+        );
       }
-      
+
       const ok = inviteCode === process.env.INVITE_CODE_COLABORADOR;
       if (!ok) {
         return NextResponse.json({ error: 'Código de invitación inválido' }, { status: 401 });
@@ -35,8 +38,8 @@ export async function POST(req: Request) {
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { 
-        role: role as any
+      data: {
+        role: role as any,
       },
     });
 

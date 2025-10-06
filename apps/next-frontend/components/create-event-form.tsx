@@ -320,7 +320,7 @@ export default function CreateEventForm() {
       const scheduledDateTime = new Date(schedulePublication.date);
       const [hour, minute] = schedulePublication.time.split(':');
       scheduledDateTime.setHours(parseInt(hour), parseInt(minute));
-      
+
       // Si la fecha programada es en el futuro, crear como OCULTO
       if (scheduledDateTime > new Date()) {
         estadoInicial = 'OCULTO';
@@ -751,7 +751,7 @@ export default function CreateEventForm() {
                   <Clock className="h-3.5 w-3.5 text-zinc-400" />
                   <h3 className="text-sm font-semibold text-stone-200">Programar publicación</h3>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <input
@@ -759,9 +759,9 @@ export default function CreateEventForm() {
                       id="schedule-publication"
                       checked={schedulePublication.enabled}
                       onChange={(e) => {
-                        setSchedulePublication(prev => ({
+                        setSchedulePublication((prev) => ({
                           ...prev,
-                          enabled: e.target.checked
+                          enabled: e.target.checked,
                         }));
                       }}
                       className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
@@ -778,9 +778,9 @@ export default function CreateEventForm() {
                           value={schedulePublication.date}
                           onChange={(date) => {
                             if (date) {
-                              setSchedulePublication(prev => ({
+                              setSchedulePublication((prev) => ({
                                 ...prev,
-                                date
+                                date,
                               }));
                             }
                           }}
@@ -788,18 +788,19 @@ export default function CreateEventForm() {
                         <TimeSelect
                           value={schedulePublication.time}
                           onChange={(time) => {
-                            setSchedulePublication(prev => ({
+                            setSchedulePublication((prev) => ({
                               ...prev,
-                              time
+                              time,
                             }));
                           }}
                         />
                       </div>
                       <p className="text-xs text-stone-400">
-                        💡 El evento se mantendrá oculto hasta la fecha programada. 
+                        💡 El evento se mantendrá oculto hasta la fecha programada.
                         {schedulePublication.enabled && (
                           <span className="block mt-1">
-                            Se publicará el {schedulePublication.date.toLocaleDateString('es-ES')} a las {schedulePublication.time}
+                            Se publicará el {schedulePublication.date.toLocaleDateString('es-ES')} a
+                            las {schedulePublication.time}
                           </span>
                         )}
                       </p>
@@ -820,12 +821,11 @@ export default function CreateEventForm() {
                 className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={createEventMutation.isPending || !session}
               >
-                {!session 
-                  ? 'Inicia sesión para crear eventos' 
-                  : createEventMutation.isPending 
-                    ? 'Creando evento...' 
-                    : 'Crear evento'
-                }
+                {!session
+                  ? 'Inicia sesión para crear eventos'
+                  : createEventMutation.isPending
+                    ? 'Creando evento...'
+                    : 'Crear evento'}
               </Button>
             </div>
           </div>

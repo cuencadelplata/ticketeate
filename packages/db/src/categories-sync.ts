@@ -15,11 +15,10 @@ const staticCategories = [
 ];
 
 async function syncCategories() {
-  
   for (const category of staticCategories) {
     await prisma.categoriaevento.upsert({
       where: { categoriaeventoid: BigInt(category.id) },
-      update: { 
+      update: {
         nombre: category.name,
         descripcion: null,
       },
@@ -33,17 +32,15 @@ async function syncCategories() {
 }
 
 async function verifyCategories() {
-  
   const dbCategories = await prisma.categoriaevento.findMany({
-    orderBy: { categoriaeventoid: 'asc' }
+    orderBy: { categoriaeventoid: 'asc' },
   });
-  
 }
 
 async function main() {
   try {
     const command = process.argv[2];
-    
+
     switch (command) {
       case 'sync':
         await syncCategories();

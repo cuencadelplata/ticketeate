@@ -15,20 +15,20 @@ const events = new Hono();
 function validateJWT(c: any) {
   try {
     const authHeader = c.req.header('Authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return null;
     }
-    
+
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+
     // Verify JWT token using shared secret
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
       audience: process.env.FRONTEND_URL || 'http://localhost:3000',
       algorithms: ['HS256'], // Specify algorithm
     });
-    
+
     return payload as any;
   } catch (error) {
     console.error('JWT validation failed:', error);
@@ -96,7 +96,7 @@ events.post('/', async (c) => {
   try {
     // Validate JWT token directly
     const jwtPayload = validateJWT(c);
-    
+
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -206,7 +206,7 @@ events.get('/categories', async (c) => {
     });
 
     return c.json({
-      categories: categories.map(cat => ({
+      categories: categories.map((cat) => ({
         id: cat.categoriaeventoid, // Now it's a number, no conversion needed
         name: cat.nombre,
         description: cat.descripcion,
@@ -229,7 +229,7 @@ events.get('/', async (c) => {
   try {
     // Use direct JWT validation like POST route
     const jwtPayload = validateJWT(c);
-    
+
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }

@@ -71,48 +71,49 @@ const getCoverImage = (event: Event) => {
 // Obtener información detallada de fechas del evento
 const getEventDateInfo = (event: Event) => {
   const fechasEvento = event.fechas_evento;
-  
+
   if (!fechasEvento || fechasEvento.length === 0) {
     return {
       hasEventDates: false,
       mainDate: null,
       allDates: [],
       isPast: false,
-      message: 'Sin fechas asignadas'
+      message: 'Sin fechas asignadas',
     };
   }
-  
+
   // Procesar todas las fechas
   const allDates = fechasEvento.map((fecha, index) => {
-    const fechaHora = typeof fecha.fecha_hora === 'string' 
-      ? new Date(fecha.fecha_hora) 
-      : fecha.fecha_hora;
-    
-    const fechaFin = fecha.fecha_fin 
-      ? (typeof fecha.fecha_fin === 'string' ? new Date(fecha.fecha_fin) : fecha.fecha_fin)
+    const fechaHora =
+      typeof fecha.fecha_hora === 'string' ? new Date(fecha.fecha_hora) : fecha.fecha_hora;
+
+    const fechaFin = fecha.fecha_fin
+      ? typeof fecha.fecha_fin === 'string'
+        ? new Date(fecha.fecha_fin)
+        : fecha.fecha_fin
       : fechaHora;
-    
+
     return {
       index,
       fechaHora,
       fechaFin,
       isPast: fechaFin < new Date(),
-      formatted: formatEventDate(fechaHora.toISOString())
+      formatted: formatEventDate(fechaHora.toISOString()),
     };
   });
-  
+
   // La fecha principal es la primera
   const mainDate = allDates[0].fechaHora;
   const fechaFin = allDates[0].fechaFin;
   const isPast = fechaFin < new Date();
-  
+
   return {
     hasEventDates: true,
     mainDate,
     allDates,
     isPast,
     message: isPast ? 'Evento pasado' : 'Evento próximo',
-    hasMultipleDates: allDates.length > 1
+    hasMultipleDates: allDates.length > 1,
   };
 };
 
@@ -244,13 +245,14 @@ export default function EventosPage() {
             <div className="space-y-6">
               {filteredEvents.map((event) => {
                 const dateInfo = getEventDateInfo(event);
-                const formattedDate = dateInfo.hasEventDates && dateInfo.mainDate
-                  ? formatEventDate(dateInfo.mainDate.toISOString())
-                  : formatEventDate(
-                      typeof event.fecha_creacion === 'string'
-                        ? event.fecha_creacion
-                        : event.fecha_creacion.toISOString()
-                    );
+                const formattedDate =
+                  dateInfo.hasEventDates && dateInfo.mainDate
+                    ? formatEventDate(dateInfo.mainDate.toISOString())
+                    : formatEventDate(
+                        typeof event.fecha_creacion === 'string'
+                          ? event.fecha_creacion
+                          : event.fecha_creacion.toISOString(),
+                      );
                 const hasLocation = !!event.ubicacion;
                 const coverImage = getCoverImage(event);
                 const eventStatus = getEventStatus(event);
@@ -279,17 +281,25 @@ export default function EventosPage() {
                           {/* Header con fecha y estado */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className={`flex flex-col items-center rounded-lg px-3 py-2 ${
-                                dateInfo.hasEventDates ? 'bg-[#3A3A3A]' : 'bg-red-500/20 border border-red-500/50'
-                              }`}>
-                                <div className={`text-lg font-bold ${
-                                  dateInfo.hasEventDates ? 'text-white' : 'text-red-400'
-                                }`}>
+                              <div
+                                className={`flex flex-col items-center rounded-lg px-3 py-2 ${
+                                  dateInfo.hasEventDates
+                                    ? 'bg-[#3A3A3A]'
+                                    : 'bg-red-500/20 border border-red-500/50'
+                                }`}
+                              >
+                                <div
+                                  className={`text-lg font-bold ${
+                                    dateInfo.hasEventDates ? 'text-white' : 'text-red-400'
+                                  }`}
+                                >
                                   {dateInfo.hasEventDates ? formattedDate.date : 'Sin fecha'}
                                 </div>
-                                <div className={`text-xs ${
-                                  dateInfo.hasEventDates ? 'text-gray-400' : 'text-red-300'
-                                }`}>
+                                <div
+                                  className={`text-xs ${
+                                    dateInfo.hasEventDates ? 'text-gray-400' : 'text-red-300'
+                                  }`}
+                                >
                                   {dateInfo.hasEventDates ? formattedDate.day : 'Asignar fecha'}
                                 </div>
                               </div>
@@ -355,16 +365,21 @@ export default function EventosPage() {
                                 {dateInfo.hasEventDates ? (
                                   <>
                                     {dateInfo.mainDate?.toLocaleDateString('es-ES')}
-                                    {dateInfo.allDates[0]?.fechaFin && dateInfo.allDates[0].fechaFin.getTime() !== dateInfo.mainDate?.getTime() && (
-                                      <>
-                                        {' '}
-                                        -{' '}
-                                        {dateInfo.allDates[0].fechaFin.toLocaleDateString('es-ES')}
-                                      </>
-                                    )}
+                                    {dateInfo.allDates[0]?.fechaFin &&
+                                      dateInfo.allDates[0].fechaFin.getTime() !==
+                                        dateInfo.mainDate?.getTime() && (
+                                        <>
+                                          {' '}
+                                          -{' '}
+                                          {dateInfo.allDates[0].fechaFin.toLocaleDateString(
+                                            'es-ES',
+                                          )}
+                                        </>
+                                      )}
                                     {dateInfo.hasMultipleDates && (
                                       <span className="ml-2 text-orange-400">
-                                        +{dateInfo.allDates.length - 1} fecha{dateInfo.allDates.length - 1 > 1 ? 's' : ''} más
+                                        +{dateInfo.allDates.length - 1} fecha
+                                        {dateInfo.allDates.length - 1 > 1 ? 's' : ''} más
                                       </span>
                                     )}
                                   </>
@@ -395,27 +410,28 @@ export default function EventosPage() {
                                     <ChevronDown className="h-3 w-3" />
                                   )}
                                   <span>
-                                    {expandedDates.has(event.eventoid) 
-                                      ? 'Ocultar fechas adicionales' 
-                                      : `Ver ${dateInfo.allDates.length - 1} fecha${dateInfo.allDates.length - 1 > 1 ? 's' : ''} adicional${dateInfo.allDates.length - 1 > 1 ? 'es' : ''}`
-                                    }
+                                    {expandedDates.has(event.eventoid)
+                                      ? 'Ocultar fechas adicionales'
+                                      : `Ver ${dateInfo.allDates.length - 1} fecha${dateInfo.allDates.length - 1 > 1 ? 's' : ''} adicional${dateInfo.allDates.length - 1 > 1 ? 'es' : ''}`}
                                   </span>
                                 </button>
-                                
+
                                 {expandedDates.has(event.eventoid) && (
                                   <div className="mt-2 space-y-1">
                                     {dateInfo.allDates.slice(1).map((fecha, index) => (
-                                      <div key={index} className="flex items-center gap-2 text-xs text-gray-400">
+                                      <div
+                                        key={index}
+                                        className="flex items-center gap-2 text-xs text-gray-400"
+                                      >
                                         <Calendar className="h-3 w-3 text-gray-500" />
                                         <span>
-                                          {fecha.fechaHora.toLocaleDateString('es-ES')} a las {fecha.formatted.time}
-                                          {fecha.fechaFin && fecha.fechaFin.getTime() !== fecha.fechaHora.getTime() && (
-                                            <>
-                                              {' '}
-                                              -{' '}
-                                              {fecha.fechaFin.toLocaleDateString('es-ES')}
-                                            </>
-                                          )}
+                                          {fecha.fechaHora.toLocaleDateString('es-ES')} a las{' '}
+                                          {fecha.formatted.time}
+                                          {fecha.fechaFin &&
+                                            fecha.fechaFin.getTime() !==
+                                              fecha.fechaHora.getTime() && (
+                                              <> - {fecha.fechaFin.toLocaleDateString('es-ES')}</>
+                                            )}
                                         </span>
                                       </div>
                                     ))}

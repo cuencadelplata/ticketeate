@@ -31,7 +31,7 @@ export const auth = betterAuth({
           image: true,
           createdAt: true,
           updatedAt: true,
-        }
+        },
       });
 
       return {
@@ -42,7 +42,7 @@ export const auth = betterAuth({
         session: {
           ...session,
           role: fullUser?.role || 'USUARIO',
-        }
+        },
       };
     }),
   ],

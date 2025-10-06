@@ -27,11 +27,11 @@ app.use(
 app.use(
   '/api/*',
   jwk({
-    jwks_uri: process.env.FRONTEND_URL 
+    jwks_uri: process.env.FRONTEND_URL
       ? `${process.env.FRONTEND_URL}/.well-known/jwks.json`
       : 'http://localhost:3000/.well-known/jwks.json',
     allow_anon: false, // Require authentication for API routes
-  })
+  }),
 );
 
 // Routes

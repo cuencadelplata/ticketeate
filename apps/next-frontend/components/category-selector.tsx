@@ -3,26 +3,26 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useCategories } from '@/hooks/use-categories';
-import { 
-  Music, 
-  Gamepad2, 
-  Mic, 
-  Calendar, 
-  Heart, 
-  Palette, 
-  Briefcase, 
-  UtensilsCrossed 
+import {
+  Music,
+  Gamepad2,
+  Mic,
+  Calendar,
+  Heart,
+  Palette,
+  Briefcase,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 const categoryIcons = {
-  1: Music,        // Música
-  2: Gamepad2,     // Deportes
-  3: Mic,          // Conferencias
-  4: Palette,      // Teatro
-  5: Heart,        // Comedia
-  6: Palette,      // Arte y Cultura
+  1: Music, // Música
+  2: Gamepad2, // Deportes
+  3: Mic, // Conferencias
+  4: Palette, // Teatro
+  5: Heart, // Comedia
+  6: Palette, // Arte y Cultura
   7: UtensilsCrossed, // Gastronomía
-  8: Briefcase,    // Tecnología
+  8: Briefcase, // Tecnología
 };
 
 // nombres a slugs
@@ -30,7 +30,7 @@ function createSlug(name: string): string {
   return name
     .toLowerCase()
     .normalize('NFD') // Descompone caracteres tildados
-    .replace(/[\u0300-\u036f]/g, '') 
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, '-') // Reemplaza espacios con guiones
     .replace(/[^a-z0-9-]/g, ''); // Elimina caracteres especiales
 }
@@ -58,8 +58,9 @@ export function CategorySelector() {
 
         <div className="flex flex-wrap justify-center gap-8">
           {categories.map((category, index) => {
-            const IconComponent = categoryIcons[category.id as keyof typeof categoryIcons] || Palette;
-            
+            const IconComponent =
+              categoryIcons[category.id as keyof typeof categoryIcons] || Palette;
+
             return (
               <motion.div
                 key={category.id}

@@ -12,23 +12,23 @@ import { healthRoutes } from './routes/health';
 async function jwtMiddleware(c: any, next: any) {
   try {
     const authHeader = c.req.header('Authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return c.json({ error: 'Missing or invalid Authorization header' }, 401);
     }
-    
+
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+
     // Verify JWT token using shared secret (same as frontend)
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
       audience: process.env.FRONTEND_URL || 'http://localhost:3000',
       algorithms: ['HS256'], // Specify algorithm
     });
-    
+
     // Store JWT payload in context
     c.set('jwtPayload', payload);
-    
+
     await next();
   } catch (error) {
     console.error('JWT Middleware - JWT verification failed:', error);

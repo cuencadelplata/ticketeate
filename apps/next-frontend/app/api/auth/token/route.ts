@@ -10,10 +10,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Crear payload JWT
@@ -35,10 +32,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ token });
   } catch (error) {
     console.error('Error generating JWT token:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate JWT token' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate JWT token' }, { status: 500 });
   }
 }
-

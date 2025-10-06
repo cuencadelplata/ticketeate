@@ -103,7 +103,7 @@ export class EventService {
   private static async ensureDefaultCategory(): Promise<bigint> {
     // Buscar si ya existe una categoría por defecto
     let categoriaDefault = await prisma.categoriaevento.findFirst({
-      where: { nombre: 'General' }
+      where: { nombre: 'General' },
     });
 
     if (!categoriaDefault) {
@@ -111,8 +111,8 @@ export class EventService {
       categoriaDefault = await prisma.categoriaevento.create({
         data: {
           nombre: 'General',
-          descripcion: 'Categoría por defecto para eventos'
-        }
+          descripcion: 'Categoría por defecto para eventos',
+        },
       });
     }
 
@@ -138,17 +138,17 @@ export class EventService {
 
       // Determinar las categorías del evento
       const categoriaIds: bigint[] = [];
-      
+
       if (data.categorias && data.categorias.length > 0) {
         for (const categoria of data.categorias) {
           let categoriaId: bigint;
-          
+
           if (categoria.id) {
             // Si tiene ID, buscar si existe en la BD
             const categoriaExistente = await prisma.categoriaevento.findUnique({
-              where: { categoriaeventoid: categoria.id }
+              where: { categoriaeventoid: categoria.id },
             });
-            
+
             if (categoriaExistente) {
               categoriaId = BigInt(categoriaExistente.categoriaeventoid);
             } else {
@@ -156,17 +156,17 @@ export class EventService {
               const nuevaCategoria = await prisma.categoriaevento.create({
                 data: {
                   nombre: categoria.nombre || `Categoría ${categoria.id}`,
-                  descripcion: null
-                }
+                  descripcion: null,
+                },
               });
               categoriaId = BigInt(nuevaCategoria.categoriaeventoid);
             }
           } else if (categoria.nombre) {
             // Si no tiene ID pero tiene nombre, buscar o crear la categoría
             const categoriaExistente = await prisma.categoriaevento.findFirst({
-              where: { nombre: categoria.nombre }
+              where: { nombre: categoria.nombre },
             });
-            
+
             if (categoriaExistente) {
               categoriaId = BigInt(categoriaExistente.categoriaeventoid);
             } else {
@@ -174,8 +174,8 @@ export class EventService {
               const nuevaCategoria = await prisma.categoriaevento.create({
                 data: {
                   nombre: categoria.nombre,
-                  descripcion: null
-                }
+                  descripcion: null,
+                },
               });
               categoriaId = BigInt(nuevaCategoria.categoriaeventoid);
             }
@@ -183,7 +183,7 @@ export class EventService {
             // Si no tiene ni ID ni nombre, usar categoría por defecto
             categoriaId = await this.ensureDefaultCategory();
           }
-          
+
           categoriaIds.push(categoriaId);
         }
       } else {
@@ -201,10 +201,10 @@ export class EventService {
           mapa_evento: data.eventMap ?? {},
           creadorid: data.userId,
           evento_categorias: {
-            create: categoriaIds.map(categoriaId => ({
-              categoriaeventoid: Number(categoriaId)
-            }))
-          }
+            create: categoriaIds.map((categoriaId) => ({
+              categoriaeventoid: Number(categoriaId),
+            })),
+          },
         },
       });
 
@@ -544,9 +544,7 @@ export class EventService {
       // Filtrar eventos públicos basado en el estado
       const eventosPublicos = eventos.filter((evento) => {
         const estadoActual = evento.evento_estado?.[0]?.Estado;
-        return (
-          estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO'
-        );
+        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
       });
 
       return eventosPublicos as EventWithImages[];
@@ -591,5 +589,4 @@ export class EventService {
 
     return null;
   }
-
 }

@@ -49,17 +49,16 @@ export default function AuthModal({
         onClose();
         return;
       }
-      
+
       const r = (session as any).role as Role | undefined;
       const target = sp.get('redirect_url') || roleToPath(r);
       window.location.href = target;
     }
   }, [session, sp, onClose]);
 
-
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // No limpiar errores automáticamente - dejar que el usuario los vea
   };
 
@@ -117,44 +116,49 @@ export default function AuthModal({
 
   async function doLogin(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     setErr(null);
-    
+
     try {
-      await signIn.email({ 
-        email: formData.email, 
-        password: formData.password 
+      await signIn.email({
+        email: formData.email,
+        password: formData.password,
       });
-      
+
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
-      
     } catch (error: any) {
       console.log('Login failed:', error);
-      
+
       // Capturar el error y mostrarlo
       let errorMessage = 'Email o contraseña incorrectos';
-      
+
       if (error?.message) {
-        if (error.message.includes('Invalid password') || 
-            error.message.includes('invalid password') ||
-            error.message.includes('Wrong password')) {
+        if (
+          error.message.includes('Invalid password') ||
+          error.message.includes('invalid password') ||
+          error.message.includes('Wrong password')
+        ) {
           errorMessage = 'Contraseña incorrecta';
-        } else if (error.message.includes('User not found') || 
-                   error.message.includes('user not found') ||
-                   error.message.includes('Email not found')) {
+        } else if (
+          error.message.includes('User not found') ||
+          error.message.includes('user not found') ||
+          error.message.includes('Email not found')
+        ) {
           errorMessage = 'Usuario no encontrado';
-        } else if (error.message.includes('Invalid email') ||
-                   error.message.includes('invalid email')) {
+        } else if (
+          error.message.includes('Invalid email') ||
+          error.message.includes('invalid email')
+        ) {
           errorMessage = 'Email inválido';
         }
       }
-      
+
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -163,19 +167,19 @@ export default function AuthModal({
 
   async function doRegister(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
     setErr(null);
-    
+
     try {
-      await signUp.email({ 
-        email: formData.email, 
-        password: formData.password, 
-        name: formData.email 
+      await signUp.email({
+        email: formData.email,
+        password: formData.password,
+        name: formData.email,
       });
 
       // Solo asignar rol si es COLABORADOR (requiere código) o ORGANIZADOR (no requiere código)
@@ -204,17 +208,23 @@ export default function AuthModal({
       }
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
-      
-      if (errorMessage.includes('User already exists') || 
-          errorMessage.includes('already exists') ||
-          errorMessage.includes('Email already in use')) {
+
+      if (
+        errorMessage.includes('User already exists') ||
+        errorMessage.includes('already exists') ||
+        errorMessage.includes('Email already in use')
+      ) {
         showError('Ya existe una cuenta con este email');
-      } else if (errorMessage.includes('Invalid invite code') || 
-                 errorMessage.includes('inválido') ||
-                 errorMessage.includes('Invalid code')) {
+      } else if (
+        errorMessage.includes('Invalid invite code') ||
+        errorMessage.includes('inválido') ||
+        errorMessage.includes('Invalid code')
+      ) {
         showError('Código de invitación inválido');
-      } else if (errorMessage.includes('Weak password') ||
-                 errorMessage.includes('Password too weak')) {
+      } else if (
+        errorMessage.includes('Weak password') ||
+        errorMessage.includes('Password too weak')
+      ) {
         showError('La contraseña es muy débil');
       } else if (errorMessage.includes('Invalid email')) {
         showError('Ingresa un email válido');
@@ -238,18 +248,22 @@ export default function AuthModal({
   const passwordStrength = getPasswordStrength(formData.password);
 
   const inviteRequired = role === 'COLABORADOR';
-  const isFormValid = formData.email.trim() && 
-                     formData.password.trim() && 
-                     formData.password.length >= 6 &&
-                     (!inviteRequired || formData.inviteCode.trim());
-  
+  const isFormValid =
+    formData.email.trim() &&
+    formData.password.trim() &&
+    formData.password.length >= 6 &&
+    (!inviteRequired || formData.inviteCode.trim());
+
   const disableSubmit = loading || !isFormValid;
 
   return (
-    <Dialog open={open} onOpenChange={() => {
-      // No permitir cerrar el modal hasta que esté autenticado como ORGANIZADOR
-      return;
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        // No permitir cerrar el modal hasta que esté autenticado como ORGANIZADOR
+        return;
+      }}
+    >
       <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden">
         {/* Header tabs */}
         <div className="grid grid-cols-2">
@@ -280,7 +294,7 @@ export default function AuthModal({
                   <span className="text-red-400">⚠️</span>
                   <span>{err}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => setErr(null)}
                   className="text-red-400 hover:text-red-300 text-lg leading-none"
                 >
@@ -289,7 +303,7 @@ export default function AuthModal({
               </div>
             </div>
           )}
-        
+
           {/* REGISTER */}
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
@@ -364,12 +378,17 @@ export default function AuthModal({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-stone-700 rounded-full h-1">
-                      <div 
+                      <div
                         className={`h-1 rounded-full transition-all duration-300 ${
-                          passwordStrength.strength === 1 ? 'bg-red-400 w-1/4' :
-                          passwordStrength.strength === 2 ? 'bg-orange-400 w-1/2' :
-                          passwordStrength.strength === 3 ? 'bg-yellow-400 w-3/4' :
-                          passwordStrength.strength === 4 ? 'bg-green-400 w-full' : 'w-0'
+                          passwordStrength.strength === 1
+                            ? 'bg-red-400 w-1/4'
+                            : passwordStrength.strength === 2
+                              ? 'bg-orange-400 w-1/2'
+                              : passwordStrength.strength === 3
+                                ? 'bg-yellow-400 w-3/4'
+                                : passwordStrength.strength === 4
+                                  ? 'bg-green-400 w-full'
+                                  : 'w-0'
                         }`}
                       />
                     </div>

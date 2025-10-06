@@ -17,19 +17,19 @@ async function getAuthHeaders() {
     const res = await fetch('/api/auth/token', {
       credentials: 'include',
     });
-    
+
     if (!res.ok) {
       throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
     }
-    
+
     const data = await res.json();
-    
+
     if (!data.token) {
       throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
     }
 
     return {
-      'Authorization': `Bearer ${data.token}`,
+      Authorization: `Bearer ${data.token}`,
       'Content-Type': 'application/json',
     };
   } catch (error) {

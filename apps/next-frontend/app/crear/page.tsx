@@ -22,11 +22,11 @@ export default function CrearPage() {
   return (
     <>
       <CreateEventForm />
-      <AuthModal 
-        open={open} 
-        onClose={() => setOpen(false)} 
-        defaultTab="register" 
-        defaultRole="ORGANIZADOR" 
+      <AuthModal
+        open={open}
+        onClose={() => setOpen(false)}
+        defaultTab="register"
+        defaultRole="ORGANIZADOR"
       />
     </>
   );

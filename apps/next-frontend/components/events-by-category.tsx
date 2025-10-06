@@ -13,10 +13,10 @@ interface EventByCategoryProps {
   showFilter?: boolean;
 }
 
-export function EventsByCategory({ 
-  categoryId, 
-  categoryName, 
-  showFilter = true 
+export function EventsByCategory({
+  categoryId,
+  categoryName,
+  showFilter = true,
 }: EventByCategoryProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryId || null);
   const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
@@ -25,7 +25,7 @@ export function EventsByCategory({
   // Filtrar eventos por categoría
   const filteredEvents = allEvents.filter((event) => {
     if (!selectedCategoryId) return true;
-    
+
     // Debug: verificar estructura de categorías en eventos
     console.log('Event category debug:', {
       eventTitle: event.titulo,
@@ -33,14 +33,14 @@ export function EventsByCategory({
       evento_categorias: event.evento_categorias,
       categoriaevento: event.categoriaevento,
     });
-    
+
     // Buscar en evento_categorias (array) en lugar de categoriaevento (objeto único)
-    return event.evento_categorias?.some(cat => 
-      cat.categoriaeventoid === selectedCategoryId
-    ) || false;
+    return (
+      event.evento_categorias?.some((cat) => cat.categoriaeventoid === selectedCategoryId) || false
+    );
   });
 
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategory = categories.find((cat) => cat.id === selectedCategoryId);
 
   return (
     <div className="py-16 bg-white">
@@ -62,34 +62,34 @@ export function EventsByCategory({
               <Filter className="h-5 w-5 text-gray-600" />
               <h3 className="text-lg font-semibold text-gray-900">Filtrar por categoría:</h3>
             </div>
-            
+
             <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => setSelectedCategoryId(null)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  selectedCategoryId === null
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Tag className="h-4 w-4" />
+                Todas las categorías
+              </button>
+
+              {categories.map((category) => (
                 <button
-                  onClick={() => setSelectedCategoryId(null)}
+                  key={category.id}
+                  onClick={() => setSelectedCategoryId(category.id)}
                   className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedCategoryId === null
+                    selectedCategoryId === category.id
                       ? 'bg-orange-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <Tag className="h-4 w-4" />
-                  Todas las categorías
+                  {category.name}
                 </button>
-                
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategoryId(category.id)}
-                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                      selectedCategoryId === category.id
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <Tag className="h-4 w-4" />
-                    {category.name}
-                  </button>
-                ))}
+              ))}
             </div>
           </div>
         )}
@@ -139,7 +139,8 @@ export function EventsByCategory({
               const estadoActual = event.evento_estado?.[0]?.Estado || 'OCULTO';
 
               // Obtener categoría principal del evento
-              const categoriaPrincipal = event.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
+              const categoriaPrincipal =
+                event.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
 
               // Determinar si es gratis o pago
               const isFree =
@@ -149,7 +150,8 @@ export function EventsByCategory({
 
               // Obtener precio mínimo
               const precios =
-                event.stock_entrada?.map((ticket) => Number(ticket.precio)).filter((p) => p > 0) || [];
+                event.stock_entrada?.map((ticket) => Number(ticket.precio)).filter((p) => p > 0) ||
+                [];
               const precioMinimo = precios.length > 0 ? Math.min(...precios) : 0;
 
               return (
@@ -189,10 +191,9 @@ export function EventsByCategory({
               No hay eventos en esta categoría
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
-              {selectedCategory 
+              {selectedCategory
                 ? `No se encontraron eventos en la categoría "${selectedCategory.name}".`
-                : 'No se encontraron eventos con los filtros aplicados.'
-              }
+                : 'No se encontraron eventos con los filtros aplicados.'}
             </p>
           </div>
         )}

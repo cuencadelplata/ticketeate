@@ -14,7 +14,6 @@ const categories = [
 ];
 
 async function seedCategories() {
-  
   for (const category of categories) {
     await prisma.categoriaevento.upsert({
       where: { categoriaeventoid: BigInt(category.id) },
@@ -26,7 +25,6 @@ async function seedCategories() {
       },
     });
   }
-  
 }
 
 async function main() {
