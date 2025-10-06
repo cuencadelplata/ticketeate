@@ -5,14 +5,12 @@ export interface CreateEventData {
   titulo: string;
   descripcion?: string;
   ubicacion?: string;
-  fecha_inicio_venta: Date;
-  fecha_fin_venta: Date;
   estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
   imageUrl?: string;
   galeria_imagenes?: string[];
-  fechas_adicionales?: Array<{
-    fecha_inicio: Date;
-    fecha_fin: Date;
+  fechas_evento: Array<{
+    fecha_hora: Date;
+    fecha_fin?: Date;
   }>;
   eventMap?: {
     sectors: Array<{
@@ -64,9 +62,7 @@ export interface EventWithImages {
   fecha_creacion?: Date;
   mapa_evento?: any;
   creadorid: string;
-  estado: string;
-  fecha_inicio_venta: Date;
-  fecha_fin_venta: Date;
+  fecha_cambio?: Date;
   imagenes_evento: Array<{
     imagenid: string;
     url: string;
@@ -77,33 +73,33 @@ export interface EventWithImages {
     fecha_hora: Date;
     fecha_fin?: Date;
   }>;
-  categoriaentrada?: Array<{
-    categoriaentradaid: bigint;
-    nombre: string;
-    precio: number;
-    stock_total: number;
-    stock_disponible: number;
-    max_por_usuario?: number;
-  }>;
-  categorias_entrada?: Array<{
-    categoriaid: string;
-    nombre: string;
-    descripcion?: string;
-    precio: number;
-    stock_total: number;
-    stock_disponible: number;
-    max_por_usuario: number;
-  }>;
-  categoriaevento?: {
+  evento_categorias?: Array<{
     categoriaeventoid: bigint;
+    categoriaevento: {
+      categoriaeventoid: bigint;
+      nombre: string;
+      descripcion?: string;
+    };
+  }>;
+  evento_estado?: Array<{
+    stateventid: string;
+    Estado: string;
+    fecha_de_cambio: Date;
+    usuarioid: string;
+  }>;
+  stock_entrada?: Array<{
+    stockid: string;
     nombre: string;
-    descripcion?: string;
-  };
+    precio: bigint;
+    cant_max: number;
+    fecha_creacion: Date;
+    fecha_limite: Date;
+  }>;
 }
 
 export class EventService {
   // Método para asegurar que existe una categoría por defecto
-  private static async ensureDefaultCategory(): Promise<number> {
+  private static async ensureDefaultCategory(): Promise<bigint> {
     // Buscar si ya existe una categoría por defecto
     let categoriaDefault = await prisma.categoriaevento.findFirst({
       where: { nombre: 'General' }
@@ -119,7 +115,7 @@ export class EventService {
       });
     }
 
-    return categoriaDefault.categoriaeventoid;
+    return BigInt(categoriaDefault.categoriaeventoid);
   }
 
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
@@ -140,20 +136,20 @@ export class EventService {
       });
 
       // Determinar las categorías del evento
-      const categoriaIds: number[] = [];
+      const categoriaIds: bigint[] = [];
       
       if (data.categorias && data.categorias.length > 0) {
         for (const categoria of data.categorias) {
-          let categoriaId: number;
+          let categoriaId: bigint;
           
           if (categoria.id) {
             // Si tiene ID, buscar si existe en la BD
             const categoriaExistente = await prisma.categoriaevento.findUnique({
-              where: { categoriaeventoid: parseInt(categoria.id) }
+              where: { categoriaeventoid: categoria.id }
             });
             
             if (categoriaExistente) {
-              categoriaId = categoriaExistente.categoriaeventoid;
+              categoriaId = BigInt(categoriaExistente.categoriaeventoid);
             } else {
               // Si no existe, crear nueva categoría con el nombre
               const nuevaCategoria = await prisma.categoriaevento.create({
@@ -162,7 +158,7 @@ export class EventService {
                   descripcion: null
                 }
               });
-              categoriaId = nuevaCategoria.categoriaeventoid;
+              categoriaId = BigInt(nuevaCategoria.categoriaeventoid);
             }
           } else if (categoria.nombre) {
             // Si no tiene ID pero tiene nombre, buscar o crear la categoría
@@ -171,7 +167,7 @@ export class EventService {
             });
             
             if (categoriaExistente) {
-              categoriaId = categoriaExistente.categoriaeventoid;
+              categoriaId = BigInt(categoriaExistente.categoriaeventoid);
             } else {
               // Crear nueva categoría
               const nuevaCategoria = await prisma.categoriaevento.create({
@@ -180,7 +176,7 @@ export class EventService {
                   descripcion: null
                 }
               });
-              categoriaId = nuevaCategoria.categoriaeventoid;
+              categoriaId = BigInt(nuevaCategoria.categoriaeventoid);
             }
           } else {
             // Si no tiene ni ID ni nombre, usar categoría por defecto
@@ -244,12 +240,12 @@ export class EventService {
         });
       }
 
-      // Crear fechas adicionales del evento (inicio y fin)
-      if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
-        const fechasData = data.fechas_adicionales.map((fecha) => ({
+      // Crear fechas del evento
+      if (data.fechas_evento && data.fechas_evento.length > 0) {
+        const fechasData = data.fechas_evento.map((fecha) => ({
           fechaid: randomUUID(),
           eventoid: evento.eventoid,
-          fecha_hora: fecha.fecha_inicio,
+          fecha_hora: fecha.fecha_hora,
           fecha_fin: fecha.fecha_fin,
         }));
 
@@ -260,15 +256,15 @@ export class EventService {
 
       // Crear categorías de entrada (tipos de tickets) si se enviaron
       if (data.ticket_types && data.ticket_types.length > 0) {
-        await prisma.categoriaentrada.createMany({
+        await prisma.stock_entrada.createMany({
           data: data.ticket_types.map((t) => ({
-            categoriaentradaid: BigInt(0), // Se auto-incrementa
+            stockid: randomUUID(),
             eventoid: evento.eventoid,
             nombre: t.nombre,
-            precio: t.precio,
-            stock_total: t.stock_total,
-            stock_disponible: t.stock_total,
-            max_por_usuario: 4,
+            precio: BigInt(t.precio),
+            cant_max: t.stock_total,
+            fecha_creacion: new Date(),
+            fecha_limite: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 año desde ahora
           })),
         });
       }
@@ -334,36 +330,6 @@ export class EventService {
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
 
-      // Determinar la categoría del evento si se proporciona
-      let categoriaeventoid = undefined;
-      
-      if (data.categorias && data.categorias.length > 0) {
-        const primeraCategoria = data.categorias[0];
-        
-        if (primeraCategoria.id) {
-          // Si tiene ID, usar ese ID
-          categoriaeventoid = BigInt(primeraCategoria.id);
-        } else if (primeraCategoria.nombre) {
-          // Si no tiene ID pero tiene nombre, buscar o crear la categoría
-          const categoriaExistente = await prisma.categoriaevento.findFirst({
-            where: { nombre: primeraCategoria.nombre }
-          });
-          
-          if (categoriaExistente) {
-            categoriaeventoid = categoriaExistente.categoriaeventoid;
-          } else {
-            // Crear nueva categoría
-            const nuevaCategoria = await prisma.categoriaevento.create({
-              data: {
-                nombre: primeraCategoria.nombre,
-                descripcion: null
-              }
-            });
-            categoriaeventoid = nuevaCategoria.categoriaeventoid;
-          }
-        }
-      }
-
       const updated = await prisma.eventos.update({
         where: { eventoid: id },
         data: {
@@ -371,7 +337,6 @@ export class EventService {
           descripcion: data.descripcion ?? undefined,
           ubicacion: data.ubicacion ?? undefined,
           mapa_evento: data.eventMap ?? undefined,
-          categoriaeventoid: categoriaeventoid,
         },
       });
 
@@ -399,13 +364,13 @@ export class EventService {
         }
       }
 
-      // Opcional: actualizar fechas adicionales (reemplazo simple)
-      if (data.fechas_adicionales) {
+      // Opcional: actualizar fechas del evento (reemplazo simple)
+      if (data.fechas_evento) {
         await prisma.fechas_evento.deleteMany({ where: { eventoid: id } });
-        const fechasData = data.fechas_adicionales.map((f) => ({
+        const fechasData = data.fechas_evento.map((f) => ({
           fechaid: randomUUID(),
           eventoid: id,
-          fecha_hora: f.fecha_inicio,
+          fecha_hora: f.fecha_hora,
           fecha_fin: f.fecha_fin,
         }));
         if (fechasData.length > 0) await prisma.fechas_evento.createMany({ data: fechasData });
@@ -413,17 +378,17 @@ export class EventService {
 
       // Opcional: actualizar categorías/tickets (reemplazo simple)
       if (data.ticket_types) {
-        await prisma.categoriaentrada.deleteMany({ where: { eventoid: id } });
+        await prisma.stock_entrada.deleteMany({ where: { eventoid: id } });
         if (data.ticket_types.length > 0) {
-          await prisma.categoriaentrada.createMany({
+          await prisma.stock_entrada.createMany({
             data: data.ticket_types.map((t) => ({
-              categoriaentradaid: BigInt(0), // Se auto-incrementa
+              stockid: randomUUID(),
               eventoid: id,
               nombre: t.nombre,
-              precio: t.precio,
-              stock_total: t.stock_total,
-              stock_disponible: t.stock_total,
-              max_por_usuario: 4,
+              precio: BigInt(t.precio),
+              cant_max: t.stock_total,
+              fecha_creacion: new Date(),
+              fecha_limite: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 año desde ahora
             })),
           });
         }
@@ -434,9 +399,11 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
-          categoriaevento: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
         },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
@@ -482,7 +449,11 @@ export class EventService {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
-          categoriaevento: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -511,7 +482,11 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaevento: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -540,9 +515,17 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
-          categoriaevento: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
         },
         orderBy: {
           fecha_creacion: 'desc',
@@ -551,8 +534,9 @@ export class EventService {
 
       // Filtrar eventos públicos basado en el estado
       const eventosPublicos = eventos.filter((evento) => {
+        const estadoActual = evento.evento_estado?.[0]?.Estado;
         return (
-          evento.estado === 'ACTIVO' || evento.estado === 'COMPLETADO' || evento.estado === 'OCULTO'
+          estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO'
         );
       });
 
@@ -574,16 +558,25 @@ export class EventService {
       include: {
         imagenes_evento: true,
         fechas_evento: true,
-        categoriaentrada: true,
-        categorias_entrada: true,
-        categoriaevento: true,
+        evento_categorias: {
+          include: {
+            categoriaevento: true,
+          },
+        },
+        evento_estado: {
+          orderBy: {
+            fecha_de_cambio: 'desc',
+          },
+          take: 1,
+        },
       },
     });
 
     if (!evento) return null;
 
     // Verificar si el evento es público basado en el estado
-    if (evento.estado === 'ACTIVO' || evento.estado === 'COMPLETADO') {
+    const estadoActual = evento.evento_estado?.[0]?.Estado;
+    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
       return evento as EventWithImages;
     }
 

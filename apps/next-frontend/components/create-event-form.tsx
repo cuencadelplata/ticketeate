@@ -303,28 +303,25 @@ export default function CreateEventForm() {
 
     const eventData: CreateEventData = {
       titulo: eventName,
-      fecha_inicio_venta: startDateTime.toISOString(),
-      fecha_fin_venta: endDateTime.toISOString(),
       estado: selected === 'public' ? 'ACTIVO' : 'OCULTO',
       ubicacion: location.address,
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
       galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
-      fechas_adicionales: eventDates
-        .filter((date) => !date.isMain)
-        .map((date) => ({
-          fecha_inicio: new Date(
-            date.startDate.getTime() +
-              (parseInt(date.startTime.split(':')[0]) * 60 +
-                parseInt(date.startTime.split(':')[1])) *
-                60000,
-          ).toISOString(),
-          fecha_fin: new Date(
-            date.endDate.getTime() +
-              (parseInt(date.endTime.split(':')[0]) * 60 + parseInt(date.endTime.split(':')[1])) *
-                60000,
-          ).toISOString(),
-        })),
+      fechas_evento: eventDates.map((date) => {
+        const startDateTime = new Date(date.startDate);
+        const [startHour, startMinute] = date.startTime.split(':');
+        startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+
+        const endDateTime = new Date(date.endDate);
+        const [endHour, endMinute] = date.endTime.split(':');
+        endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+
+        return {
+          fecha_hora: startDateTime.toISOString(),
+          fecha_fin: endDateTime.toISOString(),
+        };
+      }),
       eventMap: location.eventMap,
       ticket_types:
         ticketInfo.type === 'paid' && ticketTypesState.length > 0

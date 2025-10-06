@@ -40,14 +40,12 @@ export interface CreateEventData {
   titulo: string;
   descripcion?: string;
   ubicacion?: string;
-  fecha_inicio_venta: string;
-  fecha_fin_venta: string;
   estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
   imageUrl?: string;
   galeria_imagenes?: string[];
-  fechas_adicionales?: Array<{
-    fecha_inicio: string;
-    fecha_fin: string;
+  fechas_evento: Array<{
+    fecha_hora: string;
+    fecha_fin?: string;
   }>;
   eventMap?: {
     sectors: Array<{

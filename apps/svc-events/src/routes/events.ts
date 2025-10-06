@@ -11,11 +11,6 @@ config();
 
 const events = new Hono();
 
-// Helper function to get JWT payload from context
-function getJwtPayload(c: any) {
-  return c.get('jwtPayload');
-}
-
 // Helper function to validate JWT token using traditional JWT
 function validateJWT(c: any) {
   try {
@@ -99,24 +94,20 @@ events.get('/public/:id', async (c) => {
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {
-    console.log('🚀 POST /api/events - STARTING');
-    
     // Validate JWT token directly
     const jwtPayload = validateJWT(c);
-    console.log('JWT Payload from direct validation:', jwtPayload);
     
     if (!jwtPayload?.id) {
-      console.log('No JWT payload or missing id');
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const body = await c.req.json();
 
     // Validar datos requeridos
-    if (!body.titulo || !body.fecha_inicio_venta || !body.fecha_fin_venta) {
+    if (!body.titulo || !body.fechas_evento || body.fechas_evento.length === 0) {
       return c.json(
         {
-          error: 'Faltan campos requeridos: titulo, fecha_inicio_venta, fecha_fin_venta',
+          error: 'Faltan campos requeridos: titulo, fechas_evento',
         },
         400,
       );
@@ -127,14 +118,12 @@ events.post('/', async (c) => {
       titulo: body.titulo,
       descripcion: body.descripcion,
       ubicacion: body.ubicacion,
-      fecha_inicio_venta: new Date(body.fecha_inicio_venta),
-      fecha_fin_venta: new Date(body.fecha_fin_venta),
       estado: body.estado || 'OCULTO',
       imageUrl: body.imageUrl, // URL de imagen de portada ya subida a Cloudinary
       galeria_imagenes: body.galeria_imagenes, // Array de URLs de galería
-      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
-        fecha_inicio: new Date(fecha.fecha_inicio),
-        fecha_fin: new Date(fecha.fecha_fin),
+      fechas_evento: body.fechas_evento.map((fecha: any) => ({
+        fecha_hora: new Date(fecha.fecha_hora),
+        fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
       })),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
       userId: jwtPayload.id,
@@ -167,7 +156,7 @@ events.post('/', async (c) => {
 // POST /api/events/upload-image - Subir imagen para un evento
 events.post('/upload-image', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -238,7 +227,9 @@ events.get('/categories', async (c) => {
 // GET /api/events - Obtener eventos del usuario
 events.get('/', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    // Use direct JWT validation like POST route
+    const jwtPayload = validateJWT(c);
+    
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -265,7 +256,7 @@ events.get('/', async (c) => {
 // GET /api/events/:id - Obtener evento específico
 events.get('/:id', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -297,7 +288,7 @@ events.get('/:id', async (c) => {
 // PUT /api/events/:id - Actualizar un evento
 events.put('/:id', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -309,14 +300,12 @@ events.put('/:id', async (c) => {
       titulo: body.titulo,
       descripcion: body.descripcion,
       ubicacion: body.ubicacion,
-      fecha_inicio_venta: body.fecha_inicio_venta ? new Date(body.fecha_inicio_venta) : undefined,
-      fecha_fin_venta: body.fecha_fin_venta ? new Date(body.fecha_fin_venta) : undefined,
       estado: body.estado,
       imageUrl: body.imageUrl,
       galeria_imagenes: body.galeria_imagenes,
-      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
-        fecha_inicio: new Date(fecha.fecha_inicio),
-        fecha_fin: new Date(fecha.fecha_fin),
+      fechas_evento: body.fechas_evento?.map((fecha: any) => ({
+        fecha_hora: new Date(fecha.fecha_hora),
+        fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
       })),
       eventMap: body.eventMap,
       ticket_types: body.ticket_types,
@@ -339,7 +328,7 @@ events.put('/:id', async (c) => {
 // DELETE /api/events/:id - Borrado lógico
 events.delete('/:id', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -360,7 +349,7 @@ events.delete('/:id', async (c) => {
 // POST /api/events/:id/categories - agregar categorías a un evento
 events.post('/:id/categories', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
@@ -390,7 +379,7 @@ events.post('/:id/categories', async (c) => {
 // DELETE /api/events/:id/categories/:categoryId - quitar categoría de un evento
 events.delete('/:id/categories/:categoryId', async (c) => {
   try {
-    const jwtPayload = getJwtPayload(c);
+    const jwtPayload = validateJWT(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
