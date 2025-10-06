@@ -12,7 +12,7 @@ function NavbarHome() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [term, setTerm] = useState('');
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
 
   // sincroniza input con ?search de la URL
   useEffect(() => {

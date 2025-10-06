@@ -40,7 +40,7 @@ export const PlusIcon = (props: any) => {
 };
 
 export default function UserNav() {
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
 

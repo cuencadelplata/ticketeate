@@ -13,7 +13,7 @@ export function NewNavbar() {
 function Navbar() {
   const [active, setActive] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
 

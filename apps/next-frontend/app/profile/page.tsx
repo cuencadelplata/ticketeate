@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, Trash2, Mail, Key, User, Camera } from 'lucide-react';
+import { Loader2, Upload, Trash2, Mail, Key, User } from 'lucide-react';
 import {
   useProfile,
   useUpdateProfile,
@@ -38,12 +38,9 @@ export default function ProfileEditPage() {
   const {
     formData,
     otpState,
-    passwordState,
     updateField,
     updateOtpState,
-    updatePasswordState,
     resetOtpState,
-    resetPasswordState,
     isFormValid,
     isEmailValid,
     isOtpValid,
@@ -89,7 +86,7 @@ export default function ProfileEditPage() {
     );
   }
 
-  const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isFormValid || !isEmailValid) {

@@ -17,7 +17,6 @@ type Props = {
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const router = useRouter();
   const sp = useSearchParams();
-  const redirectUrl = sp.get('redirect_url') || '/';
   const { data: session } = useSession();
 
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);

@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { Buffer } from 'buffer';
 
 // Configurar Cloudinary
 cloudinary.config({
