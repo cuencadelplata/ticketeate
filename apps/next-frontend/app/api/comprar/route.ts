@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('=== INICIANDO API COMPRAR ===');
     const body = await request.json();
     console.log('Body recibido:', body);
-    const { id_usuario, id_evento, cantidad, metodo_pago, datos_tarjeta } = body ?? {};
+    const { id_usuario, id_evento, cantidad, metodo_pago, moneda, datos_tarjeta } = body ?? {};
 
     if (!id_usuario || !id_evento || !cantidad || !metodo_pago) {
       return NextResponse.json(
@@ -39,10 +39,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['tarjeta_credito', 'tarjeta_debito'].includes(metodo_pago)) {
+    const metodosValidos = ['tarjeta_credito', 'tarjeta_debito', 'stripe', 'mercado_pago'];
+    if (!metodosValidos.includes(metodo_pago)) {
       return NextResponse.json(
         {
-          error: 'Método de pago no válido. Use: tarjeta_credito o tarjeta_debito',
+          error: 'Método de pago no válido. Use: tarjeta_credito, tarjeta_debito, stripe o mercado_pago',
         },
         { status: 400 },
       );
@@ -145,6 +146,37 @@ export async function POST(request: NextRequest) {
     // Crear la reserva y entradas en una transacción
     console.log('Iniciando transacción de base de datos...');
     const resultado = await prisma.$transaction(async (tx) => {
+      // Asegurar monedas base y tasas (ARS, USD, EUR)
+      const currencies = [
+        { codigo: 'ARS', nombre: 'Peso Argentino', simbolo: '$' },
+        { codigo: 'USD', nombre: 'Dólar estadounidense', simbolo: 'US$' },
+        { codigo: 'EUR', nombre: 'Euro', simbolo: '€' },
+      ];
+
+      for (const m of currencies) {
+        await tx.$executeRaw`INSERT INTO monedas (codigo, nombre, simbolo, activa, fecha_creacion)
+          VALUES (${m.codigo}, ${m.nombre}, ${m.simbolo}, ${true}, ${new Date()})
+          ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre, simbolo = EXCLUDED.simbolo, activa = ${true}`;
+      }
+
+      const tasaArsUsd = new Prisma.Decimal((1 / 1300).toFixed(8));
+      const tasaUsdArs = new Prisma.Decimal((1300).toFixed(2));
+      const tasaArsEur = new Prisma.Decimal((1 / 1600).toFixed(8));
+      const tasaEurArs = new Prisma.Decimal((1600).toFixed(2));
+
+      await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
+        VALUES (${'ARS-USD'}, ${'ARS'}, ${'USD'}, ${tasaArsUsd}, ${new Date()}, ${true})
+        ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
+      await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
+        VALUES (${ 'USD-ARS' }, ${'USD'}, ${'ARS'}, ${tasaUsdArs}, ${new Date()}, ${true})
+        ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
+      await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
+        VALUES (${'ARS-EUR'}, ${'ARS'}, ${'EUR'}, ${tasaArsEur}, ${new Date()}, ${true})
+        ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
+      await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
+        VALUES (${ 'EUR-ARS' }, ${'EUR'}, ${'ARS'}, ${tasaEurArs}, ${new Date()}, ${true})
+        ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
+
       // Crear la reserva
       const reserva = await tx.reservas.create({
         data: {
@@ -184,10 +216,32 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Registrar movimiento de stock por venta
+      await tx.movimientos_entradas.create({
+        data: {
+          movimientoid: randomUUID(),
+          stockid: categoriaEntrada.stockid,
+          usuarioid: String(id_usuario),
+          cantidad: cantidad,
+          tipo: 'VENTA',
+          fecha_mov: new Date(),
+        },
+      });
+
+      // Registrar historial de compra (SQL directo para soportar casos sin modelo Prisma)
+      const historialId = randomUUID();
+      const comprobanteUrl = null; // puedes reemplazar por URL real si la generas
+      await tx.$executeRaw`INSERT INTO historial_compras (
+        id, usuarioid, reservaid, eventoid, cantidad, monto_total, moneda, estado_compra, fecha_compra, fecha_evento, comprobante_url
+      ) VALUES (
+        ${historialId}, ${String(id_usuario)}, ${reserva.reservaid}, ${id_evento}, ${cantidad}, ${new Prisma.Decimal(monto_total.toFixed(2))}, ${moneda ?? 'ARS'}, ${'COMPLETADO'}, ${new Date()}, ${fechaEvento.fecha_hora as any}, ${comprobanteUrl}
+      )`;
+
       return {
         reserva,
         pago,
         entradas,
+        historialId,
         resumen: {
           total_entradas: cantidad,
           precio_unitario: precio_unitario.toFixed(2),

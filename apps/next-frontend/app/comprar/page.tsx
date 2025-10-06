@@ -202,6 +202,7 @@ export default function ComprarPage() {
       id_evento: selectedEvent.eventoid, // Enviar UUID como string
       cantidad,
       metodo_pago: metodo,
+      moneda: currency,
       datos_tarjeta: isCardPayment
         ? {
             numero: sanitizeNumber(cardNumber),
