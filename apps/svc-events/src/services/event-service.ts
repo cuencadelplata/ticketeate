@@ -62,7 +62,7 @@ export interface EventWithImages {
   ubicacion?: string;
   fecha_creacion?: Date;
   fecha_publicacion?: Date;
-  mapa_evento?: any;
+  mapa_evento?: Record<string, unknown>;
   creadorid: string;
   fecha_cambio?: Date;
   imagenes_evento: Array<{

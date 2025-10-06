@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { cors } from 'hono/cors';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
@@ -12,7 +12,7 @@ config();
 const events = new Hono();
 
 // Helper function to validate JWT token using traditional JWT
-function validateJWT(c: any) {
+function validateJWT(c: Context) {
   try {
     const authHeader = c.req.header('Authorization');
 
@@ -29,8 +29,9 @@ function validateJWT(c: any) {
       algorithms: ['HS256'], // Specify algorithm
     });
 
-    return payload as any;
+    return payload as jwt.JwtPayload;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('JWT validation failed:', error);
     return null;
   }
@@ -121,10 +122,12 @@ events.post('/', async (c) => {
       estado: body.estado || 'OCULTO',
       imageUrl: body.imageUrl, // URL de imagen de portada ya subida a Cloudinary
       galeria_imagenes: body.galeria_imagenes, // Array de URLs de galería
-      fechas_evento: body.fechas_evento.map((fecha: any) => ({
-        fecha_hora: new Date(fecha.fecha_hora),
-        fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
-      })),
+      fechas_evento: body.fechas_evento.map(
+        (fecha: { fecha_hora: string; fecha_fin?: string }) => ({
+          fecha_hora: new Date(fecha.fecha_hora),
+          fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
+        }),
+      ),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
       userId: jwtPayload.id,
       ticket_types: body.ticket_types,
@@ -304,10 +307,12 @@ events.put('/:id', async (c) => {
       estado: body.estado,
       imageUrl: body.imageUrl,
       galeria_imagenes: body.galeria_imagenes,
-      fechas_evento: body.fechas_evento?.map((fecha: any) => ({
-        fecha_hora: new Date(fecha.fecha_hora),
-        fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
-      })),
+      fechas_evento: body.fechas_evento?.map(
+        (fecha: { fecha_hora: string; fecha_fin?: string }) => ({
+          fecha_hora: new Date(fecha.fecha_hora),
+          fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
+        }),
+      ),
       eventMap: body.eventMap,
       ticket_types: body.ticket_types,
     });

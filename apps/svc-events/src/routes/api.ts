@@ -1,10 +1,10 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { events } from './events';
 
 const api = new Hono();
 
 // Helper function to get JWT payload from context
-function getJwtPayload(c: any) {
+function getJwtPayload(c: Context) {
   return c.get('jwtPayload');
 }
 
