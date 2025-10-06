@@ -294,6 +294,13 @@ model user {
   account       account[]
   session       session[]
   
+  // Campos de Mercado Pago OAuth
+  mercadoPagoUserId        String?
+  mercadoPagoAccessToken   String?
+  mercadoPagoRefreshToken  String?
+  mercadoPagoTokenExpiresAt DateTime?
+  mercadoPagoUserInfo      String? // JSON string con información del usuario de MP
+  
   // Relaciones con el sistema de eventos
   cola_turnos          cola_turnos[]
   evento_estado        evento_estado[]

@@ -151,7 +151,7 @@ export default function UserNav() {
           </DropdownSection>
 
           <DropdownSection showDivider aria-label="Preferences">
-            <DropdownItem key="profile_settings">Perfil</DropdownItem>
+            <DropdownItem key="profile_settings" href="/profile">Perfil</DropdownItem>
             <DropdownItem key="help_and_feedback">Ayuda y Soporte</DropdownItem>
           </DropdownSection>
 
