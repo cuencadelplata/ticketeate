@@ -17,13 +17,13 @@ const staticCategories = [
 async function syncCategories() {
   for (const category of staticCategories) {
     await prisma.categoriaevento.upsert({
-      where: { categoriaeventoid: BigInt(category.id) },
+      where: { categoriaeventoid: category.id },
       update: {
         nombre: category.name,
         descripcion: null,
       },
       create: {
-        categoriaeventoid: BigInt(category.id),
+        categoriaeventoid: category.id,
         nombre: category.name,
         descripcion: null,
       },

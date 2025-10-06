@@ -8,7 +8,7 @@
   "sideEffects": false,
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts src/seed-categories.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck",
     "dev": "tsup --watch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "db:generate": "prisma generate",

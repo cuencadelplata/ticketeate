@@ -16,10 +16,10 @@ const categories = [
 async function seedCategories() {
   for (const category of categories) {
     await prisma.categoriaevento.upsert({
-      where: { categoriaeventoid: BigInt(category.id) },
+      where: { categoriaeventoid: category.id },
       update: { nombre: category.name },
       create: {
-        categoriaeventoid: BigInt(category.id),
+        categoriaeventoid: category.id,
         nombre: category.name,
         descripcion: null,
       },
