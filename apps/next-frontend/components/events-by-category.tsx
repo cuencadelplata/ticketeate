@@ -25,7 +25,19 @@ export function EventsByCategory({
   // Filtrar eventos por categoría
   const filteredEvents = allEvents.filter((event) => {
     if (!selectedCategoryId) return true;
-    return event.categoriaevento?.categoriaeventoid === BigInt(selectedCategoryId);
+    
+    // Debug: verificar estructura de categorías en eventos
+    console.log('Event category debug:', {
+      eventTitle: event.titulo,
+      selectedCategoryId,
+      evento_categorias: event.evento_categorias,
+      categoriaevento: event.categoriaevento,
+    });
+    
+    // Buscar en evento_categorias (array) en lugar de categoriaevento (objeto único)
+    return event.evento_categorias?.some(cat => 
+      cat.categoriaeventoid === selectedCategoryId
+    ) || false;
   });
 
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
@@ -126,8 +138,8 @@ export function EventsByCategory({
               // Obtener estado actual del evento
               const estadoActual = event.evento_estado?.[0]?.Estado || 'OCULTO';
 
-              // Obtener categoría
-              const categoriaPrincipal = event.categoriaevento?.nombre || 'Evento';
+              // Obtener categoría principal del evento
+              const categoriaPrincipal = event.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
 
               // Determinar si es gratis o pago
               const isFree =

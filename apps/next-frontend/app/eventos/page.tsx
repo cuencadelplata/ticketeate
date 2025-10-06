@@ -12,6 +12,8 @@ import {
   Eye,
   EyeOff,
   Users,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
@@ -66,19 +68,63 @@ const getCoverImage = (event: Event) => {
   );
 };
 
+// Obtener información detallada de fechas del evento
+const getEventDateInfo = (event: Event) => {
+  const fechasEvento = event.fechas_evento;
+  
+  if (!fechasEvento || fechasEvento.length === 0) {
+    return {
+      hasEventDates: false,
+      mainDate: null,
+      allDates: [],
+      isPast: false,
+      message: 'Sin fechas asignadas'
+    };
+  }
+  
+  // Procesar todas las fechas
+  const allDates = fechasEvento.map((fecha, index) => {
+    const fechaHora = typeof fecha.fecha_hora === 'string' 
+      ? new Date(fecha.fecha_hora) 
+      : fecha.fecha_hora;
+    
+    const fechaFin = fecha.fecha_fin 
+      ? (typeof fecha.fecha_fin === 'string' ? new Date(fecha.fecha_fin) : fecha.fecha_fin)
+      : fechaHora;
+    
+    return {
+      index,
+      fechaHora,
+      fechaFin,
+      isPast: fechaFin < new Date(),
+      formatted: formatEventDate(fechaHora.toISOString())
+    };
+  });
+  
+  // La fecha principal es la primera
+  const mainDate = allDates[0].fechaHora;
+  const fechaFin = allDates[0].fechaFin;
+  const isPast = fechaFin < new Date();
+  
+  return {
+    hasEventDates: true,
+    mainDate,
+    allDates,
+    isPast,
+    message: isPast ? 'Evento pasado' : 'Evento próximo',
+    hasMultipleDates: allDates.length > 1
+  };
+};
+
 // Determinar si un evento es pasado
 const isEventPast = (event: Event) => {
-  // Usar la fecha de fin del evento o la fecha de creación como fallback
-  const fechaFin = event.fechas_evento?.[0]?.fecha_fin || event.fecha_creacion;
-
-  // Asegurar que fechaFin sea un string o Date válido
-  const fechaFinDate = typeof fechaFin === 'string' ? new Date(fechaFin) : fechaFin;
-
-  return fechaFinDate < new Date();
+  const dateInfo = getEventDateInfo(event);
+  return dateInfo.isPast;
 };
 
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
   const deleteEventMutation = useDeleteEvent();
 
@@ -197,11 +243,14 @@ export default function EventosPage() {
           ) : (
             <div className="space-y-6">
               {filteredEvents.map((event) => {
-                const formattedDate = formatEventDate(
-                  typeof event.fecha_creacion === 'string'
-                    ? event.fecha_creacion
-                    : event.fecha_creacion.toISOString(),
-                );
+                const dateInfo = getEventDateInfo(event);
+                const formattedDate = dateInfo.hasEventDates && dateInfo.mainDate
+                  ? formatEventDate(dateInfo.mainDate.toISOString())
+                  : formatEventDate(
+                      typeof event.fecha_creacion === 'string'
+                        ? event.fecha_creacion
+                        : event.fecha_creacion.toISOString()
+                    );
                 const hasLocation = !!event.ubicacion;
                 const coverImage = getCoverImage(event);
                 const eventStatus = getEventStatus(event);
@@ -230,13 +279,23 @@ export default function EventosPage() {
                           {/* Header con fecha y estado */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="flex flex-col items-center rounded-lg bg-[#3A3A3A] px-3 py-2">
-                                <div className="text-lg font-bold text-white">
-                                  {formattedDate.date}
+                              <div className={`flex flex-col items-center rounded-lg px-3 py-2 ${
+                                dateInfo.hasEventDates ? 'bg-[#3A3A3A]' : 'bg-red-500/20 border border-red-500/50'
+                              }`}>
+                                <div className={`text-lg font-bold ${
+                                  dateInfo.hasEventDates ? 'text-white' : 'text-red-400'
+                                }`}>
+                                  {dateInfo.hasEventDates ? formattedDate.date : 'Sin fecha'}
                                 </div>
-                                <div className="text-xs text-gray-400">{formattedDate.day}</div>
+                                <div className={`text-xs ${
+                                  dateInfo.hasEventDates ? 'text-gray-400' : 'text-red-300'
+                                }`}>
+                                  {dateInfo.hasEventDates ? formattedDate.day : 'Asignar fecha'}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-400">{formattedDate.time}</div>
+                              {dateInfo.hasEventDates && (
+                                <div className="text-sm text-gray-400">{formattedDate.time}</div>
+                              )}
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -289,22 +348,81 @@ export default function EventosPage() {
                               </div>
                             )}
 
-                            {/* Fechas */}
+                            {/* Fechas principales */}
                             <div className="flex items-center gap-2 text-sm text-gray-300">
                               <Calendar className="h-4 w-4 text-gray-500" />
                               <span>
-                                {new Date(event.fecha_creacion).toLocaleDateString('es-ES')}
-                                {event.fechas_evento && event.fechas_evento.length > 0 && (
+                                {dateInfo.hasEventDates ? (
                                   <>
-                                    {' '}
-                                    -{' '}
-                                    {new Date(event.fechas_evento[0].fecha_hora).toLocaleDateString(
-                                      'es-ES',
+                                    {dateInfo.mainDate?.toLocaleDateString('es-ES')}
+                                    {dateInfo.allDates[0]?.fechaFin && dateInfo.allDates[0].fechaFin.getTime() !== dateInfo.mainDate?.getTime() && (
+                                      <>
+                                        {' '}
+                                        -{' '}
+                                        {dateInfo.allDates[0].fechaFin.toLocaleDateString('es-ES')}
+                                      </>
+                                    )}
+                                    {dateInfo.hasMultipleDates && (
+                                      <span className="ml-2 text-orange-400">
+                                        +{dateInfo.allDates.length - 1} fecha{dateInfo.allDates.length - 1 > 1 ? 's' : ''} más
+                                      </span>
                                     )}
                                   </>
+                                ) : (
+                                  new Date(event.fecha_creacion).toLocaleDateString('es-ES')
                                 )}
                               </span>
                             </div>
+
+                            {/* Fechas adicionales (expandible) */}
+                            {dateInfo.hasMultipleDates && (
+                              <div className="ml-6">
+                                <button
+                                  onClick={() => {
+                                    const newExpanded = new Set(expandedDates);
+                                    if (newExpanded.has(event.eventoid)) {
+                                      newExpanded.delete(event.eventoid);
+                                    } else {
+                                      newExpanded.add(event.eventoid);
+                                    }
+                                    setExpandedDates(newExpanded);
+                                  }}
+                                  className="flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                                >
+                                  {expandedDates.has(event.eventoid) ? (
+                                    <ChevronUp className="h-3 w-3" />
+                                  ) : (
+                                    <ChevronDown className="h-3 w-3" />
+                                  )}
+                                  <span>
+                                    {expandedDates.has(event.eventoid) 
+                                      ? 'Ocultar fechas adicionales' 
+                                      : `Ver ${dateInfo.allDates.length - 1} fecha${dateInfo.allDates.length - 1 > 1 ? 's' : ''} adicional${dateInfo.allDates.length - 1 > 1 ? 'es' : ''}`
+                                    }
+                                  </span>
+                                </button>
+                                
+                                {expandedDates.has(event.eventoid) && (
+                                  <div className="mt-2 space-y-1">
+                                    {dateInfo.allDates.slice(1).map((fecha, index) => (
+                                      <div key={index} className="flex items-center gap-2 text-xs text-gray-400">
+                                        <Calendar className="h-3 w-3 text-gray-500" />
+                                        <span>
+                                          {fecha.fechaHora.toLocaleDateString('es-ES')} a las {fecha.formatted.time}
+                                          {fecha.fechaFin && fecha.fechaFin.getTime() !== fecha.fechaHora.getTime() && (
+                                            <>
+                                              {' '}
+                                              -{' '}
+                                              {fecha.fechaFin.toLocaleDateString('es-ES')}
+                                            </>
+                                          )}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Tickets */}
                             {hasTickets && (

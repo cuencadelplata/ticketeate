@@ -43,8 +43,8 @@ export default function Home() {
       // Obtener estado actual del evento
       const estadoActual = evt.evento_estado?.[0]?.Estado || 'OCULTO';
 
-      // Obtener categoría
-      const categoriaPrincipal = evt.categoriaevento?.nombre || 'Evento';
+      // Obtener categoría principal del evento
+      const categoriaPrincipal = evt.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
 
       // Determinar si es gratis o pago
       const isFree =

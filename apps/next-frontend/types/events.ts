@@ -29,6 +29,15 @@ export interface Event {
     Estado: string;
     fecha_de_cambio: string | Date;
   }>;
+  evento_categorias?: Array<{
+    eventoid: string;
+    categoriaeventoid: number;
+    categoriaevento: {
+      categoriaeventoid: number;
+      nombre: string;
+      descripcion?: string;
+    };
+  }>;
   categoriaevento?: {
     categoriaeventoid: bigint;
     nombre: string;
@@ -86,6 +95,7 @@ export interface CreateEventData {
     id?: number;
     nombre: string;
   }>;
+  fecha_publicacion?: string; // Fecha programada para publicar el evento
 }
 
 export interface EventImage {

@@ -52,6 +52,7 @@ export interface CreateEventData {
     id?: number;
     nombre: string;
   }>;
+  fecha_publicacion?: string; // Fecha programada para publicar el evento
 }
 
 export interface EventWithImages {
@@ -74,9 +75,9 @@ export interface EventWithImages {
     fecha_fin?: Date;
   }>;
   evento_categorias?: Array<{
-    categoriaeventoid: bigint;
+    categoriaeventoid: number;
     categoriaevento: {
-      categoriaeventoid: bigint;
+      categoriaeventoid: number;
       nombre: string;
       descripcion?: string;
     };
@@ -201,7 +202,7 @@ export class EventService {
           creadorid: data.userId,
           evento_categorias: {
             create: categoriaIds.map(categoriaId => ({
-              categoriaeventoid: categoriaId
+              categoriaeventoid: Number(categoriaId)
             }))
           }
         },
@@ -290,7 +291,15 @@ export class EventService {
         },
       });
 
-      // El estado se maneja directamente en el modelo eventos
+      // Crear estado inicial del evento
+      await prisma.evento_estado.create({
+        data: {
+          stateventid: randomUUID(),
+          eventoid: evento.eventoid,
+          Estado: data.estado || 'OCULTO',
+          usuarioid: data.userId,
+        },
+      });
 
       // get evento con sus imágenes y fechas
       const eventoCompleto = await prisma.eventos.findUnique({

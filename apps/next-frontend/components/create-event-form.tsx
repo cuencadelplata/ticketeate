@@ -14,6 +14,7 @@ import {
   Tag,
   X,
   Lock,
+  Clock,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -147,6 +148,15 @@ export default function CreateEventForm() {
   const [eventName, setEventName] = useState('');
   const [selected, setSelected] = useState<'public' | 'private'>('public');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [schedulePublication, setSchedulePublication] = useState<{
+    enabled: boolean;
+    date: Date;
+    time: string;
+  }>({
+    enabled: false,
+    date: new Date(),
+    time: '00:00',
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -301,9 +311,32 @@ export default function CreateEventForm() {
     const [endHour, endMinute] = mainDate.endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
+    // Determinar el estado inicial basado en la programación
+    let estadoInicial: 'ACTIVO' | 'OCULTO';
+    let fechaPublicacion: string | undefined;
+
+    if (schedulePublication.enabled) {
+      // Si está programado, crear con fecha de publicación futura
+      const scheduledDateTime = new Date(schedulePublication.date);
+      const [hour, minute] = schedulePublication.time.split(':');
+      scheduledDateTime.setHours(parseInt(hour), parseInt(minute));
+      
+      // Si la fecha programada es en el futuro, crear como OCULTO
+      if (scheduledDateTime > new Date()) {
+        estadoInicial = 'OCULTO';
+        fechaPublicacion = scheduledDateTime.toISOString();
+      } else {
+        // Si la fecha programada es en el pasado o ahora, crear como ACTIVO
+        estadoInicial = selected === 'public' ? 'ACTIVO' : 'OCULTO';
+      }
+    } else {
+      // Si no está programado, usar la lógica original
+      estadoInicial = selected === 'public' ? 'ACTIVO' : 'OCULTO';
+    }
+
     const eventData: CreateEventData = {
       titulo: eventName,
-      estado: selected === 'public' ? 'ACTIVO' : 'OCULTO',
+      estado: estadoInicial,
       ubicacion: location.address,
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
@@ -342,6 +375,7 @@ export default function CreateEventForm() {
               };
             })
           : undefined,
+      fecha_publicacion: fechaPublicacion,
     };
 
     createEventMutation.mutate(eventData, {
@@ -709,6 +743,75 @@ export default function CreateEventForm() {
                 {selectedCategories.length === 0 && (
                   <p className="text-xs text-red-400 mt-1">Selecciona al menos una categoría.</p>
                 )}
+              </div>
+
+              {/* Programación de publicación */}
+              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                <div className="flex items-center gap-2 pb-1">
+                  <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-stone-200">Programar publicación</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="schedule-publication"
+                      checked={schedulePublication.enabled}
+                      onChange={(e) => {
+                        setSchedulePublication(prev => ({
+                          ...prev,
+                          enabled: e.target.checked
+                        }));
+                      }}
+                      className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+                    />
+                    <label htmlFor="schedule-publication" className="text-sm text-stone-300">
+                      Programar cuándo se publicará el evento
+                    </label>
+                  </div>
+
+                  {schedulePublication.enabled && (
+                    <div className="space-y-2 pl-6">
+                      <div className="flex items-center gap-2">
+                        <DateSelect
+                          value={schedulePublication.date}
+                          onChange={(date) => {
+                            if (date) {
+                              setSchedulePublication(prev => ({
+                                ...prev,
+                                date
+                              }));
+                            }
+                          }}
+                        />
+                        <TimeSelect
+                          value={schedulePublication.time}
+                          onChange={(time) => {
+                            setSchedulePublication(prev => ({
+                              ...prev,
+                              time
+                            }));
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-stone-400">
+                        💡 El evento se mantendrá oculto hasta la fecha programada. 
+                        {schedulePublication.enabled && (
+                          <span className="block mt-1">
+                            Se publicará el {schedulePublication.date.toLocaleDateString('es-ES')} a las {schedulePublication.time}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  {!schedulePublication.enabled && (
+                    <p className="text-xs text-stone-400 pl-6">
+                      El evento se publicará inmediatamente después de crearlo.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <Button
