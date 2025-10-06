@@ -27,17 +27,14 @@ export async function POST(request: NextRequest) {
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validar tamaño (máximo 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'File too large. Maximum size is 5MB.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 });
     }
 
     // Obtener imagen anterior para eliminarla después
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
     const uploadResult = await CloudinaryProfileService.uploadProfileImage(
       buffer,
       session.user.id,
-      file.name
+      file.name,
     );
 
     // Actualizar la imagen del usuario en la base de datos
@@ -85,10 +82,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error uploading profile image:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -110,20 +104,14 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!currentUser?.image) {
-      return NextResponse.json(
-        { error: 'No profile image to delete' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No profile image to delete' }, { status: 400 });
     }
 
     // Extraer public_id de la URL
     const publicId = CloudinaryProfileService.extractPublicIdFromUrl(currentUser.image);
-    
+
     if (!publicId) {
-      return NextResponse.json(
-        { error: 'Invalid image URL format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid image URL format' }, { status: 400 });
     }
 
     // Eliminar imagen de Cloudinary
@@ -141,9 +129,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error deleting profile image:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

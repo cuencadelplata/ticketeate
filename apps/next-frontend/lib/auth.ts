@@ -17,7 +17,7 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
 
   // Email & Password habilitado
-  emailAndPassword: { 
+  emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {

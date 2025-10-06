@@ -35,17 +35,17 @@ export function useProfileForm(initialData?: { name: string; email: string }) {
 
   // Función para actualizar campos del formulario
   const updateField = useCallback((field: keyof ProfileFormState, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   // Función para actualizar el estado OTP
   const updateOtpState = useCallback((updates: Partial<OtpState>) => {
-    setOtpState(prev => ({ ...prev, ...updates }));
+    setOtpState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // Función para actualizar el estado de contraseña
   const updatePasswordState = useCallback((updates: Partial<PasswordState>) => {
-    setPasswordState(prev => ({ ...prev, ...updates }));
+    setPasswordState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // Función para resetear el formulario
@@ -69,25 +69,26 @@ export function useProfileForm(initialData?: { name: string; email: string }) {
   const isFormValid = formData.name.trim() && formData.email.trim();
   const isEmailValid = formData.email.includes('@') && formData.email.includes('.');
   const isOtpValid = otpState.code.length === 6;
-  const isPasswordValid = passwordState.newPassword.length >= 8 && 
-                         passwordState.newPassword === passwordState.confirmPassword;
+  const isPasswordValid =
+    passwordState.newPassword.length >= 8 &&
+    passwordState.newPassword === passwordState.confirmPassword;
 
   return {
     // Estado
     formData,
     otpState,
     passwordState,
-    
+
     // Funciones de actualización
     updateField,
     updateOtpState,
     updatePasswordState,
-    
+
     // Funciones de reset
     resetForm,
     resetOtpState,
     resetPasswordState,
-    
+
     // Validaciones
     isFormValid,
     isEmailValid,
@@ -95,4 +96,3 @@ export function useProfileForm(initialData?: { name: string; email: string }) {
     isPasswordValid,
   };
 }
-

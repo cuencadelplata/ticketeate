@@ -30,10 +30,7 @@ export async function PUT(request: NextRequest) {
       });
 
       if (existingUser) {
-        return NextResponse.json(
-          { error: 'Este email ya está en uso' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Este email ya está en uso' }, { status: 400 });
       }
     }
 
@@ -42,7 +39,7 @@ export async function PUT(request: NextRequest) {
       where: { id: session.user.id },
       data: {
         ...(validatedData.name && { name: validatedData.name }),
-        ...(validatedData.email && { 
+        ...(validatedData.email && {
           email: validatedData.email,
           emailVerified: false, // Requerir verificación si cambia el email
         }),
@@ -66,18 +63,15 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error updating profile:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -114,10 +108,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error getting profile:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

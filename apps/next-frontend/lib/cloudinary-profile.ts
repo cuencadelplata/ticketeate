@@ -26,7 +26,7 @@ export class CloudinaryProfileService {
   static async uploadProfileImage(
     fileBuffer: Buffer,
     userId: string,
-    filename?: string
+    filename?: string,
   ): Promise<ProfileImageUploadResult> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -69,20 +69,18 @@ export class CloudinaryProfileService {
    */
   static async deleteProfileImage(publicId: string): Promise<ProfileImageDeleteResult> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(
-        publicId,
-        (error, result) => {
-          if (error) {
-            reject(new Error(`Error deleting profile image from Cloudinary: ${error.message}`));
-            return;
-          }
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          reject(new Error(`Error deleting profile image from Cloudinary: ${error.message}`));
+          return;
+        }
 
-          resolve({
-            success: true,
-            message: result?.result === 'ok' ? 'Image deleted successfully' : 'Image deletion completed',
-          });
-        },
-      );
+        resolve({
+          success: true,
+          message:
+            result?.result === 'ok' ? 'Image deleted successfully' : 'Image deletion completed',
+        });
+      });
     });
   }
 
@@ -117,7 +115,11 @@ export class CloudinaryProfileService {
   /**
    * Genera una URL optimizada para imagen de perfil completa
    */
-  static getOptimizedProfileUrl(publicId: string, width: number = 400, height: number = 400): string {
+  static getOptimizedProfileUrl(
+    publicId: string,
+    width: number = 400,
+    height: number = 400,
+  ): string {
     return cloudinary.url(publicId, {
       width,
       height,

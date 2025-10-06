@@ -340,12 +340,8 @@ export default function RoleAuthModal({
                       role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
                     }`}
                   >
-                    <div className="font-semibold">
-                      {getRoleDisplayName(r)}
-                    </div>
-                    <div className="text-xs text-stone-400">
-                      {getRoleDescription(r)}
-                    </div>
+                    <div className="font-semibold">{getRoleDisplayName(r)}</div>
+                    <div className="text-xs text-stone-400">{getRoleDescription(r)}</div>
                   </button>
                 ))}
               </div>
