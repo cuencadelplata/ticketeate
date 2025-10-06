@@ -10,7 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Upload, Trash2, Mail, Key, User, Camera } from 'lucide-react';
-import { useProfile, useUpdateProfile, useUploadProfileImage, useDeleteProfileImage, useSendOtp, useVerifyOtp, useForgotPassword } from '@/hooks/use-profile';
+import {
+  useProfile,
+  useUpdateProfile,
+  useUploadProfileImage,
+  useDeleteProfileImage,
+  useSendOtp,
+  useVerifyOtp,
+  useForgotPassword,
+} from '@/hooks/use-profile';
 import { useProfileForm } from '@/hooks/use-profile-form';
 
 export default function ProfileEditPage() {
@@ -48,9 +56,7 @@ export default function ProfileEditPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Acceso requerido</CardTitle>
-            <CardDescription>
-              Necesitas iniciar sesión para acceder a esta página
-            </CardDescription>
+            <CardDescription>Necesitas iniciar sesión para acceder a esta página</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => signIn.social({ provider: 'google' })} className="w-full">
@@ -76,9 +82,7 @@ export default function ProfileEditPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Error</CardTitle>
-            <CardDescription>
-              No se pudo cargar el perfil del usuario
-            </CardDescription>
+            <CardDescription>No se pudo cargar el perfil del usuario</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -87,7 +91,7 @@ export default function ProfileEditPage() {
 
   const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!isFormValid || !isEmailValid) {
       return;
     }
@@ -111,7 +115,7 @@ export default function ProfileEditPage() {
 
   const handleSendOtp = async () => {
     if (!profile?.email) return;
-    
+
     sendOtp.mutate(profile.email, {
       onSuccess: () => {
         updateOtpState({ sent: true });
@@ -128,7 +132,7 @@ export default function ProfileEditPage() {
         onSuccess: () => {
           resetOtpState();
         },
-      }
+      },
     );
   };
 
@@ -201,9 +205,7 @@ export default function ProfileEditPage() {
                         </Button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">
-                      JPG, PNG o WebP. Máximo 5MB.
-                    </p>
+                    <p className="text-sm text-gray-500">JPG, PNG o WebP. Máximo 5MB.</p>
                   </div>
                   <input
                     ref={fileInputRef}
@@ -243,8 +245,8 @@ export default function ProfileEditPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={updateProfile.isPending || !isFormValid || !isEmailValid}
                     >
                       {updateProfile.isPending ? (
@@ -299,8 +301,8 @@ export default function ProfileEditPage() {
                   <div className="space-y-4">
                     <Alert>
                       <AlertDescription>
-                        Se ha enviado un código de verificación a tu correo electrónico.
-                        Ingresa el código de 6 dígitos a continuación.
+                        Se ha enviado un código de verificación a tu correo electrónico. Ingresa el
+                        código de 6 dígitos a continuación.
                       </AlertDescription>
                     </Alert>
                     <div className="flex gap-2">
@@ -333,9 +335,7 @@ export default function ProfileEditPage() {
                   <Key className="h-5 w-5" />
                   Contraseña
                 </CardTitle>
-                <CardDescription>
-                  Gestiona tu contraseña y seguridad de la cuenta
-                </CardDescription>
+                <CardDescription>Gestiona tu contraseña y seguridad de la cuenta</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -363,9 +363,7 @@ export default function ProfileEditPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Información de la Cuenta</CardTitle>
-                <CardDescription>
-                  Detalles de tu cuenta y actividad
-                </CardDescription>
+                <CardDescription>Detalles de tu cuenta y actividad</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,7 +382,9 @@ export default function ProfileEditPage() {
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Última actualización</Label>
+                    <Label className="text-sm font-medium text-gray-500">
+                      Última actualización
+                    </Label>
                     <p className="text-sm">
                       {profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '-'}
                     </p>

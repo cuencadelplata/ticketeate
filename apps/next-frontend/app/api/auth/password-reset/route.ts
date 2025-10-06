@@ -24,58 +24,45 @@ export async function POST(request: NextRequest) {
         });
 
         if (forgotResult.error) {
-          return NextResponse.json(
-            { error: forgotResult.error.message },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: forgotResult.error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico' 
+        return NextResponse.json({
+          success: true,
+          message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico',
         });
 
       case 'reset':
         const resetData = resetPasswordSchema.parse(data);
         const resetResult = await auth.api.resetPassword({
-          body: { 
-            token: resetData.token, 
-            password: resetData.password 
+          body: {
+            token: resetData.token,
+            password: resetData.password,
           },
         });
 
         if (resetResult.error) {
-          return NextResponse.json(
-            { error: resetResult.error.message },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: resetResult.error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Contraseña restablecida correctamente' 
+        return NextResponse.json({
+          success: true,
+          message: 'Contraseña restablecida correctamente',
         });
 
       default:
-        return NextResponse.json(
-          { error: 'Acción no válida' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error handling password reset:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

@@ -75,9 +75,9 @@ export function useUpdateProfile() {
     onSuccess: (data, variables) => {
       // Actualizar el cache del perfil
       queryClient.setQueryData(['profile'], data);
-      
+
       toast.success('Perfil actualizado correctamente');
-      
+
       // Si cambió el email, mostrar mensaje adicional
       if (variables.email) {
         toast.info('Se ha enviado un correo de verificación a tu nuevo email');
@@ -116,7 +116,7 @@ export function useUploadProfileImage() {
         if (!oldData) return oldData;
         return { ...oldData, image: data.imageUrl };
       });
-      
+
       toast.success('Imagen de perfil actualizada');
     },
     onError: (error: Error) => {
@@ -146,7 +146,7 @@ export function useDeleteProfileImage() {
         if (!oldData) return oldData;
         return { ...oldData, image: null };
       });
-      
+
       toast.success('Imagen de perfil eliminada');
     },
     onError: (error: Error) => {
@@ -252,4 +252,3 @@ export function useForgotPassword() {
     },
   });
 }
-

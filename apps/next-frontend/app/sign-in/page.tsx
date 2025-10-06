@@ -22,5 +22,7 @@ export default function SignInPage() {
     router.replace('/');
   };
 
-  return <RoleAuthModal open={open} onClose={handleClose} defaultTab="login" defaultRole="USUARIO" />;
+  return (
+    <RoleAuthModal open={open} onClose={handleClose} defaultTab="login" defaultRole="USUARIO" />
+  );
 }
