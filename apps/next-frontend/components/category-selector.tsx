@@ -3,16 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useCategories } from '@/hooks/use-categories';
-import {
-  Music,
-  Gamepad2,
-  Mic,
-  Calendar,
-  Heart,
-  Palette,
-  Briefcase,
-  UtensilsCrossed,
-} from 'lucide-react';
+import { Music, Gamepad2, Mic, Heart, Palette, Briefcase, UtensilsCrossed } from 'lucide-react';
 
 const categoryIcons = {
   1: Music, // Música

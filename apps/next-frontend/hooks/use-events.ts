@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
-import { authClient } from '@/lib/auth-client';
 import type {
   Event,
   CreateEventData,
