@@ -355,8 +355,6 @@ events.post('/:id/categories', async (c) => {
     }
 
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const categories = Array.isArray(body?.categories) ? body.categories : [];
 
     // Verificar owner
     const event = await EventService.getEventById(id);
@@ -385,7 +383,6 @@ events.delete('/:id/categories/:categoryId', async (c) => {
     }
 
     const id = c.req.param('id');
-    const categoryId = Number(c.req.param('categoryId'));
 
     const event = await EventService.getEventById(id);
     if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
