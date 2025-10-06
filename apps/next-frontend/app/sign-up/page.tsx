@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import AuthModal from '@/components/auth-modal';
+import RoleAuthModal from '@/components/role-auth-modal';
 
 export default function SignUpPage() {
   const [open, setOpen] = useState(true);
-  return <AuthModal open={open} onClose={() => setOpen(false)} defaultTab="register" />;
+  return <RoleAuthModal open={open} onClose={() => setOpen(false)} defaultTab="register" defaultRole="USUARIO" />;
 }
