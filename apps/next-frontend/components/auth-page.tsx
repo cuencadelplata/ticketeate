@@ -14,10 +14,7 @@ type Props = {
   defaultRole?: Role;
 };
 
-export default function AuthPage({
-  defaultTab = 'login',
-  defaultRole = 'USUARIO',
-}: Props) {
+export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const router = useRouter();
   const sp = useSearchParams();
   const redirectUrl = sp.get('redirect_url') || '/';
@@ -350,12 +347,8 @@ export default function AuthPage({
                         role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
                       }`}
                     >
-                      <div className="font-semibold">
-                        {getRoleDisplayName(r)}
-                      </div>
-                      <div className="text-xs text-stone-400">
-                        {getRoleDescription(r)}
-                      </div>
+                      <div className="font-semibold">{getRoleDisplayName(r)}</div>
+                      <div className="text-xs text-stone-400">{getRoleDescription(r)}</div>
                     </button>
                   ))}
                 </div>
@@ -558,7 +551,10 @@ export default function AuthPage({
         <div className="text-center mt-6">
           <p className="text-stone-400 text-sm">
             ¿Necesitas ayuda?{' '}
-            <a href="mailto:soporte@ticketeate.com" className="text-orange-400 hover:text-orange-300">
+            <a
+              href="mailto:soporte@ticketeate.com"
+              className="text-orange-400 hover:text-orange-300"
+            >
               Contacta soporte
             </a>
           </p>
