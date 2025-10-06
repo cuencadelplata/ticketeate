@@ -5,16 +5,19 @@ import { prisma } from '@repo/db';
 export async function POST(req: Request) {
   try {
     const { role, inviteCode } = (await req.json()) as {
-      role: 'ORGANIZADOR' | 'COLABORADOR';
+      role: 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
       inviteCode?: string;
     };
 
-    if (!role || !['ORGANIZADOR', 'COLABORADOR'].includes(role)) {
+    if (!role || !['USUARIO', 'ORGANIZADOR', 'COLABORADOR'].includes(role)) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
 
-    // ORGANIZADOR no requiere código de invitación
-    if (role === 'ORGANIZADOR') {
+    // USUARIO no requiere código de invitación
+    if (role === 'USUARIO') {
+      // No validar código para USUARIO
+    } else if (role === 'ORGANIZADOR') {
+      // ORGANIZADOR no requiere código de invitación
       // No validar código para ORGANIZADOR
     } else if (role === 'COLABORADOR') {
       // COLABORADOR requiere código de invitación

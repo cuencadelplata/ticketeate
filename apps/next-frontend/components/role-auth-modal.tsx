@@ -7,7 +7,7 @@ import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-type Role = 'ORGANIZADOR' | 'COLABORADOR';
+type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
 type Props = {
   open: boolean;
@@ -16,11 +16,11 @@ type Props = {
   defaultRole?: Role;
 };
 
-export default function AuthModal({
+export default function RoleAuthModal({
   open,
   onClose,
   defaultTab = 'login',
-  defaultRole = 'ORGANIZADOR',
+  defaultRole = 'USUARIO',
 }: Props) {
   const sp = useSearchParams();
   const { data: session } = useSession();
@@ -44,16 +44,11 @@ export default function AuthModal({
 
   useEffect(() => {
     if (session) {
-      if (window.location.pathname === '/crear') {
-        onClose();
-        return;
-      }
-
       const r = (session as any).role as Role | undefined;
       const target = sp.get('redirect_url') || roleToPath(r);
       window.location.href = target;
     }
-  }, [session, sp, onClose]);
+  }, [session, sp]);
 
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
@@ -181,7 +176,7 @@ export default function AuthModal({
         name: formData.email,
       });
 
-      // Solo asignar rol si es COLABORADOR (requiere código) o ORGANIZADOR (no requiere código)
+      // Asignar rol según el tipo seleccionado
       if (role === 'COLABORADOR') {
         // COLABORADOR requiere código de invitación
         const res = await fetch('/api/auth/assign-role', {
@@ -205,6 +200,7 @@ export default function AuthModal({
           throw new Error(j?.error || 'No se pudo asignar el rol');
         }
       }
+      // USUARIO no requiere asignación de rol adicional - se asigna por defecto en el callback de auth
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 
@@ -255,12 +251,38 @@ export default function AuthModal({
 
   const disableSubmit = loading || !isFormValid;
 
+  const getRoleDescription = (role: Role) => {
+    switch (role) {
+      case 'USUARIO':
+        return 'Compra entradas y participa en eventos';
+      case 'ORGANIZADOR':
+        return 'Crea y gestiona eventos (sin código requerido)';
+      case 'COLABORADOR':
+        return 'Escanea entradas y valida tickets (requiere código)';
+      default:
+        return '';
+    }
+  };
+
+  const getRoleDisplayName = (role: Role) => {
+    switch (role) {
+      case 'USUARIO':
+        return 'Usuario';
+      case 'ORGANIZADOR':
+        return 'Organizador';
+      case 'COLABORADOR':
+        return 'Colaborador';
+      default:
+        return role;
+    }
+  };
+
   return (
     <Dialog
       open={open}
       onOpenChange={() => {
-        // No permitir cerrar el modal hasta que esté autenticado como ORGANIZADOR
-        return;
+        // Permitir cerrar el modal
+        onClose();
       }}
     >
       <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden">
@@ -307,8 +329,8 @@ export default function AuthModal({
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
-              <div className="grid grid-cols-2 gap-2">
-                {(['ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
+              <div className="grid grid-cols-1 gap-2">
+                {(['USUARIO', 'ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
                   <button
                     key={r}
                     type="button"
@@ -317,14 +339,8 @@ export default function AuthModal({
                       role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
                     }`}
                   >
-                    <div className="font-semibold">
-                      {r === 'ORGANIZADOR' ? 'Organizador' : 'Colaborador'}
-                    </div>
-                    <div className="text-xs text-stone-400">
-                      {r === 'ORGANIZADOR'
-                        ? 'Crea y gestiona eventos (sin código requerido)'
-                        : 'Escanea entradas y valida tickets (requiere código)'}
-                    </div>
+                    <div className="font-semibold">{getRoleDisplayName(r)}</div>
+                    <div className="text-xs text-stone-400">{getRoleDescription(r)}</div>
                   </button>
                 ))}
               </div>

@@ -674,7 +674,6 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       });
       let raf = 0;
       let frameSkip = 0;
-      const ANIMATION_THROTTLE = 2; // Reduce animation frequency for performance
 
       const animate = () => {
         if (autoPauseOffscreen && !visibilityRef.current.visible) {

@@ -13,7 +13,7 @@ export function NewNavbar() {
 function Navbar() {
   const [active, setActive] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
 
@@ -52,7 +52,7 @@ function Navbar() {
             <Menu setActive={setActive}>
               <MenuItem setActive={setActive} active={active} item="Descubrir">
                 <div className="flex flex-col space-y-4 text-sm">
-                  <HoveredLink href="/eventos">Eventos</HoveredLink>
+                  <HoveredLink href="/descubrir">Eventos</HoveredLink>
                   <HoveredLink href="/productoras">Productoras</HoveredLink>
                 </div>
               </MenuItem>
@@ -96,7 +96,6 @@ function Navbar() {
               </MenuItem>
             </Menu>
 
-            {/* Precio as simple button */}
             <Link
               href="/precios"
               className="px-6 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors duration-200"
@@ -129,15 +128,14 @@ function Navbar() {
                     Acceso
                   </Link>
                 )}
-
-                <Link
-                  href="/crear"
-                  className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
-                >
-                  Crear Evento
-                </Link>
               </>
             )}
+            <Link
+              href="/crear"
+              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              Crear Evento
+            </Link>
           </div>
         </div>
       </div>

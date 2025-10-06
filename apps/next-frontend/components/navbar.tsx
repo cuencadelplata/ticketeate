@@ -12,7 +12,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   // ✅ usa las props reales del hook de Better Auth
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
 
