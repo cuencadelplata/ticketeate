@@ -1,10 +1,8 @@
 'use client';
 
-<<<<<<< HEAD
 // Elimina imports duplicados y mantén solo uno de cada
-=======
+import { useState, useMemo } from 'react';
 import React from 'react';
->>>>>>> main
 import { useState, useMemo } from 'react';
 import {
   Globe,
@@ -30,11 +28,8 @@ import {
 import { Navbar } from './navbar';  
 
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
-<<<<<<< HEAD
 import React from 'react';
 
-=======
->>>>>>> main
 import UploadImageModal from './UploadImageModal';
 import { DateSelect } from './date-select';
 import { TimeSelect } from './time-select';
@@ -47,7 +42,6 @@ import { useWalletStatus } from '@/hooks/use-wallet';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
-import { useSession } from '@/lib/auth-client';
 import type { CreateEventData } from '@/types/events';
 import {
   DndContext,
@@ -279,7 +273,7 @@ export default function CreateEventForm() {
   };
 
   const createEventMutation = useCreateEvent();
-  const { data: session } = useSession();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const checkAuthAndShowModal = () => {
@@ -372,7 +366,6 @@ export default function CreateEventForm() {
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
       galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
-<<<<<<< HEAD
       categorias: selectedCategories.map(categoryName => ({ nombre: categoryName })),
       fechas_adicionales: eventDates
         .filter((date) => !date.isMain)
@@ -389,22 +382,6 @@ export default function CreateEventForm() {
                 60000,
           ).toISOString(),
         })),
-=======
-      fechas_evento: eventDates.map((date) => {
-        const startDateTime = new Date(date.startDate);
-        const [startHour, startMinute] = date.startTime.split(':');
-        startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
-
-        const endDateTime = new Date(date.endDate);
-        const [endHour, endMinute] = date.endTime.split(':');
-        endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
-
-        return {
-          fecha_hora: startDateTime.toISOString(),
-          fecha_fin: endDateTime.toISOString(),
-        };
-      }),
->>>>>>> main
       eventMap: location.eventMap,
       ticket_types:
         ticketInfo.type === 'paid' && ticketTypesState.length > 0
@@ -829,113 +806,6 @@ export default function CreateEventForm() {
                 </CardContent>
               </Card>
 
-<<<<<<< HEAD
-=======
-              {/* Selector de categorías */}
-              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                <div className="flex items-center gap-2 pb-1">
-                  <Tag className="h-3.5 w-3.5 text-zinc-400" />
-                  <h3 className="text-sm font-semibold text-stone-200">Categorías del evento</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        selectedCategories.includes(cat.id)
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-                      }`}
-                      onClick={() => {
-                        setSelectedCategories((prev) =>
-                          prev.includes(cat.id)
-                            ? prev.filter((id) => id !== cat.id)
-                            : [...prev, cat.id],
-                        );
-                      }}
-                    >
-                      {cat.name}
-                      {selectedCategories.includes(cat.id) && <X className="h-3 w-3 ml-1" />}
-                    </button>
-                  ))}
-                </div>
-                {selectedCategories.length === 0 && (
-                  <p className="text-xs text-red-400 mt-1">Selecciona al menos una categoría.</p>
-                )}
-              </div>
-
-              {/* Programación de publicación */}
-              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                <div className="flex items-center gap-2 pb-1">
-                  <Clock className="h-3.5 w-3.5 text-zinc-400" />
-                  <h3 className="text-sm font-semibold text-stone-200">Programar publicación</h3>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="schedule-publication"
-                      checked={schedulePublication.enabled}
-                      onChange={(e) => {
-                        setSchedulePublication((prev) => ({
-                          ...prev,
-                          enabled: e.target.checked,
-                        }));
-                      }}
-                      className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
-                    />
-                    <label htmlFor="schedule-publication" className="text-sm text-stone-300">
-                      Programar cuándo se publicará el evento
-                    </label>
-                  </div>
-
-                  {schedulePublication.enabled && (
-                    <div className="space-y-2 pl-6">
-                      <div className="flex items-center gap-2">
-                        <DateSelect
-                          value={schedulePublication.date}
-                          onChange={(date) => {
-                            if (date) {
-                              setSchedulePublication((prev) => ({
-                                ...prev,
-                                date,
-                              }));
-                            }
-                          }}
-                        />
-                        <TimeSelect
-                          value={schedulePublication.time}
-                          onChange={(time) => {
-                            setSchedulePublication((prev) => ({
-                              ...prev,
-                              time,
-                            }));
-                          }}
-                        />
-                      </div>
-                      <p className="text-xs text-stone-400">
-                        💡 El evento se mantendrá oculto hasta la fecha programada.
-                        {schedulePublication.enabled && (
-                          <span className="block mt-1">
-                            Se publicará el {schedulePublication.date.toLocaleDateString('es-ES')} a
-                            las {schedulePublication.time}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {!schedulePublication.enabled && (
-                    <p className="text-xs text-stone-400 pl-6">
-                      El evento se publicará inmediatamente después de crearlo.
-                    </p>
-                  )}
-                </div>
-              </div>
-
->>>>>>> main
               <Button
                 onClick={handleCreateEvent}
                 size="md"
