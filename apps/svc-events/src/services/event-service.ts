@@ -61,6 +61,7 @@ export interface EventWithImages {
   descripcion?: string;
   ubicacion?: string;
   fecha_creacion?: Date;
+  fecha_publicacion?: Date;
   mapa_evento?: any;
   creadorid: string;
   fecha_cambio?: Date;
@@ -200,6 +201,7 @@ export class EventService {
           ubicacion: data.ubicacion || '',
           mapa_evento: data.eventMap ?? {},
           creadorid: data.userId,
+          fecha_publicacion: data.fecha_publicacion ? new Date(data.fecha_publicacion) : null,
           evento_categorias: {
             create: categoriaIds.map((categoriaId) => ({
               categoriaeventoid: Number(categoriaId),
