@@ -5,7 +5,9 @@ import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event-card';
 import { Footer } from '@/components/footer';
 import { Hero } from '@/components/hero';
+import { CategorySelector } from '@/components/category-selector';
 import { useAllEvents } from '@/hooks/use-events';
+
 const estadoEvents: Record<string, string> = {
   ACTIVO: 'Disponibles',
   COMPLETADO: 'Completado',
@@ -41,14 +43,8 @@ export default function Home() {
       // Obtener estado actual del evento
       const estadoActual = evt.evento_estado?.[0]?.Estado || 'OCULTO';
 
-      // Obtener categorías
-      const categorias = evt.catevento?.map((cat) => cat.categoriaevento.nombre) || [];
-      const categoriaPrincipal = categorias[0] || 'Evento';
-
-      // Debug temporal - solo mostrar si hay categorías
-      if (evt.catevento && evt.catevento.length > 0) {
-        console.log('Evento con categorías:', evt.titulo, 'Categorías:', categorias);
-      }
+      // Obtener categoría principal del evento
+      const categoriaPrincipal = evt.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
 
       // Determinar si es gratis o pago
       const isFree =
@@ -83,7 +79,7 @@ export default function Home() {
         href: `/evento/${evt.eventoid}`,
         // Nuevos campos
         isFree,
-        categorias: categorias,
+        categorias: [categoriaPrincipal],
         fechasAdicionales: fechasAdicionales,
         totalDates: (evt.fechas_evento?.length || 0) + 1, // +1 por la fecha principal
       };
@@ -104,6 +100,7 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <Hero />
+      <CategorySelector />
 
       <>
         {/* Sección principal de eventos */}
@@ -116,7 +113,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-instrument-serif text-6xl bg-gradient-to-b from-black to-stone-900 bg-clip-text text-transparent mb-2 pb-2 font-instrument-serif">
+              <h2 className="font-instrument-serif text-6xl bg-gradient-to-b from-black to-stone-900 bg-clip-text text-transparent mb-2 pb-2">
                 Descubrí los mejores eventos
               </h2>
               <p className="text-lg text-gray-600 dark:text-stone-500 max-w-2xl mx-auto">
@@ -126,7 +123,7 @@ export default function Home() {
 
             <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
               {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
+                ? Array.from({ length: 10 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
                       <div className="space-y-2">

@@ -1,0 +1,39 @@
+module.exports = {
+  extends: ['next/core-web-vitals'],
+  env: {
+    browser: true,
+    node: true,
+    es2022: true,
+  },
+  globals: {
+    FormData: 'readonly',
+    FileReader: 'readonly',
+    URL: 'readonly',
+    fetch: 'readonly',
+    Request: 'readonly',
+    Response: 'readonly',
+    alert: 'readonly',
+    console: 'readonly',
+    user: 'readonly',
+  },
+  rules: {
+    'no-undef': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      },
+    ],
+  },
+  ignorePatterns: [
+    '.next/**',
+    'dist/**',
+    'build/**',
+    'node_modules/**',
+    '**/jest.config.js',
+    '**/jest.setup.js',
+  ],
+};

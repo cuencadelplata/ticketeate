@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_BASE_URL, API_ENDPOINTS } from '@/lib/config';
-import { useAuth } from '@clerk/nextjs';
+import { API_ENDPOINTS } from '@/lib/config';
 import type {
   Event,
   CreateEventData,
@@ -11,66 +10,56 @@ import type {
   GetPublicEventResponse,
 } from '@/types/events';
 
-// Hook para obtener eventos
-export function useEvents() {
-  const { getToken } = useAuth();
+// Helper function to get JWT token
+async function getAuthHeaders() {
+  try {
+    const res = await fetch('/api/auth/token', {
+      credentials: 'include',
+    });
 
+    if (!res.ok) {
+      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    }
+
+    const data = await res.json();
+
+    if (!data.token) {
+      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    }
+
+    return {
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json',
+    };
+  } catch (error) {
+    throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+  }
+}
+
+// Hook para obtener eventos (protegido)
+export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      const token = await getToken();
-      let response = await fetch(API_ENDPOINTS.events, {
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+      const headers = await getAuthHeaders();
+      const res = await fetch(API_ENDPOINTS.events, {
+        headers,
       });
-      // Limitar reintento a solo una vez
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(API_ENDPOINTS.events, {
-          headers: { Authorization: `Bearer ${newToken ?? ''}` },
-        });
-        if (response.status === 401) {
-          throw new Error('Token inválido. Por favor, inicia sesión nuevamente.');
-        }
-      }
-      if (!response.ok) {
-        throw new Error('Error al obtener eventos');
-      }
-      const data: GetEventsResponse = await response.json();
-      if (!data || !Array.isArray(data.events)) {
-        throw new Error('Respuesta inesperada del servidor');
-      }
-      return data.events;
+      if (!res.ok) throw new Error('Error al obtener eventos');
+      const data: GetEventsResponse = await res.json();
+      return data.events || [];
     },
   });
 }
 
-// hook para obtener todos los eventos - psados y activos
+// hook para obtener todos los eventos - pasados y activos
 export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
     queryFn: async (): Promise<Event[]> => {
-      console.log('🔍 Fetching events from:', API_ENDPOINTS.allEvents);
-      const response = await fetch(API_ENDPOINTS.allEvents);
-      if (!response.ok) {
-        throw new Error('Error al obtener todos los eventos');
-      }
-      const data: GetAllEventsResponse = await response.json();
-      console.log('📦 Raw response data:', data);
-      console.log('📋 Events array:', data.events);
-
-      // Debug específico para categorías
-      if (data.events && data.events.length > 0) {
-        data.events.forEach((event, index) => {
-          console.log(`🎯 Event ${index}:`, {
-            titulo: event.titulo,
-            catevento: event.catevento,
-            hasCategories: event.catevento && event.catevento.length > 0,
-          });
-        });
-      }
-
+      const res = await fetch(API_ENDPOINTS.allEvents, { credentials: 'include' });
+      if (!res.ok) throw new Error('Error al obtener todos los eventos');
+      const data: GetAllEventsResponse = await res.json();
       return data.events || [];
     },
     staleTime: 60 * 1000,
@@ -85,11 +74,11 @@ export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
     queryFn: async (): Promise<Event> => {
-      const response = await fetch(API_ENDPOINTS.publicEventById(id as string));
-      if (!response.ok) {
-        throw new Error('Error al obtener el evento');
-      }
-      const data: GetPublicEventResponse = await response.json();
+      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Error al obtener el evento');
+      const data: GetPublicEventResponse = await res.json();
       return data.event;
     },
     enabled: Boolean(id),
@@ -97,29 +86,15 @@ export function usePublicEvent(id?: string) {
   });
 }
 
-// Hook para obtener un evento específico
+// Hook para obtener un evento específico (protegido)
 export function useEvent(id: string) {
-  const { getToken } = useAuth();
-
   return useQuery({
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
-      const token = await getToken();
-      let response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-        },
-      });
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
-          headers: { Authorization: `Bearer ${newToken ?? ''}` },
-        });
-      }
-      if (!response.ok) {
-        throw new Error('Error al obtener el evento');
-      }
-      const data: GetEventResponse = await response.json();
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { headers });
+      if (!res.ok) throw new Error('Error al obtener el evento');
+      const data: GetEventResponse = await res.json();
       return data.event;
     },
     enabled: !!id,
@@ -129,60 +104,31 @@ export function useEvent(id: string) {
 // Hook para crear un evento
 export function useCreateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
-      const token = await getToken();
-      let response = await fetch(`${API_BASE_URL}/api/events`, {
+      const headers = await getAuthHeaders();
+      const res = await fetch(API_ENDPOINTS.events, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+        headers,
         body: JSON.stringify(eventData),
       });
-      if (response.status === 401) {
-        const newToken = await getToken();
-        response = await fetch(API_ENDPOINTS.events, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${newToken ?? ''}`,
-          },
-          body: JSON.stringify(eventData),
-        });
-        if (response.status === 401) {
-          throw new Error('Token inválido. Por favor, inicia sesión nuevamente.');
-        }
-      }
-      if (!response.ok) {
-        let errorMsg = 'Error al crear el evento';
+      if (!res.ok) {
+        let msg = 'Error al crear el evento';
         try {
-          const error = await response.json();
-          errorMsg = error.error || errorMsg;
-        } catch {
-          // Si el backend no responde con JSON válido
-        }
-        throw new Error(errorMsg);
+          const err = await res.json();
+          msg = err.error || msg;
+        } catch {}
+        throw new Error(msg);
       }
-
-      const data: CreateEventResponse = await response.json();
-      if (!data || !data.event) {
-        throw new Error('Respuesta inesperada del servidor');
-      }
+      const data: CreateEventResponse = await res.json();
       return data.event;
     },
     onSuccess: (newEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['all-events'] }); // Invalida también la lista global
-
-      queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
-        if (oldEvents) {
-          return [...oldEvents, newEvent];
-        }
-        return [newEvent];
-      });
+      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
+        old ? [...old, newEvent] : [newEvent],
+      );
     },
     onError: (error) => {
       console.error('Error al crear evento:', error);
@@ -193,7 +139,6 @@ export function useCreateEvent() {
 // Hook para actualizar un evento
 export function useUpdateEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -203,36 +148,25 @@ export function useUpdateEvent() {
       id: string;
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
-      const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+        headers,
         body: JSON.stringify(eventData),
       });
-
-      if (!response.ok) {
-        let errorMsg = 'Error al actualizar el evento';
+      if (!res.ok) {
+        let msg = 'Error al actualizar el evento';
         try {
-          const error = await response.json();
-          errorMsg = error.error || errorMsg;
+          const err = await res.json();
+          msg = err.error || msg;
         } catch {}
-        throw new Error(errorMsg);
+        throw new Error(msg);
       }
-
-      const data = await response.json();
-      if (!data || !data.event) {
-        throw new Error('Respuesta inesperada del servidor');
-      }
-      return data.event as Event;
+      return res.json();
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['all-events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
-
       queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
     },
   });
@@ -241,82 +175,28 @@ export function useUpdateEvent() {
 // Hook para eliminar un evento
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const token = await getToken();
-      const response = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-        },
+        headers,
       });
-
-      if (!response.ok) {
-        let errorMsg = 'Error al eliminar el evento';
+      if (!res.ok) {
+        let msg = 'Error al eliminar el evento';
         try {
-          const error = await response.json();
-          errorMsg = error.error || errorMsg;
+          const err = await res.json();
+          msg = err.error || msg;
         } catch {}
-        throw new Error(errorMsg);
+        throw new Error(msg);
       }
     },
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['all-events'] });
-
-      queryClient.setQueryData(['events'], (oldEvents: Event[] | undefined) => {
-        if (oldEvents) {
-          return oldEvents.filter((event) => event.eventoid !== deletedId);
-        }
-        return [];
-      });
+      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
+        old ? old.filter((e) => e.eventoid !== deletedId) : [],
+      );
     },
-  });
-}
-
-export function useEventCategories() {
-  const { getToken } = useAuth();
-  return {
-    // Unificar tipo de id a string
-    add: async (eventId: string, categories: Array<{ id?: string; nombre?: string }>) => {
-      const token = await getToken();
-      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
-        body: JSON.stringify({ categories }),
-      });
-      if (!res.ok) throw new Error('Error al agregar categorías');
-      return res.json();
-    },
-    remove: async (eventId: string, categoryId: string) => {
-      const token = await getToken();
-      const res = await fetch(`${API_ENDPOINTS.events}/${eventId}/categories/${categoryId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token ?? ''}` },
-      });
-      if (!res.ok) throw new Error('Error al remover categoría');
-      return res.json();
-    },
-  };
-}
-
-// Hook para obtener todas las categorías disponibles
-export function useCategories() {
-  return useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/api/categories`);
-      if (!response.ok) {
-        throw new Error('Error al obtener categorías');
-      }
-      const data = await response.json();
-      return data.categories || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }

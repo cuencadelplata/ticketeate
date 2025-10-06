@@ -99,7 +99,13 @@ module.exports = [
         requestAnimationFrame: "readonly",
         cancelAnimationFrame: "readonly",
         WebGL2RenderingContext: "readonly",
-        PointerEvent: "readonly"
+        PointerEvent: "readonly",
+        // Additional globals for Next.js API routes and components
+        Request: "readonly",
+        Response: "readonly",
+        FormData: "readonly",
+        alert: "readonly",
+        user: "readonly"
       }
     },
     plugins: {
