@@ -129,6 +129,7 @@ events.post('/', async (c) => {
       userId: jwtPayload.id,
       ticket_types: body.ticket_types,
       categorias: body.categorias,
+      fecha_publicacion: body.fecha_publicacion, // Fecha programada para publicar el evento
     };
 
     // Crear el evento

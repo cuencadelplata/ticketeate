@@ -5,6 +5,7 @@ export interface Event {
   descripcion?: string;
   ubicacion: string;
   fecha_creacion: string | Date;
+  fecha_publicacion?: string | Date;
   creadorid: string;
   mapa_evento: any;
   fecha_cambio: string | Date;

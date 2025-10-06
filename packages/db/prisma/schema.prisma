@@ -84,6 +84,7 @@ model eventos {
   descripcion        String?
   ubicacion          String            @db.VarChar(255)
   fecha_creacion     DateTime          @default(now()) @db.Timestamptz(6)
+  fecha_publicacion  DateTime?         @db.Timestamptz(6)
   creadorid          String            @db.VarChar(255)
   mapa_evento        Json
   fecha_cambio       DateTime          @default(now()) @db.Timestamptz(6)
