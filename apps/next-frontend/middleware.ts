@@ -8,7 +8,13 @@ export async function middleware(request: NextRequest) {
 
   const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
 
-  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route.endsWith('/*')) {
+      const baseRoute = route.slice(0, -2);
+      return request.nextUrl.pathname.startsWith(baseRoute);
+    }
+    return request.nextUrl.pathname === route;
+  });
 
   const isAuthRoute = () => {
     return authRoutes.some((path) => request.nextUrl.pathname.startsWith(path));
