@@ -31,19 +31,6 @@ jest.mock('next/navigation', () => ({
   },
 }));
 
-// Mock Clerk authentication
-jest.mock('@clerk/nextjs', () => ({
-  useUser: () => ({
-    user: null,
-    isLoaded: true,
-  }),
-  useAuth: () => ({
-    isSignedIn: false,
-    isLoaded: true,
-  }),
-  ClerkProvider: ({ children }) => children,
-}));
-
 // Global test setup
 beforeEach(() => {
   // Clear all mocks before each test
