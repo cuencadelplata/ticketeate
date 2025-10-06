@@ -1,66 +1,90 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import NavbarHome from '@/components/navbar-main';
+import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event-card';
 import { Footer } from '@/components/footer';
-import Carrusel from '@/components/carrusel';
+import { Hero } from '@/components/hero';
+import { CategorySelector } from '@/components/category-selector';
 import { useAllEvents } from '@/hooks/use-events';
 
 const estadoEvents: Record<string, string> = {
   ACTIVO: 'Disponibles',
-  COMPLETADO: 'Agotadas',
-  CANCELADO: 'Agotadas',
+  COMPLETADO: 'Completado',
+  CANCELADO: 'Cancelado',
+  OCULTO: 'Oculto',
 };
 
 function mapEstados(estado?: string) {
   //mapeo disponibilidad events
-  return estadoEvents[estado ?? ''] ?? 'Disponibles';
+  return estadoEvents[estado ?? ''] ?? 'Oculto';
 }
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { data: allEvents = [], isLoading } = useAllEvents(); //tanstack query
-  const q = (searchParams.get('search') || '').trim();
-  const showingSearch = Boolean(q);
 
   const uiEvents = useMemo(() => {
     return (allEvents || []).map((evt) => {
-      const portada = evt.imagenes_evento?.find((i) => i.tipo === 'portada')?.url;
+      // Obtener imagen de portada o primera imagen
+      const portada = evt.imagenes_evento?.find((i) => i.tipo === 'PORTADA')?.url;
       const primera = evt.imagenes_evento?.[0]?.url;
       const image = portada || primera || '/icon-ticketeate.png';
+
+      // Obtener fecha del evento
       const eventDate = evt.fechas_evento?.[0]?.fecha_hora
         ? new Date(evt.fechas_evento[0].fecha_hora)
-        : new Date(evt.fecha_inicio_venta);
-      const date = eventDate.toLocaleDateString();
+        : new Date(evt.fecha_creacion);
+      const date = eventDate.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      // Obtener estado actual del evento
+      const estadoActual = evt.evento_estado?.[0]?.Estado || 'OCULTO';
+
+      // Obtener categoría principal del evento
+      const categoriaPrincipal = evt.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
+
+      // Determinar si es gratis o pago
+      const isFree =
+        !evt.stock_entrada ||
+        evt.stock_entrada.length === 0 ||
+        evt.stock_entrada.every((ticket) => Number(ticket.precio) === 0);
+
+      // Obtener precio mínimo
+      const precios =
+        evt.stock_entrada?.map((ticket) => Number(ticket.precio)).filter((p) => p > 0) || [];
+      const precioMinimo = precios.length > 0 ? Math.min(...precios) : 0;
+
+      // Formatear fechas adicionales
+      const fechasAdicionales =
+        evt.fechas_evento?.slice(1).map((fecha) =>
+          new Date(fecha.fecha_hora).toLocaleDateString('es-ES', {
+            month: 'short',
+            day: 'numeric',
+          }),
+        ) || [];
+
       return {
         title: evt.titulo,
         description: evt.descripcion || '',
-        price: 'Consultar',
+        price: isFree ? 'Gratis' : `Desde $${precioMinimo}`,
         date,
         eventDate, // Agregamos la fecha como objeto Date para filtrar
         image,
-        category: 'Evento',
+        category: categoriaPrincipal,
         category2: evt.ubicacion || '',
-        disponibilidad: mapEstados(evt.estado),
-        href: `/evento/${evt.id_evento}`,
+        disponibilidad: mapEstados(estadoActual),
+        href: `/evento/${evt.eventoid}`,
+        // Nuevos campos
+        isFree,
+        categorias: [categoriaPrincipal],
+        fechasAdicionales: fechasAdicionales,
+        totalDates: (evt.fechas_evento?.length || 0) + 1, // +1 por la fecha principal
       };
     });
   }, [allEvents]);
-
-  const results = useMemo(() => {
-    if (!q) return [];
-    const qLower = q.toLowerCase();
-    return uiEvents.filter(
-      (e) =>
-        e.title.toLowerCase().includes(qLower) ||
-        e.description.toLowerCase().includes(qLower) ||
-        (e.category && e.category.toLowerCase().includes(qLower)) ||
-        (e.category2 && e.category2.toLowerCase().includes(qLower)),
-    );
-  }, [q, uiEvents]);
 
   // Filtrar eventos por fecha
   const upcomingEvents = useMemo(() => {
@@ -73,88 +97,121 @@ export default function Home() {
     return uiEvents.filter((event) => event.eventDate <= now);
   }, [uiEvents]);
 
-  const handleClear = () => {
-    router.push('/'); // quita ?search y vuelve a home
-  };
-
   return (
     <main className="min-h-screen">
-      <NavbarHome />
+      <Hero />
+      <CategorySelector />
 
-      {!showingSearch && <Carrusel />}
-
-      {showingSearch ? (
-        <section className="rounded-small bg-orange-900 container mx-auto px-4 py-8 mt-5">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-orange-100">
-              Resultados para: <span className="italic">“{q}”</span>
-            </h1>
-            <button
-              onClick={handleClear}
-              className="rounded-full bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+      <>
+        {/* Sección principal de eventos */}
+        <section className="pt-16 pb-16 bg-white">
+          <div className="max-w-full mx-auto px-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
             >
-              Limpiar búsqueda
-            </button>
-          </div>
-          <p className="text-orange-200 mb-6">{results.length} resultado(s) encontrado(s)</p>
+              <h2 className="font-instrument-serif text-6xl bg-gradient-to-b from-black to-stone-900 bg-clip-text text-transparent mb-2 pb-2">
+                Descubrí los mejores eventos
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-stone-500 max-w-2xl mx-auto">
+                Encontrá eventos increíbles cerca de vos y reservá tu lugar
+              </p>
+            </motion.div>
 
-          {results.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {results.map((event, i) => (
-                <EventCard key={i} {...event} />
-              ))}
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
+              {isLoading
+                ? Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="bg-stone-200 dark:bg-stone-700 h-4 rounded w-3/4"></div>
+                        <div className="bg-stone-200 dark:bg-stone-700 h-3 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))
+                : uiEvents.map((event, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: i * 0.1 }}
+                      viewport={{ once: true }}
+                    >
+                      <EventCard {...event} />
+                    </motion.div>
+                  ))}
             </div>
-          ) : (
-            <div className="text-orange-100">
-              No se encontraron eventos. Probá con otro término.
-            </div>
-          )}
+          </div>
         </section>
-      ) : (
-        <>
-          <section className="rounded-small bg-orange-900 container mx-auto px-2 py-8 mt-5">
-            <h1 className="text-2xl font-bold mb-6 text-orange-100">Ver Todo</h1>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {isLoading ? (
-                <div className="text-orange-100">Cargando eventos...</div>
-              ) : (
-                uiEvents.map((event, i) => <EventCard key={i} {...event} />)
-              )}
+
+        {/* Sección de Próximos Eventos */}
+        {upcomingEvents.length > 0 && (
+          <section className="py-16 bg-gray-50 dark:bg-stone-900">
+            <div className="max-w-full mx-auto px-2">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-4 font-instrument-serif">
+                  Próximos Eventos
+                </h2>
+                <p className="text-lg text-gray-600 dark:text-stone-400">
+                  No te pierdas estos eventos que están por venir
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
+                {upcomingEvents.map((event, i) => (
+                  <motion.div
+                    key={`upcoming-${i}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <EventCard {...event} />
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </section>
+        )}
 
-          {/* Sección de Próximos Eventos */}
-          {upcomingEvents.length > 0 && (
-            <section className="rounded-small bg-blue-900 container mx-auto px-2 py-8 mt-5">
-              <h1 className="text-2xl font-bold mb-6 text-blue-100">Próximos Eventos</h1>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {upcomingEvents.map((event, i) => (
-                  <EventCard key={`upcoming-${i}`} {...event} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Sección de Eventos Pasados */}
-          {pastEvents.length > 0 && (
-            <section className="rounded-small bg-gray-800 container mx-auto px-2 py-8 mt-5">
-              <h1 className="text-2xl font-bold mb-6 text-gray-100">Eventos Pasados</h1>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Sección de Eventos Pasados */}
+        {pastEvents.length > 0 && (
+          <section className="py-16 bg-white dark:bg-stone-800">
+            <div className="max-w-full mx-auto px-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="text-center mb-12"
+              >
+                <h2 className="text-3xl font-bold text-stone-900 dark:text-white mb-4">
+                  Eventos Pasados
+                </h2>
+                <p className="text-lg text-gray-600 dark:text-stone-400">
+                  Reviví los mejores momentos de eventos anteriores
+                </p>
+              </motion.div>
+              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {pastEvents.map((event, i) => (
-                  <EventCard key={`past-${i}`} {...event} />
+                  <motion.div
+                    key={`past-${i}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <EventCard {...event} />
+                  </motion.div>
                 ))}
               </div>
-            </section>
-          )}
-
-          <div className="flex justify-center mt-12">
-            <button className="rounded-full bg-red-800 px-12 py-6 text-white hover:bg-red-700 text-lg">
-              Botón de Arrepentimiento
-            </button>
-          </div>
-        </>
-      )}
-
+            </div>
+          </section>
+        )}
+      </>
       <Footer />
     </main>
   );

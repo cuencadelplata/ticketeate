@@ -1,26 +1,40 @@
-import { useAuth } from '@clerk/nextjs';
+'use client';
 
 export function useImageUpload() {
-  const { getToken } = useAuth();
+  const getToken = async (): Promise<string | null> => {
+    try {
+      const res = await fetch('/api/auth/jwt', { cache: 'no-store' });
+      if (!res.ok) {
+        console.error('Error obteniendo token JWT:', res.statusText);
+        return null;
+      }
+      const data = await res.json();
+      return typeof data.token === 'string' ? data.token : null;
+    } catch (error) {
+      console.error('Error al solicitar el token JWT:', error);
+      return null;
+    }
+  };
 
   const uploadImage = async (file: File) => {
+    if (!(file instanceof File)) {
+      throw new Error('El parámetro debe ser un archivo válido.');
+    }
+
+    if (typeof window === 'undefined') {
+      throw new Error('Este hook solo puede ejecutarse en el cliente.');
+    }
+
+    const token = await getToken();
+    if (!token) {
+      throw new Error('No se pudo obtener el token de autenticación.');
+    }
+
     try {
-      if (typeof window === 'undefined') {
-        throw new Error('Este hook solo puede usarse en el navegador');
-      }
-
-      // Obtener token JWT válido para el backend
-      const token = await getToken({ template: 'TicketeateHono' });
-
-      if (!token) {
-        throw new Error('No se pudo obtener el token de autenticación');
-      }
-
-      // eslint-disable-next-line no-undef
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/upload-image`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/upload-image`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -28,14 +42,17 @@ export function useImageUpload() {
         body: formData,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(
-          `Error subiendo imagen: ${res.status} - ${errorData.error || res.statusText}`,
-        );
+      if (!response.ok) {
+        let message = `Error al subir la imagen (${response.status})`;
+        try {
+          const errorData = await response.json();
+          message += `: ${errorData.error || response.statusText}`;
+        } catch {}
+        throw new Error(message);
       }
 
-      return await res.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Error en uploadImage:', error);
       throw error;

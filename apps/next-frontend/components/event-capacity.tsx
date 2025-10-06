@@ -148,7 +148,8 @@ export default function EventCapacity({
     );
   };
 
-  const _renderBasicCapacityDialog = () => (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const renderBasicCapacityDialog = () => (
     <>
       <DialogHeader>
         <DialogTitle className="text-stone-100">Cupo máximo</DialogTitle>

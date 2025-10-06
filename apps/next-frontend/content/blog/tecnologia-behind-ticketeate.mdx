@@ -1,0 +1,132 @@
+---
+title: "La Tecnología detrás de Ticketeate"
+excerpt: "Descubre la arquitectura tecnológica que hace posible una experiencia de eventos fluida y escalable"
+category: "ingenieria"
+featured: false
+publishedAt: "2024-12-26"
+updatedAt: "2024-12-28"
+author: "Carlos López"
+tags: ["tecnologia", "arquitectura", "desarrollo"]
+image: "/icon-ticketeate.png"
+---
+
+# La Tecnología detrás de Ticketeate 🚀
+
+En este artículo te contamos sobre la arquitectura y decisiones tecnológicas que sustentan Ticketeate, permitiéndonos ofrecer una experiencia rápida, confiable y escalable.
+
+## Stack Tecnológico Principal
+
+### Frontend
+- **Next.js 15**: Framework React para rendering híbrido
+- **TypeScript**: Tipado estático para mayor confiabilidad
+- **Tailwind CSS**: System de diseño consistente
+- **Framer Motion**: Animaciones fluidas y profesionales
+
+### Backend
+- **Node.js**: Runtime JavaScript en el servidor
+- **Express/Hono**: Frameworks para APIs REST
+- **TypeScript**: También en el backend para consistencia
+- **Prisma ORM**: Database access layer robusto
+
+### Infrastructure
+- **AWS Lambda**: Serverless functions para background jobs
+- **AWS ECS Fargate**: Containers escalables para APIs
+- **Vercel**: Hosting y deployment automático
+- **PostgreSQL**: Base de datos principal
+- **Redis**: Cache y session management
+
+## Arquitectura de Microservicios
+
+Adoptamos una arquitectura de microservicios que nos permite:
+
+### Separación de Responsabilidades
+```
+┌─────────────────┬─────────────────┬─────────────────┐
+│   svc-events    │   svc-users     │  svc-checkout   │
+│                 │                 │                 │
+│   - Eventos     │   - Usuarios    │   - Pagos       │
+│   - Categorías  │   - Autenticación│   - Tickets     │
+│   - Ubicaciones  │   - Perfiles    │   - Facturación │
+└─────────────────┴─────────────────┴─────────────────┘
+```
+
+### Beneficios
+- 🚀 **Deployment independiente** de servicios
+- 🔧 **Mantenimiento facilitado** y debugging
+- 📈 **Escalabilidad granular** por componente
+- 👥 **Equipos distribuidos** pueden trabajar en paralelo
+
+## Manejo de Picos de Tráfico
+
+### Estrategias de Escalabilidad
+- **Auto-scaling**: ECS Fargate ajusta recursos automáticamente
+- **CDN**: Distribución global de assets estáticos
+- **Queues**: AWS SQS para jobs asíncronos
+- **Database clustering**: Read replicas para queries pesadas
+
+### Métricas Monitoreadas
+- 📊 **Throughput**: Requests por segundo
+- ⏱️ **Latencia**: Tiempo de respuesta promedio
+- 🛡️ **Disponibilidad**: Uptime del sistema
+- 💾 **Uso de recursos**: CPU, memoria, disco
+
+## Security First
+
+### Autenticación y Autorización
+- **JWT tokens**: Stateless authentication
+- **OAuth integration**: Login con Google/Facebook
+- **Role-based access**: Permisos granulares
+- **Rate limiting**: Protección contra abuse
+
+### Datos Sensibles
+- 🔐 **Encryption at rest**: AES-256 en bases de datos
+- 🔒 **HTTPS everywhere**: TLS 1.3 obligatorio
+- 🛡️ **Input validation**: Sanitización de todos los inputs
+- 📋 **Compliance**: GDPR y protección de datos argentina
+
+## Performance Optimizations
+
+### Frontend
+- **Image optimization**: Next.js Image component
+- **Code splitting**: Lazy loading de módulos
+- **Bundle analysis**: Monitoreo del tamaño de bundles
+- **Caching strategies**: Service workers para assets
+
+### Backend
+- **Database indexing**: Optimización de queries frecuentes
+- **Connection pooling**: Gestión eficiente de DB connections
+- **Query optimization**: Prisma query analysis
+- **Caching layers**: Redis para datos frecuentemente accedidos
+
+## DevOps y Monitoring
+
+### CI/CD Pipeline
+```bash
+git push → GitHub Actions → Tests → Build → Deploy
+```
+
+### Observability
+- **Logging centralized**: AWS CloudWatch
+- **Error tracking**: Sentry integration
+- **Performance monitoring**: Real User Monitoring (RUM)
+- **Database monitoring**: Query performance tracking
+
+## Future Roadmap
+
+### Tecnologías en Evaluación
+- **GraphQL**: Para queries más eficientes
+- **WebSockets**: Real-time features
+- **Serverless edge**: Edge-computed funciones
+- **AI/ML**: Personalized recommendations
+
+### Mejoras Continuas
+- 🔄 **Monitoring automation**: Alertas inteligentes
+- 📈 **Performance budgets**: Métricas automáticas
+- 🧪 **Feature flags**: Deployment gradual
+- 🔍 **Analytics avanzados**: User behavior insights
+
+---
+
+¿Te interesa conocer más sobre algún aspecto específico de nuestra tecnología? [Síguenos en LinkedIn](https://linkedin.com/company/ticketeate) para más contenido técnico.
+
+¿Eres developer y te gustaría trabajar con nosotros? [Mira nuestras posiciones abiertas](/personas) 👨‍💻

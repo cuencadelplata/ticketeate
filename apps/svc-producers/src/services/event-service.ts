@@ -86,14 +86,15 @@ export interface EventWithImages {
 export class EventService {
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
-      await prisma.usuarios.upsert({
-        where: { usuarioid: data.clerkUserId },
+      await prisma.user.upsert({
+        where: { id: data.clerkUserId },
         update: {},
         create: {
-          usuarioid: data.clerkUserId,
-          nombre: 'Usuario',
-          apellido: 'Clerk',
+          id: data.clerkUserId,
+          name: 'Usuario Clerk',
           email: `${data.clerkUserId}@clerk.user`,
+          emailVerified: false,
+          updatedAt: new Date(),
         },
       });
 

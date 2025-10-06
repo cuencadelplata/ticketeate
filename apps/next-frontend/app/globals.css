@@ -131,3 +131,23 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos específicos para PixelBlast canvas */
+canvas[data-engine="three.js r180"] {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  object-fit: cover !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Clase global para Instrument Serif */
+@layer utilities {
+  .font-instrument-serif {
+    font-family: 'Instrument Serif', serif;
+  }
+}

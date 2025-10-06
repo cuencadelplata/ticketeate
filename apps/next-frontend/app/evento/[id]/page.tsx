@@ -2,15 +2,16 @@
 
 import NavbarHome from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
-import Image from 'next/image';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
+import { useReservation } from '@/hooks/use-reservation';
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
 export default function EventoPage() {
   const params = useParams();
+  const router = useRouter();
   const id =
     typeof params?.id === 'string'
       ? params.id
@@ -23,6 +24,19 @@ export default function EventoPage() {
   });
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [displayAddress, setDisplayAddress] = useState<string | null>(null);
+
+  // Hook para manejar reserva temporal
+  const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
+    useReservation();
+
+  // Función para manejar el clic en "Comprar Entradas"
+  const handleComprarEntradas = () => {
+    if (id) {
+      // Iniciar reserva temporal de 5 minutos
+      startReservation(id, 300);
+      router.push(`/comprar?evento=${id}`);
+    }
+  };
 
   useEffect(() => {
     const coordRegex = /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/;
@@ -70,6 +84,26 @@ export default function EventoPage() {
 
   return (
     <main className="min-h-screen">
+      {/* Banner de reserva temporal */}
+      {isReserved && isReservationActive(id) && timeLeft > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
+          <div className="flex justify-between items-center px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-yellow-800 text-lg">
+                Tiempo restante: {formatTimeLeft(timeLeft)}
+              </span>
+              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {coverImage ? (
         <div
           style={{ backgroundImage: `url(${coverImage})` }}
@@ -79,7 +113,9 @@ export default function EventoPage() {
         <div className="fixed left-0 top-0 z-5 h-full w-full bg-gradient-to-b from-neutral-950 to-neutral-900" />
       )}
 
-      <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
+      <div
+        className={`relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500 ${isReserved && isReservationActive(id) && timeLeft > 0 ? 'pt-20' : ''}`}
+      >
         <NavbarHome />
         <div className="mx-auto max-w-[68rem] space-y-2 px-20 pb-3 pt-10">
           {isLoading && <div className="text-orange-100">Cargando evento...</div>}
@@ -410,7 +446,10 @@ export default function EventoPage() {
                 )}
 
                 <div className="rounded-xl border-1 bg-stone-900 bg-opacity-60 p-2">
-                  <button className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200">
+                  <button
+                    onClick={handleComprarEntradas}
+                    className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 transition-colors"
+                  >
                     Comprar Entradas
                   </button>
                 </div>

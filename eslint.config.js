@@ -93,7 +93,19 @@ module.exports = [
   ,
   HTMLOListElement: "readonly"
         ,
-        KeyboardEvent: "readonly"
+        KeyboardEvent: "readonly",
+        // Browser APIs for WebGL and animation
+        ResizeObserver: "readonly",
+        requestAnimationFrame: "readonly",
+        cancelAnimationFrame: "readonly",
+        WebGL2RenderingContext: "readonly",
+        PointerEvent: "readonly",
+        // Additional globals for Next.js API routes and components
+        Request: "readonly",
+        Response: "readonly",
+        FormData: "readonly",
+        alert: "readonly",
+        user: "readonly"
       }
     },
     plugins: {
