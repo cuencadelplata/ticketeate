@@ -20,8 +20,7 @@ import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { useEvents, useDeleteEvent, useAllEvents } from '@/hooks/use-events';
-import { useAuth } from '@clerk/nextjs';
+import { useEvents, useDeleteEvent } from '@/hooks/use-events';
 import type { Event } from '@/types/events';
 
 // formatear fecha
@@ -128,8 +127,6 @@ export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
-  const { data: allEvents = [] } = useAllEvents();
-  const { userId } = useAuth();
   const deleteEventMutation = useDeleteEvent();
 
   //force reload
@@ -142,12 +139,9 @@ export default function EventosPage() {
     }
   };
 
-  // Usar eventos del usuario si hay; si no, mostrar públicos como fallback
-  const baseEvents = (events && events.length > 0 ? events : allEvents) as Event[];
-
   // filter events
-  const proximosEvents = baseEvents.filter((event) => !isEventPast(event));
-  const pasadosEvents = baseEvents.filter((event) => isEventPast(event));
+  const proximosEvents = events.filter((event) => !isEventPast(event));
+  const pasadosEvents = events.filter((event) => isEventPast(event));
   const filteredEvents = activeTab === 'proximos' ? proximosEvents : pasadosEvents;
 
   const hasEvents = filteredEvents.length > 0;
@@ -465,31 +459,29 @@ export default function EventosPage() {
                             </div>
                           )}
 
-                          {/* Acciones (solo si el evento es del usuario) */}
-                          {isOwner && (
-                            <div className="flex items-center gap-3 pt-2">
-                              <Link href={`/evento/manage/${event.eventoid}`}>
-                                <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
-                                  Gestionar evento
-                                  <ArrowRight className="h-4 w-4" />
-                                </button>
-                              </Link>
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await deleteEventMutation.mutateAsync(event.eventoid);
-                                    toast.success('Evento eliminado');
-                                  } catch (e: any) {
-                                    toast.error(e?.message || 'Error al eliminar');
-                                  }
-                                }}
-                                className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Eliminar
+                          {/* Acciones */}
+                          <div className="flex items-center gap-3 pt-2">
+                            <Link href={`/evento/manage/${event.eventoid}`}>
+                              <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                Gestionar evento
+                                <ArrowRight className="h-4 w-4" />
                               </button>
-                            </div>
-                          )}
+                            </Link>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await deleteEventMutation.mutateAsync(event.eventoid);
+                                  toast.success('Evento eliminado');
+                                } catch (e: any) {
+                                  toast.error(e?.message || 'Error al eliminar');
+                                }
+                              }}
+                              className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Eliminar
+                            </button>
+                          </div>
                         </div>
 
                         {/* Imagen del evento */}

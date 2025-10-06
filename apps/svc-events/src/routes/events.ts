@@ -52,11 +52,11 @@ events.use(
 // GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
 events.get('/all', async (c) => {
   try {
-    const publicEvents = await EventService.getAllPublicEvents();
-    const safe = toJSONSafe(publicEvents) as unknown as any[];
+    const events = await EventService.getAllPublicEvents();
+
     return c.json({
-      events: safe,
-      total: safe.length,
+      events,
+      total: events.length,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -78,7 +78,7 @@ events.get('/public/:id', async (c) => {
     if (!event) {
       return c.json({ error: 'Evento no encontrado' }, 404);
     }
-    return c.json({ event: toJSONSafe(event) });
+    return c.json({ event });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error getting public event:', error);
