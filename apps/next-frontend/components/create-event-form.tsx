@@ -265,7 +265,7 @@ export default function CreateEventForm() {
     }
 
     // Verificar que el usuario tenga rol de ORGANIZADOR
-    const userRole = (session as any).role;
+    const userRole = (session as any).user?.role;
     if (userRole !== 'ORGANIZADOR') {
       toast.error('Solo los organizadores pueden crear eventos');
       return;

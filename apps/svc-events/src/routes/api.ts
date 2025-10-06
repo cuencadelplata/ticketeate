@@ -1,12 +1,28 @@
 import { Hono } from 'hono';
-import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
+import { auth } from '@repo/db/auth';
 import { events } from './events';
 
 const api = new Hono();
 
-api.use('*', clerkMiddleware());
+// Better Auth middleware para todas las rutas
+api.use('*', async (c, next) => {
+  try {
+    const session = await auth.api.getSession({ 
+      headers: c.req.raw.headers 
+    });
+    
+    if (session) {
+      c.set('user', session.user);
+      c.set('session', session);
+    }
+    
+    await next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    await next();
+  }
+});
 
-// clerk auth middleware inyectado en todas las rutas
 api.route('/events', events);
 
 // GET /api/users/:id

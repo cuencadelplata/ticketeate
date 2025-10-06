@@ -43,7 +43,7 @@ export interface CreateEventData {
     }>;
     backgroundImage?: string;
   };
-  clerkUserId: string;
+  userId: string;
   ticket_types?: Array<{
     nombre: string;
     descripcion?: string;
@@ -94,28 +94,56 @@ export interface EventWithImages {
     stock_disponible: number;
     max_por_usuario: number;
   }>;
-  catevento?: Array<{
+  categoriaevento?: {
     categoriaeventoid: bigint;
-    categoriaevento: {
-      nombre: string;
-      descripcion?: string;
-    };
-  }>;
+    nombre: string;
+    descripcion?: string;
+  };
 }
 
 export class EventService {
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
       await prisma.usuarios.upsert({
-        where: { usuarioid: data.clerkUserId },
+        where: { usuarioid: data.userId },
         update: {},
         create: {
-          usuarioid: data.clerkUserId,
+          usuarioid: data.userId,
           nombre: 'Usuario',
-          apellido: 'Clerk',
-          email: `${data.clerkUserId}@clerk.user`,
+          apellido: 'Better Auth',
+          email: `${data.userId}@better-auth.user`,
         },
       });
+
+      // Determinar la categoría del evento
+      let categoriaeventoid = BigInt(1); // Categoría por defecto
+      
+      if (data.categorias && data.categorias.length > 0) {
+        const primeraCategoria = data.categorias[0];
+        
+        if (primeraCategoria.id) {
+          // Si tiene ID, usar ese ID
+          categoriaeventoid = BigInt(primeraCategoria.id);
+        } else if (primeraCategoria.nombre) {
+          // Si no tiene ID pero tiene nombre, buscar o crear la categoría
+          const categoriaExistente = await prisma.categoriaevento.findFirst({
+            where: { nombre: primeraCategoria.nombre }
+          });
+          
+          if (categoriaExistente) {
+            categoriaeventoid = categoriaExistente.categoriaeventoid;
+          } else {
+            // Crear nueva categoría
+            const nuevaCategoria = await prisma.categoriaevento.create({
+              data: {
+                nombre: primeraCategoria.nombre,
+                descripcion: null
+              }
+            });
+            categoriaeventoid = nuevaCategoria.categoriaeventoid;
+          }
+        }
+      }
 
       // Crear el evento
       const evento = await prisma.eventos.create({
@@ -125,7 +153,8 @@ export class EventService {
           descripcion: data.descripcion,
           ubicacion: data.ubicacion || '',
           mapa_evento: data.eventMap ?? {},
-          creadorid: data.clerkUserId,
+          creadorid: data.userId,
+          categoriaeventoid: categoriaeventoid,
         },
       });
 
@@ -214,11 +243,6 @@ export class EventService {
 
       // El estado se maneja directamente en el modelo eventos
 
-      // Crear categorías del evento si se enviaron
-      if (data.categorias && data.categorias.length > 0) {
-        await this.addCategoriesToEvent(evento.eventoid, data.categorias);
-      }
-
       // get evento con sus imágenes y fechas
       const eventoCompleto = await prisma.eventos.findUnique({
         where: { eventoid: evento.eventoid },
@@ -227,11 +251,7 @@ export class EventService {
           fechas_evento: true,
           categoriaentrada: true,
           categorias_entrada: true,
-          catevento: {
-            include: {
-              categoriaevento: true,
-            },
-          },
+          categoriaevento: true,
         },
       });
 
@@ -251,13 +271,43 @@ export class EventService {
 
   static async updateEvent(
     id: string,
-    clerkUserId: string,
-    data: Partial<Omit<CreateEventData, 'clerkUserId'>>,
+    userId: string,
+    data: Partial<Omit<CreateEventData, 'userId'>>,
   ): Promise<EventWithImages> {
     try {
       const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
       if (!existing) throw new Error('Evento no encontrado');
-      if (existing.creadorid !== clerkUserId) throw new Error('No autorizado');
+      if (existing.creadorid !== userId) throw new Error('No autorizado');
+
+      // Determinar la categoría del evento si se proporciona
+      let categoriaeventoid = undefined;
+      
+      if (data.categorias && data.categorias.length > 0) {
+        const primeraCategoria = data.categorias[0];
+        
+        if (primeraCategoria.id) {
+          // Si tiene ID, usar ese ID
+          categoriaeventoid = BigInt(primeraCategoria.id);
+        } else if (primeraCategoria.nombre) {
+          // Si no tiene ID pero tiene nombre, buscar o crear la categoría
+          const categoriaExistente = await prisma.categoriaevento.findFirst({
+            where: { nombre: primeraCategoria.nombre }
+          });
+          
+          if (categoriaExistente) {
+            categoriaeventoid = categoriaExistente.categoriaeventoid;
+          } else {
+            // Crear nueva categoría
+            const nuevaCategoria = await prisma.categoriaevento.create({
+              data: {
+                nombre: primeraCategoria.nombre,
+                descripcion: null
+              }
+            });
+            categoriaeventoid = nuevaCategoria.categoriaeventoid;
+          }
+        }
+      }
 
       const updated = await prisma.eventos.update({
         where: { eventoid: id },
@@ -266,6 +316,7 @@ export class EventService {
           descripcion: data.descripcion ?? undefined,
           ubicacion: data.ubicacion ?? undefined,
           mapa_evento: data.eventMap ?? undefined,
+          categoriaeventoid: categoriaeventoid,
         },
       });
 
@@ -323,14 +374,6 @@ export class EventService {
         }
       }
 
-      // Opcional: actualizar categorías (reemplazo simple)
-      if (data.categorias) {
-        await prisma.catevento.deleteMany({ where: { eventoid: id } });
-        if (data.categorias.length > 0) {
-          await this.addCategoriesToEvent(id, data.categorias);
-        }
-      }
-
       const full = await prisma.eventos.findUnique({
         where: { eventoid: updated.eventoid },
         include: {
@@ -338,11 +381,7 @@ export class EventService {
           fechas_evento: true,
           categoriaentrada: true,
           categorias_entrada: true,
-          catevento: {
-            include: {
-              categoriaevento: true,
-            },
-          },
+          categoriaevento: true,
         },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
@@ -356,11 +395,11 @@ export class EventService {
     }
   }
 
-  static async softDeleteEvent(id: string, clerkUserId: string): Promise<void> {
+  static async softDeleteEvent(id: string, userId: string): Promise<void> {
     try {
       const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
       if (!existing) throw new Error('Evento no encontrado');
-      if (existing.creadorid !== clerkUserId) throw new Error('No autorizado');
+      if (existing.creadorid !== userId) throw new Error('No autorizado');
 
       // Borrado lógico: crear registro de estado CANCELADO
       await prisma.evento_estado.create({
@@ -368,7 +407,7 @@ export class EventService {
           stateventid: randomUUID(),
           eventoid: id,
           Estado: 'CANCELADO',
-          usuarioid: clerkUserId,
+          usuarioid: userId,
         },
       });
     } catch (error) {
@@ -388,11 +427,7 @@ export class EventService {
           imagenes_evento: true,
           fechas_evento: true,
           stock_entrada: true,
-          catevento: {
-            include: {
-              categoriaevento: true,
-            },
-          },
+          categoriaevento: true,
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -412,20 +447,16 @@ export class EventService {
     }
   }
 
-  static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
+  static async getUserEvents(userId: string): Promise<EventWithImages[]> {
     try {
       const eventos = await prisma.eventos.findMany({
         where: {
-          creadorid: clerkUserId,
+          creadorid: userId,
         },
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          catevento: {
-            include: {
-              categoriaevento: true,
-            },
-          },
+          categoriaevento: true,
           evento_estado: {
             orderBy: {
               fecha_de_cambio: 'desc',
@@ -456,11 +487,7 @@ export class EventService {
           fechas_evento: true,
           categoriaentrada: true,
           categorias_entrada: true,
-          catevento: {
-            include: {
-              categoriaevento: true,
-            },
-          },
+          categoriaevento: true,
         },
         orderBy: {
           fecha_creacion: 'desc',
@@ -494,11 +521,7 @@ export class EventService {
         fechas_evento: true,
         categoriaentrada: true,
         categorias_entrada: true,
-        catevento: {
-          include: {
-            categoriaevento: true,
-          },
-        },
+        categoriaevento: true,
       },
     });
 
@@ -512,60 +535,4 @@ export class EventService {
     return null;
   }
 
-  static async listEventCategories(eventId: string) {
-    const links = await prisma.catevento.findMany({
-      where: { eventoid: eventId },
-      include: { categoriaevento: true },
-    });
-    return links.map(
-      (l: {
-        categoriaeventoid: bigint;
-        categoriaevento: { nombre: string; descripcion: string | null };
-      }) => ({
-        categoriaeventoid: l.categoriaeventoid,
-        nombre: l.categoriaevento.nombre,
-        descripcion: l.categoriaevento.descripcion ?? undefined,
-      }),
-    );
-  }
-
-  static async addCategoriesToEvent(
-    eventId: string,
-    categories: Array<{ id?: number; nombre?: string }>,
-  ) {
-    // ensure categories exist (by id or create by nombre)
-    const ensuredIds: number[] = [];
-    for (const c of categories) {
-      if (c.id) {
-        ensuredIds.push(c.id);
-      } else if (c.nombre) {
-        const up = await prisma.categoriaevento.upsert({
-          where: { nombre: c.nombre },
-          update: {},
-          create: { nombre: c.nombre },
-        });
-        ensuredIds.push(Number(up.categoriaeventoid));
-      }
-    }
-    // link
-    for (const catId of ensuredIds) {
-      await prisma.catevento.upsert({
-        where: {
-          eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(catId) },
-        },
-        update: {},
-        create: { eventoid: eventId, categoriaeventoid: BigInt(catId) },
-      });
-    }
-    return this.listEventCategories(eventId);
-  }
-
-  static async removeCategoryFromEvent(eventId: string, categoryId: number) {
-    await prisma.catevento.delete({
-      where: {
-        eventoid_categoriaeventoid: { eventoid: eventId, categoriaeventoid: BigInt(categoryId) },
-      },
-    });
-    return this.listEventCategories(eventId);
-  }
 }

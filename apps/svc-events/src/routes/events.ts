@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
+import { prisma } from '@repo/db';
 import { config } from 'dotenv';
 
 // Cargar variables de entorno
@@ -75,8 +75,8 @@ events.get('/public/:id', async (c) => {
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -107,7 +107,7 @@ events.post('/', async (c) => {
         fecha_fin: new Date(fecha.fecha_fin),
       })),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
-      clerkUserId: auth.userId,
+      userId: user.id,
       ticket_types: body.ticket_types,
       categorias: body.categorias,
     };
@@ -137,8 +137,8 @@ events.post('/', async (c) => {
 // POST /api/events/upload-image - Subir imagen para un evento
 events.post('/upload-image', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -165,7 +165,7 @@ events.post('/upload-image', async (c) => {
         format: uploadResult.format,
         size: uploadResult.size,
       },
-      userId: auth.userId,
+      userId: user.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -179,20 +179,46 @@ events.post('/upload-image', async (c) => {
   }
 });
 
+// GET /api/events/categories - Obtener todas las categorías disponibles
+events.get('/categories', async (c) => {
+  try {
+    const categories = await prisma.categoriaevento.findMany({
+      orderBy: { nombre: 'asc' },
+    });
+
+    return c.json({
+      categories: categories.map(cat => ({
+        id: Number(cat.categoriaeventoid),
+        name: cat.nombre,
+        description: cat.descripcion,
+      })),
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error getting categories:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500,
+    );
+  }
+});
+
 // GET /api/events - Obtener eventos del usuario
 events.get('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
-    const events = await EventService.getUserEvents(auth.userId);
+    const events = await EventService.getUserEvents(user.id);
 
     return c.json({
       events,
       total: events.length,
-      userId: auth.userId,
+      userId: user.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -209,8 +235,8 @@ events.get('/', async (c) => {
 // GET /api/events/:id - Obtener evento específico
 events.get('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -224,7 +250,7 @@ events.get('/:id', async (c) => {
 
     return c.json({
       event,
-      userId: auth.userId,
+      userId: user.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -241,8 +267,8 @@ events.get('/:id', async (c) => {
 // PUT /api/events/:id - Actualizar un evento
 events.put('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -283,8 +309,8 @@ events.put('/:id', async (c) => {
 // DELETE /api/events/:id - Borrado lógico
 events.delete('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -304,8 +330,8 @@ events.delete('/:id', async (c) => {
 // POST /api/events/:id/categories - agregar categorías a un evento
 events.post('/:id/categories', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -333,8 +359,8 @@ events.post('/:id/categories', async (c) => {
 // DELETE /api/events/:id/categories/:categoryId - quitar categoría de un evento
 events.delete('/:id/categories/:categoryId', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const user = c.get('user');
+    if (!user?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 

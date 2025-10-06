@@ -29,13 +29,11 @@ export interface Event {
     Estado: string;
     fecha_de_cambio: string | Date;
   }>;
-  catevento?: Array<{
+  categoriaevento?: {
     categoriaeventoid: bigint;
-    categoriaevento: {
-      nombre: string;
-      descripcion?: string;
-    };
-  }>;
+    nombre: string;
+    descripcion?: string;
+  };
 }
 
 export interface CreateEventData {

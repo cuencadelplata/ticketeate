@@ -1,8 +1,6 @@
 import { betterAuth } from 'better-auth';
-import { nextCookies } from 'better-auth/next-js';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { customSession } from 'better-auth/plugins';
-import { prisma } from '@repo/db';
+import { prisma } from './index';
 
 if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error('BETTER_AUTH_SECRET is not set');
@@ -17,36 +15,6 @@ export const auth = betterAuth({
   // Email & Password habilitado
   emailAndPassword: { enabled: true },
 
-  plugins: [
-    customSession(async ({ user, session }) => {
-      // Obtener el usuario completo de la base de datos para incluir el rol
-      const fullUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          emailVerified: true,
-          image: true,
-          createdAt: true,
-          updatedAt: true,
-        }
-      });
-
-      return {
-        user: {
-          ...user,
-          role: fullUser?.role || 'USUARIO',
-        },
-        session: {
-          ...session,
-          role: fullUser?.role || 'USUARIO',
-        }
-      };
-    }),
-  ],
-
   jwt: {
     enabled: true,
     async onGenerate({ token, user }: { token: Record<string, any>; user: { role?: string } }) {
@@ -56,6 +24,10 @@ export const auth = betterAuth({
   },
 
   callbacks: {
+    async session({ session, user }: { session: Record<string, any>; user: { role?: string } }) {
+      (session as any).role = (user as any)?.role ?? 'USUARIO';
+      return session;
+    },
     async signIn({ user }: { user: { id: string; role?: string } }) {
       // Si el user no tiene rol, asignar USUARIO por defecto
       if (!(user as any)?.role) {

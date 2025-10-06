@@ -53,9 +53,9 @@ const getEventStatus = (event: Event) => {
   return estadoActual || 'OCULTO';
 };
 
-// Obtener categorías del evento
-const getEventCategories = (event: Event) => {
-  return event.catevento?.map((cat) => cat.categoriaevento.nombre) || [];
+// Obtener categoría del evento
+const getEventCategory = (event: Event) => {
+  return event.categoriaevento?.nombre || 'Sin categoría';
 };
 
 // Obtener imagen de portada
@@ -205,7 +205,7 @@ export default function EventosPage() {
                 const hasLocation = !!event.ubicacion;
                 const coverImage = getCoverImage(event);
                 const eventStatus = getEventStatus(event);
-                const categories = getEventCategories(event);
+                const category = getEventCategory(event);
                 const hasTickets = event.stock_entrada && event.stock_entrada.length > 0;
 
                 return (
@@ -315,23 +315,13 @@ export default function EventosPage() {
                             )}
                           </div>
 
-                          {/* Categorías */}
-                          {categories.length > 0 && (
+                          {/* Categoría */}
+                          {category !== 'Sin categoría' && (
                             <div className="flex flex-wrap gap-2">
-                              {categories.slice(0, 3).map((category, index) => (
-                                <span
-                                  key={index}
-                                  className="flex items-center gap-1 rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-300"
-                                >
-                                  <Tag className="h-3 w-3" />
-                                  {category}
-                                </span>
-                              ))}
-                              {categories.length > 3 && (
-                                <span className="rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-400">
-                                  +{categories.length - 3} más
-                                </span>
-                              )}
+                              <span className="flex items-center gap-1 rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-300">
+                                <Tag className="h-3 w-3" />
+                                {category}
+                              </span>
                             </div>
                           )}
 
