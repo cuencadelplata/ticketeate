@@ -23,7 +23,6 @@ export default function RoleAuthModal({
   defaultRole = 'USUARIO',
 }: Props) {
   const sp = useSearchParams();
-  const redirectUrl = sp.get('redirect_url') || '/';
   const { data: session } = useSession();
 
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@repo/db';
 import { CloudinaryProfileService } from '@/lib/cloudinary-profile';
+import { Buffer } from 'buffer';
 
 export async function POST(request: NextRequest) {
   try {
