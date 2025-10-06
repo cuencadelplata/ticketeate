@@ -11,7 +11,8 @@ export const authClient = createAuthClient({
 
 export const {
   useSession, // hook: { data, isAuthenticated, isLoading, error }
-  signIn, // signIn.email({ email, password })
+  signIn, // signIn.email({ email, password }), signIn.social({ provider: 'google' })
   signUp, // signUp.email({ email, password })
   signOut, // cierra la sesion actual
+  updateUser, // actualizar datos del usuario
 } = authClient;
