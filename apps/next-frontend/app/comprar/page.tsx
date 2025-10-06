@@ -12,6 +12,7 @@ import { EventHeader } from '@/components/comprar/EventHeader';
 import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
 import { SuccessCard } from '@/components/comprar/SuccessCard';
+import { StripeSuccessMessage } from '@/components/comprar/StripeSuccessMessage';
 
 type SectorKey = string;
 
@@ -62,6 +63,7 @@ export default function ComprarPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = searchParams.get('evento');
+  const stripeStatus = searchParams.get('stripe_status');
   const queryClient = useQueryClient();
 
   const [idUsuario] = useState<number>(1);
@@ -75,6 +77,7 @@ export default function ComprarPage() {
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showStripeMessage, setShowStripeMessage] = useState(false);
   const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('');
@@ -194,6 +197,102 @@ export default function ComprarPage() {
     }
   }, [metodo]);
 
+  // Manejar éxito/cancelación de Stripe
+  useEffect(() => {
+    if (stripeStatus === 'success') {
+      // Asegurar que tenemos un evento seleccionado cuando viene de Stripe
+      if (eventId && !selectedEvent && eventData) {
+        setSelectedEvent(eventData);
+        setShowEventSelection(false);
+      }
+      
+      // Mostrar mensaje inicial de Stripe
+      setShowStripeMessage(true);
+      setMetodo('stripe');
+      
+      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
+      const url = new URL(window.location.href);
+      url.searchParams.delete('stripe_status');
+      window.history.replaceState({}, '', url.toString());
+      
+    } else if (stripeStatus === 'cancel') {
+      // Mostrar mensaje de cancelación
+      setError('El pago fue cancelado. Puedes intentar nuevamente.');
+      
+      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
+      const url = new URL(window.location.href);
+      url.searchParams.delete('stripe_status');
+      window.history.replaceState({}, '', url.toString());
+      
+      // Limpiar error después de unos segundos
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+  }, [stripeStatus, router, eventId, selectedEvent, eventData]);
+
+  // Función para continuar después del mensaje de Stripe
+  const handleStripeContinue = () => {
+    setShowStripeMessage(false);
+    
+    // Asegurar que el evento esté seleccionado y la interfaz configurada correctamente
+    const eventInfo = selectedEvent || eventData;
+    if (eventInfo) {
+      setSelectedEvent(eventInfo);
+      setShowEventSelection(false);
+      
+      // Configurar sector por defecto si no hay uno seleccionado
+      if (!sector) {
+        const dyn = buildSectorsFromEvent(eventInfo);
+        const firstSector = Object.keys(dyn)[0] || 'General';
+        setSector(firstSector);
+      }
+    }
+    
+    // Crear resultado simulado para mostrar la tarjeta de éxito
+    const mockResultado = {
+      reserva: {
+        id_reserva: 'stripe-' + Date.now(),
+        cantidad: cantidad,
+        estado: 'CONFIRMADA',
+      },
+      pago: {
+        metodo_pago: 'stripe',
+        estado: 'COMPLETADO',
+        monto_total: total,
+      },
+      evento: eventInfo ? {
+        titulo: eventInfo.titulo,
+        imagen_url: eventInfo.imagenes_evento?.[0]?.url || '/icon-ticketeate.png',
+        ubicacion: eventInfo.ubicacion,
+        fecha_hora: eventInfo.fechas_evento?.[0]?.fecha_hora,
+      } : {
+        titulo: 'Evento',
+        imagen_url: '/icon-ticketeate.png',
+        ubicacion: 'Ubicación',
+      },
+      entradas: Array.from({ length: cantidad }, (_, i) => ({
+        id_entrada: `stripe-entrada-${i + 1}`,
+        codigo_qr: `stripe-qr-${Date.now()}-${i}`,
+        estado: 'VALIDA',
+      })),
+      resumen: {
+        estado: 'Compra procesada exitosamente con Stripe',
+        total_entradas: cantidad,
+        precio_unitario: (total / cantidad).toFixed(2),
+        monto_total: total.toFixed(2),
+        metodo_pago: 'stripe',
+      },
+      ui_sector: sector || 'General',
+      ui_total: total,
+    };
+    setResultado(mockResultado);
+    setShowSuccess(true);
+    
+    console.log('Stripe continue - evento configurado:', eventInfo?.titulo);
+    console.log('Stripe continue - sector:', sector);
+  };
+
   const comprar = async () => {
     console.log('=== INICIANDO COMPRA ===');
     console.log('selectedEvent:', selectedEvent);
@@ -273,6 +372,12 @@ export default function ComprarPage() {
             quantity: cantidad,
             unit_price: unitUsd,
             currency: 'USD',
+            metadata: {
+              eventoid: selectedEvent.eventoid,
+              usuarioid: idUsuario,
+              cantidad,
+              sector,
+            },
           }),
         });
         const stripeData = await stripeRes.json();
@@ -311,15 +416,17 @@ export default function ComprarPage() {
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
 
-      // Resetear formulario después de 10 segundos
-      setTimeout(() => {
-        setShowSuccess(false);
-        setResultado(null);
-        setCantidad(1);
-        setSector('Entrada_General');
-        setMetodo('tarjeta_debito');
-        router.push('/'); // Redirigir al menú principal
-      }, 10000);
+      // Solo redirigir automáticamente para métodos de pago tradicionales, no para Stripe
+      if (metodo !== 'stripe') {
+        setTimeout(() => {
+          setShowSuccess(false);
+          setResultado(null);
+          setCantidad(1);
+          setSector('Entrada_General');
+          setMetodo('tarjeta_debito');
+          router.push('/'); // Redirigir al menú principal
+        }, 10000);
+      }
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
@@ -649,12 +756,18 @@ export default function ComprarPage() {
                 metodo={metodo}
                 reservaId={resultado.reserva?.id_reserva}
                 onDescargarPDF={descargarComprobantePDF}
+                onVolverAlMenu={() => router.push('/')}
                 formatARS={formatPrice}
               />
             )}
           </aside>
         </div>
       </div>
+      
+      {/* Mensaje de éxito de Stripe */}
+      {showStripeMessage && (
+        <StripeSuccessMessage onContinue={handleStripeContinue} />
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { title, quantity, unit_price, currency } = body ?? {};
+    const { title, quantity, unit_price, currency, metadata } = body ?? {};
     if (!title || !quantity || !unit_price || !currency) {
       return NextResponse.json({ error: 'Faltan campos' }, { status: 400 });
     }
@@ -27,10 +27,13 @@ export async function POST(request: NextRequest) {
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
     const baseUrl = `${protocol}://${host}`;
 
+    // Construir URLs con el evento incluido si está disponible en metadata
+    const eventParam = metadata?.eventoid ? `&evento=${metadata.eventoid}` : '';
+    
     const payload = {
       mode: 'payment',
-      success_url: `${baseUrl}/comprar?stripe_status=success`,
-      cancel_url: `${baseUrl}/comprar?stripe_status=cancel`,
+      success_url: `${baseUrl}/comprar?stripe_status=success${eventParam}`,
+      cancel_url: `${baseUrl}/comprar?stripe_status=cancel${eventParam}`,
       line_items: [
         {
           price_data: {
@@ -46,8 +49,8 @@ export async function POST(request: NextRequest) {
     // Construir cuerpo x-www-form-urlencoded con claves anidadas que espera Stripe
     const form = new URLSearchParams();
     form.append('mode', 'payment');
-    form.append('success_url', `${baseUrl}/comprar?stripe_status=success`);
-    form.append('cancel_url', `${baseUrl}/comprar?stripe_status=cancel`);
+    form.append('success_url', `${baseUrl}/comprar?stripe_status=success${eventParam}`);
+    form.append('cancel_url', `${baseUrl}/comprar?stripe_status=cancel${eventParam}`);
     form.append('line_items[0][price_data][currency]', String(currency).toLowerCase());
     form.append(
       'line_items[0][price_data][unit_amount]',
@@ -55,6 +58,13 @@ export async function POST(request: NextRequest) {
     );
     form.append('line_items[0][price_data][product_data][name]', title);
     form.append('line_items[0][quantity]', String(Number(quantity)));
+    
+    // Agregar metadata si está presente
+    if (metadata) {
+      Object.entries(metadata).forEach(([key, value]) => {
+        form.append(`metadata[${key}]`, String(value));
+      });
+    }
 
     const resp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
