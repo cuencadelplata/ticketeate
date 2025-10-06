@@ -32,7 +32,7 @@ export function EventsByCategory({
 
   return (
     <div className="py-16 bg-white">
-      <div className="max-w-full mx-auto px-2">
+      <div className="max-w-full mx-auto pt-10 px-2">
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="font-instrument-serif text-6xl bg-gradient-to-b from-black to-stone-900 bg-clip-text text-transparent mb-2 pb-2">
@@ -95,7 +95,7 @@ export function EventsByCategory({
         {/* Grid de eventos */}
         {eventsLoading ? (
           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="animate-pulse">
                 <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
                 <div className="space-y-2">

@@ -25,10 +25,11 @@ function slugToCategoryName(slug: string): string {
   ).join(' ');
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params }: CategoryPageProps) {
   const { data: categories = [] } = useCategories();
   
-  const categorySlug = params.categoria;
+  const resolvedParams = await params;
+  const categorySlug = resolvedParams.categoria;
   const categoryName = slugToCategoryName(categorySlug);
   
   // Buscar la categoría por nombre

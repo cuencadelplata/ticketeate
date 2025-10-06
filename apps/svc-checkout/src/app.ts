@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
+import { jwk } from 'hono/jwk';
 
 // Import routes
 import { apiRoutes } from './routes/api';
@@ -20,6 +21,17 @@ app.use(
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   }),
+);
+
+// JWK Authentication middleware for protected routes
+app.use(
+  '/api/*',
+  jwk({
+    jwks_uri: process.env.FRONTEND_URL 
+      ? `${process.env.FRONTEND_URL}/.well-known/jwks.json`
+      : 'http://localhost:3000/.well-known/jwks.json',
+    allow_anon: false, // Require authentication for API routes
+  })
 );
 
 // Routes

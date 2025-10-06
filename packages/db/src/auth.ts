@@ -1,6 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { prisma } from './index';
+import { PrismaClient } from '@prisma/client';
+import { config } from 'dotenv';
+
+// Cargar variables de entorno
+config();
+
+// Create prisma instance locally to avoid circular dependency
+const prisma = new PrismaClient();
 
 if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error('BETTER_AUTH_SECRET is not set');

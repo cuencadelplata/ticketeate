@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer';
 import { Hero } from '@/components/hero';
 import { CategorySelector } from '@/components/category-selector';
 import { useAllEvents } from '@/hooks/use-events';
+
 const estadoEvents: Record<string, string> = {
   ACTIVO: 'Disponibles',
   COMPLETADO: 'Completado',
@@ -122,7 +123,7 @@ export default function Home() {
 
             <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
               {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
+                ? Array.from({ length: 10 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
                       <div className="space-y-2">

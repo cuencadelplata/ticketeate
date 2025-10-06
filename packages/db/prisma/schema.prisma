@@ -10,10 +10,10 @@ datasource db {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model categoriaevento {
-  categoriaeventoid BigInt   @id @default(autoincrement())
+  categoriaeventoid Int      @id @default(autoincrement())
   nombre            String   @unique @db.VarChar(100)
   descripcion       String?
-  eventos           eventos[]
+  eventos           evento_categorias[]
 }
 
 
@@ -85,10 +85,9 @@ model eventos {
   ubicacion          String            @db.VarChar(255)
   fecha_creacion     DateTime          @default(now()) @db.Timestamptz(6)
   creadorid          String            @db.VarChar(255)
-  categoriaeventoid  BigInt
   mapa_evento        Json
   fecha_cambio       DateTime          @default(now()) @db.Timestamptz(6)
-  categoriaevento    categoriaevento   @relation(fields: [categoriaeventoid], references: [categoriaeventoid], onDelete: NoAction, onUpdate: NoAction)
+  evento_categorias  evento_categorias[]
   colas_evento       colas_evento[]
   estadisticas       estadisticas[]
   evento_estado      evento_estado[]
@@ -98,6 +97,16 @@ model eventos {
   logs_eventos       logs_eventos[]
   reservas           reservas[]
   stock_entrada      stock_entrada[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evento_categorias {
+  eventoid           String          @db.VarChar(255)
+  categoriaeventoid Int
+  eventos           eventos         @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  categoriaevento   categoriaevento @relation(fields: [categoriaeventoid], references: [categoriaeventoid], onDelete: Cascade)
+
+  @@id([eventoid, categoriaeventoid])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -299,4 +308,12 @@ enum Role {
   ORGANIZADOR
   COLABORADOR
   USUARIO
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model jwks {
+  id         String   @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
 }

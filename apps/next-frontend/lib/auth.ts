@@ -47,14 +47,6 @@ export const auth = betterAuth({
     }),
   ],
 
-  jwt: {
-    enabled: true,
-    async onGenerate({ token, user }: { token: Record<string, any>; user: { role?: string } }) {
-      (token as any).role = (user as any)?.role ?? 'USUARIO';
-      return token;
-    },
-  },
-
   callbacks: {
     async signIn({ user }: { user: { id: string; role?: string } }) {
       // Si el user no tiene rol, asignar USUARIO por defecto

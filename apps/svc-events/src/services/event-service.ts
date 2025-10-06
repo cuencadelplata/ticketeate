@@ -102,47 +102,96 @@ export interface EventWithImages {
 }
 
 export class EventService {
+  // Método para asegurar que existe una categoría por defecto
+  private static async ensureDefaultCategory(): Promise<number> {
+    // Buscar si ya existe una categoría por defecto
+    let categoriaDefault = await prisma.categoriaevento.findFirst({
+      where: { nombre: 'General' }
+    });
+
+    if (!categoriaDefault) {
+      // Crear categoría por defecto
+      categoriaDefault = await prisma.categoriaevento.create({
+        data: {
+          nombre: 'General',
+          descripcion: 'Categoría por defecto para eventos'
+        }
+      });
+    }
+
+    return categoriaDefault.categoriaeventoid;
+  }
+
   static async createEvent(data: CreateEventData): Promise<EventWithImages> {
     try {
-      await prisma.usuarios.upsert({
-        where: { usuarioid: data.userId },
-        update: {},
+      await prisma.user.upsert({
+        where: { id: data.userId },
+        update: {
+          updatedAt: new Date(),
+        },
         create: {
-          usuarioid: data.userId,
-          nombre: 'Usuario',
-          apellido: 'Better Auth',
+          id: data.userId,
+          name: 'Usuario Better Auth',
           email: `${data.userId}@better-auth.user`,
+          emailVerified: false,
+          role: 'USUARIO',
+          updatedAt: new Date(),
         },
       });
 
-      // Determinar la categoría del evento
-      let categoriaeventoid = BigInt(1); // Categoría por defecto
+      // Determinar las categorías del evento
+      const categoriaIds: number[] = [];
       
       if (data.categorias && data.categorias.length > 0) {
-        const primeraCategoria = data.categorias[0];
-        
-        if (primeraCategoria.id) {
-          // Si tiene ID, usar ese ID
-          categoriaeventoid = BigInt(primeraCategoria.id);
-        } else if (primeraCategoria.nombre) {
-          // Si no tiene ID pero tiene nombre, buscar o crear la categoría
-          const categoriaExistente = await prisma.categoriaevento.findFirst({
-            where: { nombre: primeraCategoria.nombre }
-          });
+        for (const categoria of data.categorias) {
+          let categoriaId: number;
           
-          if (categoriaExistente) {
-            categoriaeventoid = categoriaExistente.categoriaeventoid;
-          } else {
-            // Crear nueva categoría
-            const nuevaCategoria = await prisma.categoriaevento.create({
-              data: {
-                nombre: primeraCategoria.nombre,
-                descripcion: null
-              }
+          if (categoria.id) {
+            // Si tiene ID, buscar si existe en la BD
+            const categoriaExistente = await prisma.categoriaevento.findUnique({
+              where: { categoriaeventoid: parseInt(categoria.id) }
             });
-            categoriaeventoid = nuevaCategoria.categoriaeventoid;
+            
+            if (categoriaExistente) {
+              categoriaId = categoriaExistente.categoriaeventoid;
+            } else {
+              // Si no existe, crear nueva categoría con el nombre
+              const nuevaCategoria = await prisma.categoriaevento.create({
+                data: {
+                  nombre: categoria.nombre || `Categoría ${categoria.id}`,
+                  descripcion: null
+                }
+              });
+              categoriaId = nuevaCategoria.categoriaeventoid;
+            }
+          } else if (categoria.nombre) {
+            // Si no tiene ID pero tiene nombre, buscar o crear la categoría
+            const categoriaExistente = await prisma.categoriaevento.findFirst({
+              where: { nombre: categoria.nombre }
+            });
+            
+            if (categoriaExistente) {
+              categoriaId = categoriaExistente.categoriaeventoid;
+            } else {
+              // Crear nueva categoría
+              const nuevaCategoria = await prisma.categoriaevento.create({
+                data: {
+                  nombre: categoria.nombre,
+                  descripcion: null
+                }
+              });
+              categoriaId = nuevaCategoria.categoriaeventoid;
+            }
+          } else {
+            // Si no tiene ni ID ni nombre, usar categoría por defecto
+            categoriaId = await this.ensureDefaultCategory();
           }
+          
+          categoriaIds.push(categoriaId);
         }
+      } else {
+        // Si no hay categorías, usar categoría por defecto
+        categoriaIds.push(await this.ensureDefaultCategory());
       }
 
       // Crear el evento
@@ -154,7 +203,11 @@ export class EventService {
           ubicacion: data.ubicacion || '',
           mapa_evento: data.eventMap ?? {},
           creadorid: data.userId,
-          categoriaeventoid: categoriaeventoid,
+          evento_categorias: {
+            create: categoriaIds.map(categoriaId => ({
+              categoriaeventoid: categoriaId
+            }))
+          }
         },
       });
 
@@ -249,9 +302,11 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
-          categoriaentrada: true,
-          categorias_entrada: true,
-          categoriaevento: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
         },
       });
 
