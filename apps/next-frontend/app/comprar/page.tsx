@@ -174,6 +174,19 @@ export default function ComprarPage() {
     return Boolean(numberOk && expMatch && cvvOk && dniOk);
   };
 
+  // Si se elige Mercado Pago, forzar ARS
+  useEffect(() => {
+    if (metodo === 'mercado_pago' && currency !== 'ARS') {
+      setCurrency('ARS');
+    }
+  }, [metodo]);
+  
+  useEffect(() => {
+    if (metodo === 'stripe' && currency !== 'USD') {
+      setCurrency('USD');
+    }
+  }, [metodo]);
+
   const comprar = async () => {
     console.log('=== INICIANDO COMPRA ===');
     console.log('selectedEvent:', selectedEvent);
@@ -216,6 +229,51 @@ export default function ComprarPage() {
     console.log('Enviando datos a la API:', datosCompra);
 
     try {
+      // Si es Mercado Pago, primero crear preferencia y redirigir a Checkout Pro
+      if (metodo === 'mercado_pago') {
+        const prefRes = await fetch('/api/mercadopago/create-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `${selectedEvent.titulo} - ${sector || 'General'}`,
+            quantity: cantidad,
+            unit_price: precioUnitario, // ya incluye tarifa
+            currency: 'ARS',
+            metadata: {
+              eventoid: selectedEvent.eventoid,
+              usuarioid: idUsuario,
+              cantidad,
+              sector,
+            },
+          }),
+        });
+        const prefData = await prefRes.json();
+        if (!prefRes.ok) throw new Error(prefData?.error || 'No se pudo crear preferencia de pago');
+        // Redirigir a MP
+        window.location.href = prefData.init_point || prefData.sandbox_init_point;
+        return;
+      }
+
+      // Si es Stripe, crear sesión de Checkout y redirigir
+      if (metodo === 'stripe') {
+        // Convertir desde ARS a USD (1 USD = 1300 ARS)
+        const unitUsd = Number((precioUnitario * (1 / 1300)).toFixed(2));
+        const stripeRes = await fetch('/api/stripe/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `${selectedEvent.titulo} - ${sector || 'General'}`,
+            quantity: cantidad,
+            unit_price: unitUsd,
+            currency: 'USD',
+          }),
+        });
+        const stripeData = await stripeRes.json();
+        if (!stripeRes.ok) throw new Error(stripeData?.error || 'No se pudo crear sesión de Stripe');
+        window.location.href = stripeData.url;
+        return;
+      }
+
       const res = await fetch('/api/comprar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -466,25 +524,25 @@ export default function ComprarPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
       <div className={`mx-auto max-w-[1200px] space-y-4 pt-4`}>
-        {/* Banner de reserva temporal */}
-        {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
-          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
-            <div className="flex justify-between items-center px-6 py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold text-yellow-800 text-lg">
-                  Tiempo restante: {formatTimeLeft(timeLeft)}
-                </span>
-                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
-                </div>
+      {/* Banner de reserva temporal */}
+      {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
+          <div className="flex justify-between items-center px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-yellow-800 text-lg">
+                Tiempo restante: {formatTimeLeft(timeLeft)}
+              </span>
+              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         <EventHeader
           event={selectedEvent}
@@ -499,13 +557,13 @@ export default function ComprarPage() {
           <section className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md">
             <div className="w-full max-w-[600px]">
               <div className="relative w-full overflow-hidden rounded-lg border group">
-                <Image
+              <Image
                   src="/raw.png"
                   alt="Mapa de sectores"
-                  width={800}
-                  height={600}
+                width={800}
+                height={600}
                   className="w-full object-contain transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-                />
+              />
               </div>
               <span className="mt-2 block text-center text-sm font-semibold text-gray-600">Mapa de sectores</span>
             </div>
@@ -544,6 +602,7 @@ export default function ComprarPage() {
               setCardDni={(v) => setCardDni(v.replace(/[^0-9]/g, '').slice(0, 10))}
               isValidCardInputs={isValidCardInputs}
               precioUnitario={precioUnitario}
+              feeUnitario={feeUnitario}
               total={total}
               formatPrice={formatPrice}
               currency={currency}

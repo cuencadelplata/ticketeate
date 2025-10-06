@@ -18,6 +18,7 @@ type CheckoutPanelProps = {
   setCardDni: (v: string) => void;
   isValidCardInputs: () => boolean;
   precioUnitario: number;
+  feeUnitario: number;
   total: number;
   currency: 'ARS' | 'USD' | 'EUR';
   formatPrice: (n: number) => string;
@@ -49,6 +50,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
     setCardDni,
     isValidCardInputs,
     precioUnitario,
+    feeUnitario,
     total,
     formatPrice,
     currency,
@@ -100,12 +102,15 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           value={currency}
           onChange={(e) => onCurrencyChange(e.target.value as any)}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={showSuccess}
+          disabled={showSuccess || metodo === 'mercado_pago' || metodo === 'stripe'}
         >
           <option value="ARS">ARS (Peso)</option>
           <option value="USD">USD (Dólar)</option>
           <option value="EUR">EUR (Euro)</option>
         </select>
+        <span className="mt-1 text-[11px] text-gray-500">
+          Mercado Pago: ARS fijo. Stripe: USD fijo. Tarjeta crédito/débito: elegí ARS, USD o EUR.
+        </span>
       </div>
 
       {isCardPayment ? (
@@ -145,13 +150,17 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
 
       <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
         <div>
-          <div className="text-xs text-gray-500">Precio unitario</div>
-          <div className="font-bold">{formatPrice(precioUnitario)}</div>
+          <div className="text-xs text-gray-500">Precio base (unitario)</div>
+          <div className="font-bold">{formatPrice(Math.max(precioUnitario - feeUnitario, 0))}</div>
+          <div className="mt-1 text-xs text-gray-500">Tarifa de servicio (unitario)</div>
+          <div className="text-sm font-semibold text-gray-700">{formatPrice(feeUnitario)}</div>
         </div>
         <div className="text-right">
           <div className="text-xs text-gray-500">Total a pagar</div>
           <div className="text-lg font-extrabold text-blue-900">{formatPrice(total)}</div>
-          <div className="text-xs text-blue-600">{cantidad} × {formatPrice(precioUnitario)}</div>
+          <div className="text-xs text-blue-600">
+            {formatPrice(Math.max(precioUnitario - feeUnitario, 0) * cantidad)} + {formatPrice(feeUnitario * cantidad)} = {formatPrice(total)}
+          </div>
         </div>
       </div>
 
