@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
-import AuthModal from '@/components/auth-modal';
+import RoleAuthModal from '@/components/role-auth-modal';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (!isPending && session) {
-      const role = (session as any).role as 'ADMIN' | 'ORGANIZADOR' | 'USUARIO' | undefined;
+      const role = (session as any).role as 'ORGANIZADOR' | 'USUARIO' | 'COLABORADOR' | undefined;
       router.replace(roleToPath(role));
     }
   }, [isPending, session, router]);
@@ -22,5 +22,5 @@ export default function SignInPage() {
     router.replace('/');
   };
 
-  return <AuthModal open={open} onClose={handleClose} defaultTab="login" />;
+  return <RoleAuthModal open={open} onClose={handleClose} defaultTab="login" defaultRole="USUARIO" />;
 }
