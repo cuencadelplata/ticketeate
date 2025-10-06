@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { EventService, CreateEventData } from '../services/event-service';
+import { prisma } from '../config/prisma';
 import { ImageUploadService } from '../services/image-upload';
-import { prisma } from '@repo/db';
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 
@@ -10,6 +10,27 @@ import jwt from 'jsonwebtoken';
 config();
 
 const events = new Hono();
+
+// Helper: convertir BigInt/Date a tipos serializables JSON
+function toJSONSafe<T = unknown>(value: T): T {
+  if (value instanceof Date) {
+    return value.toISOString() as unknown as T;
+  }
+  if (typeof value === 'bigint') {
+    return Number(value) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return (value as unknown as any[]).map((v) => toJSONSafe(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = toJSONSafe(v);
+    }
+    return out as unknown as T;
+  }
+  return value;
+}
 
 // Helper function to validate JWT token using traditional JWT
 function validateJWT(c: any) {
@@ -52,12 +73,22 @@ events.use(
 // GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
 events.get('/all', async (c) => {
   try {
-    const publicEvents = await EventService.getAllPublicEvents();
-    const safe = toJSONSafe(publicEvents) as unknown as any[];
-    return c.json({
-      events: safe,
-      total: safe.length,
+    // Consulta directa para evitar side-effects si el servicio tiene cambios
+    const eventos = await prisma.eventos.findMany({
+      include: {
+        imagenes_evento: true,
+        fechas_evento: true,
+        stock_entrada: true,
+        evento_estado: {
+          orderBy: { fecha_de_cambio: 'desc' },
+          take: 1,
+        },
+      },
+      orderBy: { fecha_creacion: 'desc' },
     });
+
+    const safe = toJSONSafe(eventos) as unknown as any[];
+    return c.json({ events: safe, total: safe.length });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error getting all events:', error);

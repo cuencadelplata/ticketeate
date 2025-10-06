@@ -17,9 +17,10 @@ type SectorListProps = {
   sectorSeleccionado: SectorKey;
   onSelect: (key: SectorKey) => void;
   getDisponibilidad: (key: SectorKey) => number;
+  formatPrice: (n: number) => string;
 };
 
-export function SectorList({ sectores, sectorSeleccionado, onSelect, getDisponibilidad }: SectorListProps) {
+export function SectorList({ sectores, sectorSeleccionado, onSelect, getDisponibilidad, formatPrice }: SectorListProps) {
   return (
     <div className="max-h-[300px] flex-1 overflow-y-auto p-4">
       {Object.keys(sectores).map((key) => {
@@ -40,7 +41,7 @@ export function SectorList({ sectores, sectorSeleccionado, onSelect, getDisponib
 
             <div className="flex flex-col">
               <div className="font-bold text-lg">{s.nombre}</div>
-              <div className="mt-1 text-lg font-semibold">$ {s.precioDesde.toLocaleString('es-AR')}</div>
+              <div className="mt-1 text-lg font-semibold">{formatPrice(s.precioDesde)}</div>
               <div className="mt-1 text-sm font-semibold text-green-700">{getDisponibilidad(key)} disponibles</div>
             </div>
 

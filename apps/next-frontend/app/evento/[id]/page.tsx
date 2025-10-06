@@ -209,8 +209,8 @@ export default function EventoPage() {
                     <div className="pt-2">
                       <h4 className="text-xs font-semibold text-stone-400">Fechas adicionales</h4>
                       <ul className="list-disc pl-6 text-stone-200">
-                        {event.fechas_evento.map((f) => (
-                          <li key={f.id_fecha}>
+                        {event.fechas_evento.map((f, idx) => (
+                          <li key={(f as any).fechaid ?? (f as any).id_fecha ?? idx}>
                             <span>
                               <span className="font-medium">Inicio: </span>
                               {new Date(f.fecha_hora).toLocaleDateString('es-AR', {
@@ -282,30 +282,25 @@ export default function EventoPage() {
                   </div>
                 )}
 
-                {/* Tipos de entradas (si existen) */}
-                {Array.isArray((event as any).categorias_entrada) &&
-                  (event as any).categorias_entrada.length > 0 && (
+                {/* Tipos de entradas (stock_entrada) */}
+                {Array.isArray((event as any).stock_entrada) &&
+                  (event as any).stock_entrada.length > 0 && (
                     <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
                       <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
                       <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
-                        {(event as any).categorias_entrada.map((cat: any) => (
+                        {(event as any).stock_entrada.map((cat: any) => (
                           <li
-                            key={cat.id_categoria}
+                            key={cat.stockid}
                             className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
                           >
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="font-medium">{cat.nombre}</div>
-                                {cat.descripcion && (
-                                  <div className="text-xs text-stone-400">{cat.descripcion}</div>
-                                )}
                               </div>
                               <div className="text-right text-stone-300">
-                                <div>
-                                  ${'{'}cat.precio{'}'}
-                                </div>
+                                <div>${'{'}Number(cat.precio){'}'}</div>
                                 <div className="text-xs text-stone-400">
-                                  Cupo: {cat.stock_disponible} / {cat.stock_total}
+                                  Cupo: {cat.cant_max}
                                 </div>
                               </div>
                             </div>
@@ -411,16 +406,16 @@ export default function EventoPage() {
                         </h4>
                         <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
                           {(event as any).mapa_evento.sectors.map((s: any) => {
-                            const matchingCat = (event as any).categorias_entrada?.find(
-                              (c: any) => c.nombre?.toLowerCase() === String(s.name).toLowerCase(),
+                            const matchingCat = (event as any).stock_entrada?.find(
+                              (c: any) => String(c.nombre).toLowerCase() === String(s.name).toLowerCase(),
                             );
                             const capText = matchingCat
-                              ? `${matchingCat.stock_disponible ?? matchingCat.stock_total}/${matchingCat.stock_total} entradas`
+                              ? `${matchingCat.cant_max} entradas`
                               : typeof s.capacity === 'number'
                                 ? `${s.capacity} entradas`
                                 : 'Capacidad no definida';
                             const priceText = matchingCat
-                              ? ` • $${matchingCat.precio}`
+                              ? ` • $${Number(matchingCat.precio)}`
                               : typeof s.price === 'number'
                                 ? ` • $${s.price}`
                                 : '';

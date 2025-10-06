@@ -19,15 +19,17 @@ type CheckoutPanelProps = {
   isValidCardInputs: () => boolean;
   precioUnitario: number;
   total: number;
-  formatARS: (n: number) => string;
-  onReservar: () => void;
+  currency: 'ARS' | 'USD' | 'EUR';
+  formatPrice: (n: number) => string;
+  onCurrencyChange: (c: 'ARS' | 'USD' | 'EUR') => void;
+  onReservar?: () => void;
   onComprar: () => void;
   loading: boolean;
   showSuccess: boolean;
   error: string | null;
   resetForm: () => void;
-  isReservationActive: boolean;
-  timeLeft: number;
+  isReservationActive?: boolean;
+  timeLeft?: number;
 };
 
 export function CheckoutPanel(props: CheckoutPanelProps) {
@@ -48,7 +50,9 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
     isValidCardInputs,
     precioUnitario,
     total,
-    formatARS,
+    formatPrice,
+    currency,
+    onCurrencyChange,
     onReservar,
     onComprar,
     loading,
@@ -85,10 +89,26 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         >
           <option value="tarjeta_debito">Tarjeta de Débito</option>
           <option value="tarjeta_credito">Tarjeta de Crédito</option>
+          <option value="stripe">Stripe</option>
+          <option value="mercado_pago">Mercado Pago</option>
         </select>
       </div>
 
-      {isCardPayment && (
+      <div className="mb-3 flex flex-col">
+        <label className="mb-1 text-xs font-medium text-gray-700">Moneda</label>
+        <select
+          value={currency}
+          onChange={(e) => onCurrencyChange(e.target.value as any)}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={showSuccess}
+        >
+          <option value="ARS">ARS (Peso)</option>
+          <option value="USD">USD (Dólar)</option>
+          <option value="EUR">EUR (Euro)</option>
+        </select>
+      </div>
+
+      {isCardPayment ? (
         <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
           <div className="flex flex-col">
             <label className="mb-1 text-xs font-medium text-gray-700">Número de tarjeta</label>
@@ -112,27 +132,51 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">Verifica número, vencimiento, CVV y DNI.</div>
           )}
         </div>
+      ) : (
+        (metodo === 'stripe' || metodo === 'mercado_pago') && (
+          <div className="mb-3 space-y-2 rounded-xl border border-gray-200 bg-white p-3">
+            <div className="text-sm text-gray-700">
+              Pagarás con <span className="font-semibold">{metodo === 'stripe' ? 'Stripe' : 'Mercado Pago'}</span>.
+            </div>
+            <div className="text-xs text-gray-500">Al hacer clic en "Pagar" te redirigiremos al proveedor seleccionado.</div>
+          </div>
+        )
       )}
 
       <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
         <div>
           <div className="text-xs text-gray-500">Precio unitario</div>
-          <div className="font-bold">{formatARS(precioUnitario)}</div>
+          <div className="font-bold">{formatPrice(precioUnitario)}</div>
         </div>
         <div className="text-right">
           <div className="text-xs text-gray-500">Total a pagar</div>
-          <div className="text-lg font-extrabold text-blue-900">{formatARS(total)}</div>
-          <div className="text-xs text-blue-600">{cantidad} × {formatARS(precioUnitario)}</div>
+          <div className="text-lg font-extrabold text-blue-900">{formatPrice(total)}</div>
+          <div className="text-xs text-blue-600">{cantidad} × {formatPrice(precioUnitario)}</div>
         </div>
       </div>
 
       {!showSuccess ? (
         <div className="space-y-2">
           {!isReservationActive ? (
-            <button onClick={onReservar} className="inline-flex w-full items-center justify-center rounded-lg bg-orange-600 px-4 py-3 font-medium text-white transition-colors hover:bg-orange-700">Reservar temporalmente</button>
+            <button
+              onClick={onReservar}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-orange-600 px-4 py-3 font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-60"
+            >
+              Reservar temporalmente
+            </button>
           ) : (
-            <button onClick={onComprar} disabled={loading || (isCardPayment && !isValidCardInputs()) || timeLeft === 0} className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60">
-              {loading ? 'Comprando...' : (isCardPayment && !isValidCardInputs()) ? 'Completa los datos de tarjeta' : timeLeft === 0 ? 'Reserva expirada' : 'Comprar'}
+            <button
+              onClick={onComprar}
+              disabled={loading || (isCardPayment && !isValidCardInputs()) || (timeLeft !== undefined && timeLeft === 0)}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+            >
+              {loading
+                ? 'Procesando...'
+                : (isCardPayment && !isValidCardInputs())
+                  ? 'Completa los datos de tarjeta'
+                  : timeLeft === 0
+                    ? 'Reserva expirada'
+                    : 'Pagar'}
             </button>
           )}
         </div>

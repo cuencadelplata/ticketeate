@@ -24,5 +24,5 @@ export { EstadoEntrada, EstadoPago, EstadoReserva, EventoEstado, TipoImagen } fr
 
 export type { PrismaClient } from '@prisma/client';
 
-// Export Better Auth configuration
-export { auth } from './auth';
+// Nota: no exportamos 'auth' aquí para evitar side effects al importar '@repo/db'
+// Los servicios que necesiten auth pueden importar desde '@repo/db/auth' explícitamente

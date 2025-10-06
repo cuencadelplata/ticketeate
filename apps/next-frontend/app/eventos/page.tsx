@@ -21,7 +21,6 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { useEvents, useDeleteEvent, useAllEvents } from '@/hooks/use-events';
-import { useAuth } from '@clerk/nextjs';
 import type { Event } from '@/types/events';
 
 // formatear fecha
@@ -129,7 +128,7 @@ export default function EventosPage() {
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const { data: events = [], isLoading: loading, error, refetch } = useEvents();
   const { data: allEvents = [] } = useAllEvents();
-  const { userId } = useAuth();
+  // const { userId } = useAuth(); // Deshabilitado: no usamos Clerk en esta vista
   const deleteEventMutation = useDeleteEvent();
 
   //force reload
@@ -264,6 +263,8 @@ export default function EventosPage() {
                 const eventStatus = getEventStatus(event);
                 const category = getEventCategory(event);
                 const hasTickets = event.stock_entrada && event.stock_entrada.length > 0;
+
+                const isOwner = false; // Sin sesión, ocultar acciones de dueño
 
                 return (
                   <div

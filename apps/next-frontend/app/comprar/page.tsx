@@ -13,25 +13,50 @@ import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
 import { SuccessCard } from '@/components/comprar/SuccessCard';
 
-type SectorKey = 'Entrada_General' | 'Entrada_VIP';
+type SectorKey = string;
 
-const SECTORES: Record<
-  SectorKey,
-  { nombre: string; precioDesde: number; numerado: boolean; color: string }
-> = {
-  Entrada_General: {
-    nombre: 'General',
-    precioDesde: 60000,
+type UISector = { nombre: string; precioDesde: number; numerado: boolean; color: string };
+
+// Genera los sectores dinámicamente desde stock_entrada
+function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector> {
+  const palette = ['#a5d6a7', '#43a047', '#ffb300', '#29b6f6', '#ba68c8', '#ef5350'];
+  const map: Record<string, UISector> = {};
+
+  // 1) Preferir stocks reales
+  if (event?.stock_entrada && event.stock_entrada.length > 0) {
+    event.stock_entrada.forEach((s: any, idx: number) => {
+      const key = String(s.nombre || `Sector ${idx + 1}`);
+      map[key] = {
+        nombre: key,
+        precioDesde: Number(s.precio || 0),
+        numerado: false,
+        color: palette[idx % palette.length],
+      };
+    });
+    return map;
+  }
+
+  // 2) Fallback a mapa_evento.sectors/sectores si no hay stocks en la DB
+  const sectorsEn = (event as any)?.mapa_evento?.sectors as
+    | Array<{ name?: string; price?: number; capacity?: number; color?: string }>
+    | undefined;
+  const sectorsEs = (event as any)?.mapa_evento?.sectores as
+    | Array<{ nombre?: string; precio?: number; capacidad?: number; color?: string }>
+    | undefined;
+  const sectors = sectorsEn || sectorsEs;
+  if (sectors && sectors.length > 0) {
+    sectors.forEach((s: any, idx: number) => {
+      const key = String(s?.name || s?.nombre || `Sector ${idx + 1}`);
+      map[key] = {
+        nombre: key,
+        precioDesde: Number(s?.price ?? s?.precio ?? 0),
     numerado: false,
-    color: '#a5d6a7',
-  },
-  Entrada_VIP: {
-    nombre: 'VIP',
-    precioDesde: 120000,
-    numerado: true,
-    color: '#43a047',
-  },
-};
+        color: s?.color || palette[idx % palette.length],
+      };
+    });
+  }
+  return map;
+}
 
 export default function ComprarPage() {
   const router = useRouter();
@@ -45,23 +70,17 @@ export default function ComprarPage() {
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
+  const [currency, setCurrency] = useState<'ARS' | 'USD' | 'EUR'>('ARS');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
-  const [sector, setSector] = useState<SectorKey>('Entrada_General');
+  const [sector, setSector] = useState<SectorKey>('');
 
   // Hook para manejar reserva temporal
-  const {
-    isReserved,
-    timeLeft,
-    startReservation,
-    clearReservation,
-    formatTimeLeft,
-    isReservationActive,
-  } = useReservation();
+  const { isReserved, timeLeft, startReservation, clearReservation, formatTimeLeft, isReservationActive } = useReservation();
 
   // Hooks para obtener eventos
   const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
@@ -72,6 +91,10 @@ export default function ComprarPage() {
     if (eventId && eventData) {
       setSelectedEvent(eventData);
       setShowEventSelection(false);
+      // set default sector
+      const dyn = buildSectorsFromEvent(eventData);
+      const first = Object.keys(dyn)[0] || '';
+      setSector(first);
     }
   }, [eventId, eventData]);
 
@@ -83,13 +106,21 @@ export default function ComprarPage() {
 
   // Obtener disponibilidad real de las categorías de entrada
   const getDisponibilidad = (sectorKey: SectorKey): number => {
-    if (!selectedEvent?.stock_entrada) return 0;
-
-    const categoria = selectedEvent.stock_entrada.find(
-      (cat) => cat.nombre?.toLowerCase() === SECTORES[sectorKey].nombre.toLowerCase(),
+    // Preferir stock_entrada
+    if (selectedEvent?.stock_entrada && selectedEvent.stock_entrada.length > 0) {
+      const item = (selectedEvent.stock_entrada as any[]).find(
+        (s) => String(s.nombre).toLowerCase() === String(sectorKey).toLowerCase(),
+      );
+      return item?.cant_max || 0;
+    }
+    // Si no hay stocks, intentar capacity/capacidad del mapa_evento
+    const sectorsEn = (selectedEvent as any)?.mapa_evento?.sectors as any[] | undefined;
+    const sectorsEs = (selectedEvent as any)?.mapa_evento?.sectores as any[] | undefined;
+    const mix = sectorsEn || sectorsEs || [];
+    const sec = mix.find(
+      (s) => String(s?.name || s?.nombre).toLowerCase() === String(sectorKey).toLowerCase(),
     );
-
-    return categoria?.cant_max || 0;
+    return Number(sec?.capacity ?? sec?.capacidad ?? 0);
   };
 
   // Función para seleccionar evento
@@ -99,15 +130,26 @@ export default function ComprarPage() {
     router.push(`/comprar?evento=${event.eventoid}`);
   };
 
-  const formatARS = (n: number) =>
-    n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  // Simple FX mock: ARS base; ajustar si tenés API de tipo de cambio
+  // Cotizaciones: 1 USD = 1300 ARS, 1 EUR = 1600 ARS (ARS es base)
+  const rates: Record<'ARS' | 'USD' | 'EUR', number> = { ARS: 1, USD: 1 / 1300, EUR: 1 / 1600 };
+  const formatPrice = (n: number) => {
+    const value = n * rates[currency];
+    return value.toLocaleString('es-AR', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: currency === 'ARS' ? 0 : 2,
+    });
+  };
 
   const { precioUnitario, total, feeUnitario } = useMemo(() => {
-    const s = SECTORES[sector];
-    const fee = Math.round(s.precioDesde * 0.1);
-    const unit = s.precioDesde + fee;
+    const dyn = buildSectorsFromEvent(selectedEvent);
+    const s = (sector && dyn[sector]) ? dyn[sector] : Object.values(dyn)[0];
+    const base = s ? s.precioDesde : 0;
+    const fee = Math.round(base * 0.1);
+    const unit = base + fee;
     return { precioUnitario: unit, total: unit * cantidad, feeUnitario: fee };
-  }, [sector, cantidad]);
+  }, [sector, cantidad, selectedEvent]);
 
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
@@ -135,8 +177,6 @@ export default function ComprarPage() {
   const comprar = async () => {
     console.log('=== INICIANDO COMPRA ===');
     console.log('selectedEvent:', selectedEvent);
-    console.log('isReserved:', isReserved);
-    console.log('timeLeft:', timeLeft);
 
     setLoading(true);
     setError(null);
@@ -153,20 +193,6 @@ export default function ComprarPage() {
     if (!selectedEvent) {
       console.log('Error: No hay evento seleccionado');
       setError('Por favor selecciona un evento');
-      setLoading(false);
-      return;
-    }
-
-    if (!isReserved || !isReservationActive(eventId || undefined)) {
-      console.log('Error: No hay reserva activa');
-      setError('Debes reservar temporalmente antes de comprar');
-      setLoading(false);
-      return;
-    }
-
-    if (timeLeft === 0) {
-      console.log('Error: Reserva expirada');
-      setError('Tu reserva ha expirado. Por favor reserva nuevamente.');
       setLoading(false);
       return;
     }
@@ -211,7 +237,7 @@ export default function ComprarPage() {
 
       if (!res.ok) throw new Error(data.error || 'Error');
 
-      setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
+      setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
 
       // Invalidar cache para actualizar disponibilidad
@@ -250,6 +276,23 @@ export default function ComprarPage() {
     setSelectedEvent(null);
     setShowEventSelection(true);
     router.push('/comprar');
+  };
+
+  const cancelPurchase = () => {
+    setShowSuccess(false);
+    setResultado(null);
+    setError(null);
+    setCantidad(1);
+    setSector('Entrada_General');
+    setMetodo('tarjeta_debito');
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvv('');
+    setCardDni('');
+    clearReservation();
+    setSelectedEvent(null);
+    setShowEventSelection(true);
+    router.push('/');
   };
 
   const descargarComprobantePDF = async () => {
@@ -345,9 +388,9 @@ export default function ComprarPage() {
     pdf.setFontSize(12.5);
     const left = cardX + 12;
     cursorY += 6;
-    pdf.text(`${cantidad} entrada(s) para ${SECTORES[sector].nombre}`, left, cursorY);
+    pdf.text(`${cantidad} entrada(s) para ${sector || 'Sector'}`, left, cursorY);
     cursorY += 12;
-    pdf.text(`Total: ${formatARS((SECTORES[sector].precioDesde + Math.round(SECTORES[sector].precioDesde * 0.1)) * cantidad)}`,
+    pdf.text(`Total: ${formatPrice((feeUnitario + (precioUnitario - feeUnitario)) * cantidad)}`,
       left,
       cursorY);
     cursorY += 12;
@@ -419,39 +462,72 @@ export default function ComprarPage() {
     );
   }
 
-  const reservationActive = isReserved && isReservationActive(eventId || undefined) && timeLeft > 0;
-
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
-      <ReservationBanner active={reservationActive} timeLeft={timeLeft} formatTimeLeft={formatTimeLeft} />
+      <div className={`mx-auto max-w-[1200px] space-y-4 pt-4`}>
+        {/* Banner de reserva temporal */}
+        {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
+            <div className="flex justify-between items-center px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-yellow-800 text-lg">
+                  Tiempo restante: {formatTimeLeft(timeLeft)}
+                </span>
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <div className={`mx-auto max-w-[1200px] space-y-4 ${reservationActive ? 'pt-20' : 'pt-4'}`}>
         <EventHeader
           event={selectedEvent}
           onBack={() => {
-            setSelectedEvent(null);
-            setShowEventSelection(true);
-            router.push('/comprar');
-          }}
+              setSelectedEvent(null);
+              setShowEventSelection(true);
+              router.push('/comprar');
+            }}
         />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_500px] xl:grid-cols-[1fr_600px]">
           <section className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md">
             <div className="w-full max-w-[600px]">
-              <Image src="/mapa-referencial.png" alt="Mapa referencial de sectores" width={800} height={600} className="w-full rounded-lg border object-contain" />
-              <span className="mt-2 block text-center text-sm font-semibold text-gray-600">Mapa referencial</span>
+              <div className="relative w-full overflow-hidden rounded-lg border group">
+                <Image
+                  src="/raw.png"
+                  alt="Mapa de sectores"
+                  width={800}
+                  height={600}
+                  className="w-full object-contain transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
+              <span className="mt-2 block text-center text-sm font-semibold text-gray-600">Mapa de sectores</span>
             </div>
           </section>
 
           <aside className="flex flex-col rounded-2xl bg-white shadow-md">
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <span className="font-bold">Seleccionar sector</span>
-              <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>Limpiar selección</button>
-            </div>
+              <div className="flex items-center gap-2">
+                <button className="rounded-md px-3 py-1 text-sm font-semibold text-white bg-red-600 hover:bg-red-700" onClick={cancelPurchase}>Cancelar</button>
+                <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>Limpiar selección</button>
+              </div>
+              </div>
 
-            <SectorList sectores={SECTORES} sectorSeleccionado={sector} onSelect={(k) => setSector(k as SectorKey)} getDisponibilidad={(k) => getDisponibilidad(k as SectorKey)} />
+            <SectorList
+              sectores={buildSectorsFromEvent(selectedEvent) as any}
+              sectorSeleccionado={sector}
+              onSelect={(k) => setSector(k as SectorKey)}
+              getDisponibilidad={(k) => getDisponibilidad(k as SectorKey)}
+              formatPrice={formatPrice}
+            />
 
-            <CheckoutPanel
+              <CheckoutPanel
               cantidad={cantidad}
               setCantidad={setCantidad}
               metodo={metodo}
@@ -468,7 +544,9 @@ export default function ComprarPage() {
               isValidCardInputs={isValidCardInputs}
               precioUnitario={precioUnitario}
               total={total}
-              formatARS={formatARS}
+              formatPrice={formatPrice}
+              currency={currency}
+              onCurrencyChange={(c) => setCurrency(c)}
               onReservar={() => startReservation(eventId || '', 300)}
               onComprar={comprar}
               loading={loading}
@@ -479,15 +557,15 @@ export default function ComprarPage() {
               timeLeft={timeLeft}
             />
 
-            {showSuccess && resultado && (
+              {showSuccess && resultado && (
               <SuccessCard
                 cantidad={cantidad}
                 total={total}
-                sectorNombre={SECTORES[sector].nombre}
+                sectorNombre={sector || 'Sector'}
                 metodo={metodo}
                 reservaId={resultado.reserva?.id_reserva}
                 onDescargarPDF={descargarComprobantePDF}
-                formatARS={formatARS}
+                formatARS={formatPrice}
               />
             )}
           </aside>
