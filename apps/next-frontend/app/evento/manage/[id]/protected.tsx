@@ -2,7 +2,6 @@
 
 import { useSession } from '@/lib/auth-client';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Protected({ children }: { children: React.ReactNode }) {
   const router = useRouter();

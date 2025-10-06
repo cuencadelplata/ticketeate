@@ -1,24 +1,33 @@
 'use client';
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
 import AuthModal from '@/components/auth-modal';
 import CreateEventForm from '@/components/create-event-form';
 
 export default function CrearPage() {
   const { data: session, isPending } = useSession();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isPending && !session) {
-      const t = setTimeout(() => setOpen(true), 1000);
-      return () => clearTimeout(t);
+      // Mostrar el modal después de 1 segundo si no hay sesión
+      const timer = setTimeout(() => setOpen(true), 1000);
+      return () => clearTimeout(timer);
+    } else if (session) {
+      // Si ya hay sesión, cerrar el modal
+      setOpen(false);
     }
   }, [isPending, session]);
 
   return (
     <>
       <CreateEventForm />
-      <AuthModal open={open} onClose={() => setOpen(false)} defaultTab="login" />
+      <AuthModal 
+        open={open} 
+        onClose={() => setOpen(false)} 
+        defaultTab="register" 
+        defaultRole="ORGANIZADOR" 
+      />
     </>
   );
 }

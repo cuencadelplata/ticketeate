@@ -315,7 +315,7 @@ model user {
 }
 
 enum Role {
-  ADMIN
   ORGANIZADOR
+  COLABORADOR
   USUARIO
 }

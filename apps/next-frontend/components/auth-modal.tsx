@@ -1,13 +1,13 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Loader2, Mail, Lock, UserCircle } from 'lucide-react';
 import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-type Role = 'ADMIN' | 'ORGANIZADOR' | 'USUARIO';
+type Role = 'ORGANIZADOR' | 'COLABORADOR';
 
 type Props = {
   open: boolean;
@@ -20,29 +20,61 @@ export default function AuthModal({
   open,
   onClose,
   defaultTab = 'login',
-  defaultRole = 'USUARIO',
+  defaultRole = 'ORGANIZADOR',
 }: Props) {
   const sp = useSearchParams();
   const redirectUrl = sp.get('redirect_url') || '/';
   const { data: session } = useSession();
 
-  const [tab, setTab] = React.useState<'login' | 'register'>(defaultTab);
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [role, setRole] = React.useState<Role>(defaultRole);
-  const [inviteCode, setInviteCode] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [err, setErr] = React.useState<string | null>(null);
+  const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<Role>(defaultRole);
+  const [inviteCode, setInviteCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
 
-  // Si ya hay sesión, redirigir por rol
-  React.useEffect(() => {
+  useEffect(() => {
     if (session) {
+      if (window.location.pathname === '/crear') {
+        onClose();
+        return;
+      }
+      
       const r = (session as any).role as Role | undefined;
-      // si no hay redirect_url, usar destino por rol
       const target = sp.get('redirect_url') || roleToPath(r);
       window.location.href = target;
     }
-  }, [session, sp]);
+  }, [session, sp, onClose]);
+
+  // unico modal para login y register
+  const checkUserExists = async (email: string) => {
+    setIsCheckingUser(true);
+    try {
+      const response = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error('Error checking user:', error);
+      return false;
+    } finally {
+      setIsCheckingUser(false);
+    }
+  };
+
+  // Detectar automáticamente si es login o registro cuando cambia el email
+  const handleEmailChange = async (newEmail: string) => {
+    setEmail(newEmail);
+    if (newEmail.includes('@') && newEmail.includes('.')) {
+      const exists = await checkUserExists(newEmail);
+      setTab(exists ? 'login' : 'register');
+    }
+  };
 
   async function doLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -50,8 +82,7 @@ export default function AuthModal({
     setErr(null);
     try {
       await signIn.email({ email, password });
-      // dejamos que el effect redirija; si querés forzar:
-      // window.location.href = redirectUrl;
+      // El useEffect se encargará de cerrar el modal o redirigir según la página
     } catch (e: any) {
       setErr(e?.message || 'Usuario o contraseña incorrectos');
     } finally {
@@ -66,7 +97,9 @@ export default function AuthModal({
     try {
       await signUp.email({ email, password, name: email });
 
-      if (role !== 'USUARIO') {
+      // Solo asignar rol si es COLABORADOR (requiere código) o ORGANIZADOR (no requiere código)
+      if (role === 'COLABORADOR') {
+        // COLABORADOR requiere código de invitación
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -76,7 +109,19 @@ export default function AuthModal({
           const j = await res.json().catch(() => ({}));
           throw new Error(j?.error || 'No se pudo asignar el rol');
         }
+      } else if (role === 'ORGANIZADOR') {
+        // ORGANIZADOR no requiere código
+        const res = await fetch('/api/auth/assign-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role }),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j?.error || 'No se pudo asignar el rol');
+        }
       }
+      
     } catch (e: any) {
       setErr(e?.message || 'No se pudo crear la cuenta');
     } finally {
@@ -84,7 +129,7 @@ export default function AuthModal({
     }
   }
 
-  const inviteRequired = role !== 'USUARIO';
+  const inviteRequired = role === 'COLABORADOR';
   const disableRegister = loading || !email || !password || (inviteRequired && !inviteCode.trim());
 
   return (
@@ -122,8 +167,8 @@ export default function AuthModal({
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
-              <div className="grid grid-cols-3 gap-2">
-                {(['USUARIO', 'ORGANIZADOR', 'ADMIN'] as Role[]).map((r) => (
+              <div className="grid grid-cols-2 gap-2">
+                {(['ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
                   <button
                     key={r}
                     type="button"
@@ -133,14 +178,12 @@ export default function AuthModal({
                     }`}
                   >
                     <div className="font-semibold">
-                      {r === 'USUARIO' ? 'Usuario' : r === 'ORGANIZADOR' ? 'Organizador' : 'Admin'}
+                      {r === 'ORGANIZADOR' ? 'Organizador' : 'Colaborador'}
                     </div>
                     <div className="text-xs text-stone-400">
-                      {r === 'USUARIO'
-                        ? 'Compra/gestiona tus entradas'
-                        : r === 'ORGANIZADOR'
-                          ? 'Crea y gestiona eventos'
-                          : 'Panel administrativo'}
+                      {r === 'ORGANIZADOR'
+                        ? 'Crea y gestiona eventos (sin código requerido)'
+                        : 'Escanea entradas y valida tickets (requiere código)'}
                     </div>
                   </button>
                 ))}
@@ -156,7 +199,7 @@ export default function AuthModal({
                     placeholder="Ingresa tu código"
                     className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
-                  <p className="text-xs text-stone-500">Requerido para ORGANIZADOR/ADMIN.</p>
+                  <p className="text-xs text-stone-500">Requerido solo para COLABORADOR.</p>
                 </div>
               )}
 
@@ -167,10 +210,15 @@ export default function AuthModal({
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     placeholder="tu@email.com"
                     className="w-full rounded-lg border border-stone-700 bg-stone-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
+                  {isCheckingUser && (
+                    <div className="absolute right-3 top-2.5">
+                      <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                    </div>
+                  )}
                 </div>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
@@ -213,10 +261,15 @@ export default function AuthModal({
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     placeholder="tu@email.com"
                     className="w-full rounded-lg border border-stone-700 bg-stone-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
+                  {isCheckingUser && (
+                    <div className="absolute right-3 top-2.5">
+                      <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                    </div>
+                  )}
                 </div>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-stone-400" />

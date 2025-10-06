@@ -1,10 +1,10 @@
-export type AppRole = 'ADMIN' | 'ORGANIZADOR' | 'USUARIO';
+export type AppRole = 'ORGANIZADOR' | 'COLABORADOR' | 'USUARIO';
 
 export function roleToPath(role?: AppRole) {
   switch (role) {
-    case 'ADMIN':
-      return '/admin';
     case 'ORGANIZADOR':
+      return '/evento/manage';
+    case 'COLABORADOR':
       return '/evento/manage';
     default:
       return '/eventos';

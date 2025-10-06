@@ -5,20 +5,27 @@ import { prisma } from '@repo/db';
 export async function POST(req: Request) {
   try {
     const { role, inviteCode } = (await req.json()) as {
-      role: 'ADMIN' | 'ORGANIZADOR';
-      inviteCode: string;
+      role: 'ORGANIZADOR' | 'COLABORADOR';
+      inviteCode?: string;
     };
 
-    if (!role || !inviteCode || !['ADMIN', 'ORGANIZADOR'].includes(role)) {
+    if (!role || !['ORGANIZADOR', 'COLABORADOR'].includes(role)) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
 
-    const ok =
-      (role === 'ADMIN' && inviteCode === process.env.INVITE_CODE_ADMIN) ||
-      (role === 'ORGANIZADOR' && inviteCode === process.env.INVITE_CODE_ORG);
-
-    if (!ok) {
-      return NextResponse.json({ error: 'Código de invitación inválido' }, { status: 401 });
+    // ORGANIZADOR no requiere código de invitación
+    if (role === 'ORGANIZADOR') {
+      // No validar código para ORGANIZADOR
+    } else if (role === 'COLABORADOR') {
+      // COLABORADOR requiere código de invitación
+      if (!inviteCode) {
+        return NextResponse.json({ error: 'Código de invitación requerido para COLABORADOR' }, { status: 400 });
+      }
+      
+      const ok = inviteCode === process.env.INVITE_CODE_COLABORADOR;
+      if (!ok) {
+        return NextResponse.json({ error: 'Código de invitación inválido' }, { status: 401 });
+      }
     }
 
     const session = await auth.api.getSession({ headers: req.headers });
@@ -28,7 +35,9 @@ export async function POST(req: Request) {
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { role },
+      data: { 
+        role: role as any
+      },
     });
 
     return NextResponse.json({ ok: true });

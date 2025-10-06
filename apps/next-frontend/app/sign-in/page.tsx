@@ -1,5 +1,5 @@
 'use client';
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
@@ -8,9 +8,9 @@ import AuthModal from '@/components/auth-modal';
 export default function SignInPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isPending && session) {
       const role = (session as any).role as 'ADMIN' | 'ORGANIZADOR' | 'USUARIO' | undefined;
       router.replace(roleToPath(role));

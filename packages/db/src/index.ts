@@ -6,7 +6,6 @@ export type {
   eventos,
   imagenes_evento,
   fechas_evento,
-  stock_entrada,
   reservas,
   usuarios,
   pagos,
@@ -16,10 +15,16 @@ export type {
   cola_turnos,
   logs_eventos,
   sesiones,
-  evento_estado,
   categoriaevento,
   catevento,
-  movimientos_entradas,
+  categorias_entrada,
+  categoriaentrada,
+  account,
+  session,
+  user,
+  verification,
 } from '@prisma/client';
+
+export { EstadoEntrada, EstadoPago, EstadoReserva, EventoEstado, TipoImagen } from '@prisma/client';
 
 export type { PrismaClient } from '@prisma/client';

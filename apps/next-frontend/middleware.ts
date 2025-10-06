@@ -1,53 +1,53 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { roleToPath } from '@/lib/role-redirect';
+import { NextResponse, type NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-const PROTECTED = ['/crear', '/evento/manage', '/admin'];
-const ADMIN_ONLY = ['/admin'];
-const ORG_OR_ADMIN = ['/evento/manage'];
+import {
+  apiAuthPrefix,
+  authRoutes,
+  DEFAULT_LOGIN_REDIRECT,
+  publicRoutes,
+} from "./routes";
 
-export async function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
-  const session = await auth.api.getSession({ headers: req.headers });
+export async function middleware(request: NextRequest) {
+  const session = getSessionCookie(request);
 
-  if ((pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up')) && session) {
-    const role = (session as any).role;
-    const url = req.nextUrl.clone();
-    url.pathname = roleToPath(role);
-    return NextResponse.redirect(url);
+  const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
+
+  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
+
+  const isAuthRoute = () => {
+    return authRoutes.some((path) => request.nextUrl.pathname.startsWith(path));
+  };
+
+  if (isApiAuth) {
+    return NextResponse.next();
   }
 
-  if (PROTECTED.some((p) => pathname.startsWith(p))) {
-    if (!session) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/sign-in';
-      url.searchParams.set(
-        'redirect_url',
-        pathname + (searchParams.toString() ? `?${searchParams.toString()}` : ''),
+  if (isAuthRoute()) {
+    if (session) {
+      return NextResponse.redirect(
+        new URL(DEFAULT_LOGIN_REDIRECT, request.url),
       );
-      return NextResponse.redirect(url);
     }
-    // Roles
-    const role = (session as any).role;
-    if (ADMIN_ONLY.some((p) => pathname.startsWith(p)) && role !== 'ADMIN') {
-      const url = req.nextUrl.clone();
-      url.pathname = roleToPath(role);
-      return NextResponse.redirect(url);
-    }
-    if (
-      ORG_OR_ADMIN.some((p) => pathname.startsWith(p)) &&
-      !['ADMIN', 'ORGANIZADOR'].includes(role)
-    ) {
-      const url = req.nextUrl.clone();
-      url.pathname = roleToPath(role);
-      return NextResponse.redirect(url);
-    }
+    return NextResponse.next();
+  }
+
+  if (!session && !isPublicRoute) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next|.*\\.(?:png|jpg|jpeg|gif|svg|css|js|ico|txt|json)).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

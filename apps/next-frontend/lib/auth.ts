@@ -30,7 +30,7 @@ export const auth = betterAuth({
       return session;
     },
     async signIn({ user }: { user: { id: string; role?: string } }) {
-      // Si el user no tiene rol
+      // Si el user no tiene rol, asignar USUARIO por defecto
       if (!(user as any)?.role) {
         await prisma.user.update({
           where: { id: user.id },
