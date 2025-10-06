@@ -298,10 +298,10 @@ export default function EventoPage() {
                                 <div className="font-medium">{cat.nombre}</div>
                               </div>
                               <div className="text-right text-stone-300">
-                                <div>${'{'}Number(cat.precio){'}'}</div>
-                                <div className="text-xs text-stone-400">
-                                  Cupo: {cat.cant_max}
+                                <div>
+                                  ${'{'}Number(cat.precio){'}'}
                                 </div>
+                                <div className="text-xs text-stone-400">Cupo: {cat.cant_max}</div>
                               </div>
                             </div>
                           </li>
@@ -407,7 +407,8 @@ export default function EventoPage() {
                         <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
                           {(event as any).mapa_evento.sectors.map((s: any) => {
                             const matchingCat = (event as any).stock_entrada?.find(
-                              (c: any) => String(c.nombre).toLowerCase() === String(s.name).toLowerCase(),
+                              (c: any) =>
+                                String(c.nombre).toLowerCase() === String(s.name).toLowerCase(),
                             );
                             const capText = matchingCat
                               ? `${matchingCat.cant_max} entradas`

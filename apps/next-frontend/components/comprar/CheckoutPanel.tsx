@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 type CheckoutPanelProps = {
   cantidad: number;
@@ -76,7 +76,9 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           disabled={showSuccess}
         >
           {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>{n}</option>
+            <option key={n} value={n}>
+              {n}
+            </option>
           ))}
         </select>
       </div>
@@ -117,33 +119,72 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
           <div className="flex flex-col">
             <label className="mb-1 text-xs font-medium text-gray-700">Número de tarjeta</label>
-            <input type="text" inputMode="numeric" autoComplete="cc-number" placeholder="#### #### #### ####" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="cc-number"
+              placeholder="#### #### #### ####"
+              value={cardNumber}
+              onChange={(e) => setCardNumber(e.target.value)}
+              className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1 flex flex-col">
               <label className="mb-1 text-xs font-medium text-gray-700">Vencimiento (MM/AA)</label>
-              <input type="text" inputMode="numeric" autoComplete="cc-exp" placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="cc-exp"
+                placeholder="MM/AA"
+                value={cardExpiry}
+                onChange={(e) => setCardExpiry(e.target.value)}
+                className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             <div className="col-span-1 flex flex-col">
               <label className="mb-1 text-xs font-medium text-gray-700">CVV</label>
-              <input type="password" inputMode="numeric" autoComplete="cc-csc" placeholder="3 o 4 dígitos" value={cardCvv} onChange={(e) => setCardCvv(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+              <input
+                type="password"
+                inputMode="numeric"
+                autoComplete="cc-csc"
+                placeholder="3 o 4 dígitos"
+                value={cardCvv}
+                onChange={(e) => setCardCvv(e.target.value)}
+                className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             <div className="col-span-1 flex flex-col">
               <label className="mb-1 text-xs font-medium text-gray-700">DNI</label>
-              <input type="text" inputMode="numeric" placeholder="Solo números" value={cardDni} onChange={(e) => setCardDni(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" />
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Solo números"
+                value={cardDni}
+                onChange={(e) => setCardDni(e.target.value)}
+                className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
           {!isValidCardInputs() && (
-            <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">Verifica número, vencimiento, CVV y DNI.</div>
+            <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">
+              Verifica número, vencimiento, CVV y DNI.
+            </div>
           )}
         </div>
       ) : (
         (metodo === 'stripe' || metodo === 'mercado_pago') && (
           <div className="mb-3 space-y-2 rounded-xl border border-gray-200 bg-white p-3">
             <div className="text-sm text-gray-700">
-              Pagarás con <span className="font-semibold">{metodo === 'stripe' ? 'Stripe' : 'Mercado Pago'}</span>.
+              Pagarás con{' '}
+              <span className="font-semibold">
+                {metodo === 'stripe' ? 'Stripe' : 'Mercado Pago'}
+              </span>
+              .
             </div>
-            <div className="text-xs text-gray-500">Al hacer clic en "Pagar" te redirigiremos al proveedor seleccionado.</div>
+            <div className="text-xs text-gray-500">
+              Al hacer clic en "Pagar" te redirigiremos al proveedor seleccionado.
+            </div>
           </div>
         )
       )}
@@ -159,7 +200,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           <div className="text-xs text-gray-500">Total a pagar</div>
           <div className="text-lg font-extrabold text-blue-900">{formatPrice(total)}</div>
           <div className="text-xs text-blue-600">
-            {formatPrice(Math.max(precioUnitario - feeUnitario, 0) * cantidad)} + {formatPrice(feeUnitario * cantidad)} = {formatPrice(total)}
+            {formatPrice(Math.max(precioUnitario - feeUnitario, 0) * cantidad)} +{' '}
+            {formatPrice(feeUnitario * cantidad)} = {formatPrice(total)}
           </div>
         </div>
       </div>
@@ -176,12 +218,16 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           ) : (
             <button
               onClick={onComprar}
-              disabled={loading || (isCardPayment && !isValidCardInputs()) || (timeLeft !== undefined && timeLeft === 0)}
+              disabled={
+                loading ||
+                (isCardPayment && !isValidCardInputs()) ||
+                (timeLeft !== undefined && timeLeft === 0)
+              }
               className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
             >
               {loading
                 ? 'Procesando...'
-                : (isCardPayment && !isValidCardInputs())
+                : isCardPayment && !isValidCardInputs()
                   ? 'Completa los datos de tarjeta'
                   : timeLeft === 0
                     ? 'Reserva expirada'
@@ -190,7 +236,12 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
           )}
         </div>
       ) : (
-        <button onClick={resetForm} className="inline-flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition-colors hover:bg-green-700">Comprar más entradas</button>
+        <button
+          onClick={resetForm}
+          className="inline-flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition-colors hover:bg-green-700"
+        >
+          Comprar más entradas
+        </button>
       )}
 
       {error && (
@@ -201,5 +252,3 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
     </div>
   );
 }
-
-

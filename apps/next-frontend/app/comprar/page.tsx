@@ -50,7 +50,7 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
       map[key] = {
         nombre: key,
         precioDesde: Number(s?.price ?? s?.precio ?? 0),
-    numerado: false,
+        numerado: false,
         color: s?.color || palette[idx % palette.length],
       };
     });
@@ -80,7 +80,14 @@ export default function ComprarPage() {
   const [sector, setSector] = useState<SectorKey>('');
 
   // Hook para manejar reserva temporal
-  const { isReserved, timeLeft, startReservation, clearReservation, formatTimeLeft, isReservationActive } = useReservation();
+  const {
+    isReserved,
+    timeLeft,
+    startReservation,
+    clearReservation,
+    formatTimeLeft,
+    isReservationActive,
+  } = useReservation();
 
   // Hooks para obtener eventos
   const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
@@ -144,7 +151,7 @@ export default function ComprarPage() {
 
   const { precioUnitario, total, feeUnitario } = useMemo(() => {
     const dyn = buildSectorsFromEvent(selectedEvent);
-    const s = (sector && dyn[sector]) ? dyn[sector] : Object.values(dyn)[0];
+    const s = sector && dyn[sector] ? dyn[sector] : Object.values(dyn)[0];
     const base = s ? s.precioDesde : 0;
     const fee = Math.round(base * 0.1);
     const unit = base + fee;
@@ -180,7 +187,7 @@ export default function ComprarPage() {
       setCurrency('ARS');
     }
   }, [metodo]);
-  
+
   useEffect(() => {
     if (metodo === 'stripe' && currency !== 'USD') {
       setCurrency('USD');
@@ -269,7 +276,8 @@ export default function ComprarPage() {
           }),
         });
         const stripeData = await stripeRes.json();
-        if (!stripeRes.ok) throw new Error(stripeData?.error || 'No se pudo crear sesión de Stripe');
+        if (!stripeRes.ok)
+          throw new Error(stripeData?.error || 'No se pudo crear sesión de Stripe');
         window.location.href = stripeData.url;
         return;
       }
@@ -449,9 +457,11 @@ export default function ComprarPage() {
     cursorY += 6;
     pdf.text(`${cantidad} entrada(s) para ${sector || 'Sector'}`, left, cursorY);
     cursorY += 12;
-    pdf.text(`Total: ${formatPrice((feeUnitario + (precioUnitario - feeUnitario)) * cantidad)}`,
+    pdf.text(
+      `Total: ${formatPrice((feeUnitario + (precioUnitario - feeUnitario)) * cantidad)}`,
       left,
-      cursorY);
+      cursorY,
+    );
     cursorY += 12;
     pdf.text(
       `Método: ${metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}`,
@@ -486,7 +496,9 @@ export default function ComprarPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allEvents.map((event) => {
-              const portada = event.imagenes_evento?.find((i) => i.tipo === 'PORTADA' || i.tipo === 'portada')?.url;
+              const portada = event.imagenes_evento?.find(
+                (i) => i.tipo === 'PORTADA' || i.tipo === 'portada',
+              )?.url;
               const primera = event.imagenes_evento?.[0]?.url;
               const image = portada || primera || '/icon-ticketeate.png';
               const fecha = event.fechas_evento?.[0]?.fecha_hora
@@ -524,48 +536,50 @@ export default function ComprarPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
       <div className={`mx-auto max-w-[1200px] space-y-4 pt-4`}>
-      {/* Banner de reserva temporal */}
-      {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
-          <div className="flex justify-between items-center px-6 py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-yellow-800 text-lg">
-                Tiempo restante: {formatTimeLeft(timeLeft)}
-              </span>
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+        {/* Banner de reserva temporal */}
+        {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
+            <div className="flex justify-between items-center px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-yellow-800 text-lg">
+                  Tiempo restante: {formatTimeLeft(timeLeft)}
+                </span>
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         <EventHeader
           event={selectedEvent}
           onBack={() => {
-              setSelectedEvent(null);
-              setShowEventSelection(true);
-              router.push('/comprar');
-            }}
+            setSelectedEvent(null);
+            setShowEventSelection(true);
+            router.push('/comprar');
+          }}
         />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_500px] xl:grid-cols-[1fr_600px]">
           <section className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md">
             <div className="w-full max-w-[600px]">
               <div className="relative w-full overflow-hidden rounded-lg border group">
-              <Image
+                <Image
                   src="/raw.png"
                   alt="Mapa de sectores"
-                width={800}
-                height={600}
+                  width={800}
+                  height={600}
                   className="w-full object-contain transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-              />
+                />
               </div>
-              <span className="mt-2 block text-center text-sm font-semibold text-gray-600">Mapa de sectores</span>
+              <span className="mt-2 block text-center text-sm font-semibold text-gray-600">
+                Mapa de sectores
+              </span>
             </div>
           </section>
 
@@ -573,10 +587,20 @@ export default function ComprarPage() {
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <span className="font-bold">Seleccionar sector</span>
               <div className="flex items-center gap-2">
-                <button className="rounded-md px-3 py-1 text-sm font-semibold text-white bg-red-600 hover:bg-red-700" onClick={cancelPurchase}>Cancelar</button>
-                <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>Limpiar selección</button>
+                <button
+                  className="rounded-md px-3 py-1 text-sm font-semibold text-white bg-red-600 hover:bg-red-700"
+                  onClick={cancelPurchase}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="font-semibold text-orange-500 hover:underline"
+                  onClick={resetForm}
+                >
+                  Limpiar selección
+                </button>
               </div>
-              </div>
+            </div>
 
             <SectorList
               sectores={buildSectorsFromEvent(selectedEvent) as any}
@@ -586,7 +610,7 @@ export default function ComprarPage() {
               formatPrice={formatPrice}
             />
 
-              <CheckoutPanel
+            <CheckoutPanel
               cantidad={cantidad}
               setCantidad={setCantidad}
               metodo={metodo}
@@ -617,7 +641,7 @@ export default function ComprarPage() {
               timeLeft={timeLeft}
             />
 
-              {showSuccess && resultado && (
+            {showSuccess && resultado && (
               <SuccessCard
                 cantidad={cantidad}
                 total={total}

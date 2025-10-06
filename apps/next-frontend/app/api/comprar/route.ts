@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
     if (!metodosValidos.includes(metodo_pago)) {
       return NextResponse.json(
         {
-          error: 'Método de pago no válido. Use: tarjeta_credito, tarjeta_debito, stripe o mercado_pago',
+          error:
+            'Método de pago no válido. Use: tarjeta_credito, tarjeta_debito, stripe o mercado_pago',
         },
         { status: 400 },
       );
@@ -168,13 +169,13 @@ export async function POST(request: NextRequest) {
         VALUES (${'ARS-USD'}, ${'ARS'}, ${'USD'}, ${tasaArsUsd}, ${new Date()}, ${true})
         ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
       await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
-        VALUES (${ 'USD-ARS' }, ${'USD'}, ${'ARS'}, ${tasaUsdArs}, ${new Date()}, ${true})
+        VALUES (${'USD-ARS'}, ${'USD'}, ${'ARS'}, ${tasaUsdArs}, ${new Date()}, ${true})
         ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
       await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
         VALUES (${'ARS-EUR'}, ${'ARS'}, ${'EUR'}, ${tasaArsEur}, ${new Date()}, ${true})
         ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
       await tx.$executeRaw`INSERT INTO tasas_cambio (id, moneda_origen, moneda_destino, tasa, fecha_actualizacion, activa)
-        VALUES (${ 'EUR-ARS' }, ${'EUR'}, ${'ARS'}, ${tasaEurArs}, ${new Date()}, ${true})
+        VALUES (${'EUR-ARS'}, ${'EUR'}, ${'ARS'}, ${tasaEurArs}, ${new Date()}, ${true})
         ON CONFLICT (id) DO UPDATE SET tasa = EXCLUDED.tasa, fecha_actualizacion = EXCLUDED.fecha_actualizacion, activa = ${true}`;
 
       // Crear la reserva

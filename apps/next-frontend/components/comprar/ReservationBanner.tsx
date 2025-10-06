@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 type ReservationBannerProps = {
   active: boolean;
@@ -19,7 +19,9 @@ export function ReservationBanner({ active, timeLeft, formatTimeLeft }: Reservat
           <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="font-semibold text-yellow-800 text-lg">Tiempo restante: {formatTimeLeft(timeLeft)}</span>
+          <span className="font-semibold text-yellow-800 text-lg">
+            Tiempo restante: {formatTimeLeft(timeLeft)}
+          </span>
           <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
           </div>
@@ -28,5 +30,3 @@ export function ReservationBanner({ active, timeLeft, formatTimeLeft }: Reservat
     </div>
   );
 }
-
-

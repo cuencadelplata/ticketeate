@@ -22,15 +22,21 @@ export async function POST(request: NextRequest) {
     } = body ?? {};
 
     if (!title || !quantity || !unit_price) {
-      return NextResponse.json({ error: 'Faltan campos: title, quantity, unit_price' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Faltan campos: title, quantity, unit_price' },
+        { status: 400 },
+      );
     }
 
     // Base URL para callback/back_urls
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+    const host =
+      request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
     const baseUrl = `${protocol}://${host}`;
 
-    const accessToken = process.env.MP_ACCESS_TOKEN || 'APP_USR-2616767994062884-100312-e0656821760e6ecbc6e885cd115f60ab-2609260829';
+    const accessToken =
+      process.env.MP_ACCESS_TOKEN ||
+      'APP_USR-2616767994062884-100312-e0656821760e6ecbc6e885cd115f60ab-2609260829';
     if (!accessToken) {
       return NextResponse.json({ error: 'MP_ACCESS_TOKEN no configurado' }, { status: 500 });
     }
@@ -71,15 +77,22 @@ export async function POST(request: NextRequest) {
     if (!resp.ok) {
       const text = await resp.text();
       console.error('MercadoPago error', resp.status, text);
-      return NextResponse.json({ error: 'Error al crear preferencia', status: resp.status, detalle: text }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Error al crear preferencia', status: resp.status, detalle: text },
+        { status: 500 },
+      );
     }
 
     const data = await resp.json();
-    return NextResponse.json({ id: data.id, init_point: data.init_point, sandbox_init_point: data.sandbox_init_point }, { status: 201 });
+    return NextResponse.json(
+      { id: data.id, init_point: data.init_point, sandbox_init_point: data.sandbox_init_point },
+      { status: 201 },
+    );
   } catch (e: any) {
     console.error('MP preference unexpected error', e);
-    return NextResponse.json({ error: 'Error interno', detalle: e?.message || String(e) }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error interno', detalle: e?.message || String(e) },
+      { status: 500 },
+    );
   }
 }
-
-

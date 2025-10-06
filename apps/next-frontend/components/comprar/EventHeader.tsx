@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import type { Event } from "@/types/events";
+import React from 'react';
+import type { Event } from '@/types/events';
 
 type EventHeaderProps = {
   event: Event;
@@ -19,12 +19,13 @@ export function EventHeader({ event, onBack }: EventHeaderProps) {
         {event.fechas_evento?.[0]?.fecha_hora
           ? new Date(event.fechas_evento[0].fecha_hora).toLocaleDateString('es-AR') +
             ' · ' +
-            new Date(event.fechas_evento[0].fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+            new Date(event.fechas_evento[0].fecha_hora).toLocaleTimeString('es-AR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
           : new Date(event.fecha_inicio_venta).toLocaleDateString('es-AR')}
       </p>
       <p className="text-gray-500 text-sm">Selecciona tu sector y completa tu compra</p>
     </div>
   );
 }
-
-
