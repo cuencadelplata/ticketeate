@@ -6,12 +6,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const usuarioid = searchParams.get('usuario_id');
     const limit = parseInt(searchParams.get('limit') || '10');
-    
+
     if (!usuarioid) {
-      return NextResponse.json(
-        { error: 'usuario_id es requerido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'usuario_id es requerido' }, { status: 400 });
     }
 
     // Consultar historial de compras del usuario
@@ -30,16 +27,12 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     `;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       compras: historialCompras,
-      total: Array.isArray(historialCompras) ? historialCompras.length : 0
+      total: Array.isArray(historialCompras) ? historialCompras.length : 0,
     });
-
   } catch (error) {
     console.error('Error consultando historial de compras:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

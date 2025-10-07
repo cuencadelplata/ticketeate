@@ -7,10 +7,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
-    
+
     // En un entorno de producción, deberías verificar la firma del webhook
     // usando la biblioteca de Stripe y tu webhook secret
-    
+
     let event;
     try {
       event = JSON.parse(body);
@@ -24,17 +24,17 @@ export async function POST(request: NextRequest) {
     // Manejar el evento de pago exitoso
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      
+
       console.log('Payment succeeded for session:', session.id);
       console.log('Session metadata:', session.metadata);
-      
+
       const { eventoid, usuarioid, cantidad, sector } = session.metadata || {};
-      
+
       if (!eventoid || !usuarioid || !cantidad) {
         console.error('Missing required metadata in Stripe session');
         return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
       }
-      
+
       try {
         // Procesar el pago usando la misma lógica que en /api/comprar
         const resultado = await prisma.$transaction(async (tx) => {
@@ -55,26 +55,28 @@ export async function POST(request: NextRequest) {
           // Obtener evento con fechas y stock
           const evento = await tx.eventos.findUnique({
             where: { eventoid },
-            include: { 
+            include: {
               stock_entrada: true,
               fechas_evento: true,
             },
           });
-          
+
           if (!evento) {
             throw new Error('Evento no encontrado');
           }
-          
+
           // Obtener la primera fecha del evento y el primer stock de entrada
           const fechaEvento = evento.fechas_evento[0];
-          const categoriaEntrada = evento.stock_entrada.find(
-            (s: any) => String(s.nombre).toLowerCase() === String(sector || 'general').toLowerCase()
-          ) || evento.stock_entrada[0];
-          
+          const categoriaEntrada =
+            evento.stock_entrada.find(
+              (s: any) =>
+                String(s.nombre).toLowerCase() === String(sector || 'general').toLowerCase(),
+            ) || evento.stock_entrada[0];
+
           if (!fechaEvento || !categoriaEntrada) {
             throw new Error('Evento no tiene fechas o stock de entradas configurado');
           }
-          
+
           // Crear reserva
           const reserva = await tx.reservas.create({
             data: {
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
               estado: 'CONFIRMADA',
             },
           });
-          
+
           // Crear entradas
           const entradas = [];
           for (let i = 0; i < parseInt(cantidad); i++) {
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
             });
             entradas.push(entrada);
           }
-          
+
           // Crear registro de pago
           const pago = await tx.pagos.create({
             data: {
@@ -112,7 +114,7 @@ export async function POST(request: NextRequest) {
               estado: 'COMPLETADO',
             },
           });
-          
+
           // Registrar movimiento de stock
           await tx.movimientos_entradas.create({
             data: {
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
           const historialId = randomUUID();
           const comprobanteUrl = null; // URL del comprobante si se genera
           const montoTotalDecimal = new Prisma.Decimal(session.amount_total / 100); // Stripe envía en centavos
-          
+
           await tx.$executeRaw`INSERT INTO historial_compras (
             id, usuarioid, reservaid, eventoid, cantidad, monto_total, moneda, estado_compra, fecha_compra, fecha_evento, comprobante_url
           ) VALUES (
@@ -145,48 +147,46 @@ export async function POST(request: NextRequest) {
             ${fechaEvento.fecha_hora as any}, 
             ${comprobanteUrl}
           )`;
-          
+
           return { reserva, pago, entradas, historialId };
         });
-        
+
         console.log('Stripe payment processed successfully:', {
           reservaId: resultado.reserva.reservaid,
           pagoId: resultado.pago.pagoid,
           historialId: resultado.historialId,
           cantidadEntradas: resultado.entradas.length,
           montoTotal: session.amount_total / 100,
-          moneda: 'USD'
+          moneda: 'USD',
         });
-        
-        return NextResponse.json({ 
-          received: true, 
+
+        return NextResponse.json({
+          received: true,
           reservaId: resultado.reserva.reservaid,
-          historialId: resultado.historialId 
+          historialId: resultado.historialId,
         });
-        
       } catch (error) {
         console.error('Error processing Stripe payment:', {
           sessionId: session.id,
           metadata: session.metadata,
           error: error instanceof Error ? error.message : error,
         });
-        return NextResponse.json({ 
-          error: 'Failed to process payment', 
-          sessionId: session.id,
-          details: error instanceof Error ? error.message : 'Unknown error' 
-        }, { status: 500 });
+        return NextResponse.json(
+          {
+            error: 'Failed to process payment',
+            sessionId: session.id,
+            details: error instanceof Error ? error.message : 'Unknown error',
+          },
+          { status: 500 },
+        );
       }
     }
 
     // Manejar otros tipos de eventos si es necesario
     console.log(`Unhandled event type: ${event.type}`);
     return NextResponse.json({ received: true });
-
   } catch (error) {
     console.error('Webhook error:', error);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }

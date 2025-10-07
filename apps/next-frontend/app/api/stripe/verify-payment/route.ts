@@ -6,11 +6,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('session_id');
     const usuarioid = searchParams.get('usuario_id');
-    
+
     if (!sessionId || !usuarioid) {
       return NextResponse.json(
         { error: 'Faltan parámetros: session_id y usuario_id requeridos' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     if (pagos.length === 0) {
       return NextResponse.json(
         { error: 'No se encontraron pagos recientes para este usuario' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -93,12 +93,8 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(resultado);
-
   } catch (error) {
     console.error('Error recuperando información de pago Stripe:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

@@ -13,12 +13,15 @@ export function StripeSuccessMessage({ onContinue }: StripeSuccessMessageProps) 
         <div className="mb-4 text-6xl">🎉</div>
         <h2 className="mb-2 text-2xl font-bold text-green-600">¡Pago exitoso!</h2>
         <p className="mb-4 text-gray-600">
-          Tu pago con Stripe se procesó correctamente. Podrás descargar tu comprobante con código QR.
+          Tu pago con Stripe se procesó correctamente. Podrás descargar tu comprobante con código
+          QR.
         </p>
         <div className="mb-4 rounded-lg bg-green-50 p-3">
           <p className="text-sm text-green-700">
-            ✅ Pago confirmado<br />
-            � Comprobante con QR disponible<br />
+            ✅ Pago confirmado
+            <br />
+            � Comprobante con QR disponible
+            <br />
             🎫 Tu entrada está lista para usar
           </p>
         </div>

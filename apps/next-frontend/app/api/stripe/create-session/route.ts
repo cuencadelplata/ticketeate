@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Construir URLs con el evento incluido si está disponible en metadata
     const eventParam = metadata?.eventoid ? `&evento=${metadata.eventoid}` : '';
-    
+
     const payload = {
       mode: 'payment',
       success_url: `${baseUrl}/comprar?stripe_status=success${eventParam}`,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     );
     form.append('line_items[0][price_data][product_data][name]', title);
     form.append('line_items[0][quantity]', String(Number(quantity)));
-    
+
     // Agregar metadata si está presente
     if (metadata) {
       Object.entries(metadata).forEach(([key, value]) => {

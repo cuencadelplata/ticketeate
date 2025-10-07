@@ -49,7 +49,7 @@ export default function HistorialPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/compras/historial?usuario_id=${userId}&limit=20`);
-      
+
       if (!response.ok) {
         throw new Error('Error al cargar el historial');
       }
@@ -71,7 +71,7 @@ export default function HistorialPage() {
       const QRCode = await import('qrcode');
 
       const qrData = `https://ticketeate.com/entrada/${compra.reservaid}`;
-      
+
       // Generar QR como dataURL
       const qrDataUrl = await QRCode.toDataURL(qrData, {
         errorCorrectionLevel: 'M',
@@ -122,21 +122,25 @@ export default function HistorialPage() {
       pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(12);
       const left = cardX + 12;
-      
+
       pdf.text(`${compra.cantidad} entrada(s) para:`, left, cursorY);
       cursorY += 8;
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.text(compra.evento_titulo || 'Evento', left, cursorY);
       cursorY += 10;
-      
+
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       pdf.text(`Total: ${compra.monto_total} ${compra.moneda}`, left, cursorY);
       cursorY += 6;
       pdf.text(`Reserva: #${compra.reservaid}`, left, cursorY);
       cursorY += 6;
-      pdf.text(`Fecha: ${new Date(compra.fecha_compra).toLocaleDateString('es-ES')}`, left, cursorY);
+      pdf.text(
+        `Fecha: ${new Date(compra.fecha_compra).toLocaleDateString('es-ES')}`,
+        left,
+        cursorY,
+      );
 
       const fileName = `comprobante-${compra.reservaid}.pdf`;
       pdf.save(fileName);
@@ -152,7 +156,7 @@ export default function HistorialPage() {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -191,7 +195,9 @@ export default function HistorialPage() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🎫</div>
             <h2 className="text-2xl font-semibold mb-2">No tienes compras aún</h2>
-            <p className="text-gray-400 mb-6">¡Explora nuestros eventos y compra tu primera entrada!</p>
+            <p className="text-gray-400 mb-6">
+              ¡Explora nuestros eventos y compra tu primera entrada!
+            </p>
             <button
               onClick={() => router.push('/descubrir')}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
@@ -216,11 +222,13 @@ export default function HistorialPage() {
                       {compra.evento_ubicacion || 'Ubicación no disponible'}
                     </p>
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    compra.estado_compra === 'COMPLETADO' 
-                      ? 'bg-green-900 text-green-300' 
-                      : 'bg-yellow-900 text-yellow-300'
-                  }`}>
+                  <div
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      compra.estado_compra === 'COMPLETADO'
+                        ? 'bg-green-900 text-green-300'
+                        : 'bg-yellow-900 text-yellow-300'
+                    }`}
+                  >
                     {compra.estado_compra}
                   </div>
                 </div>
@@ -239,16 +247,12 @@ export default function HistorialPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Fecha de compra:</span>
-                    <span className="text-white">
-                      {formatearFecha(compra.fecha_compra)}
-                    </span>
+                    <span className="text-white">{formatearFecha(compra.fecha_compra)}</span>
                   </div>
                   {compra.fecha_evento && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Fecha del evento:</span>
-                      <span className="text-white">
-                        {formatearFecha(compra.fecha_evento)}
-                      </span>
+                      <span className="text-white">{formatearFecha(compra.fecha_evento)}</span>
                     </div>
                   )}
                 </div>
@@ -258,17 +262,12 @@ export default function HistorialPage() {
                   onClick={() => descargarComprobante(compra)}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg"
                 >
-                  <svg 
-                    className="w-4 h-4" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
                   Descargar Comprobante

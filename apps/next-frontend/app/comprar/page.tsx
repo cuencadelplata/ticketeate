@@ -205,25 +205,24 @@ export default function ComprarPage() {
         setSelectedEvent(eventData);
         setShowEventSelection(false);
       }
-      
+
       // Mostrar mensaje inicial de Stripe
       setShowStripeMessage(true);
       setMetodo('stripe');
-      
+
       // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
       const url = new URL(window.location.href);
       url.searchParams.delete('stripe_status');
       window.history.replaceState({}, '', url.toString());
-      
     } else if (stripeStatus === 'cancel') {
       // Mostrar mensaje de cancelación
       setError('El pago fue cancelado. Puedes intentar nuevamente.');
-      
+
       // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
       const url = new URL(window.location.href);
       url.searchParams.delete('stripe_status');
       window.history.replaceState({}, '', url.toString());
-      
+
       // Limpiar error después de unos segundos
       setTimeout(() => {
         setError(null);
@@ -234,13 +233,13 @@ export default function ComprarPage() {
   // Función para continuar después del mensaje de Stripe
   const handleStripeContinue = () => {
     setShowStripeMessage(false);
-    
+
     // Asegurar que el evento esté seleccionado y la interfaz configurada correctamente
     const eventInfo = selectedEvent || eventData;
     if (eventInfo) {
       setSelectedEvent(eventInfo);
       setShowEventSelection(false);
-      
+
       // Configurar sector por defecto si no hay uno seleccionado
       if (!sector) {
         const dyn = buildSectorsFromEvent(eventInfo);
@@ -248,7 +247,7 @@ export default function ComprarPage() {
         setSector(firstSector);
       }
     }
-    
+
     // Crear resultado simulado para mostrar la tarjeta de éxito
     const mockResultado = {
       reserva: {
@@ -261,16 +260,18 @@ export default function ComprarPage() {
         estado: 'COMPLETADO',
         monto_total: total,
       },
-      evento: eventInfo ? {
-        titulo: eventInfo.titulo,
-        imagen_url: eventInfo.imagenes_evento?.[0]?.url || '/icon-ticketeate.png',
-        ubicacion: eventInfo.ubicacion,
-        fecha_hora: eventInfo.fechas_evento?.[0]?.fecha_hora,
-      } : {
-        titulo: 'Evento',
-        imagen_url: '/icon-ticketeate.png',
-        ubicacion: 'Ubicación',
-      },
+      evento: eventInfo
+        ? {
+            titulo: eventInfo.titulo,
+            imagen_url: eventInfo.imagenes_evento?.[0]?.url || '/icon-ticketeate.png',
+            ubicacion: eventInfo.ubicacion,
+            fecha_hora: eventInfo.fechas_evento?.[0]?.fecha_hora,
+          }
+        : {
+            titulo: 'Evento',
+            imagen_url: '/icon-ticketeate.png',
+            ubicacion: 'Ubicación',
+          },
       entradas: Array.from({ length: cantidad }, (_, i) => ({
         id_entrada: `stripe-entrada-${i + 1}`,
         codigo_qr: `stripe-qr-${Date.now()}-${i}`,
@@ -288,7 +289,7 @@ export default function ComprarPage() {
     };
     setResultado(mockResultado);
     setShowSuccess(true);
-    
+
     console.log('Stripe continue - evento configurado:', eventInfo?.titulo);
     console.log('Stripe continue - sector:', sector);
   };
@@ -476,14 +477,15 @@ export default function ComprarPage() {
     console.log('- metodo:', metodo);
     console.log('- cantidad:', cantidad);
     console.log('- total:', total);
-    
+
     const { jsPDF } = await import('jspdf');
     const QRCode = await import('qrcode');
 
     // Usar el ID de reserva real para el QR (usar reservaid que es el campo correcto)
-    const reservaId = resultado?.reserva?.reservaid || resultado?.reserva?.id_reserva || 'no-reserva';
+    const reservaId =
+      resultado?.reserva?.reservaid || resultado?.reserva?.id_reserva || 'no-reserva';
     console.log('🆔 ID de reserva detectado:', reservaId);
-    
+
     const qrData = `https://ticketeate.com/entrada/${reservaId}`;
     console.log('🔗 QR Data:', qrData);
 
@@ -775,11 +777,9 @@ export default function ComprarPage() {
           </aside>
         </div>
       </div>
-      
+
       {/* Mensaje de éxito de Stripe */}
-      {showStripeMessage && (
-        <StripeSuccessMessage onContinue={handleStripeContinue} />
-      )}
+      {showStripeMessage && <StripeSuccessMessage onContinue={handleStripeContinue} />}
     </div>
   );
 }
