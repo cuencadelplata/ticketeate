@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { serve } from '@hono/node-server';
+import app from './src/index.js';
 
 // Obtener __dirname en módulos ES
 const __filename = fileURLToPath(import.meta.url);
@@ -20,24 +21,12 @@ const envVars = Object.fromEntries(
     }),
 );
 
-// Propagar variables de .env a process.env (sin sobreescribir existentes)
-for (const [key, value] of Object.entries(envVars)) {
-  if (typeof process.env[key] === 'undefined') {
-    process.env[key] = value;
-  }
-}
-
 // Usar la variable del archivo .env directamente
-const port = parseInt(process.env.PORT || envVars.PORT || '3004', 10);
+const port = parseInt(envVars.PORT || '3004', 10);
 
 console.log(`🚀 Development server running on http://localhost:${port}`);
 
-// Importar la app después de configurar process.env para asegurar que Prisma tenga acceso a DATABASE_URL
-// Evitar top-level await en CJS usando un IIFE async
-(async () => {
-  const { default: app } = await import('./src/index.js');
-  serve({ fetch: app.fetch, port });
-})().catch((err) => {
-  console.error('Failed to start svc-producers dev server:', err);
-  process.exit(1);
+serve({
+  fetch: app.fetch,
+  port,
 });

@@ -12,7 +12,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   // ✅ usa las props reales del hook de Better Auth
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
 
@@ -62,12 +62,6 @@ export function Navbar() {
                 className="text-sm font-medium text-zinc-200 hover:text-white"
               >
                 Mis Eventos
-              </Link>
-              <Link
-                href="/historial"
-                className="text-sm font-medium text-zinc-200 hover:text-white"
-              >
-                Historial
               </Link>
               <Link
                 href="/productoras"

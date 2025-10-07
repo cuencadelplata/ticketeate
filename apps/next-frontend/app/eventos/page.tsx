@@ -6,7 +6,6 @@ import {
   MapPin,
   ArrowRight,
   Plus,
-  RefreshCw,
   Trash2,
   Tag,
   Eye,
@@ -20,8 +19,63 @@ import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { useEvents, useDeleteEvent, useAllEvents } from '@/hooks/use-events';
+import { useEvents, useDeleteEvent } from '@/hooks/use-events';
 import type { Event } from '@/types/events';
+
+// Componente Skeleton personalizado con animación de barrido
+const ShimmerSkeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`} {...props}>
+    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-stone-600/50 to-transparent" />
+  </div>
+);
+
+// Componente Skeleton solo para las cards de eventos
+const EventsCardsSkeleton = () => (
+  <div className="space-y-6">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div
+        key={i}
+        className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A] border border-[#3A3A3A]"
+      >
+        <div className="relative p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-4">
+              {/* Header skeleton */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ShimmerSkeleton className="h-16 w-20 rounded-lg" />
+                  <ShimmerSkeleton className="h-4 w-16" />
+                </div>
+                <ShimmerSkeleton className="h-6 w-20 rounded-full" />
+              </div>
+
+              {/* Title and description skeleton */}
+              <div>
+                <ShimmerSkeleton className="h-8 w-3/4 mb-2" />
+                <ShimmerSkeleton className="h-4 w-full mb-2" />
+                <ShimmerSkeleton className="h-4 w-2/3" />
+              </div>
+
+              {/* Category skeleton */}
+              <ShimmerSkeleton className="h-6 w-24 rounded-full" />
+
+              {/* Actions skeleton */}
+              <div className="flex items-center gap-3 pt-2 pb-6">
+                <ShimmerSkeleton className="h-10 w-32 rounded-lg" />
+                <ShimmerSkeleton className="h-10 w-24 rounded-lg" />
+              </div>
+            </div>
+
+            {/* Image skeleton */}
+            <div className="ml-6">
+              <ShimmerSkeleton className="h-32 w-32 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 // formatear fecha
 const formatEventDate = (dateString: string) => {
@@ -120,33 +174,42 @@ const getEventDateInfo = (event: Event) => {
 // Determinar si un evento es pasado
 const isEventPast = (event: Event) => {
   const dateInfo = getEventDateInfo(event);
-  return dateInfo.isPast;
+
+  // Si tiene fechas del evento, usar la lógica existente
+  if (dateInfo.hasEventDates) {
+    return dateInfo.isPast;
+  }
+
+  // Si no tiene fechas del evento pero tiene fecha de publicación programada,
+  // considerar el evento como "próximo" hasta que se publique
+  if (event.fecha_publicacion) {
+    const fechaPublicacion =
+      typeof event.fecha_publicacion === 'string'
+        ? new Date(event.fecha_publicacion)
+        : event.fecha_publicacion;
+
+    // Si la fecha de publicación es en el futuro, el evento es "próximo"
+    return fechaPublicacion < new Date();
+  }
+
+  // Si no tiene ni fechas del evento ni fecha de publicación, usar fecha de creación
+  const fechaCreacion =
+    typeof event.fecha_creacion === 'string'
+      ? new Date(event.fecha_creacion)
+      : event.fecha_creacion;
+
+  return fechaCreacion < new Date();
 };
 
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
-  const { data: events = [], isLoading: loading, error, refetch } = useEvents();
-  const { data: allEvents = [] } = useAllEvents();
-  // const { userId } = useAuth(); // Deshabilitado: no usamos Clerk en esta vista
+  const { data: events = [], isLoading: loading } = useEvents();
   const deleteEventMutation = useDeleteEvent();
 
-  //force reload
-  const loadEvents = async () => {
-    try {
-      await refetch();
-    } catch {
-      console.error('Error loading events:', error);
-      toast.error('Error al cargar los eventos');
-    }
-  };
-
-  // Usar eventos del usuario si hay; si no, mostrar públicos como fallback
-  const baseEvents = (events && events.length > 0 ? events : allEvents) as Event[];
-
   // filter events
-  const proximosEvents = baseEvents.filter((event) => !isEventPast(event));
-  const pasadosEvents = baseEvents.filter((event) => isEventPast(event));
+  const proximosEvents = events.filter((event) => !isEventPast(event));
+  const pasadosEvents = events.filter((event) => isEventPast(event));
   const filteredEvents = activeTab === 'proximos' ? proximosEvents : pasadosEvents;
 
   const hasEvents = filteredEvents.length > 0;
@@ -159,7 +222,7 @@ export default function EventosPage() {
       <div className="p-6">
         <div className="mx-auto max-w-6xl">
           {/* Header mejorado */}
-          <div className="mb-12">
+          <div className="mb-6">
             <div className="flex items-center justify-between mb-8">
               <div className="flex-1">
                 <h1 className="text-6xl font-instrument-serif font-light bg-gradient-to-r from-white to-stone-300 bg-clip-text text-transparent mb-2">
@@ -177,7 +240,7 @@ export default function EventosPage() {
                       'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
                       activeTab === 'proximos'
                         ? 'bg-orange-500 text-white shadow-sm'
-                        : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]',
+                        : 'text-stone-400 hover:text-white hover:bg-[#2A2A2A]',
                     )}
                   >
                     Próximos ({proximosEvents.length})
@@ -188,7 +251,7 @@ export default function EventosPage() {
                       'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
                       activeTab === 'pasados'
                         ? 'bg-orange-500 text-white shadow-sm'
-                        : 'text-gray-400 hover:text-white hover:bg-[#2A2A2A]',
+                        : 'text-stone-400 hover:text-white hover:bg-[#2A2A2A]',
                     )}
                   >
                     Pasados ({pasadosEvents.length})
@@ -197,17 +260,8 @@ export default function EventosPage() {
               </div>
 
               <div className="flex items-center gap-4">
-                <button
-                  onClick={loadEvents}
-                  disabled={loading}
-                  className="flex items-center gap-2 rounded-xl bg-[#2A2A2A] px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-[#3A3A3A] hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  title="Recargar eventos"
-                >
-                  <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-                  {loading ? 'Cargando...' : 'Actualizar'}
-                </button>
                 <Link href="/crear">
-                  <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-lg">
+                  <button className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
                     <Plus className="h-4 w-4" />
                     Crear Evento
                   </button>
@@ -217,22 +271,16 @@ export default function EventosPage() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="relative">
-                <RefreshCw className="mb-4 h-16 w-16 animate-spin text-orange-500" />
-                <div className="absolute inset-0 h-16 w-16 rounded-full border-2 border-orange-500/20"></div>
-              </div>
-              <p className="text-gray-400 text-lg">Cargando eventos...</p>
-            </div>
+            <EventsCardsSkeleton />
           ) : !hasEvents ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="mb-8 rounded-2xl bg-gradient-to-br from-[#2A2A2A] to-[#3A3A3A] p-8 border border-[#4A4A4A]">
-                <Calendar className="h-20 w-20 text-gray-400 mx-auto" />
+                <Calendar className="h-20 w-20 text-stone-400 mx-auto" />
               </div>
-              <h2 className="mb-4 text-3xl font-bold text-gray-200">
+              <h2 className="mb-4 text-3xl font-bold text-stone-200">
                 Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
               </h2>
-              <p className="mb-8 text-gray-400 text-lg text-center max-w-md">
+              <p className="mb-8 text-stone-400 text-lg text-center max-w-md">
                 {activeTab === 'proximos'
                   ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
                   : 'No tienes eventos pasados.'}
@@ -247,24 +295,44 @@ export default function EventosPage() {
               )}
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-6 pb-8">
               {filteredEvents.map((event) => {
                 const dateInfo = getEventDateInfo(event);
-                const formattedDate =
-                  dateInfo.hasEventDates && dateInfo.mainDate
-                    ? formatEventDate(dateInfo.mainDate.toISOString())
-                    : formatEventDate(
-                        typeof event.fecha_creacion === 'string'
-                          ? event.fecha_creacion
-                          : event.fecha_creacion.toISOString(),
-                      );
+
+                // Determinar qué fecha mostrar en el header
+                let headerDate: Date;
+                if (dateInfo.hasEventDates && dateInfo.mainDate) {
+                  // Si tiene fechas del evento, mostrar la fecha del evento
+                  headerDate = dateInfo.mainDate;
+                } else if (event.fecha_publicacion) {
+                  // Si no tiene fechas del evento pero tiene fecha de publicación, mostrar esa fecha
+                  headerDate =
+                    typeof event.fecha_publicacion === 'string'
+                      ? new Date(event.fecha_publicacion)
+                      : event.fecha_publicacion;
+                } else {
+                  // Como último recurso, usar fecha de creación
+                  headerDate =
+                    typeof event.fecha_creacion === 'string'
+                      ? new Date(event.fecha_creacion)
+                      : event.fecha_creacion;
+                }
+
+                const formattedDate = formatEventDate(headerDate.toISOString());
+
+                // Determinar fecha de visibilidad
+                const visibilityDate = event.fecha_publicacion
+                  ? typeof event.fecha_publicacion === 'string'
+                    ? new Date(event.fecha_publicacion)
+                    : event.fecha_publicacion
+                  : typeof event.fecha_creacion === 'string'
+                    ? new Date(event.fecha_creacion)
+                    : event.fecha_creacion;
                 const hasLocation = !!event.ubicacion;
                 const coverImage = getCoverImage(event);
                 const eventStatus = getEventStatus(event);
                 const category = getEventCategory(event);
                 const hasTickets = event.stock_entrada && event.stock_entrada.length > 0;
-
-                const isOwner = false; // Sin sesión, ocultar acciones de dueño
 
                 return (
                   <div
@@ -292,26 +360,44 @@ export default function EventosPage() {
                                 className={`flex flex-col items-center rounded-lg px-3 py-2 ${
                                   dateInfo.hasEventDates
                                     ? 'bg-[#3A3A3A]'
-                                    : 'bg-red-500/20 border border-red-500/50'
+                                    : event.fecha_publicacion
+                                      ? 'bg-blue-500/20 border border-blue-500/50'
+                                      : 'bg-red-500/20 border border-red-500/50'
                                 }`}
                               >
                                 <div
                                   className={`text-lg font-bold ${
-                                    dateInfo.hasEventDates ? 'text-white' : 'text-red-400'
+                                    dateInfo.hasEventDates
+                                      ? 'text-white'
+                                      : event.fecha_publicacion
+                                        ? 'text-blue-400'
+                                        : 'text-red-400'
                                   }`}
                                 >
-                                  {dateInfo.hasEventDates ? formattedDate.date : 'Sin fecha'}
+                                  {dateInfo.hasEventDates
+                                    ? formattedDate.date
+                                    : event.fecha_publicacion
+                                      ? formattedDate.date
+                                      : 'Sin fecha'}
                                 </div>
                                 <div
                                   className={`text-xs ${
-                                    dateInfo.hasEventDates ? 'text-gray-400' : 'text-red-300'
+                                    dateInfo.hasEventDates
+                                      ? 'text-stone-400'
+                                      : event.fecha_publicacion
+                                        ? 'text-blue-300'
+                                        : 'text-red-300'
                                   }`}
                                 >
-                                  {dateInfo.hasEventDates ? formattedDate.day : 'Asignar fecha'}
+                                  {dateInfo.hasEventDates
+                                    ? formattedDate.day
+                                    : event.fecha_publicacion
+                                      ? 'Programado'
+                                      : 'Asignar fecha'}
                                 </div>
                               </div>
-                              {dateInfo.hasEventDates && (
-                                <div className="text-sm text-gray-400">{formattedDate.time}</div>
+                              {(dateInfo.hasEventDates || event.fecha_publicacion) && (
+                                <div className="text-sm text-stone-400">{formattedDate.time}</div>
                               )}
                             </div>
 
@@ -346,7 +432,7 @@ export default function EventosPage() {
                               {event.titulo}
                             </h3>
                             {event.descripcion && (
-                              <p className="text-gray-400 line-clamp-2">{event.descripcion}</p>
+                              <p className="text-stone-400 line-clamp-2">{event.descripcion}</p>
                             )}
                           </div>
 
@@ -354,8 +440,8 @@ export default function EventosPage() {
                           <div className="space-y-2">
                             {/* Ubicación */}
                             {hasLocation ? (
-                              <div className="flex items-center gap-2 text-sm text-gray-300">
-                                <MapPin className="h-4 w-4 text-gray-500" />
+                              <div className="flex items-center gap-2 text-sm text-stone-300">
+                                <MapPin className="h-4 w-4 text-stone-500" />
                                 <span>{event.ubicacion}</span>
                               </div>
                             ) : (
@@ -366,34 +452,53 @@ export default function EventosPage() {
                             )}
 
                             {/* Fechas principales */}
-                            <div className="flex items-center gap-2 text-sm text-gray-300">
-                              <Calendar className="h-4 w-4 text-gray-500" />
-                              <span>
-                                {dateInfo.hasEventDates ? (
-                                  <>
-                                    {dateInfo.mainDate?.toLocaleDateString('es-ES')}
-                                    {dateInfo.allDates[0]?.fechaFin &&
-                                      dateInfo.allDates[0].fechaFin.getTime() !==
-                                        dateInfo.mainDate?.getTime() && (
-                                        <>
-                                          {' '}
-                                          -{' '}
-                                          {dateInfo.allDates[0].fechaFin.toLocaleDateString(
-                                            'es-ES',
-                                          )}
-                                        </>
+                            <div className="space-y-1">
+                              {/* Fecha del evento */}
+                              <div className="flex items-center gap-2 text-sm text-stone-300">
+                                <Calendar className="h-4 w-4 text-stone-500" />
+                                <span>
+                                  {dateInfo.hasEventDates ? (
+                                    <>
+                                      <span className="font-medium">Evento:</span>{' '}
+                                      {dateInfo.mainDate?.toLocaleDateString('es-ES')}
+                                      {dateInfo.allDates[0]?.fechaFin &&
+                                        dateInfo.allDates[0].fechaFin.getTime() !==
+                                          dateInfo.mainDate?.getTime() && (
+                                          <>
+                                            {' '}
+                                            -{' '}
+                                            {dateInfo.allDates[0].fechaFin.toLocaleDateString(
+                                              'es-ES',
+                                            )}
+                                          </>
+                                        )}
+                                      {dateInfo.hasMultipleDates && (
+                                        <span className="ml-2 text-orange-400">
+                                          +{dateInfo.allDates.length - 1} fecha
+                                          {dateInfo.allDates.length - 1 > 1 ? 's' : ''} más
+                                        </span>
                                       )}
-                                    {dateInfo.hasMultipleDates && (
-                                      <span className="ml-2 text-orange-400">
-                                        +{dateInfo.allDates.length - 1} fecha
-                                        {dateInfo.allDates.length - 1 > 1 ? 's' : ''} más
-                                      </span>
-                                    )}
-                                  </>
-                                ) : (
-                                  new Date(event.fecha_creacion).toLocaleDateString('es-ES')
-                                )}
-                              </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-yellow-500">
+                                      Sin fecha de evento asignada
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+
+                              {/* Fecha de visibilidad */}
+                              <div className="flex items-center gap-2 text-sm text-stone-400">
+                                <Eye className="h-4 w-4 text-stone-500" />
+                                <span>
+                                  <span className="font-medium">Visible desde:</span>{' '}
+                                  {visibilityDate.toLocaleDateString('es-ES')} a las{' '}
+                                  {visibilityDate.toLocaleTimeString('es-ES', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              </div>
                             </div>
 
                             {/* Fechas adicionales (expandible) */}
@@ -428,9 +533,9 @@ export default function EventosPage() {
                                     {dateInfo.allDates.slice(1).map((fecha, index) => (
                                       <div
                                         key={index}
-                                        className="flex items-center gap-2 text-xs text-gray-400"
+                                        className="flex items-center gap-2 text-xs text-stone-400"
                                       >
-                                        <Calendar className="h-3 w-3 text-gray-500" />
+                                        <Calendar className="h-3 w-3 text-stone-500" />
                                         <span>
                                           {fecha.fechaHora.toLocaleDateString('es-ES')} a las{' '}
                                           {fecha.formatted.time}
@@ -449,8 +554,8 @@ export default function EventosPage() {
 
                             {/* Tickets */}
                             {hasTickets && (
-                              <div className="flex items-center gap-2 text-sm text-gray-300">
-                                <Users className="h-4 w-4 text-gray-500" />
+                              <div className="flex items-center gap-2 text-sm text-stone-300">
+                                <Users className="h-4 w-4 text-stone-500" />
                                 <span>{event.stock_entrada?.length} tipo(s) de entrada</span>
                               </div>
                             )}
@@ -459,38 +564,36 @@ export default function EventosPage() {
                           {/* Categoría */}
                           {category !== 'Sin categoría' && (
                             <div className="flex flex-wrap gap-2">
-                              <span className="flex items-center gap-1 rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-gray-300">
+                              <span className="flex items-center gap-1 rounded-full bg-[#3A3A3A] px-2 py-1 text-xs text-stone-300">
                                 <Tag className="h-3 w-3" />
                                 {category}
                               </span>
                             </div>
                           )}
 
-                          {/* Acciones (solo si el evento es del usuario) */}
-                          {isOwner && (
-                            <div className="flex items-center gap-3 pt-2">
-                              <Link href={`/evento/manage/${event.eventoid}`}>
-                                <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
-                                  Gestionar evento
-                                  <ArrowRight className="h-4 w-4" />
-                                </button>
-                              </Link>
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await deleteEventMutation.mutateAsync(event.eventoid);
-                                    toast.success('Evento eliminado');
-                                  } catch (e: any) {
-                                    toast.error(e?.message || 'Error al eliminar');
-                                  }
-                                }}
-                                className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Eliminar
+                          {/* Acciones */}
+                          <div className="flex items-center gap-3 pt-2">
+                            <Link href={`/evento/manage/${event.eventoid}`}>
+                              <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                Gestionar evento
+                                <ArrowRight className="h-4 w-4" />
                               </button>
-                            </div>
-                          )}
+                            </Link>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await deleteEventMutation.mutateAsync(event.eventoid);
+                                  toast.success('Evento eliminado');
+                                } catch (e: any) {
+                                  toast.error(e?.message || 'Error al eliminar');
+                                }
+                              }}
+                              className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Eliminar
+                            </button>
+                          </div>
                         </div>
 
                         {/* Imagen del evento */}
@@ -503,7 +606,7 @@ export default function EventosPage() {
                                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                               />
                             ) : (
-                              <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] text-gray-400">
+                              <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] text-stone-400">
                                 <Calendar className="mb-2 h-8 w-8" />
                                 <div className="text-xs">Sin imagen</div>
                               </div>

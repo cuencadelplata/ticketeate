@@ -1,14 +1,34 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
-import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes } from './routes';
+import {
+  apiAuthPrefix,
+  authRoutes,
+  DEFAULT_LOGIN_REDIRECT,
+  publicRoutes,
+  protectedRoutes,
+} from './routes';
 
 export async function middleware(request: NextRequest) {
   const session = getSessionCookie(request);
 
   const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
 
-  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route.endsWith('/*')) {
+      const baseRoute = route.slice(0, -2);
+      return request.nextUrl.pathname.startsWith(baseRoute);
+    }
+    return request.nextUrl.pathname === route;
+  });
+
+  const isProtectedRoute = protectedRoutes.some((route) => {
+    if (route.endsWith('/*')) {
+      const baseRoute = route.slice(0, -2);
+      return request.nextUrl.pathname.startsWith(baseRoute);
+    }
+    return request.nextUrl.pathname === route;
+  });
 
   const isAuthRoute = () => {
     return authRoutes.some((path) => request.nextUrl.pathname.startsWith(path));
@@ -23,6 +43,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
     }
     return NextResponse.next();
+  }
+
+  // Proteger rutas específicas
+  if (isProtectedRoute && !session) {
+    const back = encodeURIComponent(request.nextUrl.pathname);
+    return NextResponse.redirect(new URL(`/sign-in?redirect_url=${back}`, request.url));
   }
 
   if (!session && !isPublicRoute) {

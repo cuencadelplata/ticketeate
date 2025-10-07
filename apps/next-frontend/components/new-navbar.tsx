@@ -13,18 +13,9 @@ export function NewNavbar() {
 function Navbar() {
   const [active, setActive] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { data: session, isPending, error } = useSession();
+  const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
-
-  // Debug logs temporales
-  console.log('🔍 Navbar Debug:', {
-    session,
-    isAuthenticated,
-    isLoading,
-    isPending,
-    error
-  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,7 +52,7 @@ function Navbar() {
             <Menu setActive={setActive}>
               <MenuItem setActive={setActive} active={active} item="Descubrir">
                 <div className="flex flex-col space-y-4 text-sm">
-                  <HoveredLink href="/eventos">Eventos</HoveredLink>
+                  <HoveredLink href="/descubrir">Eventos</HoveredLink>
                   <HoveredLink href="/productoras">Productoras</HoveredLink>
                 </div>
               </MenuItem>
@@ -105,7 +96,6 @@ function Navbar() {
               </MenuItem>
             </Menu>
 
-            {/* Precio as simple button */}
             <Link
               href="/precios"
               className="px-6 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors duration-200"
@@ -117,52 +107,34 @@ function Navbar() {
           {/* Right Side Buttons */}
           <div className="flex items-center gap-3 flex-shrink-0 ml-8">
             {isLoading ? (
-              <div className="flex items-center gap-3">
-                <div className="w-20 h-9 bg-stone-800 rounded-full animate-pulse"></div>
-                <div className="w-24 h-9 bg-stone-800 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-9 bg-stone-800 rounded-md animate-pulse"></div>
               </div>
             ) : (
               <>
-                {/* Botón Historial SIEMPRE visible para testing */}
-                <Link
-                  href="/historial"
-                  className="px-4 py-2 text-sm font-medium text-white-400 hover:text-white-300 transition-colors duration-200"
-                >
-                Historial
-                </Link>
-
                 {isAuthenticated ? (
-                  <>
-                    <Link
-                      href="/eventos"
-                      className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
-                    >
-                      Mi Panel
-                    </Link>
-                    <Link
-                      href="/historial"
-                      className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
-                    >
-                      Historial Auth
-                    </Link>
-                  </>
+                  <Link
+                    href="/eventos"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
+                  >
+                    Mi Panel
+                  </Link>
                 ) : (
                   <Link
                     href="/sign-in"
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
                   >
                     Acceso
                   </Link>
                 )}
-
-                <Link
-                  href="/crear"
-                  className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
-                >
-                  Crear Evento
-                </Link>
               </>
             )}
+            <Link
+              href="/crear"
+              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              Crear Evento
+            </Link>
           </div>
         </div>
       </div>

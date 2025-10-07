@@ -34,8 +34,16 @@ export const API_ENDPOINTS = {
   walletUnlink: `${USERS_API_BASE_URL}/api/wallet/unlink`,
 } as const;
 
-// Configuración de Cloudinary (para referencia)
+// Configuración de Cloudinary
 export const CLOUDINARY_CONFIG = {
-  cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  apiKey: process.env.CLOUDINARY_API_KEY,
+  apiSecret: process.env.CLOUDINARY_API_SECRET,
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+} as const;
+
+// Configuración de Redis (Upstash)
+export const REDIS_CONFIG = {
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 } as const;

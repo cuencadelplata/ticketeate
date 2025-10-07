@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, Context, Next } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
@@ -9,7 +9,7 @@ import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
 
 // Custom JWT middleware using shared secret (same as frontend)
-async function jwtMiddleware(c: any, next: any) {
+async function jwtMiddleware(c: Context, next: Next) {
   try {
     const authHeader = c.req.header('Authorization');
 
@@ -31,6 +31,7 @@ async function jwtMiddleware(c: any, next: any) {
 
     await next();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('JWT Middleware - JWT verification failed:', error);
     return c.json({ error: 'Invalid token' }, 401);
   }
