@@ -1,13 +1,44 @@
 'use client';
 
-import NavbarHome from '@/components/navbar-main';
-import { Footer } from '@/components/footer';
 import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
-import { Calendar } from 'lucide-react';
+import { useViewCount } from '@/hooks/use-view-count';
+import { Calendar, Eye, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
+import Image from 'next/image';
+
+// Helper function para formatear fechas de manera elegante
+const formatEventDate = (date: Date) => {
+  const now = new Date();
+  const eventDate = new Date(date);
+  const isToday = eventDate.toDateString() === now.toDateString();
+  const isTomorrow =
+    eventDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString();
+
+  const dayName = eventDate.toLocaleDateString('es-AR', { weekday: 'long' });
+  const dayNumber = eventDate.getDate();
+  const monthName = eventDate.toLocaleDateString('es-AR', { month: 'long' });
+  const year = eventDate.getFullYear();
+  const time = eventDate.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  return {
+    isToday,
+    isTomorrow,
+    dayName: dayName.charAt(0).toUpperCase() + dayName.slice(1),
+    dayNumber,
+    monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+    year,
+    time,
+    fullDate: `${dayName}, ${dayNumber} de ${monthName} de ${year}`,
+    shortDate: `${dayNumber}/${eventDate.getMonth() + 1}/${year}`,
+  };
+};
 
 export default function EventoPage() {
   const params = useParams();
@@ -28,6 +59,9 @@ export default function EventoPage() {
   // Hook para manejar reserva temporal
   const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
     useReservation();
+
+  // Hook para manejar conteo de views
+  const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
 
   // Función para manejar el clic en "Comprar Entradas"
   const handleComprarEntradas = () => {
@@ -78,12 +112,12 @@ export default function EventoPage() {
   }, [event?.ubicacion, isLoaded]);
 
   const coverImage =
-    event?.imagenes_evento?.find((i) => i.tipo === 'portada')?.url ||
+    event?.imagenes_evento?.find((i) => i.tipo === 'PORTADA')?.url ||
     event?.imagenes_evento?.[0]?.url ||
     undefined;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen py-16">
       {/* Banner de reserva temporal */}
       {isReserved && isReservationActive(id) && timeLeft > 0 && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
@@ -114,34 +148,31 @@ export default function EventoPage() {
       )}
 
       <div
-        className={`relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500 ${isReserved && isReservationActive(id) && timeLeft > 0 ? 'pt-20' : ''}`}
+        className={`relative z-20 min-h-screen text-zinc-200 transition-all duration-500 ${isReserved && isReservationActive(id) && timeLeft > 0 ? 'pt-20' : ''}`}
       >
-        <NavbarHome />
         <div className="mx-auto max-w-[68rem] space-y-2 px-20 pb-3 pt-10">
           {isLoading && <div className="text-orange-100">Cargando evento...</div>}
           {error && <div className="text-red-200">No se pudo cargar el evento.</div>}
           {!isLoading && !error && event && (
-            <div className="grid gap-8 md:grid-cols-[300px,1fr]">
+            <div className="grid gap-6 md:grid-cols-[350px,1fr]">
               <div className="space-y-2">
-                <div
-                  style={
-                    coverImage
-                      ? {
-                          backgroundImage: `url(${coverImage})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }
-                      : {}
-                  }
-                  className={`rounded-xl bg-stone-900 backdrop-blur-lg transition-all duration-300 ${coverImage ? 'h-80' : ''}`}
-                >
-                  {!coverImage && (
-                    <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30">
-                      <Calendar className="h-8 w-8 text-stone-200" />
-                      <p className="mt-2 text-sm text-stone-500">Sin imagen de portada</p>
-                    </div>
-                  )}
-                </div>
+                {coverImage ? (
+                  <div className="relative rounded-xl overflow-hidden bg-stone-900 backdrop-blur-lg transition-all duration-300 aspect-square">
+                    <Image
+                      src={coverImage}
+                      alt={event.titulo}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 900px) 100vw, 500px"
+                      priority
+                    />
+                  </div>
+                ) : (
+                  <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-400/50 bg-stone-800/30">
+                    <Calendar className="h-8 w-8 text-stone-200" />
+                    <p className="mt-2 text-sm text-stone-500">Sin imagen de portada</p>
+                  </div>
+                )}
 
                 {event.imagenes_evento && event.imagenes_evento.length > 1 && (
                   <div className="space-y-2">
@@ -151,13 +182,15 @@ export default function EventoPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {event.imagenes_evento.slice(1).map((img) => (
                         <div
-                          key={img.id_imagen}
-                          className="aspect-square overflow-hidden rounded-lg"
+                          key={img.imagenid}
+                          className="relative aspect-square overflow-hidden rounded-md"
                         >
-                          <img
+                          <Image
                             src={img.url}
                             alt={event.titulo}
-                            className="h-full w-full object-cover"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 50vw, 200px"
                           />
                         </div>
                       ))}
@@ -168,82 +201,76 @@ export default function EventoPage() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <h1 className="w-full border-none bg-transparent text-3xl font-normal text-stone-100">
+                  <h1 className="w-full border-none bg-transparent text-4xl font-normal text-stone-100">
                     {event.titulo}
                   </h1>
                 </div>
 
-                <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                  <div className="flex items-center gap-2 pb-1">
-                    <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-                    <h3 className="text-sm font-semibold text-stone-200">Fechas del evento</h3>
+                {/* Contador de views */}
+                {!isLoadingViews && viewCountData && (
+                  <div className="flex items-center gap-2 text-stone-400">
+                    <Eye className="h-4 w-4" />
+                    <span className="text-sm">
+                      {viewCountData.views.toLocaleString()}{' '}
+                      {viewCountData.views === 1 ? 'visita' : 'visitas'}
+                    </span>
                   </div>
-                  <div className="text-stone-300 space-y-1">
-                    <div>
-                      <span className="font-medium">Inicio: </span>
-                      {new Date(event.fecha_inicio_venta).toLocaleDateString('es-AR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}{' '}
-                      {new Date(event.fecha_inicio_venta).toLocaleTimeString('es-AR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                    <div>
-                      <span className="font-medium">Fin: </span>
-                      {new Date(event.fecha_fin_venta).toLocaleDateString('es-AR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}{' '}
-                      {new Date(event.fecha_fin_venta).toLocaleTimeString('es-AR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  </div>
+                )}
 
-                  {event.fechas_evento && event.fechas_evento.length > 0 && (
-                    <div className="pt-2">
-                      <h4 className="text-xs font-semibold text-stone-400">Fechas adicionales</h4>
-                      <ul className="list-disc pl-6 text-stone-200">
-                        {event.fechas_evento.map((f, idx) => (
-                          <li key={(f as any).fechaid ?? (f as any).id_fecha ?? idx}>
-                            <span>
-                              <span className="font-medium">Inicio: </span>
-                              {new Date(f.fecha_hora).toLocaleDateString('es-AR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })}{' '}
-                              {new Date(f.fecha_hora).toLocaleTimeString('es-AR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                            {(f as any).fecha_fin && (
-                              <span>
-                                {' '}
-                                · <span className="font-medium">Fin: </span>
-                                {new Date((f as any).fecha_fin).toLocaleDateString('es-AR', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })}{' '}
-                                {new Date((f as any).fecha_fin).toLocaleTimeString('es-AR', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                {event.fechas_evento && event.fechas_evento.length > 0 && (
+                  <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                    <div className="flex items-center gap-2 pb-1">
+                      <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                      <h3 className="text-sm font-semibold text-stone-200">Fechas del evento</h3>
                     </div>
-                  )}
-                </div>
+
+                    <div className="text-stone-300 space-y-3">
+                      {event.fechas_evento.map((fecha) => {
+                        const startDate = formatEventDate(new Date(fecha.fecha_hora));
+                        const endDate = fecha.fecha_fin
+                          ? formatEventDate(new Date(fecha.fecha_fin))
+                          : null;
+
+                        return (
+                          <div key={fecha.fechaid} className="space-y-1">
+                            <div className="font-medium text-stone-200">
+                              {startDate.dayName}, {startDate.dayNumber} de {startDate.monthName} de{' '}
+                              {startDate.year}
+                              {startDate.isToday && (
+                                <span className="ml-2 text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">
+                                  HOY
+                                </span>
+                              )}
+                              {startDate.isTomorrow && (
+                                <span className="ml-2 text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+                                  MAÑANA
+                                </span>
+                              )}
+                            </div>
+                            <div className="ml-2 flex flex-wrap gap-4">
+                              <div className="flex items-center gap-2 text-sm">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-green-400" />
+                                  <span className="font-medium text-stone-300">Inicio</span>
+                                </div>
+                                <span className="text-stone-200">{startDate.time}</span>
+                              </div>
+                              {endDate && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3 text-red-400" />
+                                    <span className="font-medium text-stone-300">Fin</span>
+                                  </div>
+                                  <span className="text-stone-200">{endDate.time}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {event.ubicacion && (
                   <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
@@ -282,164 +309,166 @@ export default function EventoPage() {
                   </div>
                 )}
 
-                {/* Tipos de entradas (stock_entrada) */}
-                {Array.isArray((event as any).stock_entrada) &&
-                  (event as any).stock_entrada.length > 0 && (
-                    <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                      <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
-                      <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
-                        {(event as any).stock_entrada.map((cat: any) => (
-                          <li
-                            key={cat.stockid}
-                            className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium">{cat.nombre}</div>
-                              </div>
-                              <div className="text-right text-stone-300">
-                                <div>
-                                  ${'{'}Number(cat.precio){'}'}
-                                </div>
-                                <div className="text-xs text-stone-400">Cupo: {cat.cant_max}</div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                {/* Mapa de sectores y resumen de entradas (solo informativo) */}
-                {event.mapa_evento && (
+                {/* Tipos de entradas (si existen) */}
+                {Array.isArray(event.stock_entrada) && event.stock_entrada.length > 0 && (
                   <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                    <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
-                    <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
-                    <div className="w-full">
-                      <div
-                        className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
-                        style={{ height: 320 }}
-                      >
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage: (event as any).mapa_evento?.backgroundImage
-                              ? `url(${(event as any).mapa_evento.backgroundImage})`
-                              : undefined,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}
-                        />
-                        {((event as any).mapa_evento?.sectors || []).map((s: any) => {
-                          const scale = 1.8;
-                          const baseW = (s.width / 800) * 100;
-                          const baseH = (s.height / 600) * 100;
-                          const w = baseW * scale;
-                          const h = baseH * scale;
-                          const baseL = (s.x / 800) * 100;
-                          const baseT = (s.y / 600) * 100;
-                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
-                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
-                          return (
-                            <div
-                              key={s.id}
-                              className="absolute rounded-md border-2 border-black/30 text-white shadow-md"
-                              style={{
-                                left: `${l}%`,
-                                top: `${t}%`,
-                                width: `${w}%`,
-                                height: `${h}%`,
-                                backgroundColor: s.color || 'rgba(255,255,255,0.25)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '14px',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-                              }}
-                              title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
-                            >
-                              <span className="backdrop-blur-[1px] drop-shadow">{s.name}</span>
+                    <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
+                    <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {event.stock_entrada.map((stock) => (
+                        <li
+                          key={stock.stockid}
+                          className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{stock.nombre}</div>
                             </div>
-                          );
-                        })}
-                        {((event as any).mapa_evento?.elements || []).map((el: any) => {
-                          const scale = 1.8;
-                          const baseW = (el.width / 800) * 100;
-                          const baseH = (el.height / 600) * 100;
-                          const w = baseW * scale;
-                          const h = baseH * scale;
-                          const baseL = (el.x / 800) * 100;
-                          const baseT = (el.y / 600) * 100;
-                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
-                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
-                          return (
-                            <div
-                              key={el.id}
-                              className="absolute rounded-md border border-black/30 text-white"
-                              style={{
-                                left: `${l}%`,
-                                top: `${t}%`,
-                                width: `${w}%`,
-                                height: `${h}%`,
-                                backgroundColor: el.color || 'rgba(0,0,0,0.35)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '14px',
-                              }}
-                              title={el.name}
-                            >
-                              <div className="text-center">
-                                <div className="text-lg">{el.icon}</div>
-                                <div className="text-[11px] opacity-90">{el.name}</div>
+                            <div className="text-right text-stone-300">
+                              <div>${Number(stock.precio)}</div>
+                              <div className="text-xs text-stone-400">
+                                Cupo: {stock.cant_max} entradas
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {(((event as any).mapa_evento?.sectors || []).length ?? 0) > 0 && (
-                      <div className="pt-2">
-                        <h4 className="text-xs font-semibold text-stone-400">
-                          Entradas disponibles por sector
-                        </h4>
-                        <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
-                          {(event as any).mapa_evento.sectors.map((s: any) => {
-                            const matchingCat = (event as any).stock_entrada?.find(
-                              (c: any) =>
-                                String(c.nombre).toLowerCase() === String(s.name).toLowerCase(),
-                            );
-                            const capText = matchingCat
-                              ? `${matchingCat.cant_max} entradas`
-                              : typeof s.capacity === 'number'
-                                ? `${s.capacity} entradas`
-                                : 'Capacidad no definida';
-                            const priceText = matchingCat
-                              ? ` • $${Number(matchingCat.precio)}`
-                              : typeof s.price === 'number'
-                                ? ` • $${s.price}`
-                                : '';
-                            return (
-                              <li
-                                key={s.id}
-                                className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span>{s.name}</span>
-                                  <span className="text-stone-400">
-                                    {capText}
-                                    {priceText}
-                                  </span>
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
+
+                {/* Mapa de sectores y resumen de entradas (solo informativo) */}
+                {event.mapa_evento &&
+                  (event as any).mapa_evento &&
+                  ((event as any).mapa_evento.sectors?.length > 0 ||
+                    (event as any).mapa_evento.elements?.length > 0) && (
+                    <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                      <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
+                      <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
+                      <div className="w-full">
+                        <div
+                          className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
+                          style={{ height: 320 }}
+                        >
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              backgroundImage: (event as any).mapa_evento?.backgroundImage
+                                ? `url(${(event as any).mapa_evento.backgroundImage})`
+                                : undefined,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                            }}
+                          />
+                          {((event as any).mapa_evento?.sectors || []).map((s: any) => {
+                            const scale = 1.8;
+                            const baseW = (s.width / 800) * 100;
+                            const baseH = (s.height / 600) * 100;
+                            const w = baseW * scale;
+                            const h = baseH * scale;
+                            const baseL = (s.x / 800) * 100;
+                            const baseT = (s.y / 600) * 100;
+                            const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                            const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                            return (
+                              <div
+                                key={s.id}
+                                className="absolute rounded-md border-2 border-black/30 text-white shadow-md"
+                                style={{
+                                  left: `${l}%`,
+                                  top: `${t}%`,
+                                  width: `${w}%`,
+                                  height: `${h}%`,
+                                  backgroundColor: s.color || 'rgba(255,255,255,0.25)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                  textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                                }}
+                                title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
+                              >
+                                <span className="backdrop-blur-[1px] drop-shadow">{s.name}</span>
+                              </div>
+                            );
+                          })}
+                          {((event as any).mapa_evento?.elements || []).map((el: any) => {
+                            const scale = 1.8;
+                            const baseW = (el.width / 800) * 100;
+                            const baseH = (el.height / 600) * 100;
+                            const w = baseW * scale;
+                            const h = baseH * scale;
+                            const baseL = (el.x / 800) * 100;
+                            const baseT = (el.y / 600) * 100;
+                            const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                            const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                            return (
+                              <div
+                                key={el.id}
+                                className="absolute rounded-md border border-black/30 text-white"
+                                style={{
+                                  left: `${l}%`,
+                                  top: `${t}%`,
+                                  width: `${w}%`,
+                                  height: `${h}%`,
+                                  backgroundColor: el.color || 'rgba(0,0,0,0.35)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                }}
+                                title={el.name}
+                              >
+                                <div className="text-center">
+                                  <div className="text-lg">{el.icon}</div>
+                                  <div className="text-[11px] opacity-90">{el.name}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {((event as any).mapa_evento?.sectors || []).length > 0 && (
+                        <div className="pt-2">
+                          <h4 className="text-xs font-semibold text-stone-400">
+                            Entradas disponibles por sector
+                          </h4>
+                          <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
+                            {(event as any).mapa_evento.sectors.map((s: any) => {
+                              const matchingStock = event.stock_entrada?.find(
+                                (stock: any) =>
+                                  stock.nombre?.toLowerCase() === String(s.name).toLowerCase(),
+                              );
+                              const capText = matchingStock
+                                ? `${matchingStock.cant_max} entradas`
+                                : typeof s.capacity === 'number'
+                                  ? `${s.capacity} entradas`
+                                  : 'Capacidad no definida';
+                              const priceText = matchingStock
+                                ? ` • $${Number(matchingStock.precio)}`
+                                : typeof s.price === 'number'
+                                  ? ` • $${s.price}`
+                                  : '';
+                              return (
+                                <li
+                                  key={s.id}
+                                  className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{s.name}</span>
+                                    <span className="text-stone-400">
+                                      {capText}
+                                      {priceText}
+                                    </span>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 <div className="rounded-xl border-1 bg-stone-900 bg-opacity-60 p-2">
                   <button
@@ -453,10 +482,6 @@ export default function EventoPage() {
             </div>
           )}
         </div>
-      </div>
-
-      <div className="relative z-20">
-        <Footer />
       </div>
     </main>
   );
