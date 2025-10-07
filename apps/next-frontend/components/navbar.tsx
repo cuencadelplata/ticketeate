@@ -64,6 +64,12 @@ export function Navbar() {
                 Mis Eventos
               </Link>
               <Link
+                href="/historial"
+                className="text-sm font-medium text-zinc-200 hover:text-white"
+              >
+                Historial
+              </Link>
+              <Link
                 href="/productoras"
                 className="text-sm font-medium text-zinc-200 hover:text-white"
               >
