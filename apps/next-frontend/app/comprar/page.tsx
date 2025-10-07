@@ -252,7 +252,7 @@ export default function ComprarPage() {
     // Crear resultado simulado para mostrar la tarjeta de éxito
     const mockResultado = {
       reserva: {
-        id_reserva: 'stripe-' + Date.now(),
+        reservaid: 'stripe-' + Date.now(), // Usar reservaid como en la API real
         cantidad: cantidad,
         estado: 'CONFIRMADA',
       },
@@ -470,10 +470,22 @@ export default function ComprarPage() {
   };
 
   const descargarComprobantePDF = async () => {
+    console.log('🎫 GENERANDO PDF - Datos disponibles:');
+    console.log('- resultado:', resultado);
+    console.log('- resultado.reserva:', resultado?.reserva);
+    console.log('- metodo:', metodo);
+    console.log('- cantidad:', cantidad);
+    console.log('- total:', total);
+    
     const { jsPDF } = await import('jspdf');
     const QRCode = await import('qrcode');
 
-    const qrData = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1';
+    // Usar el ID de reserva real para el QR (usar reservaid que es el campo correcto)
+    const reservaId = resultado?.reserva?.reservaid || resultado?.reserva?.id_reserva || 'no-reserva';
+    console.log('🆔 ID de reserva detectado:', reservaId);
+    
+    const qrData = `https://ticketeate.com/entrada/${reservaId}`;
+    console.log('🔗 QR Data:', qrData);
 
     // Generar QR como dataURL
     const qrDataUrl = await QRCode.toDataURL(qrData, {
@@ -576,9 +588,9 @@ export default function ComprarPage() {
       cursorY,
     );
     cursorY += 12;
-    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, left, cursorY);
+    pdf.text(`Reserva: #${reservaId}`, left, cursorY);
 
-    const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
+    const fileName = `comprobante-reserva-${reservaId}.pdf`;
     pdf.save(fileName);
   };
 
@@ -754,7 +766,7 @@ export default function ComprarPage() {
                 total={total}
                 sectorNombre={sector || 'Sector'}
                 metodo={metodo}
-                reservaId={resultado.reserva?.id_reserva}
+                reservaId={resultado.reserva?.reservaid || resultado.reserva?.id_reserva}
                 onDescargarPDF={descargarComprobantePDF}
                 onVolverAlMenu={() => router.push('/')}
                 formatARS={formatPrice}
