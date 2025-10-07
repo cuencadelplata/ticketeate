@@ -125,6 +125,23 @@ const getCoverImage = (event: Event) => {
   );
 };
 
+// Obtener información de modificaciones del evento
+const getEventModifications = (event: Event) => {
+  return event.evento_modificaciones || [];
+};
+
+// Formatear fecha de modificación
+const formatModificationDate = (dateString: string | Date) => {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 // Obtener información detallada de fechas del evento
 const getEventDateInfo = (event: Event) => {
   const fechasEvento = event.fechas_evento;
@@ -656,6 +673,19 @@ export default function EventosPage() {
                               <div className="flex items-center gap-2 text-sm text-stone-300">
                                 <Users className="h-4 w-4 text-stone-500" />
                                 <span>{event.stock_entrada?.length} tipo(s) de entrada</span>
+                              </div>
+                            )}
+
+                            {/* Modificaciones recientes */}
+                            {getEventModifications(event).length > 0 && (
+                              <div className="flex items-center gap-2 text-sm text-blue-300">
+                                <Edit3 className="h-4 w-4 text-blue-500" />
+                                <span>
+                                  Última modificación:{' '}
+                                  {formatModificationDate(
+                                    getEventModifications(event)[0].fecha_modificacion,
+                                  )}
+                                </span>
                               </div>
                             )}
                           </div>

@@ -348,6 +348,45 @@ export class EventService {
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
 
+      // Detectar cambios en los campos principales para trazabilidad
+      const changes: Array<{
+        campo_modificado: string;
+        valor_anterior: string | null;
+        valor_nuevo: string | null;
+      }> = [];
+
+      if (data.titulo && data.titulo !== existing.titulo) {
+        changes.push({
+          campo_modificado: 'titulo',
+          valor_anterior: existing.titulo,
+          valor_nuevo: data.titulo,
+        });
+      }
+
+      if (data.descripcion && data.descripcion !== existing.descripcion) {
+        changes.push({
+          campo_modificado: 'descripcion',
+          valor_anterior: existing.descripcion,
+          valor_nuevo: data.descripcion,
+        });
+      }
+
+      if (data.ubicacion && data.ubicacion !== existing.ubicacion) {
+        changes.push({
+          campo_modificado: 'ubicacion',
+          valor_anterior: existing.ubicacion,
+          valor_nuevo: data.ubicacion,
+        });
+      }
+
+      if (data.eventMap && JSON.stringify(data.eventMap) !== JSON.stringify(existing.mapa_evento)) {
+        changes.push({
+          campo_modificado: 'mapa_evento',
+          valor_anterior: JSON.stringify(existing.mapa_evento),
+          valor_nuevo: JSON.stringify(data.eventMap),
+        });
+      }
+
       const updated = await prisma.eventos.update({
         where: { eventoid: id },
         data: {
@@ -358,7 +397,25 @@ export class EventService {
         },
       });
 
-      // Soft update: Si se cambia el estado, crear un nuevo registro en evento_estado
+      // Crear registros de trazabilidad para cada cambio detectado
+      if (changes.length > 0) {
+        await Promise.all(
+          changes.map((change) =>
+            prisma.evento_modificaciones.create({
+              data: {
+                modificacionid: randomUUID(),
+                eventoid: id,
+                campo_modificado: change.campo_modificado,
+                valor_anterior: change.valor_anterior,
+                valor_nuevo: change.valor_nuevo,
+                usuarioid: userId,
+              },
+            }),
+          ),
+        );
+      }
+
+      // Si se cambia el estado, crear un nuevo registro en evento_estado
       if (data.estado && data.estado !== existing.evento_estado?.[0]?.Estado) {
         await prisma.evento_estado.create({
           data: {
