@@ -13,6 +13,7 @@ import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
 import { SuccessCard } from '@/components/comprar/SuccessCard';
 import { StripeSuccessMessage } from '@/components/comprar/StripeSuccessMessage';
+import { useQueue } from '@/hooks/use-queue';
 
 type SectorKey = string;
 
@@ -70,6 +71,9 @@ export default function ComprarPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventSelection, setShowEventSelection] = useState(!eventId);
 
+  // Hook para manejar cola
+  const { canEnter, completePurchase } = useQueue(eventId || '', idUsuario.toString());
+
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
   const [currency, setCurrency] = useState<'ARS' | 'USD' | 'EUR'>('ARS');
@@ -107,6 +111,14 @@ export default function ComprarPage() {
       setSector(first);
     }
   }, [eventId, eventData]);
+
+  // Verificar si el usuario puede comprar (está en cola y es su turno)
+  useEffect(() => {
+    if (eventId && !canEnter) {
+      // Si no puede entrar, redirigir de vuelta al evento
+      router.push(`/evento/${eventId}`);
+    }
+  }, [eventId, canEnter, router]);
 
   // Campos de tarjeta
   const [cardNumber, setCardNumber] = useState<string>('');
@@ -413,6 +425,9 @@ export default function ComprarPage() {
       setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
 
+      // Finalizar compra en la cola
+      await completePurchase(true);
+
       // Invalidar cache para actualizar disponibilidad
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -431,6 +446,9 @@ export default function ComprarPage() {
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
+
+      // Finalizar compra como fallida en la cola
+      await completePurchase(false);
     } finally {
       setLoading(false);
     }

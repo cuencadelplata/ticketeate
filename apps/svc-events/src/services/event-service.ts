@@ -336,7 +336,15 @@ export class EventService {
     data: Partial<Omit<CreateEventData, 'userId'>>,
   ): Promise<EventWithImages> {
     try {
-      const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
+      const existing = await prisma.eventos.findUnique({
+        where: { eventoid: id },
+        include: {
+          evento_estado: {
+            orderBy: { fecha_de_cambio: 'desc' },
+            take: 1,
+          },
+        },
+      });
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
 
@@ -349,6 +357,18 @@ export class EventService {
           mapa_evento: data.eventMap ?? undefined,
         },
       });
+
+      // Soft update: Si se cambia el estado, crear un nuevo registro en evento_estado
+      if (data.estado && data.estado !== existing.evento_estado?.[0]?.Estado) {
+        await prisma.evento_estado.create({
+          data: {
+            stateventid: randomUUID(),
+            eventoid: id,
+            Estado: data.estado,
+            usuarioid: userId,
+          },
+        });
+      }
 
       // Opcionales: actualizar imágenes principales sencillas (PORTADA + GALERIA)
       if (data.imageUrl || (data.galeria_imagenes && data.galeria_imagenes.length >= 0)) {
@@ -444,12 +464,12 @@ export class EventService {
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
 
-      // Borrado lógico: crear registro de estado CANCELADO
+      // Borrado lógico: crear registro de estado OCULTO
       await prisma.evento_estado.create({
         data: {
           stateventid: randomUUID(),
           eventoid: id,
-          Estado: 'CANCELADO',
+          Estado: 'OCULTO',
           usuarioid: userId,
         },
       });

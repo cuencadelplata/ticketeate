@@ -3,11 +3,13 @@
 import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
-import { useViewCount } from '@/hooks/use-view-count';
+import { useViewCount, useCountView } from '@/hooks/use-view-count';
 import { Calendar, Eye, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
+import { QueueModal } from '@/components/queue-modal';
+import { useQueue } from '@/hooks/use-queue';
 
 // Helper function para formatear fechas de manera elegante
 const formatEventDate = (date: Date) => {
@@ -55,6 +57,10 @@ export default function EventoPage() {
   });
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [displayAddress, setDisplayAddress] = useState<string | null>(null);
+  const [showQueueModal, setShowQueueModal] = useState(false);
+
+  // Mock userId - en producción esto vendría del sistema de autenticación
+  const userId = '1';
 
   // Hook para manejar reserva temporal
   const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
@@ -62,11 +68,45 @@ export default function EventoPage() {
 
   // Hook para manejar conteo de views
   const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
+  const countViewMutation = useCountView();
+
+  // Hook para manejar cola
+  const { canEnter, joinQueue, completePurchase } = useQueue(id || '', userId);
+
+  // Registrar view automáticamente cuando se carga la página
+  useEffect(() => {
+    if (id && event && !isLoading) {
+      // Solo registrar la view si el evento se cargó correctamente
+      countViewMutation.mutate(id);
+    }
+  }, [id, event, isLoading, countViewMutation]);
 
   // Función para manejar el clic en "Comprar Entradas"
-  const handleComprarEntradas = () => {
+  const handleComprarEntradas = async () => {
+    if (!id) return;
+
+    try {
+      // Intentar unirse a la cola
+      const result = await joinQueue();
+
+      if (result.canEnter) {
+        // Puede entrar inmediatamente
+        startReservation(id, 300);
+        router.push(`/comprar?evento=${id}`);
+      } else {
+        // Mostrar modal de cola
+        setShowQueueModal(true);
+      }
+    } catch (error) {
+      console.error('Error joining queue:', error);
+      // En caso de error, mostrar modal de cola como fallback
+      setShowQueueModal(true);
+    }
+  };
+
+  // Función para entrar a comprar cuando es el turno
+  const handleEnterPurchase = () => {
     if (id) {
-      // Iniciar reserva temporal de 5 minutos
       startReservation(id, 300);
       router.push(`/comprar?evento=${id}`);
     }
@@ -472,6 +512,18 @@ export default function EventoPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de cola */}
+      {showQueueModal && (
+        <QueueModal
+          isOpen={showQueueModal}
+          onClose={() => setShowQueueModal(false)}
+          eventId={id || ''}
+          userId={userId}
+          eventTitle={event?.titulo || 'Evento'}
+          onEnterPurchase={handleEnterPurchase}
+        />
+      )}
     </main>
   );
 }

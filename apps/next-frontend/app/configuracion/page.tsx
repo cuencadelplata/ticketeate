@@ -76,7 +76,7 @@ export default function ConfiguracionPage() {
   const provider = data?.wallet_provider ?? 'mercado_pago';
 
   return (
-    <div className="min-h-screen bg-black py-16 pt-26">
+    <div className="min-h-screen bg-black py-24 pt-26">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-stone-200">Configuración</h1>
