@@ -261,6 +261,13 @@ model user {
   role                 Role                   @default(USUARIO)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime
+  // Wallet fields for Mercado Pago OAuth
+  wallet_linked        Boolean                @default(false)
+  wallet_provider      String?
+  mercado_pago_user_id String?
+  mercado_pago_access_token String?
+  mercado_pago_refresh_token String?
+  mercado_pago_token_expires_at DateTime?
   account              account[]
   cola_turnos          cola_turnos[]
   evento_estado        evento_estado[]
