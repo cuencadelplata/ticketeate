@@ -10,5 +10,10 @@ export function ConditionalNavbar() {
     return null;
   }
 
+  // No mostrar navbar en rutas dinámicas de evento, excepto /evento/manage/[id]
+  if (pathname.startsWith('/evento/') && !pathname.startsWith('/evento/manage/')) {
+    return null;
+  }
+
   return <NewNavbar />;
 }

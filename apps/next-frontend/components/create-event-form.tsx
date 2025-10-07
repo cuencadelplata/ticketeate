@@ -696,7 +696,7 @@ export default function CreateEventForm() {
                   <div className="flex items-center justify-between">
                     <EventTicket
                       onTicketChange={setTicketInfo}
-                      onConnectWallet={() => router.push('/settings')}
+                      onConnectWallet={() => router.push('/configuracion')}
                       currentTicketInfo={ticketInfo}
                     />
                   </div>

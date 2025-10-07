@@ -41,3 +41,9 @@ export const CLOUDINARY_CONFIG = {
   apiSecret: process.env.CLOUDINARY_API_SECRET,
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
 } as const;
+
+// Configuración de Redis (Upstash)
+export const REDIS_CONFIG = {
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+} as const;
