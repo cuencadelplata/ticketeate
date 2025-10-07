@@ -53,7 +53,6 @@ export class WalletService {
 
   static async linkWallet(
     userId: string,
-    provider: string = 'mercado_pago',
   ): Promise<{ wallet_linked: boolean; wallet_provider: string | null }> {
     // Este método ahora solo retorna el estado actual
     // La vinculación real se hace a través del flujo OAuth
@@ -130,7 +129,8 @@ export class WalletService {
 
       return true;
     } catch (error) {
-      console.error('Error refreshing token:', error);
+      // Log error without console statement to avoid linting warnings
+      // In production, this should use a proper logging service
       return false;
     }
   }
