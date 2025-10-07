@@ -10,6 +10,12 @@ module.exports = [
         ecmaVersion: 2020,
         sourceType: "module",
       },
+      globals: {
+        fetch: "readonly",
+        Response: "readonly",
+        Request: "readonly",
+        Headers: "readonly",
+      },
     },
     plugins: {
       "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
