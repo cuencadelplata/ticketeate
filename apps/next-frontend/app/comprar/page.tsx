@@ -7,33 +7,63 @@ import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Event } from '@/types/events';
+import { ReservationBanner } from '@/components/comprar/ReservationBanner';
+import { EventHeader } from '@/components/comprar/EventHeader';
+import { SectorList } from '@/components/comprar/SectorList';
+import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
+import { SuccessCard } from '@/components/comprar/SuccessCard';
+import { StripeSuccessMessage } from '@/components/comprar/StripeSuccessMessage';
 
-type SectorKey = 'Entrada_General' | 'Entrada_VIP';
+type SectorKey = string;
 
-const SECTORES: Record<
-  SectorKey,
-  { nombre: string; precioDesde: number; fee?: number; numerado: boolean; color: string }
-> = {
-  Entrada_General: {
-    nombre: 'General',
-    precioDesde: 60000,
-    fee: 0,
-    numerado: false,
-    color: '#a5d6a7',
-  },
-  Entrada_VIP: {
-    nombre: 'VIP',
-    precioDesde: 120000,
-    fee: 0,
-    numerado: true,
-    color: '#43a047',
-  },
-};
+type UISector = { nombre: string; precioDesde: number; numerado: boolean; color: string };
+
+// Genera los sectores dinámicamente desde stock_entrada
+function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector> {
+  const palette = ['#a5d6a7', '#43a047', '#ffb300', '#29b6f6', '#ba68c8', '#ef5350'];
+  const map: Record<string, UISector> = {};
+
+  // 1) Preferir stocks reales
+  if (event?.stock_entrada && event.stock_entrada.length > 0) {
+    event.stock_entrada.forEach((s: any, idx: number) => {
+      const key = String(s.nombre || `Sector ${idx + 1}`);
+      map[key] = {
+        nombre: key,
+        precioDesde: Number(s.precio || 0),
+        numerado: false,
+        color: palette[idx % palette.length],
+      };
+    });
+    return map;
+  }
+
+  // 2) Fallback a mapa_evento.sectors/sectores si no hay stocks en la DB
+  const sectorsEn = (event as any)?.mapa_evento?.sectors as
+    | Array<{ name?: string; price?: number; capacity?: number; color?: string }>
+    | undefined;
+  const sectorsEs = (event as any)?.mapa_evento?.sectores as
+    | Array<{ nombre?: string; precio?: number; capacidad?: number; color?: string }>
+    | undefined;
+  const sectors = sectorsEn || sectorsEs;
+  if (sectors && sectors.length > 0) {
+    sectors.forEach((s: any, idx: number) => {
+      const key = String(s?.name || s?.nombre || `Sector ${idx + 1}`);
+      map[key] = {
+        nombre: key,
+        precioDesde: Number(s?.price ?? s?.precio ?? 0),
+        numerado: false,
+        color: s?.color || palette[idx % palette.length],
+      };
+    });
+  }
+  return map;
+}
 
 export default function ComprarPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = searchParams.get('evento');
+  const stripeStatus = searchParams.get('stripe_status');
   const queryClient = useQueryClient();
 
   const [idUsuario] = useState<number>(1);
@@ -42,13 +72,15 @@ export default function ComprarPage() {
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
+  const [currency, setCurrency] = useState<'ARS' | 'USD' | 'EUR'>('ARS');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showStripeMessage, setShowStripeMessage] = useState(false);
   const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
-  const [sector, setSector] = useState<SectorKey>('Entrada_General');
+  const [sector, setSector] = useState<SectorKey>('');
 
   // Hook para manejar reserva temporal
   const {
@@ -69,6 +101,10 @@ export default function ComprarPage() {
     if (eventId && eventData) {
       setSelectedEvent(eventData);
       setShowEventSelection(false);
+      // set default sector
+      const dyn = buildSectorsFromEvent(eventData);
+      const first = Object.keys(dyn)[0] || '';
+      setSector(first);
     }
   }, [eventId, eventData]);
 
@@ -80,30 +116,50 @@ export default function ComprarPage() {
 
   // Obtener disponibilidad real de las categorías de entrada
   const getDisponibilidad = (sectorKey: SectorKey): number => {
-    if (!selectedEvent?.categorias_entrada) return 0;
-
-    const categoria = selectedEvent.categorias_entrada.find(
-      (cat) => cat.nombre?.toLowerCase() === SECTORES[sectorKey].nombre.toLowerCase(),
+    // Preferir stock_entrada
+    if (selectedEvent?.stock_entrada && selectedEvent.stock_entrada.length > 0) {
+      const item = (selectedEvent.stock_entrada as any[]).find(
+        (s) => String(s.nombre).toLowerCase() === String(sectorKey).toLowerCase(),
+      );
+      return item?.cant_max || 0;
+    }
+    // Si no hay stocks, intentar capacity/capacidad del mapa_evento
+    const sectorsEn = (selectedEvent as any)?.mapa_evento?.sectors as any[] | undefined;
+    const sectorsEs = (selectedEvent as any)?.mapa_evento?.sectores as any[] | undefined;
+    const mix = sectorsEn || sectorsEs || [];
+    const sec = mix.find(
+      (s) => String(s?.name || s?.nombre).toLowerCase() === String(sectorKey).toLowerCase(),
     );
-
-    return categoria?.stock_disponible || 0;
+    return Number(sec?.capacity ?? sec?.capacidad ?? 0);
   };
 
   // Función para seleccionar evento
   const handleEventSelection = (event: Event) => {
     setSelectedEvent(event);
     setShowEventSelection(false);
-    router.push(`/comprar?evento=${event.id_evento}`);
+    router.push(`/comprar?evento=${event.eventoid}`);
   };
 
-  const formatARS = (n: number) =>
-    n.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  // Simple FX mock: ARS base; ajustar si tenés API de tipo de cambio
+  // Cotizaciones: 1 USD = 1300 ARS, 1 EUR = 1600 ARS (ARS es base)
+  const rates: Record<'ARS' | 'USD' | 'EUR', number> = { ARS: 1, USD: 1 / 1300, EUR: 1 / 1600 };
+  const formatPrice = (n: number) => {
+    const value = n * rates[currency];
+    return value.toLocaleString('es-AR', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: currency === 'ARS' ? 0 : 2,
+    });
+  };
 
-  const { precioUnitario, total } = useMemo(() => {
-    const s = SECTORES[sector];
-    const unit = s.precioDesde + (s.fee || 0);
-    return { precioUnitario: unit, total: unit * cantidad };
-  }, [sector, cantidad]);
+  const { precioUnitario, total, feeUnitario } = useMemo(() => {
+    const dyn = buildSectorsFromEvent(selectedEvent);
+    const s = sector && dyn[sector] ? dyn[sector] : Object.values(dyn)[0];
+    const base = s ? s.precioDesde : 0;
+    const fee = Math.round(base * 0.1);
+    const unit = base + fee;
+    return { precioUnitario: unit, total: unit * cantidad, feeUnitario: fee };
+  }, [sector, cantidad, selectedEvent]);
 
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
@@ -128,11 +184,119 @@ export default function ComprarPage() {
     return Boolean(numberOk && expMatch && cvvOk && dniOk);
   };
 
+  // Si se elige Mercado Pago, forzar ARS
+  useEffect(() => {
+    if (metodo === 'mercado_pago' && currency !== 'ARS') {
+      setCurrency('ARS');
+    }
+  }, [metodo]);
+
+  useEffect(() => {
+    if (metodo === 'stripe' && currency !== 'USD') {
+      setCurrency('USD');
+    }
+  }, [metodo]);
+
+  // Manejar éxito/cancelación de Stripe
+  useEffect(() => {
+    if (stripeStatus === 'success') {
+      // Asegurar que tenemos un evento seleccionado cuando viene de Stripe
+      if (eventId && !selectedEvent && eventData) {
+        setSelectedEvent(eventData);
+        setShowEventSelection(false);
+      }
+
+      // Mostrar mensaje inicial de Stripe
+      setShowStripeMessage(true);
+      setMetodo('stripe');
+
+      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
+      const url = new URL(window.location.href);
+      url.searchParams.delete('stripe_status');
+      window.history.replaceState({}, '', url.toString());
+    } else if (stripeStatus === 'cancel') {
+      // Mostrar mensaje de cancelación
+      setError('El pago fue cancelado. Puedes intentar nuevamente.');
+
+      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
+      const url = new URL(window.location.href);
+      url.searchParams.delete('stripe_status');
+      window.history.replaceState({}, '', url.toString());
+
+      // Limpiar error después de unos segundos
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+  }, [stripeStatus, router, eventId, selectedEvent, eventData]);
+
+  // Función para continuar después del mensaje de Stripe
+  const handleStripeContinue = () => {
+    setShowStripeMessage(false);
+
+    // Asegurar que el evento esté seleccionado y la interfaz configurada correctamente
+    const eventInfo = selectedEvent || eventData;
+    if (eventInfo) {
+      setSelectedEvent(eventInfo);
+      setShowEventSelection(false);
+
+      // Configurar sector por defecto si no hay uno seleccionado
+      if (!sector) {
+        const dyn = buildSectorsFromEvent(eventInfo);
+        const firstSector = Object.keys(dyn)[0] || 'General';
+        setSector(firstSector);
+      }
+    }
+
+    // Crear resultado simulado para mostrar la tarjeta de éxito
+    const mockResultado = {
+      reserva: {
+        reservaid: 'stripe-' + Date.now(), // Usar reservaid como en la API real
+        cantidad: cantidad,
+        estado: 'CONFIRMADA',
+      },
+      pago: {
+        metodo_pago: 'stripe',
+        estado: 'COMPLETADO',
+        monto_total: total,
+      },
+      evento: eventInfo
+        ? {
+            titulo: eventInfo.titulo,
+            imagen_url: eventInfo.imagenes_evento?.[0]?.url || '/icon-ticketeate.png',
+            ubicacion: eventInfo.ubicacion,
+            fecha_hora: eventInfo.fechas_evento?.[0]?.fecha_hora,
+          }
+        : {
+            titulo: 'Evento',
+            imagen_url: '/icon-ticketeate.png',
+            ubicacion: 'Ubicación',
+          },
+      entradas: Array.from({ length: cantidad }, (_, i) => ({
+        id_entrada: `stripe-entrada-${i + 1}`,
+        codigo_qr: `stripe-qr-${Date.now()}-${i}`,
+        estado: 'VALIDA',
+      })),
+      resumen: {
+        estado: 'Compra procesada exitosamente con Stripe',
+        total_entradas: cantidad,
+        precio_unitario: (total / cantidad).toFixed(2),
+        monto_total: total.toFixed(2),
+        metodo_pago: 'stripe',
+      },
+      ui_sector: sector || 'General',
+      ui_total: total,
+    };
+    setResultado(mockResultado);
+    setShowSuccess(true);
+
+    console.log('Stripe continue - evento configurado:', eventInfo?.titulo);
+    console.log('Stripe continue - sector:', sector);
+  };
+
   const comprar = async () => {
     console.log('=== INICIANDO COMPRA ===');
     console.log('selectedEvent:', selectedEvent);
-    console.log('isReserved:', isReserved);
-    console.log('timeLeft:', timeLeft);
 
     setLoading(true);
     setError(null);
@@ -153,25 +317,12 @@ export default function ComprarPage() {
       return;
     }
 
-    if (!isReserved || !isReservationActive(eventId || undefined)) {
-      console.log('Error: No hay reserva activa');
-      setError('Debes reservar temporalmente antes de comprar');
-      setLoading(false);
-      return;
-    }
-
-    if (timeLeft === 0) {
-      console.log('Error: Reserva expirada');
-      setError('Tu reserva ha expirado. Por favor reserva nuevamente.');
-      setLoading(false);
-      return;
-    }
-
     const datosCompra = {
       id_usuario: idUsuario,
-      id_evento: selectedEvent.id_evento, // Enviar UUID como string
+      id_evento: selectedEvent.eventoid, // Enviar UUID como string
       cantidad,
       metodo_pago: metodo,
+      moneda: currency,
       datos_tarjeta: isCardPayment
         ? {
             numero: sanitizeNumber(cardNumber),
@@ -185,6 +336,58 @@ export default function ComprarPage() {
     console.log('Enviando datos a la API:', datosCompra);
 
     try {
+      // Si es Mercado Pago, primero crear preferencia y redirigir a Checkout Pro
+      if (metodo === 'mercado_pago') {
+        const prefRes = await fetch('/api/mercadopago/create-preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `${selectedEvent.titulo} - ${sector || 'General'}`,
+            quantity: cantidad,
+            unit_price: precioUnitario, // ya incluye tarifa
+            currency: 'ARS',
+            metadata: {
+              eventoid: selectedEvent.eventoid,
+              usuarioid: idUsuario,
+              cantidad,
+              sector,
+            },
+          }),
+        });
+        const prefData = await prefRes.json();
+        if (!prefRes.ok) throw new Error(prefData?.error || 'No se pudo crear preferencia de pago');
+        // Redirigir a MP
+        window.location.href = prefData.init_point || prefData.sandbox_init_point;
+        return;
+      }
+
+      // Si es Stripe, crear sesión de Checkout y redirigir
+      if (metodo === 'stripe') {
+        // Convertir desde ARS a USD (1 USD = 1300 ARS)
+        const unitUsd = Number((precioUnitario * (1 / 1300)).toFixed(2));
+        const stripeRes = await fetch('/api/stripe/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `${selectedEvent.titulo} - ${sector || 'General'}`,
+            quantity: cantidad,
+            unit_price: unitUsd,
+            currency: 'USD',
+            metadata: {
+              eventoid: selectedEvent.eventoid,
+              usuarioid: idUsuario,
+              cantidad,
+              sector,
+            },
+          }),
+        });
+        const stripeData = await stripeRes.json();
+        if (!stripeRes.ok)
+          throw new Error(stripeData?.error || 'No se pudo crear sesión de Stripe');
+        window.location.href = stripeData.url;
+        return;
+      }
+
       const res = await fetch('/api/comprar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,22 +410,24 @@ export default function ComprarPage() {
 
       if (!res.ok) throw new Error(data.error || 'Error');
 
-      setResultado({ ...data, ui_sector: SECTORES[sector].nombre, ui_total: total });
+      setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
 
       // Invalidar cache para actualizar disponibilidad
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
 
-      // Resetear formulario después de 10 segundos
-      setTimeout(() => {
-        setShowSuccess(false);
-        setResultado(null);
-        setCantidad(1);
-        setSector('Entrada_General');
-        setMetodo('tarjeta_debito');
-        router.push('/'); // Redirigir al menú principal
-      }, 10000);
+      // Solo redirigir automáticamente para métodos de pago tradicionales, no para Stripe
+      if (metodo !== 'stripe') {
+        setTimeout(() => {
+          setShowSuccess(false);
+          setResultado(null);
+          setCantidad(1);
+          setSector('Entrada_General');
+          setMetodo('tarjeta_debito');
+          router.push('/'); // Redirigir al menú principal
+        }, 10000);
+      }
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
@@ -248,11 +453,41 @@ export default function ComprarPage() {
     router.push('/comprar');
   };
 
+  const cancelPurchase = () => {
+    setShowSuccess(false);
+    setResultado(null);
+    setError(null);
+    setCantidad(1);
+    setSector('Entrada_General');
+    setMetodo('tarjeta_debito');
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvv('');
+    setCardDni('');
+    clearReservation();
+    setSelectedEvent(null);
+    setShowEventSelection(true);
+    router.push('/');
+  };
+
   const descargarComprobantePDF = async () => {
+    console.log('🎫 GENERANDO PDF - Datos disponibles:');
+    console.log('- resultado:', resultado);
+    console.log('- resultado.reserva:', resultado?.reserva);
+    console.log('- metodo:', metodo);
+    console.log('- cantidad:', cantidad);
+    console.log('- total:', total);
+
     const { jsPDF } = await import('jspdf');
     const QRCode = await import('qrcode');
 
-    const qrData = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1';
+    // Usar el ID de reserva real para el QR (usar reservaid que es el campo correcto)
+    const reservaId =
+      resultado?.reserva?.reservaid || resultado?.reserva?.id_reserva || 'no-reserva';
+    console.log('🆔 ID de reserva detectado:', reservaId);
+
+    const qrData = `https://ticketeate.com/entrada/${reservaId}`;
+    console.log('🔗 QR Data:', qrData);
 
     // Generar QR como dataURL
     const qrDataUrl = await QRCode.toDataURL(qrData, {
@@ -341,10 +576,10 @@ export default function ComprarPage() {
     pdf.setFontSize(12.5);
     const left = cardX + 12;
     cursorY += 6;
-    pdf.text(`${cantidad} entrada(s) para ${SECTORES[sector].nombre}`, left, cursorY);
+    pdf.text(`${cantidad} entrada(s) para ${sector || 'Sector'}`, left, cursorY);
     cursorY += 12;
     pdf.text(
-      `Total: ${formatARS((SECTORES[sector].precioDesde + (SECTORES[sector].fee || 0)) * cantidad)}`,
+      `Total: ${formatPrice((feeUnitario + (precioUnitario - feeUnitario)) * cantidad)}`,
       left,
       cursorY,
     );
@@ -355,9 +590,9 @@ export default function ComprarPage() {
       cursorY,
     );
     cursorY += 12;
-    pdf.text(`Reserva: #${resultado?.reserva?.id_reserva ?? '—'}`, left, cursorY);
+    pdf.text(`Reserva: #${reservaId}`, left, cursorY);
 
-    const fileName = `comprobante-reserva-${resultado?.reserva?.id_reserva || 'ticket'}.pdf`;
+    const fileName = `comprobante-reserva-${reservaId}.pdf`;
     pdf.save(fileName);
   };
 
@@ -382,16 +617,18 @@ export default function ComprarPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allEvents.map((event) => {
-              const portada = event.imagenes_evento?.find((i) => i.tipo === 'portada')?.url;
+              const portada = event.imagenes_evento?.find(
+                (i) => i.tipo === 'PORTADA' || i.tipo === 'portada',
+              )?.url;
               const primera = event.imagenes_evento?.[0]?.url;
               const image = portada || primera || '/icon-ticketeate.png';
               const fecha = event.fechas_evento?.[0]?.fecha_hora
-                ? new Date(event.fechas_evento[0].fecha_hora)
-                : new Date(event.fecha_inicio_venta);
+                ? new Date(event.fechas_evento[0].fecha_hora as any)
+                : new Date(event.fecha_creacion as any);
 
               return (
                 <div
-                  key={event.id_evento}
+                  key={event.eventoid}
                   onClick={() => handleEventSelection(event)}
                   className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
                 >
@@ -419,333 +656,130 @@ export default function ComprarPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
-      {/* Banner de reserva temporal */}
-      {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
-          <div className="flex justify-between items-center px-6 py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-yellow-800 text-lg">
-                Tiempo restante: {formatTimeLeft(timeLeft)}
-              </span>
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+      <div className={`mx-auto max-w-[1200px] space-y-4 pt-4`}>
+        {/* Banner de reserva temporal */}
+        {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
+            <div className="flex justify-between items-center px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="font-bold text-yellow-800 text-lg">Reserva temporal activa</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-yellow-800 text-lg">
+                  Tiempo restante: {formatTimeLeft(timeLeft)}
+                </span>
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{Math.floor(timeLeft / 60)}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Contenedor principal con scroll */}
-      <div
-        className={`mx-auto max-w-[1200px] space-y-4 ${isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 ? 'pt-20' : 'pt-4'}`}
-      >
-        {/* Header del evento seleccionado */}
-        <div className="text-center bg-white rounded-xl p-6 shadow-lg">
-          <button
-            onClick={() => {
-              setSelectedEvent(null);
-              setShowEventSelection(true);
-              router.push('/comprar');
-            }}
-            className="mb-4 text-blue-600 hover:text-blue-500 text-sm underline"
-          >
-            ← Volver a seleccionar evento
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedEvent.titulo}</h1>
-          <p className="text-xl text-gray-600 mb-1">
-            {selectedEvent.fechas_evento?.[0]?.fecha_hora
-              ? new Date(selectedEvent.fechas_evento[0].fecha_hora).toLocaleDateString('es-AR') +
-                ' · ' +
-                new Date(selectedEvent.fechas_evento[0].fecha_hora).toLocaleTimeString('es-AR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              : new Date(selectedEvent.fecha_inicio_venta).toLocaleDateString('es-AR')}
-          </p>
-          <p className="text-gray-500 text-sm">Selecciona tu sector y completa tu compra</p>
-        </div>
+        <EventHeader
+          event={selectedEvent}
+          onBack={() => {
+            setSelectedEvent(null);
+            setShowEventSelection(true);
+            router.push('/comprar');
+          }}
+        />
 
-        {/* Contenedor de 2 columnas: mapa (izq) + panel (der) */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_500px] xl:grid-cols-[1fr_600px]">
-          {/* IZQUIERDA: Mapa referencial */}
           <section className="flex flex-col items-center rounded-2xl bg-white p-4 shadow-md">
             <div className="w-full max-w-[600px]">
-              <Image
-                src="/mapa-referencial.png"
-                alt="Mapa referencial de sectores"
-                width={800}
-                height={600}
-                className="w-full rounded-lg border object-contain"
-              />
+              <div className="relative w-full overflow-hidden rounded-lg border group">
+                <Image
+                  src="/raw.png"
+                  alt="Mapa de sectores"
+                  width={800}
+                  height={600}
+                  className="w-full object-contain transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                />
+              </div>
               <span className="mt-2 block text-center text-sm font-semibold text-gray-600">
-                Mapa referencial
+                Mapa de sectores
               </span>
             </div>
           </section>
 
-          {/* DERECHA: Sidebar de selección y compra */}
           <aside className="flex flex-col rounded-2xl bg-white shadow-md">
-            {/* Header fijo */}
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <span className="font-bold">Seleccionar sector</span>
-              <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>
-                Limpiar selección
-              </button>
-            </div>
-
-            {/* Lista de sectores con scroll */}
-            <div className="max-h-[300px] flex-1 overflow-y-auto p-4">
-              {(Object.keys(SECTORES) as SectorKey[]).map((key) => {
-                const s = SECTORES[key];
-                const activo = key === sector;
-                return (
-                  <label
-                    key={key}
-                    className={[
-                      'mb-3 grid cursor-pointer items-center gap-3 rounded-xl border bg-white p-4',
-                      '[grid-template-columns:24px_1fr_auto]',
-                      activo ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50',
-                    ].join(' ')}
-                  >
-                    <div className="flex items-center justify-center">
-                      <span
-                        className="inline-block h-4 w-4 rounded border border-black/10"
-                        style={{ background: s.color }}
-                      />
-                    </div>
-
-                    <div className="flex flex-col">
-                      <div className="font-bold text-lg">{s.nombre}</div>
-                      <div className="mt-1 text-lg font-semibold">
-                        $ {s.precioDesde.toLocaleString('es-AR')}
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-green-700">
-                        {getDisponibilidad(key)} disponibles
-                      </div>
-                    </div>
-
-                    <input
-                      type="radio"
-                      name="sector"
-                      checked={activo}
-                      onChange={() => setSector(key)}
-                      className="h-5 w-5 text-red-500"
-                    />
-                  </label>
-                );
-              })}
-            </div>
-
-            {/* Checkout fijo en la parte inferior */}
-            <div className="rounded-b-2xl border-t border-gray-200 bg-gray-50 p-4">
-              {/* Cantidad */}
-              <div className="mb-3 flex flex-col">
-                <label className="mb-1 text-xs font-medium text-gray-700">Cantidad</label>
-                <select
-                  value={String(cantidad)}
-                  onChange={(e) => setCantidad(parseInt(e.target.value || '1'))}
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={showSuccess}
-                >
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Método */}
-              <div className="mb-3 flex flex-col">
-                <label className="mb-1 text-xs font-medium text-gray-700">Método de pago</label>
-                <select
-                  value={metodo}
-                  onChange={(e) => setMetodo(e.target.value)}
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={showSuccess}
-                >
-                  <option value="tarjeta_debito">Tarjeta de Débito</option>
-                  <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                </select>
-              </div>
-
-              {/* Datos de tarjeta */}
-              {isCardPayment && (
-                <div className="mb-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-xs font-medium text-gray-700">
-                      Número de tarjeta
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="cc-number"
-                      placeholder="#### #### #### ####"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-1 flex flex-col">
-                      <label className="mb-1 text-xs font-medium text-gray-700">
-                        Vencimiento (MM/AA)
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="cc-exp"
-                        placeholder="MM/AA"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="col-span-1 flex flex-col">
-                      <label className="mb-1 text-xs font-medium text-gray-700">CVV</label>
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        autoComplete="cc-csc"
-                        placeholder="3 o 4 dígitos"
-                        value={cardCvv}
-                        onChange={(e) =>
-                          setCardCvv(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))
-                        }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="col-span-1 flex flex-col">
-                      <label className="mb-1 text-xs font-medium text-gray-700">DNI</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Solo números"
-                        value={cardDni}
-                        onChange={(e) =>
-                          setCardDni(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))
-                        }
-                        className="rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                  {!isValidCardInputs() && (
-                    <div className="rounded-md border border-yellow-200 bg-yellow-50 p-2 text-xs text-yellow-800">
-                      Verifica número, vencimiento, CVV y DNI.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Info selección */}
-              <div className="mb-3 flex items-start justify-between rounded-xl border border-gray-200 bg-white px-3 py-3">
-                <div>
-                  <div className="text-xs text-gray-500">Sector</div>
-                  <div className="font-bold">{SECTORES[sector].nombre}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-500">Precio unitario</div>
-                  <div className="font-bold">{formatARS(precioUnitario)}</div>
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border-2 border-blue-200 bg-blue-50 px-3 py-3">
-                <div className="font-semibold text-blue-800">Total a pagar</div>
-                <div className="text-right">
-                  <div className="text-lg font-extrabold text-blue-900">{formatARS(total)}</div>
-                  <div className="text-xs text-blue-600">
-                    {cantidad} × {formatARS(precioUnitario)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Botón de reserva temporal o compra */}
-              {!showSuccess ? (
-                <div className="space-y-2">
-                  {!isReserved || !isReservationActive(eventId || undefined) ? (
-                    <button
-                      onClick={() => startReservation(eventId || '', 300)}
-                      className="inline-flex w-full items-center justify-center rounded-lg bg-orange-600 px-4 py-3 font-medium text-white transition-colors hover:bg-orange-700"
-                    >
-                      Reservar temporalmente
-                    </button>
-                  ) : (
-                    <button
-                      onClick={comprar}
-                      disabled={
-                        loading || (isCardPayment && !isValidCardInputs()) || timeLeft === 0
-                      }
-                      className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
-                    >
-                      {loading
-                        ? 'Comprando...'
-                        : isCardPayment && !isValidCardInputs()
-                          ? 'Completa los datos de tarjeta'
-                          : timeLeft === 0
-                            ? 'Reserva expirada'
-                            : 'Comprar'}
-                    </button>
-                  )}
-                </div>
-              ) : (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={resetForm}
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition-colors hover:bg-green-700"
+                  className="rounded-md px-3 py-1 text-sm font-semibold text-white bg-red-600 hover:bg-red-700"
+                  onClick={cancelPurchase}
                 >
-                  Comprar más entradas
+                  Cancelar
                 </button>
-              )}
-
-              {/* Mensajes de error y éxito */}
-              {error && (
-                <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
-                  <p className="text-center text-sm text-red-600">❌ {error}</p>
-                </div>
-              )}
-
-              {showSuccess && resultado && (
-                <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-                  <div ref={comprobanteRef}>
-                    <div className="mb-2 text-4xl">🎉</div>
-                    <h3 className="mb-2 text-lg font-bold text-green-800">¡Compra exitosa!</h3>
-                    <div className="space-y-1 text-sm text-green-700">
-                      <p>
-                        ✅ {cantidad} entrada(s) para {SECTORES[sector].nombre}
-                      </p>
-                      <p>💰 Total: {formatARS(total)}</p>
-                      <p>
-                        💳 Método:{' '}
-                        {metodo === 'tarjeta_credito' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito'}
-                      </p>
-                      <p>🆔 Reserva: #{resultado.reserva?.id_reserva}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-green-600">
-                    Se han generado {cantidad} código(s) QR para tu entrada
-                  </div>
-                  <div className="mt-3 text-xs font-medium text-blue-600">
-                    ⏱️ Serás redirigido al menú principal en 10 segundos. Puedes descargar tu
-                    comprobante ahora.
-                  </div>
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
-                    <button
-                      onClick={descargarComprobantePDF}
-                      className="inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-                    >
-                      Descargar comprobante (PDF)
-                    </button>
-                  </div>
-                </div>
-              )}
+                <button
+                  className="font-semibold text-orange-500 hover:underline"
+                  onClick={resetForm}
+                >
+                  Limpiar selección
+                </button>
+              </div>
             </div>
+
+            <SectorList
+              sectores={buildSectorsFromEvent(selectedEvent) as any}
+              sectorSeleccionado={sector}
+              onSelect={(k) => setSector(k as SectorKey)}
+              getDisponibilidad={(k) => getDisponibilidad(k as SectorKey)}
+              formatPrice={formatPrice}
+            />
+
+            <CheckoutPanel
+              cantidad={cantidad}
+              setCantidad={setCantidad}
+              metodo={metodo}
+              setMetodo={setMetodo}
+              isCardPayment={isCardPayment}
+              cardNumber={cardNumber}
+              setCardNumber={(v) => setCardNumber(formatCardNumber(v))}
+              cardExpiry={cardExpiry}
+              setCardExpiry={(v) => setCardExpiry(formatExpiry(v))}
+              cardCvv={cardCvv}
+              setCardCvv={(v) => setCardCvv(v.replace(/[^0-9]/g, '').slice(0, 4))}
+              cardDni={cardDni}
+              setCardDni={(v) => setCardDni(v.replace(/[^0-9]/g, '').slice(0, 10))}
+              isValidCardInputs={isValidCardInputs}
+              precioUnitario={precioUnitario}
+              feeUnitario={feeUnitario}
+              total={total}
+              formatPrice={formatPrice}
+              currency={currency}
+              onCurrencyChange={(c) => setCurrency(c)}
+              onReservar={() => startReservation(eventId || '', 300)}
+              onComprar={comprar}
+              loading={loading}
+              showSuccess={showSuccess}
+              error={error}
+              resetForm={resetForm}
+              isReservationActive={!!(isReserved && isReservationActive(eventId || undefined))}
+              timeLeft={timeLeft}
+            />
+
+            {showSuccess && resultado && (
+              <SuccessCard
+                cantidad={cantidad}
+                total={total}
+                sectorNombre={sector || 'Sector'}
+                metodo={metodo}
+                reservaId={resultado.reserva?.reservaid || resultado.reserva?.id_reserva}
+                onDescargarPDF={descargarComprobantePDF}
+                onVolverAlMenu={() => router.push('/')}
+                formatARS={formatPrice}
+              />
+            )}
           </aside>
         </div>
       </div>
+
+      {/* Mensaje de éxito de Stripe */}
+      {showStripeMessage && <StripeSuccessMessage onContinue={handleStripeContinue} />}
     </div>
   );
 }

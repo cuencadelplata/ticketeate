@@ -543,13 +543,8 @@ export class EventService {
         },
       });
 
-      // Filtrar eventos públicos basado en el estado
-      const eventosPublicos = eventos.filter((evento) => {
-        const estadoActual = evento.evento_estado?.[0]?.Estado;
-        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
-      });
-
-      return eventosPublicos as EventWithImages[];
+      // Devolver todos los eventos encontrados (sin filtrar por estado) para asegurar visibilidad
+      return eventos as unknown as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting all public events:', error);
@@ -583,13 +578,7 @@ export class EventService {
     });
 
     if (!evento) return null;
-
-    // Verificar si el evento es público basado en el estado
-    const estadoActual = evento.evento_estado?.[0]?.Estado;
-    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
-      return evento as EventWithImages;
-    }
-
-    return null;
+    // Retornar siempre el evento encontrado (sin filtrar por estado)
+    return evento as EventWithImages;
   }
 }
