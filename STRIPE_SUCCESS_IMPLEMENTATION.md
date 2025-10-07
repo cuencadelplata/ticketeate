@@ -23,7 +23,9 @@ En `/app/comprar/page.tsx` se detecta cuando el usuario regresa de Stripe:
 Endpoint `/app/api/stripe/webhook/route.ts` para procesar pagos exitosos:
 - Recibe notificaciones de Stripe cuando un pago se completa
 - Crea automáticamente la reserva, entradas y registros de pago en la base de datos
+- **NUEVO**: Guarda la compra en `historial_compras` con todos los detalles
 - Maneja la lógica de stock y movimientos
+- Registra logs detallados para debugging
 
 ### 5. Metadata en Sesiones de Stripe
 Las sesiones de Stripe ahora incluyen metadata con:
@@ -53,8 +55,9 @@ Las sesiones de Stripe ahora incluyen metadata con:
 
 ### Backend:
 - `app/api/stripe/create-session/route.ts` - Inclusión de metadata
-- `app/api/stripe/webhook/route.ts` - Nuevo webhook para procesar pagos
+- `app/api/stripe/webhook/route.ts` - **NUEVO**: Webhook con historial de compras
 - `app/api/stripe/verify-payment/route.ts` - Endpoint para verificar pagos
+- `app/api/compras/historial/route.ts` - **NUEVO**: Consultar historial
 
 ## Configuración Requerida
 
@@ -76,10 +79,12 @@ STRIPE_WEBHOOK_SECRET=whsec_... # Para producción
 ✅ **Mensaje de "Compra exitosa"** después de pago con Stripe
 ✅ **Descarga de comprobante PDF** con información del evento
 ✅ **Procesamiento automático** vía webhook
+✅ **Historial de compras** guardado en base de datos
 ✅ **Manejo de errores** y cancelaciones
 ✅ **Interfaz intuitiva** con temporizador de redirección
 ✅ **Soporte para múltiples métodos de pago** en la interfaz
 ✅ **Metadata preservada** para tracking de compras
+✅ **Logs detallados** para debugging y auditoría
 
 ## Próximos Pasos
 

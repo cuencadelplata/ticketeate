@@ -124,16 +124,57 @@ export async function POST(request: NextRequest) {
               fecha_mov: new Date(),
             },
           });
+
+          // Registrar historial de compra para Stripe
+          const historialId = randomUUID();
+          const comprobanteUrl = null; // URL del comprobante si se genera
+          const montoTotalDecimal = new Prisma.Decimal(session.amount_total / 100); // Stripe envía en centavos
           
-          return { reserva, pago, entradas };
+          await tx.$executeRaw`INSERT INTO historial_compras (
+            id, usuarioid, reservaid, eventoid, cantidad, monto_total, moneda, estado_compra, fecha_compra, fecha_evento, comprobante_url
+          ) VALUES (
+            ${historialId}, 
+            ${String(usuarioid)}, 
+            ${reserva.reservaid}, 
+            ${eventoid}, 
+            ${parseInt(cantidad)}, 
+            ${montoTotalDecimal}, 
+            ${'USD'}, 
+            ${'COMPLETADO'}, 
+            ${new Date()}, 
+            ${fechaEvento.fecha_hora as any}, 
+            ${comprobanteUrl}
+          )`;
+          
+          return { reserva, pago, entradas, historialId };
         });
         
-        console.log('Stripe payment processed successfully:', resultado);
-        return NextResponse.json({ received: true });
+        console.log('Stripe payment processed successfully:', {
+          reservaId: resultado.reserva.reservaid,
+          pagoId: resultado.pago.pagoid,
+          historialId: resultado.historialId,
+          cantidadEntradas: resultado.entradas.length,
+          montoTotal: session.amount_total / 100,
+          moneda: 'USD'
+        });
+        
+        return NextResponse.json({ 
+          received: true, 
+          reservaId: resultado.reserva.reservaid,
+          historialId: resultado.historialId 
+        });
         
       } catch (error) {
-        console.error('Error processing Stripe payment:', error);
-        return NextResponse.json({ error: 'Failed to process payment' }, { status: 500 });
+        console.error('Error processing Stripe payment:', {
+          sessionId: session.id,
+          metadata: session.metadata,
+          error: error instanceof Error ? error.message : error,
+        });
+        return NextResponse.json({ 
+          error: 'Failed to process payment', 
+          sessionId: session.id,
+          details: error instanceof Error ? error.message : 'Unknown error' 
+        }, { status: 500 });
       }
     }
 
