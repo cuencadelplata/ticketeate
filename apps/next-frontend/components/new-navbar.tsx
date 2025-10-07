@@ -17,6 +17,15 @@ function Navbar() {
   const isAuthenticated = !!session;
   const isLoading = isPending;
 
+  // Debug logs temporales
+  console.log('🔍 Navbar Debug:', {
+    session,
+    isAuthenticated,
+    isLoading,
+    isPending,
+    error
+  });
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -114,13 +123,29 @@ function Navbar() {
               </div>
             ) : (
               <>
+                {/* Botón Historial SIEMPRE visible para testing */}
+                <Link
+                  href="/historial"
+                  className="px-4 py-2 text-sm font-medium text-white-400 hover:text-white-300 transition-colors duration-200"
+                >
+                Historial
+                </Link>
+
                 {isAuthenticated ? (
-                  <Link
-                    href="/eventos"
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
-                  >
-                    Mi Panel
-                  </Link>
+                  <>
+                    <Link
+                      href="/eventos"
+                      className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                    >
+                      Mi Panel
+                    </Link>
+                    <Link
+                      href="/historial"
+                      className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                    >
+                      Historial Auth
+                    </Link>
+                  </>
                 ) : (
                   <Link
                     href="/sign-in"
