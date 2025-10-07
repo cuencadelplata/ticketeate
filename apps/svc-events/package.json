@@ -21,7 +21,6 @@
     "@hono/node-server": "^1.0.0",
     "@prisma/client": "^6.15.0",
     "@repo/db": "workspace:*",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "better-auth": "^1.0.0",
     "cloudinary": "^2.7.0",
@@ -33,6 +32,7 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
