@@ -15,6 +15,7 @@ module.exports = {
     alert: 'readonly',
     console: 'readonly',
     user: 'readonly',
+    Buffer: 'readonly',
   },
   rules: {
     'no-undef': 'off',
