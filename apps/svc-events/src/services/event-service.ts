@@ -91,7 +91,7 @@ export interface EventWithImages {
   stock_entrada?: Array<{
     stockid: string;
     nombre: string;
-    precio: bigint;
+    precio: string; // Changed from bigint to string for JSON serialization
     cant_max: number;
     fecha_creacion: Date;
     fecha_limite: Date;
@@ -409,6 +409,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           evento_categorias: {
             include: {
               categoriaevento: true,
@@ -417,7 +418,17 @@ export class EventService {
         },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
-      return full as EventWithImages;
+      
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...full,
+        stock_entrada: full.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+      
+      return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error updating event:', error);
@@ -473,7 +484,18 @@ export class EventService {
         },
       });
 
-      return evento as EventWithImages | null;
+      if (!evento) return null;
+
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+
+      return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting event:', error);
@@ -492,6 +514,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           evento_categorias: {
             include: {
               categoriaevento: true,
@@ -509,7 +532,16 @@ export class EventService {
         },
       });
 
-      return eventos as EventWithImages[];
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventosSerializados = eventos.map((evento) => ({
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      }));
+
+      return eventosSerializados as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting user events:', error);
@@ -543,8 +575,22 @@ export class EventService {
         },
       });
 
-      // Devolver todos los eventos encontrados (sin filtrar por estado) para asegurar visibilidad
-      return eventos as unknown as EventWithImages[];
+      // Filtrar eventos públicos basado en el estado
+      const eventosPublicos = eventos.filter((evento) => {
+        const estadoActual = evento.evento_estado?.[0]?.Estado;
+        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
+      });
+
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventosSerializados = eventosPublicos.map((evento) => ({
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      }));
+
+      return eventosSerializados as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting all public events:', error);
@@ -578,7 +624,88 @@ export class EventService {
     });
 
     if (!evento) return null;
-    // Retornar siempre el evento encontrado (sin filtrar por estado)
-    return evento as EventWithImages;
+
+    // Verificar si el evento es público basado en el estado
+    const estadoActual = evento.evento_estado?.[0]?.Estado;
+    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+      return eventoSerializado as EventWithImages;
+    }
+
+    return null;
+  }
+
+  static async publishScheduledEvents(): Promise<{ published: number; errors: number }> {
+    try {
+      const now = new Date();
+      
+      // Buscar eventos que están programados para publicarse y aún están ocultos
+      const scheduledEvents = await prisma.eventos.findMany({
+        where: {
+          fecha_publicacion: {
+            lte: now, // fecha_publicacion <= ahora
+          },
+          evento_estado: {
+            some: {
+              Estado: 'OCULTO',
+              fecha_de_cambio: {
+                // Solo el estado más reciente
+              }
+            }
+          }
+        },
+        include: {
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+
+      let published = 0;
+      let errors = 0;
+
+      for (const evento of scheduledEvents) {
+        try {
+          // Verificar que el estado actual es realmente OCULTO
+          const currentState = evento.evento_estado?.[0]?.Estado;
+          if (currentState !== 'OCULTO') {
+            continue;
+          }
+
+          // Crear nuevo estado ACTIVO
+          await prisma.evento_estado.create({
+            data: {
+              stateventid: randomUUID(),
+              eventoid: evento.eventoid,
+              Estado: 'ACTIVO',
+              usuarioid: evento.creadorid,
+            },
+          });
+
+          published++;
+          console.log(`Published scheduled event: ${evento.titulo} (${evento.eventoid})`);
+        } catch (error) {
+          errors++;
+          console.error(`Error publishing event ${evento.eventoid}:`, error);
+        }
+      }
+
+      return { published, errors };
+    } catch (error) {
+      console.error('Error in publishScheduledEvents:', error);
+      throw new Error(
+        `Error al publicar eventos programados: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 }

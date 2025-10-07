@@ -325,9 +325,6 @@ export default function EventoPage() {
                             </div>
                             <div className="text-right text-stone-300">
                               <div>${Number(stock.precio)}</div>
-                              <div className="text-xs text-stone-400">
-                                Cupo: {stock.cant_max} entradas
-                              </div>
                             </div>
                           </div>
                         </li>
@@ -431,7 +428,7 @@ export default function EventoPage() {
                       {((event as any).mapa_evento?.sectors || []).length > 0 && (
                         <div className="pt-2">
                           <h4 className="text-xs font-semibold text-stone-400">
-                            Entradas disponibles por sector
+                            Precios por sector
                           </h4>
                           <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
                             {(event as any).mapa_evento.sectors.map((s: any) => {
@@ -439,15 +436,10 @@ export default function EventoPage() {
                                 (stock: any) =>
                                   stock.nombre?.toLowerCase() === String(s.name).toLowerCase(),
                               );
-                              const capText = matchingStock
-                                ? `${matchingStock.cant_max} entradas`
-                                : typeof s.capacity === 'number'
-                                  ? `${s.capacity} entradas`
-                                  : 'Capacidad no definida';
                               const priceText = matchingStock
-                                ? ` • $${Number(matchingStock.precio)}`
+                                ? `$${Number(matchingStock.precio)}`
                                 : typeof s.price === 'number'
-                                  ? ` • $${s.price}`
+                                  ? `$${s.price}`
                                   : '';
                               return (
                                 <li
@@ -457,7 +449,6 @@ export default function EventoPage() {
                                   <div className="flex items-center justify-between">
                                     <span>{s.name}</span>
                                     <span className="text-stone-400">
-                                      {capText}
                                       {priceText}
                                     </span>
                                   </div>

@@ -2,7 +2,7 @@ export const publicRoutes: string[] = ['/', '/about', '/crear', '/productoras', 
 
 export const authRoutes: string[] = ['/sign-in', '/sign-up', '/forgot-password'];
 
-export const protectedRoutes: string[] = ['/evento/manage/*', '/eventos', '/configuracion/*'];
+export const protectedRoutes: string[] = ['/evento/manage/*', '/eventos', '/configuracion', '/configuracion/*'];
 
 export const apiAuthPrefix: string = '/api/auth';
 

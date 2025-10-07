@@ -125,10 +125,16 @@ export function useCreateEvent() {
       return data.event;
     },
     onSuccess: (newEvent) => {
+      // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? [...old, newEvent] : [newEvent],
-      );
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      
+      // También invalidar queries específicas del evento creado
+      queryClient.invalidateQueries({ queryKey: ['events', newEvent.eventoid] });
+      
+      // Forzar refetch inmediato de las queries principales
+      queryClient.refetchQueries({ queryKey: ['events'] });
+      queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
     onError: (error) => {
       console.error('Error al crear evento:', error);
@@ -165,9 +171,14 @@ export function useUpdateEvent() {
       return res.json();
     },
     onSuccess: (updatedEvent) => {
+      // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
       queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
-      queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
+      
+      // Forzar refetch inmediato de las queries principales
+      queryClient.refetchQueries({ queryKey: ['events'] });
+      queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
   });
 }
@@ -193,10 +204,14 @@ export function useDeleteEvent() {
       }
     },
     onSuccess: (_, deletedId) => {
+      // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.setQueryData(['events'], (old: Event[] | undefined) =>
-        old ? old.filter((e) => e.eventoid !== deletedId) : [],
-      );
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events', deletedId] });
+      
+      // Forzar refetch inmediato de las queries principales
+      queryClient.refetchQueries({ queryKey: ['events'] });
+      queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
   });
 }

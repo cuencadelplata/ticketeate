@@ -406,4 +406,26 @@ events.delete('/:id/categories/:categoryId', async (c) => {
   }
 });
 
+// POST /api/events/publish-scheduled - Publicar eventos programados (para uso interno/cron)
+events.post('/publish-scheduled', async (c) => {
+  try {
+    const result = await EventService.publishScheduledEvents();
+    
+    return c.json({
+      message: 'Eventos programados procesados',
+      published: result.published,
+      errors: result.errors,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error publishing scheduled events:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500,
+    );
+  }
+});
+
 export { events };

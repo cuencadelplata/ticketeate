@@ -20,12 +20,28 @@ export function useWalletStatus() {
 }
 
 export function useLinkWallet() {
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      // Redirigir al endpoint de OAuth de Mercado Pago
-      window.location.href = '/api/mercadopago/auth';
+    mutationFn: async (provider: string = 'mercado_pago') => {
+      if (provider === 'mock') {
+        // Para simulación, hacer llamada directa a la API
+        const token = session?.session?.token ?? '';
+        const res = await fetch(API_ENDPOINTS.walletLink, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ provider: 'mock' }),
+        });
+        if (!res.ok) throw new Error('Error al vincular billetera simulada');
+        return res.json();
+      } else {
+        // Para Mercado Pago real, redirigir al endpoint de OAuth
+        window.location.href = '/api/mercadopago/auth';
+      }
     },
     onSuccess: () => {
       // Invalidar la query para refrescar el estado
@@ -53,6 +69,31 @@ export function useUnlinkWallet() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet-status'] });
+    },
+  });
+}
+
+export function useSimulatePayment() {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (paymentData: { amount: number; eventId: string; ticketCount: number }) => {
+      const token = session?.session?.token ?? '';
+      const res = await fetch(`${API_ENDPOINTS.wallet}/simulate-payment`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+      if (!res.ok) throw new Error('Error al simular pago');
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas con pagos si las hay
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
