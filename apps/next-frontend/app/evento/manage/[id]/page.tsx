@@ -1,47 +1,44 @@
 'use client';
 
 import { notFound } from 'next/navigation';
-import { getEventoById } from '@/lib/eventos';
+import { useEvent } from '@/hooks/use-events';
 import { Navbar } from '@/components/navbar';
 import { ViewMetricsPanel } from '@/components/view-metrics-panel';
 import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useEffect, useState } from 'react';
 import { useViewCount } from '@/hooks/use-view-count';
+import { use } from 'react';
 
 export default function ManageEventoPage({ params }: { params: Promise<{ id: string }> }) {
-  const [evento, setEvento] = useState<any>(null);
-  const [id, setId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
+  const { id } = use(params);
+  
+  // Hook para obtener el evento usando TanStack Query
+  const { data: evento, isLoading, error } = useEvent(id);
+  
   // Hook para obtener el conteo de views del evento actual
-  const { viewCount } = useViewCount(id || undefined);
+  const { viewCount } = useViewCount(id);
 
-  useEffect(() => {
-    const loadEvento = async () => {
-      try {
-        const resolvedParams = await params;
-        setId(resolvedParams.id);
-        const eventData = await getEventoById(resolvedParams.id);
-
-        if (!eventData) {
-          notFound();
-          return;
-        }
-
-        setEvento(eventData);
-      } catch (error) {
-        console.error('Error loading evento:', error);
-        notFound();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadEvento();
-  }, [params]);
+  // Manejar errores
+  if (error) {
+    console.error('Error loading evento:', error);
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <div className="pb-4">
+          <Navbar />
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-400 mb-4">Error al cargar el evento</div>
+            <div className="text-gray-400 text-sm">
+              {error instanceof Error ? error.message : 'Error desconocido'}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -60,8 +57,33 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
     return notFound();
   }
 
-  const formatDate = (date: Date) => {
-    return format(date, "EEEE, d 'de' MMMM 'de' yyyy 'a las' HH:mm", { locale: es });
+  const formatDate = (date: string | Date | undefined) => {
+    if (!date) return 'Sin fecha';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, "EEEE, d 'de' MMMM 'de' yyyy 'a las' HH:mm", { locale: es });
+  };
+
+  // Helper functions para obtener datos del evento
+  const getEventDate = () => {
+    return evento?.fechas_evento?.[0]?.fecha_hora || evento?.fecha_creacion;
+  };
+
+  const getEventImage = () => {
+    return evento?.imagenes_evento?.find(img => img.tipo === 'PORTADA')?.url;
+  };
+
+  const getEventStatus = () => {
+    return evento?.evento_estado?.[0]?.Estado || 'OCULTO';
+  };
+
+  const isEventPublic = () => {
+    const status = getEventStatus();
+    return status === 'ACTIVO' || status === 'COMPLETADO';
+  };
+
+  const isEventFree = () => {
+    return !evento?.stock_entrada || evento.stock_entrada.length === 0 || 
+           evento.stock_entrada.every(stock => Number(stock.precio) === 0);
   };
 
   return (
@@ -80,7 +102,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 <div className="mb-4 flex flex-wrap items-center gap-4 text-gray-400">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    <span>{formatDate(evento.fecha)}</span>
+                    <span>{formatDate(getEventDate())}</span>
                   </div>
                   {evento.ubicacion && (
                     <div className="flex items-center gap-2">
@@ -88,10 +110,10 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                       <span>{evento.ubicacion}</span>
                     </div>
                   )}
-                  {evento.capacidad && (
+                  {evento.stock_entrada && evento.stock_entrada.length > 0 && (
                     <div className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      <span>Capacidad: {evento.capacidad}</span>
+                      <span>Capacidad: {evento.stock_entrada.reduce((total, stock) => total + stock.cant_max, 0)}</span>
                     </div>
                   )}
                 </div>
@@ -99,31 +121,44 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 <div className="flex gap-2">
                   <span
                     className={`rounded px-2 py-1 text-xs ${
-                      evento.acceso === 'PUBLIC'
+                      isEventPublic()
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-yellow-500/20 text-yellow-400'
                     }`}
                   >
-                    {evento.acceso === 'PUBLIC' ? 'Público' : 'Privado'}
+                    {isEventPublic() ? 'Público' : 'Privado'}
                   </span>
                   <span
                     className={`rounded px-2 py-1 text-xs ${
-                      evento.tipoPrecio === 'FREE'
+                      isEventFree()
                         ? 'bg-blue-500/20 text-blue-400'
                         : 'bg-purple-500/20 text-purple-400'
                     }`}
                   >
-                    {evento.tipoPrecio === 'FREE' ? 'Gratis' : 'Pago'}
+                    {isEventFree() ? 'Gratis' : 'Pago'}
+                  </span>
+                  <span
+                    className={`rounded px-2 py-1 text-xs ${
+                      getEventStatus() === 'ACTIVO'
+                        ? 'bg-green-500/20 text-green-400'
+                        : getEventStatus() === 'CANCELADO'
+                        ? 'bg-red-500/20 text-red-400'
+                        : getEventStatus() === 'COMPLETADO'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-gray-500/20 text-gray-400'
+                    }`}
+                  >
+                    {getEventStatus()}
                   </span>
                 </div>
 
                 {evento.descripcion && <p className="mt-4 text-gray-300">{evento.descripcion}</p>}
               </div>
 
-              {evento.imagen && (
+              {getEventImage() && (
                 <div className="ml-6">
                   <img
-                    src={evento.imagen}
+                    src={getEventImage()}
                     alt={evento.titulo}
                     className="h-32 w-32 rounded-lg object-cover"
                   />
@@ -135,7 +170,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
           {/* Navegación de gestión */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Link
-              href={`/event/manage/${id}/informacion`}
+              href={`/evento/manage/${id}/informacion`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
@@ -150,7 +185,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             </Link>
 
             <Link
-              href={`/event/manage/${id}/invitados`}
+              href={`/evento/manage/${id}/invitados`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
@@ -165,7 +200,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             </Link>
 
             <Link
-              href={`/event/manage/${id}/inscripcion`}
+              href={`/evento/manage/${id}/inscripcion`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
@@ -180,7 +215,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             </Link>
 
             <Link
-              href={`/event/manage/${id}/difusiones`}
+              href={`/evento/manage/${id}/difusiones`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
@@ -195,7 +230,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             </Link>
 
             <Link
-              href={`/event/manage/${id}/mas`}
+              href={`/evento/manage/${id}/mas`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">

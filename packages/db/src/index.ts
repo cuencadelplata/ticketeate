@@ -24,5 +24,5 @@ export { EstadoEntrada, EstadoPago, EstadoReserva, EventoEstado, TipoImagen } fr
 
 export type { PrismaClient } from '@prisma/client';
 
-// Export Better Auth configuration
-export { auth } from './auth';
+// Better Auth configuration is handled in the frontend app
+// export { auth } from './auth';
