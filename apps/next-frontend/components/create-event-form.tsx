@@ -1,7 +1,4 @@
 'use client';
-
-// Elimina imports duplicados y mantén solo uno de cada
-import { useState, useMemo } from 'react';
 import React from 'react';
 import { useState, useMemo } from 'react';
 import {
@@ -28,7 +25,7 @@ import {
 import { Navbar } from './navbar';  
 
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
-import React from 'react';
+
 
 import UploadImageModal from './UploadImageModal';
 import { DateSelect } from './date-select';
@@ -289,13 +286,13 @@ export default function CreateEventForm() {
   }, [hasCheckedAuth]);
 
   const handleCreateEvent = async () => {
-    if (!session) {
+    if (!XRSession) {
       toast.error('Debes iniciar sesión para crear eventos');
       return;
     }
 
     // Verificar que el usuario tenga rol de ORGANIZADOR
-    const userRole = (session as any).user?.role;
+    const userRole = (XRSession as any).user?.role;
     if (userRole !== 'ORGANIZADOR') {
       toast.error('Solo los organizadores pueden crear eventos');
       return;
@@ -825,3 +822,7 @@ export default function CreateEventForm() {
     </>
   );
 }
+function useAuth(): { isSignedIn: any; } {
+  throw new Error('Function not implemented.');
+}
+
