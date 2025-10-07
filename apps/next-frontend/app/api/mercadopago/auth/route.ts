@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    // Modo mock para desarrollo
+    if (process.env.NODE_ENV === 'development' && process.env.MERCADO_PAGO_MOCK === 'true') {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/api/mercadopago/mock-callback?userId=${session.user.id}`,
+      );
+    }
+
     const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
     const redirectUri = process.env.MERCADO_PAGO_REDIRECT_URI;
 
