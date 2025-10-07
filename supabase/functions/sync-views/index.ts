@@ -68,6 +68,87 @@ class RedisClient {
   }
 }
 
+// Función para sincronizar contadores diarios de un evento específico
+async function syncDailyViewsForEvent(eventId: string, redis: RedisClient, supabase: any): Promise<{
+  synced: number;
+  errors: number;
+  details: Array<{ date: string; views: number; synced: boolean; error?: string }>;
+}> {
+  const result = {
+    synced: 0,
+    errors: 0,
+    details: [] as Array<{ date: string; views: number; synced: boolean; error?: string }>,
+  };
+
+  try {
+    // Obtener todas las claves de contadores diarios para este evento
+    const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
+    
+    for (const key of dailyKeys) {
+      // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
+      const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
+      if (!dateMatch) continue;
+      
+      const dateStr = dateMatch[1];
+      
+      try {
+        // Obtener el conteo de Redis
+        const redisCount = await redis.get(key);
+        if (!redisCount) continue;
+        
+        const viewsCount = parseInt(redisCount);
+        if (isNaN(viewsCount) || viewsCount <= 0) continue;
+        
+        // Insertar o actualizar en la base de datos usando Supabase
+        const { error } = await supabase
+          .from('evento_views_history')
+          .upsert({
+            id: `${eventId}_${dateStr}`,
+            eventoid: eventId,
+            fecha: `${dateStr}T00:00:00.000Z`,
+            views_count: viewsCount,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'eventoid,fecha'
+          });
+        
+        if (error) {
+          result.errors++;
+          result.details.push({
+            date: dateStr,
+            views: viewsCount,
+            synced: false,
+            error: error.message,
+          });
+          console.error(`Error syncing daily views for ${dateStr}:`, error);
+        } else {
+          result.synced++;
+          result.details.push({
+            date: dateStr,
+            views: viewsCount,
+            synced: true,
+          });
+          console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
+        }
+      } catch (error) {
+        result.errors++;
+        result.details.push({
+          date: dateStr,
+          views: 0,
+          synced: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        console.error(`Error syncing daily views for ${dateStr}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error in syncDailyViewsForEvent:', error);
+    result.errors++;
+  }
+
+  return result;
+}
+
 serve(async (req) => {
   // Manejar CORS
   if (req.method === 'OPTIONS') {
@@ -101,7 +182,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let syncedCount = 0;
+    let dailySyncedCount = 0;
     const results = [];
+    const dailyResults = [];
 
     for (const key of viewKeys) {
       try {
@@ -139,6 +222,14 @@ serve(async (req) => {
           continue;
         }
 
+        // Sincronizar contadores diarios antes de eliminar las claves
+        const dailySyncResult = await syncDailyViewsForEvent(eventId, redis, supabase);
+        dailySyncedCount += dailySyncResult.synced;
+        dailyResults.push({
+          eventId,
+          ...dailySyncResult,
+        });
+
         // Eliminar el contador de Redis después de sincronizar
         await redis.del(key);
 
@@ -165,8 +256,16 @@ serve(async (req) => {
       JSON.stringify({
         message: 'View sync completed',
         synced: syncedCount,
+        dailySynced: dailySyncedCount,
         processed: viewKeys.length,
         results,
+        dailyResults,
+        summary: {
+          totalViewsSynced: syncedCount,
+          totalDailyRecordsSynced: dailySyncedCount,
+          eventsProcessed: viewKeys.length,
+          dailySyncErrors: dailyResults.reduce((sum, result) => sum + result.errors, 0),
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

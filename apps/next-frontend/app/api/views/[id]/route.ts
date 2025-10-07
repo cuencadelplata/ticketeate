@@ -91,6 +91,42 @@ class RedisClient {
       return false;
     }
   }
+
+  async keys(pattern: string): Promise<string[]> {
+    try {
+      const response = await fetch(`${this.url}/keys/${pattern}`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json();
+      return data.result || [];
+    } catch (error) {
+      console.error('Redis KEYS error:', error);
+      return [];
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.url}/del/${key}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Redis DEL error:', error);
+      return false;
+    }
+  }
 }
 
 // Función para obtener IP del usuario
@@ -115,6 +151,54 @@ function getVisitorId(request: NextRequest): string {
   return Buffer.from(`${ip}-${userAgent}`).toString('base64').slice(0, 32);
 }
 
+// Función para sincronizar contadores diarios de Redis a la base de datos
+async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Promise<void> {
+  try {
+    // Obtener todas las claves de contadores diarios para este evento
+    const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
+    
+    for (const key of dailyKeys) {
+      // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
+      const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
+      if (!dateMatch) continue;
+      
+      const dateStr = dateMatch[1];
+      const date = new Date(dateStr + 'T00:00:00.000Z');
+      
+      // Obtener el conteo de Redis
+      const redisCount = await redis.get(key);
+      if (!redisCount) continue;
+      
+      const viewsCount = parseInt(redisCount);
+      if (isNaN(viewsCount) || viewsCount <= 0) continue;
+      
+      // Insertar o actualizar en la base de datos
+      await prisma.evento_views_history.upsert({
+        where: {
+          unique_evento_fecha: {
+            eventoid: eventId,
+            fecha: date,
+          },
+        },
+        update: {
+          views_count: viewsCount,
+          updated_at: new Date(),
+        },
+        create: {
+          id: `${eventId}_${dateStr}`,
+          eventoid: eventId,
+          fecha: date,
+          views_count: viewsCount,
+        },
+      });
+      
+      console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
+    }
+  } catch (error) {
+    console.error('Error syncing daily views to database:', error);
+  }
+}
+
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id: eventId } = await params;
@@ -135,6 +219,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const visitorId = getVisitorId(request);
     const visitorKey = `visitor:${eventId}:${visitorId}`;
     const viewKey = `event:${eventId}:views`;
+    
+    // Crear clave para el contador diario
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const dailyViewKey = `event:${eventId}:views:${today}`;
 
     // Verificar si este visitante ya contó en las últimas 24 horas
     const hasVisited = await redis.exists(visitorKey);
@@ -147,12 +235,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       });
     }
 
-    // Incrementar contador de views
+    // Incrementar contador total de views
     const newCount = await redis.incr(viewKey);
 
     if (newCount === null) {
       return NextResponse.json({ error: 'Failed to increment view count' }, { status: 500 });
     }
+
+    // Incrementar contador diario de views
+    const newDailyCount = await redis.incr(dailyViewKey);
+    
+    // Establecer expiración para el contador diario (7 días)
+    await redis.set(dailyViewKey, newDailyCount?.toString() || '0', 7 * 24 * 60 * 60);
 
     // Marcar al visitante como contado por 24 horas
     await redis.set(visitorKey, '1', 86400); // 24 horas en segundos

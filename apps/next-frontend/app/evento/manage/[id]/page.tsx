@@ -3,13 +3,96 @@
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
 import { Navbar } from '@/components/navbar';
-import { ViewMetricsPanel } from '@/components/view-metrics-panel';
 import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useViewCount } from '@/hooks/use-view-count';
+import { ViewsChart } from '@/components/views-chart';
+import { Skeleton } from '@/components/ui/skeleton';
 import { use } from 'react';
+
+// Componente Skeleton personalizado con animación de barrido
+const ShimmerSkeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`}
+    {...props}
+  >
+    <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-stone-600/50 to-transparent" />
+  </div>
+);
+
+// Componente Skeleton para la página de gestión
+const ManageEventSkeleton = () => (
+  <div className="min-h-screen bg-[#121212] text-white">
+    <div className="pb-4">
+      <Navbar />
+    </div>
+    <div className="p-6">
+      <div className="mx-auto max-w-6xl">
+        {/* Header skeleton */}
+        <div className="mb-8 rounded-lg bg-[#1E1E1E] p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <ShimmerSkeleton className="h-8 w-3/4 mb-2" />
+              <div className="mb-4 flex flex-wrap items-center gap-4">
+                <ShimmerSkeleton className="h-5 w-48" />
+                <ShimmerSkeleton className="h-5 w-32" />
+                <ShimmerSkeleton className="h-5 w-24" />
+              </div>
+              <div className="flex gap-2 mb-4">
+                <ShimmerSkeleton className="h-6 w-16" />
+                <ShimmerSkeleton className="h-6 w-16" />
+                <ShimmerSkeleton className="h-6 w-20" />
+              </div>
+              <ShimmerSkeleton className="h-4 w-full" />
+              <ShimmerSkeleton className="h-4 w-2/3 mt-2" />
+            </div>
+            <div className="ml-6">
+              <ShimmerSkeleton className="h-32 w-32 rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation cards skeleton */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-[#1E1E1E] p-6">
+              <div className="flex items-center gap-3">
+                <ShimmerSkeleton className="h-12 w-12 rounded-lg" />
+                <div className="flex-1">
+                  <ShimmerSkeleton className="h-5 w-24 mb-2" />
+                  <ShimmerSkeleton className="h-4 w-32" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-lg bg-[#1E1E1E] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <ShimmerSkeleton className="h-4 w-20 mb-2" />
+                  <ShimmerSkeleton className="h-8 w-16" />
+                </div>
+                <ShimmerSkeleton className="h-8 w-8" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Chart skeleton */}
+        <div className="mt-8 rounded-lg bg-[#1E1E1E] p-6">
+          <ShimmerSkeleton className="h-6 w-32 mb-4" />
+          <ShimmerSkeleton className="h-64 w-full" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function ManageEventoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,7 +101,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   const { data: evento, isLoading, error } = useEvent(id);
 
   // Hook para obtener el conteo de views del evento actual
-  const { viewCount } = useViewCount(id);
+  const { data: viewCountData, isLoading: isLoadingViews, error: viewCountError } = useViewCount(id);
 
   // Manejar errores
   if (error) {
@@ -41,16 +124,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#121212] text-white">
-        <div className="pb-4">
-          <Navbar />
-        </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-gray-400">Cargando evento...</div>
-        </div>
-      </div>
-    );
+    return <ManageEventSkeleton />;
   }
 
   if (!evento) {
@@ -180,11 +254,11 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-500/20 p-3">
-                  <Info className="h-6 w-6 text-blue-400" />
+                <div className="rounded-lg bg-orange-500/20 p-3">
+                  <Info className="h-6 w-6 text-orange-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-blue-400">Información</h3>
+                  <h3 className="font-semibold group-hover:text-orange-400">Información</h3>
                   <p className="text-sm text-gray-400">Editar detalles del evento</p>
                 </div>
               </div>
@@ -195,11 +269,11 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-green-500/20 p-3">
-                  <Users className="h-6 w-6 text-green-400" />
+                <div className="rounded-lg bg-orange-600/20 p-3">
+                  <Users className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-green-400">Invitados</h3>
+                  <h3 className="font-semibold group-hover:text-orange-500">Invitados</h3>
                   <p className="text-sm text-gray-400">Gestionar lista de invitados</p>
                 </div>
               </div>
@@ -210,27 +284,12 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-purple-500/20 p-3">
-                  <Settings className="h-6 w-6 text-purple-400" />
+                <div className="rounded-lg bg-orange-700/20 p-3">
+                  <Settings className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-purple-400">Inscripción</h3>
+                  <h3 className="font-semibold group-hover:text-orange-600">Inscripción</h3>
                   <p className="text-sm text-gray-400">Configurar registro</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href={`/evento/manage/${id}/difusiones`}
-              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-500/20 p-3">
-                  <Share2 className="h-6 w-6 text-orange-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-orange-400">Difusiones</h3>
-                  <p className="text-sm text-gray-400">Promocionar evento</p>
                 </div>
               </div>
             </Link>
@@ -240,11 +299,11 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-red-500/20 p-3">
-                  <BarChart3 className="h-6 w-6 text-red-400" />
+                <div className="rounded-lg bg-orange-800/20 p-3">
+                  <BarChart3 className="h-6 w-6 text-orange-700" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-red-400">Más opciones</h3>
+                  <h3 className="font-semibold group-hover:text-orange-700">Más opciones</h3>
                   <p className="text-sm text-gray-400">Configuración avanzada</p>
                 </div>
               </div>
@@ -252,16 +311,22 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Estadísticas rápidas */}
-          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total Views</p>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {viewCount !== null ? viewCount.toLocaleString() : '0'}
+                  <p className="text-2xl font-bold text-orange-400">
+                    {isLoadingViews ? (
+                      <span className="text-gray-400">Cargando...</span>
+                    ) : viewCountError ? (
+                      <span className="text-red-400">Error</span>
+                    ) : (
+                      (viewCountData?.views || 0).toLocaleString()
+                    )}
                   </p>
                 </div>
-                <Eye className="h-8 w-8 text-blue-500" />
+                <Eye className="h-8 w-8 text-orange-500" />
               </div>
             </div>
 
@@ -269,9 +334,9 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total Invitados</p>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold text-orange-500">0</p>
                 </div>
-                <Users className="h-8 w-8 text-gray-500" />
+                <Users className="h-8 w-8 text-orange-600" />
               </div>
             </div>
 
@@ -279,32 +344,18 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Confirmados</p>
-                  <p className="text-2xl font-bold text-green-400">0</p>
+                  <p className="text-2xl font-bold text-orange-600">0</p>
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
-                  <span className="font-bold text-green-400">✓</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg bg-[#1E1E1E] p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Pendientes</p>
-                  <p className="text-2xl font-bold text-yellow-400">0</p>
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/20">
-                  <span className="font-bold text-yellow-400">?</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600/20">
+                  <span className="font-bold text-orange-600">✓</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Panel de métricas de views */}
+          {/* Gráfico de views */}
           <div className="mt-8">
-            <div className="rounded-lg bg-[#1E1E1E] p-6">
-              <ViewMetricsPanel />
-            </div>
+            <ViewsChart eventId={id} />
           </div>
         </div>
       </div>

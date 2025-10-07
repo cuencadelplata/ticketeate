@@ -61,7 +61,7 @@ export default function EventoPage() {
     useReservation();
 
   // Hook para manejar conteo de views
-  const { viewCount } = useViewCount(id);
+  const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
 
   // Función para manejar el clic en "Comprar Entradas"
   const handleComprarEntradas = () => {
@@ -207,11 +207,11 @@ export default function EventoPage() {
                 </div>
 
                 {/* Contador de views */}
-                {viewCount !== null && (
+                {!isLoadingViews && viewCountData && (
                   <div className="flex items-center gap-2 text-stone-400">
                     <Eye className="h-4 w-4" />
                     <span className="text-sm">
-                      {viewCount.toLocaleString()} {viewCount === 1 ? 'visita' : 'visitas'}
+                      {viewCountData.views.toLocaleString()} {viewCountData.views === 1 ? 'visita' : 'visitas'}
                     </span>
                   </div>
                 )}

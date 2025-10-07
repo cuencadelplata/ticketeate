@@ -90,6 +90,54 @@ class RedisClient {
   }
 }
 
+// Función para sincronizar contadores diarios de un evento específico
+async function syncDailyViewsForEvent(eventId: string, redis: RedisClient): Promise<void> {
+  try {
+    // Obtener todas las claves de contadores diarios para este evento
+    const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
+    
+    for (const key of dailyKeys) {
+      // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
+      const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
+      if (!dateMatch) continue;
+      
+      const dateStr = dateMatch[1];
+      const date = new Date(dateStr + 'T00:00:00.000Z');
+      
+      // Obtener el conteo de Redis
+      const redisCount = await redis.get(key);
+      if (!redisCount) continue;
+      
+      const viewsCount = parseInt(redisCount);
+      if (isNaN(viewsCount) || viewsCount <= 0) continue;
+      
+      // Insertar o actualizar en la base de datos
+      await prisma.evento_views_history.upsert({
+        where: {
+          unique_evento_fecha: {
+            eventoid: eventId,
+            fecha: date,
+          },
+        },
+        update: {
+          views_count: viewsCount,
+          updated_at: new Date(),
+        },
+        create: {
+          id: `${eventId}_${dateStr}`,
+          eventoid: eventId,
+          fecha: date,
+          views_count: viewsCount,
+        },
+      });
+      
+      console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
+    }
+  } catch (error) {
+    console.error('Error syncing daily views for event:', error);
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Obtener estadísticas de views desde Redis
@@ -186,6 +234,9 @@ export async function POST(request: NextRequest) {
             },
           },
         });
+
+        // Sincronizar contadores diarios antes de eliminar las claves
+        await syncDailyViewsForEvent(eventId, redis);
 
         // Eliminar el contador de Redis después de sincronizar
         await redis.del(key);

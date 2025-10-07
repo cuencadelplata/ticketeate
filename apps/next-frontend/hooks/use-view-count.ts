@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface ViewCountResult {
   success: boolean;
@@ -14,19 +14,40 @@ interface ViewCountData {
   source: string;
 }
 
+// Hook para obtener el conteo de views usando TanStack Query
 export function useViewCount(eventId: string | undefined) {
-  const [isCounting, setIsCounting] = useState(false);
-  const [viewCount, setViewCount] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  return useQuery({
+    queryKey: ['view-count', eventId],
+    queryFn: async (): Promise<ViewCountData> => {
+      if (!eventId) {
+        throw new Error('Event ID is required');
+      }
 
-  // Función para contar una nueva vista
-  const countView = async (): Promise<ViewCountResult | null> => {
-    if (!eventId || isCounting) return null;
+      const response = await fetch(`/api/views/${eventId}`, {
+        method: 'GET',
+      });
 
-    setIsCounting(true);
-    setError(null);
+      if (!response.ok) {
+        throw new Error('Failed to get view count');
+      }
 
-    try {
+      const data: ViewCountData = await response.json();
+      return data;
+    },
+    enabled: Boolean(eventId),
+    staleTime: 5 * 60 * 1000, // 5 minutos - los datos se consideran frescos por 5 minutos
+    refetchInterval: 5 * 60 * 1000, // Revalidar cada 5 minutos
+    refetchOnWindowFocus: true, // Revalidar cuando la ventana recupera el foco
+    refetchOnReconnect: true, // Revalidar cuando se reconecta a internet
+  });
+}
+
+// Hook para contar una nueva vista
+export function useCountView() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (eventId: string): Promise<ViewCountResult> => {
       const response = await fetch(`/api/views/${eventId}`, {
         method: 'POST',
         headers: {
@@ -39,58 +60,14 @@ export function useViewCount(eventId: string | undefined) {
       }
 
       const result: ViewCountResult = await response.json();
-
-      if (result.success && result.totalViews) {
-        setViewCount(result.totalViews);
-      }
-
       return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error('Error counting view:', err);
-      return null;
-    } finally {
-      setIsCounting(false);
-    }
-  };
-
-  // Función para obtener el conteo actual
-  const getViewCount = async (): Promise<ViewCountData | null> => {
-    if (!eventId) return null;
-
-    try {
-      const response = await fetch(`/api/views/${eventId}`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get view count');
-      }
-
-      const data: ViewCountData = await response.json();
-      setViewCount(data.views);
-      return data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error('Error getting view count:', err);
-      return null;
-    }
-  };
-
-  // Auto-contar vista cuando se monta el componente
-  useEffect(() => {
-    if (eventId) {
-      countView();
-    }
-  }, [eventId]);
-
-  return {
-    countView,
-    getViewCount,
-    viewCount,
-    isCounting,
-    error,
-  };
+    },
+    onSuccess: (result, eventId) => {
+      // Invalidar la query de view count para que se actualice
+      queryClient.invalidateQueries({ queryKey: ['view-count', eventId] });
+    },
+    onError: (error) => {
+      console.error('Error counting view:', error);
+    },
+  });
 }
