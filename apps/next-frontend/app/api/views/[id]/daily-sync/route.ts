@@ -70,7 +70,10 @@ class RedisClient {
 }
 
 // Función para sincronizar contadores diarios de Redis a la base de datos
-async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Promise<{
+async function syncDailyViewsToDatabase(
+  eventId: string,
+  redis: RedisClient,
+): Promise<{
   synced: number;
   errors: number;
   details: Array<{ date: string; views: number; synced: boolean; error?: string }>;
@@ -84,23 +87,23 @@ async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Pr
   try {
     // Obtener todas las claves de contadores diarios para este evento
     const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
-    
+
     for (const key of dailyKeys) {
       // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
       const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
       if (!dateMatch) continue;
-      
+
       const dateStr = dateMatch[1];
       const date = new Date(dateStr + 'T00:00:00.000Z');
-      
+
       try {
         // Obtener el conteo de Redis
         const redisCount = await redis.get(key);
         if (!redisCount) continue;
-        
+
         const viewsCount = parseInt(redisCount);
         if (isNaN(viewsCount) || viewsCount <= 0) continue;
-        
+
         // Insertar o actualizar en la base de datos
         await prisma.evento_views_history.upsert({
           where: {
@@ -120,14 +123,14 @@ async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Pr
             views_count: viewsCount,
           },
         });
-        
+
         result.synced++;
         result.details.push({
           date: dateStr,
           views: viewsCount,
           synced: true,
         });
-        
+
         console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
       } catch (error) {
         result.errors++;
@@ -173,15 +176,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       eventId,
       ...syncResult,
     });
-
   } catch (error) {
     console.error('Error syncing daily views:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }, 
-      { status: 500 }
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
     );
   }
 }
@@ -204,21 +206,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // Obtener todas las claves de contadores diarios para este evento
     const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
-    
+
     const dailyStats = [];
     let totalDailyViews = 0;
 
     for (const key of dailyKeys) {
       const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
       if (!dateMatch) continue;
-      
+
       const dateStr = dateMatch[1];
       const redisCount = await redis.get(key);
-      
+
       if (redisCount) {
         const viewsCount = parseInt(redisCount);
         totalDailyViews += viewsCount;
-        
+
         dailyStats.push({
           date: dateStr,
           views: viewsCount,
@@ -236,15 +238,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       dailyStats,
       count: dailyStats.length,
     });
-
   } catch (error) {
     console.error('Error getting daily views stats:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }, 
-      { status: 500 }
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
     );
   }
 }

@@ -14,10 +14,7 @@ import { use } from 'react';
 
 // Componente Skeleton personalizado con animación de barrido
 const ShimmerSkeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`}
-    {...props}
-  >
+  <div className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`} {...props}>
     <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-stone-600/50 to-transparent" />
   </div>
 );
@@ -101,7 +98,11 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   const { data: evento, isLoading, error } = useEvent(id);
 
   // Hook para obtener el conteo de views del evento actual
-  const { data: viewCountData, isLoading: isLoadingViews, error: viewCountError } = useViewCount(id);
+  const {
+    data: viewCountData,
+    isLoading: isLoadingViews,
+    error: viewCountError,
+  } = useViewCount(id);
 
   // Manejar errores
   if (error) {

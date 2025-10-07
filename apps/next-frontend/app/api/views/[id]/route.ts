@@ -156,22 +156,22 @@ async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Pr
   try {
     // Obtener todas las claves de contadores diarios para este evento
     const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
-    
+
     for (const key of dailyKeys) {
       // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
       const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
       if (!dateMatch) continue;
-      
+
       const dateStr = dateMatch[1];
       const date = new Date(dateStr + 'T00:00:00.000Z');
-      
+
       // Obtener el conteo de Redis
       const redisCount = await redis.get(key);
       if (!redisCount) continue;
-      
+
       const viewsCount = parseInt(redisCount);
       if (isNaN(viewsCount) || viewsCount <= 0) continue;
-      
+
       // Insertar o actualizar en la base de datos
       await prisma.evento_views_history.upsert({
         where: {
@@ -191,7 +191,7 @@ async function syncDailyViewsToDatabase(eventId: string, redis: RedisClient): Pr
           views_count: viewsCount,
         },
       });
-      
+
       console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
     }
   } catch (error) {
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const visitorId = getVisitorId(request);
     const visitorKey = `visitor:${eventId}:${visitorId}`;
     const viewKey = `event:${eventId}:views`;
-    
+
     // Crear clave para el contador diario
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const dailyViewKey = `event:${eventId}:views:${today}`;
@@ -244,7 +244,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Incrementar contador diario de views
     const newDailyCount = await redis.incr(dailyViewKey);
-    
+
     // Establecer expiración para el contador diario (7 días)
     await redis.set(dailyViewKey, newDailyCount?.toString() || '0', 7 * 24 * 60 * 60);
 

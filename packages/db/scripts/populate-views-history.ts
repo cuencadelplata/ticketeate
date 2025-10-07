@@ -30,7 +30,7 @@ async function populateInitialViewsHistory() {
       // Calcular días desde la creación hasta hoy
       const hoy = new Date();
       const diasDesdeCreacion = Math.ceil(
-        (hoy.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24)
+        (hoy.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       // Si el evento tiene menos de 1 día, crear solo el registro de hoy
@@ -100,7 +100,9 @@ async function populateInitialViewsHistory() {
         });
       }
 
-      console.log(`✓ Creados ${diasParaCrear} registros para evento ${eventId} - Total: ${totalViews} views`);
+      console.log(
+        `✓ Creados ${diasParaCrear} registros para evento ${eventId} - Total: ${totalViews} views`,
+      );
     }
 
     console.log('✅ Población de datos históricos completada');

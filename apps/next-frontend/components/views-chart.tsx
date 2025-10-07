@@ -1,7 +1,17 @@
 'use client';
 
 import { useViewsHistory } from '@/hooks/use-views-history';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  AreaChart,
+  Area,
+} from 'recharts';
 import { Eye, TrendingUp, Calendar } from 'lucide-react';
 
 interface ViewsChartProps {
@@ -11,7 +21,7 @@ interface ViewsChartProps {
 
 export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
   const { data: viewsHistoryData, isLoading, error } = useViewsHistory(eventId, days);
-  
+
   if (isLoading) {
     return (
       <div className="rounded-lg bg-[#1E1E1E] p-6">
@@ -25,7 +35,7 @@ export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="rounded-lg bg-[#1E1E1E] p-6">
@@ -39,7 +49,7 @@ export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
       </div>
     );
   }
-  
+
   if (!viewsHistoryData) {
     return (
       <div className="rounded-lg bg-[#1E1E1E] p-6">
@@ -53,23 +63,21 @@ export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
       </div>
     );
   }
-  
+
   const { chartData, totalViews, averageDailyViews, maxDailyViews } = viewsHistoryData;
-  
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-[#2A2A2A] border border-gray-600 rounded-lg p-3 shadow-lg">
           <p className="text-gray-300 text-sm">{`${label}`}</p>
-          <p className="text-orange-400 font-semibold">
-            {`${payload[0].value} views`}
-          </p>
+          <p className="text-orange-400 font-semibold">{`${payload[0].value} views`}</p>
         </div>
       );
     }
     return null;
   };
-  
+
   return (
     <div className="rounded-lg bg-[#1E1E1E] p-6">
       <div className="flex items-center justify-between mb-4">
@@ -82,28 +90,24 @@ export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
           <span className="text-sm font-medium">Últimos {days} días</span>
         </div>
       </div>
-      
+
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#fb923c" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#9CA3AF', fontSize: 12 }}
             />
-            <YAxis 
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
-            />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
             <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
@@ -115,7 +119,7 @@ export function ViewsChart({ eventId, days = 7 }: ViewsChartProps) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      
+
       <div className="mt-4 grid grid-cols-3 gap-4 text-sm text-gray-400">
         <div className="text-center">
           <div className="text-orange-400 font-semibold">{totalViews.toLocaleString()}</div>

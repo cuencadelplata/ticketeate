@@ -25,10 +25,7 @@ import type { Event } from '@/types/events';
 
 // Componente Skeleton personalizado con animación de barrido
 const ShimmerSkeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`}
-    {...props}
-  >
+  <div className={`relative overflow-hidden rounded-md bg-stone-700 ${className}`} {...props}>
     <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-stone-600/50 to-transparent" />
   </div>
 );
@@ -37,7 +34,10 @@ const ShimmerSkeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 const EventsCardsSkeleton = () => (
   <div className="space-y-6">
     {Array.from({ length: 3 }).map((_, i) => (
-      <div key={i} className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A] border border-[#3A3A3A]">
+      <div
+        key={i}
+        className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A] border border-[#3A3A3A]"
+      >
         <div className="relative p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1 space-y-4">
@@ -55,7 +55,7 @@ const EventsCardsSkeleton = () => (
                 <ShimmerSkeleton className="h-8 w-3/4 mb-2" />
                 <ShimmerSkeleton className="h-4 w-full mb-2" />
                 <ShimmerSkeleton className="h-4 w-2/3" />
-              </div> 
+              </div>
 
               {/* Category skeleton */}
               <ShimmerSkeleton className="h-6 w-24 rounded-full" />

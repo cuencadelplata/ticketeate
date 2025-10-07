@@ -211,7 +211,8 @@ export default function EventoPage() {
                   <div className="flex items-center gap-2 text-stone-400">
                     <Eye className="h-4 w-4" />
                     <span className="text-sm">
-                      {viewCountData.views.toLocaleString()} {viewCountData.views === 1 ? 'visita' : 'visitas'}
+                      {viewCountData.views.toLocaleString()}{' '}
+                      {viewCountData.views === 1 ? 'visita' : 'visitas'}
                     </span>
                   </div>
                 )}

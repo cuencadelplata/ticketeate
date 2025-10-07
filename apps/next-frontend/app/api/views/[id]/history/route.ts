@@ -42,20 +42,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Generar datos para los últimos N días, incluyendo días sin datos
     const chartData = [];
     const today = new Date();
-    
+
     for (let i = limit - 1; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      
+
       // Buscar datos para esta fecha
       const dayData = viewsHistory.find(
-        (item) => item.fecha.toDateString() === date.toDateString()
+        (item) => item.fecha.toDateString() === date.toDateString(),
       );
-      
+
       chartData.push({
-        date: date.toLocaleDateString('es-AR', { 
-          month: 'short', 
-          day: 'numeric' 
+        date: date.toLocaleDateString('es-AR', {
+          month: 'short',
+          day: 'numeric',
         }),
         views: dayData?.views_count || 0,
         fullDate: date.toISOString().split('T')[0],
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Calcular estadísticas
     const totalViewsInPeriod = chartData.reduce((sum, day) => sum + day.views, 0);
     const averageDailyViews = Math.round(totalViewsInPeriod / limit);
-    const maxDailyViews = Math.max(...chartData.map(day => day.views));
-    const minDailyViews = Math.min(...chartData.map(day => day.views));
+    const maxDailyViews = Math.max(...chartData.map((day) => day.views));
+    const minDailyViews = Math.min(...chartData.map((day) => day.views));
 
     return NextResponse.json({
       success: true,
@@ -81,15 +81,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         lastUpdated: new Date().toISOString(),
       },
     });
-
   } catch (error) {
     console.error('Error fetching views history:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }, 
-      { status: 500 }
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
     );
   }
 }

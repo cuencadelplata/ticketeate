@@ -95,22 +95,22 @@ async function syncDailyViewsForEvent(eventId: string, redis: RedisClient): Prom
   try {
     // Obtener todas las claves de contadores diarios para este evento
     const dailyKeys = await redis.keys(`event:${eventId}:views:*`);
-    
+
     for (const key of dailyKeys) {
       // Extraer la fecha de la clave (formato: event:eventId:views:YYYY-MM-DD)
       const dateMatch = key.match(/event:.*:views:(\d{4}-\d{2}-\d{2})$/);
       if (!dateMatch) continue;
-      
+
       const dateStr = dateMatch[1];
       const date = new Date(dateStr + 'T00:00:00.000Z');
-      
+
       // Obtener el conteo de Redis
       const redisCount = await redis.get(key);
       if (!redisCount) continue;
-      
+
       const viewsCount = parseInt(redisCount);
       if (isNaN(viewsCount) || viewsCount <= 0) continue;
-      
+
       // Insertar o actualizar en la base de datos
       await prisma.evento_views_history.upsert({
         where: {
@@ -130,7 +130,7 @@ async function syncDailyViewsForEvent(eventId: string, redis: RedisClient): Prom
           views_count: viewsCount,
         },
       });
-      
+
       console.log(`Synced daily views for event ${eventId} on ${dateStr}: ${viewsCount} views`);
     }
   } catch (error) {
