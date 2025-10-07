@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
+import { Buffer } from 'buffer';
 
 export async function GET(request: NextRequest) {
   try {
