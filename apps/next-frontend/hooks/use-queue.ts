@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
@@ -54,6 +54,7 @@ export function useQueue(eventId: string, userId: string) {
       });
 
       if (functionError) {
+        console.error('Edge Function Error:', functionError);
         throw new Error(functionError.message || 'Error al unirse a la cola');
       }
 
@@ -72,7 +73,7 @@ export function useQueue(eventId: string, userId: string) {
         });
       } else {
         // Está en cola, obtener posición
-        await getQueuePosition();
+        await getQueuePosition(eventId, userId);
       }
 
       return data;
@@ -86,26 +87,42 @@ export function useQueue(eventId: string, userId: string) {
   }, [eventId, userId]);
 
   // Obtener posición en la cola usando Supabase Edge Function
-  const getQueuePosition = useCallback(async () => {
-    try {
-      const { data, error: functionError } = await supabase.functions.invoke('queue-operations', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  const getQueuePosition = useCallback(
+    async (currentEventId?: string, currentUserId?: string) => {
+      const targetEventId = currentEventId || eventId;
+      const targetUserId = currentUserId || userId;
 
-      if (functionError) {
-        throw new Error(functionError.message || 'Error al obtener posición');
+      if (!targetEventId || !targetUserId) return;
+
+      try {
+        // Usar query parameters para el método GET
+        const url = new URL(`${supabaseUrl}/functions/v1/queue-operations`);
+        url.searchParams.set('eventId', targetEventId);
+        url.searchParams.set('userId', targetUserId);
+
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setQueueStatus(data);
+        setCanEnter(data.position === 0);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
       }
-
-      setQueueStatus(data);
-      setCanEnter(data.position === 0);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(errorMessage);
-    }
-  }, [eventId, userId]);
+    },
+    [eventId, userId],
+  );
 
   // Abandonar la cola usando Supabase Edge Function
   const leaveQueue = useCallback(async () => {
@@ -202,12 +219,15 @@ export function useQueueRealtime(eventId: string) {
 
       // Actualizar estadísticas si es un update general
       if (payload.payload.action === 'processed') {
-        setQueueStats((prev) => ({
-          ...prev,
-          totalInQueue: prev ? prev.totalInQueue - payload.payload.processed : 0,
-          totalActive: prev ? prev.totalActive + payload.payload.newActiveUsers : 0,
-          timestamp: payload.payload.timestamp,
-        }));
+        setQueueStats((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            totalInQueue: prev.totalInQueue - payload.payload.processed,
+            totalActive: prev.totalActive + payload.payload.newActiveUsers,
+            timestamp: payload.payload.timestamp,
+          };
+        });
       }
     });
 

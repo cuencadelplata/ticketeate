@@ -5,11 +5,11 @@ import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useViewCount, useCountView } from '@/hooks/use-view-count';
 import { Calendar, Eye, Clock } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
 import { QueueModal } from '@/components/queue-modal';
-import { useQueue } from '@/hooks/use-queue';
+import { useMockQueue } from '@/hooks/use-mock-queue';
 
 // Helper function para formatear fechas de manera elegante
 const formatEventDate = (date: Date) => {
@@ -70,38 +70,42 @@ export default function EventoPage() {
   const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
   const countViewMutation = useCountView();
 
-  // Hook para manejar cola
-  const { canEnter, joinQueue, completePurchase } = useQueue(id || '', userId);
+  // Hook para manejar cola (SIMULADO)
+  const { canEnter, joinQueue, completePurchase } = useMockQueue(id || '', userId);
 
-  // Registrar view automáticamente cuando se carga la página
+  // Ref para controlar si ya se registró la view (evita re-renders)
+  const hasRegisteredViewRef = useRef<string | null>(null);
+
+  // Registrar view automáticamente cuando se carga la página - SOLO UNA VEZ
   useEffect(() => {
-    if (id && event && !isLoading) {
-      // Solo registrar la view si el evento se cargó correctamente
-      countViewMutation.mutate(id);
+    if (id && event && !isLoading && hasRegisteredViewRef.current !== id) {
+      hasRegisteredViewRef.current = id;
+
+      // Usar setTimeout para evitar problemas de timing
+      const timeoutId = setTimeout(() => {
+        countViewMutation.mutate(id, {
+          onError: (error) => {
+            console.error('Error registering view:', error);
+            // En caso de error, permitir reintentar después de un tiempo
+            setTimeout(() => {
+              if (hasRegisteredViewRef.current === id) {
+                hasRegisteredViewRef.current = null;
+              }
+            }, 5000);
+          },
+        });
+      }, 100); // Pequeño delay para evitar problemas de timing
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [id, event, isLoading, countViewMutation]);
+  }, [id, event, isLoading]); // Sin countViewMutation en dependencias
 
   // Función para manejar el clic en "Comprar Entradas"
-  const handleComprarEntradas = async () => {
+  const handleComprarEntradas = () => {
     if (!id) return;
 
-    try {
-      // Intentar unirse a la cola
-      const result = await joinQueue();
-
-      if (result.canEnter) {
-        // Puede entrar inmediatamente
-        startReservation(id, 300);
-        router.push(`/comprar?evento=${id}`);
-      } else {
-        // Mostrar modal de cola
-        setShowQueueModal(true);
-      }
-    } catch (error) {
-      console.error('Error joining queue:', error);
-      // En caso de error, mostrar modal de cola como fallback
-      setShowQueueModal(true);
-    }
+    // Siempre mostrar el modal de cola primero
+    setShowQueueModal(true);
   };
 
   // Función para entrar a comprar cuando es el turno

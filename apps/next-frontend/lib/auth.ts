@@ -19,7 +19,7 @@ export const auth = betterAuth({
   // Email & Password habilitado
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await resend.emails.send({
         from: 'Ticketeate <noreply@ticketeate.com>',
@@ -64,28 +64,28 @@ export const auth = betterAuth({
     },
   },
 
-  // OTP para verificación
-  otp: {
-    enabled: true,
-    sendOTP: async ({ email, otp }: { email: string; otp: string }) => {
-      await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.com>',
-        to: [email],
-        subject: 'Código de verificación - Ticketeate',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Código de verificación</h2>
-            <p>Tu código de verificación es:</p>
-            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px; margin: 20px 0;">
-              ${otp}
-            </div>
-            <p>Este código expirará en 10 minutos.</p>
-            <p>Si no solicitaste este código, puedes ignorar este correo.</p>
-          </div>
-        `,
-      });
-    },
-  },
+  // OTP para verificación - DESHABILITADO
+  // otp: {
+  //   enabled: true,
+  //   sendOTP: async ({ email, otp }: { email: string; otp: string }) => {
+  //     await resend.emails.send({
+  //       from: 'Ticketeate <noreply@ticketeate.com>',
+  //       to: [email],
+  //       subject: 'Código de verificación - Ticketeate',
+  //       html: `
+  //         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  //           <h2>Código de verificación</h2>
+  //           <p>Tu código de verificación es:</p>
+  //           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px; margin: 20px 0;">
+  //             ${otp}
+  //           </div>
+  //           <p>Este código expirará en 10 minutos.</p>
+  //           <p>Si no solicitaste este código, puedes ignorar este correo.</p>
+  //         </div>
+  //       `,
+  //     });
+  //   },
+  // },
 
   plugins: [
     customSession(async ({ user, session }) => {

@@ -13,7 +13,7 @@ import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
 import { SuccessCard } from '@/components/comprar/SuccessCard';
 import { StripeSuccessMessage } from '@/components/comprar/StripeSuccessMessage';
-import { useQueue } from '@/hooks/use-queue';
+import { useMockQueue } from '@/hooks/use-mock-queue';
 
 type SectorKey = string;
 
@@ -71,8 +71,14 @@ export default function ComprarPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventSelection, setShowEventSelection] = useState(!eventId);
 
-  // Hook para manejar cola
-  const { canEnter, completePurchase } = useQueue(eventId || '', idUsuario.toString());
+  // Hook para manejar cola (usando mock para consistencia)
+  const { canEnter, completePurchase } = useMockQueue(eventId || '', idUsuario.toString());
+
+  // Debug: verificar el eventId
+  useEffect(() => {
+    console.log('ComprarPage - eventId:', eventId);
+    console.log('ComprarPage - canEnter:', canEnter);
+  }, [eventId, canEnter]);
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -115,8 +121,15 @@ export default function ComprarPage() {
   // Verificar si el usuario puede comprar (está en cola y es su turno)
   useEffect(() => {
     if (eventId && !canEnter) {
-      // Si no puede entrar, redirigir de vuelta al evento
-      router.push(`/evento/${eventId}`);
+      // Solo redirigir si realmente no puede entrar (no en el primer render)
+      // Esto evita redirecciones inmediatas cuando el hook aún se está inicializando
+      const timer = setTimeout(() => {
+        if (!canEnter) {
+          router.push(`/evento/${eventId}`);
+        }
+      }, 1000); // Esperar 1 segundo antes de verificar
+
+      return () => clearTimeout(timer);
     }
   }, [eventId, canEnter, router]);
 
