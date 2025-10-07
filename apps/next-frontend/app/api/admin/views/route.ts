@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { REDIS_CONFIG } from '@/lib/config';
 import { prisma } from '@repo/db';
 
@@ -138,7 +138,7 @@ async function syncDailyViewsForEvent(eventId: string, redis: RedisClient): Prom
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Obtener estadísticas de views desde Redis
     if (!REDIS_CONFIG.url || !REDIS_CONFIG.token) {
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Ejecutar sincronización manual de views
     if (!REDIS_CONFIG.url || !REDIS_CONFIG.token) {

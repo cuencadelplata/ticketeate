@@ -3,8 +3,6 @@
 import { useViewsHistory } from '@/hooks/use-views-history';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,7 +10,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { Eye, TrendingUp, Calendar } from 'lucide-react';
+import { Eye, Calendar } from 'lucide-react';
 
 interface ViewsChartProps {
   eventId: string;

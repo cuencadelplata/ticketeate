@@ -4,7 +4,7 @@ import { useWalletStatus, useLinkWallet, useUnlinkWallet } from '@/hooks/use-wal
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, CreditCard, Settings } from 'lucide-react';
+import { User, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ConfiguracionPage() {

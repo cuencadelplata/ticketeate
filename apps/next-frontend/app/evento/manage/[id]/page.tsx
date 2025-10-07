@@ -3,13 +3,12 @@
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
 import { Navbar } from '@/components/navbar';
-import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Settings, BarChart3, Info, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useViewCount } from '@/hooks/use-view-count';
 import { ViewsChart } from '@/components/views-chart';
-import { Skeleton } from '@/components/ui/skeleton';
 import { use } from 'react';
 
 // Componente Skeleton personalizado con animación de barrido

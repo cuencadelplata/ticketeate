@@ -18,7 +18,6 @@ import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Skeleton } from '@/components/ui/skeleton';
 
 import { useEvents, useDeleteEvent } from '@/hooks/use-events';
 import type { Event } from '@/types/events';
@@ -205,7 +204,7 @@ const isEventPast = (event: Event) => {
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
-  const { data: events = [], isLoading: loading, error, refetch } = useEvents();
+  const { data: events = [], isLoading: loading } = useEvents();
   const deleteEventMutation = useDeleteEvent();
 
   // filter events
