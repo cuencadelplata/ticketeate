@@ -42,8 +42,6 @@ wallet.post('/link', async (c) => {
   const auth = getAuth(c);
   if (!auth?.userId) return c.json({ error: 'Usuario no autenticado' }, 401);
 
-  const { provider } = await c.req.json().catch(() => ({ provider: 'mercado_pago' }));
-
   const linked = await WalletService.linkWallet(auth.userId);
   return c.json(linked);
 });
