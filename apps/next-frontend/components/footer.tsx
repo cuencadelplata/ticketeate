@@ -1,14 +1,15 @@
-import React from 'react';
+"use client"
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Circle } from 'lucide-react';
 
-const SystemStatus: React.FC = () => {
-  const [isSystemUp] = React.useState(true);
+const SystemStatus = () => {
+  const [isSystemUp] = useState(true);
 
   return (
     <button
-      onClick={() => {}}
+      onClick={() => {}}  
       className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 ${
         isSystemUp
           ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
@@ -24,11 +25,11 @@ const SystemStatus: React.FC = () => {
   );
 };
 
-export const Footer: React.FC = () => {
+export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-stone-900 text-white">
+    <footer className="bg-stone-900 text-white relative z-[100]">
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Contenido principal del footer */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">

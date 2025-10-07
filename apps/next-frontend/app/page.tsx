@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event-card';
-import { Footer } from '@/components/footer';
 import { Hero } from '@/components/hero';
 import { CategorySelector } from '@/components/category-selector';
 import { useAllEvents } from '@/hooks/use-events';
@@ -212,7 +211,6 @@ export default function Home() {
           </section>
         )}
       </>
-      <Footer />
     </main>
   );
 }

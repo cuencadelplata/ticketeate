@@ -525,6 +525,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           evento_categorias: {
             include: {
               categoriaevento: true,
@@ -566,6 +567,7 @@ export class EventService {
       include: {
         imagenes_evento: true,
         fechas_evento: true,
+        stock_entrada: true,
         evento_categorias: {
           include: {
             categoriaevento: true,

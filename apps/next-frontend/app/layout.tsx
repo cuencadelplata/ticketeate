@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { ConditionalNavbar } from '../components/conditional-navbar';
+import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Providers>
           <ConditionalNavbar />
           {children}
+          <Footer />
         </Providers>
         <Toaster position="top-right" richColors closeButton expand={true} />
       </body>
