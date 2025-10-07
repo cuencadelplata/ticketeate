@@ -15,7 +15,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   const [evento, setEvento] = useState<any>(null);
   const [id, setId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Hook para obtener el conteo de views del evento actual
   const { viewCount } = useViewCount(id || undefined);
 
@@ -25,12 +25,12 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
         const resolvedParams = await params;
         setId(resolvedParams.id);
         const eventData = await getEventoById(resolvedParams.id);
-        
+
         if (!eventData) {
           notFound();
           return;
         }
-        
+
         setEvento(eventData);
       } catch (error) {
         console.error('Error loading evento:', error);

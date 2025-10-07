@@ -39,7 +39,7 @@ export function useViewCount(eventId: string | undefined) {
       }
 
       const result: ViewCountResult = await response.json();
-      
+
       if (result.success && result.totalViews) {
         setViewCount(result.totalViews);
       }

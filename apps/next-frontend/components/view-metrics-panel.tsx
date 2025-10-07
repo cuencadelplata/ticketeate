@@ -146,7 +146,9 @@ export function ViewMetricsPanel() {
           <li>• Las views se cuentan automáticamente cuando alguien visita un evento</li>
           <li>• Se previenen conteos duplicados por IP/User Agent por 24 horas</li>
           <li>• Los contadores se almacenan temporalmente en Redis para mejor rendimiento</li>
-          <li>• La sincronización con la base de datos se ejecuta automáticamente cada 5 minutos</li>
+          <li>
+            • La sincronización con la base de datos se ejecuta automáticamente cada 5 minutos
+          </li>
           <li>• Puedes sincronizar manualmente usando el botón "Sincronizar"</li>
         </ul>
       </div>

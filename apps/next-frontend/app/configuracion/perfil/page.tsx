@@ -21,7 +21,7 @@ import {
 } from '@/hooks/use-profile';
 import { useProfileForm } from '@/hooks/use-profile-form';
 
-export default function ProfileEditPage() {
+export default function PerfilPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,7 +143,7 @@ export default function ProfileEditPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configuración de Perfil</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
           <p className="mt-2 text-gray-600">
             Gestiona tu información personal y configuración de cuenta
           </p>
@@ -395,3 +395,4 @@ export default function ProfileEditPage() {
     </div>
   );
 }
+

@@ -19,11 +19,11 @@ class RedisClient {
           Authorization: `Bearer ${this.token}`,
         },
       });
-      
+
       if (!response.ok) {
         return null;
       }
-      
+
       const data = await response.json();
       return data.result;
     } catch (error) {
@@ -40,7 +40,7 @@ class RedisClient {
           Authorization: `Bearer ${this.token}`,
         },
       });
-      
+
       return response.ok;
     } catch (error) {
       console.error('Redis DEL error:', error);
@@ -55,11 +55,11 @@ class RedisClient {
           Authorization: `Bearer ${this.token}`,
         },
       });
-      
+
       if (!response.ok) {
         return [];
       }
-      
+
       const data = await response.json();
       return data.result || [];
     } catch (error) {
@@ -76,11 +76,11 @@ class RedisClient {
           Authorization: `Bearer ${this.token}`,
         },
       });
-      
+
       if (!response.ok) {
         return null;
       }
-      
+
       const data = await response.json();
       return data.result;
     } catch (error) {
@@ -98,38 +98,40 @@ export async function GET(request: NextRequest) {
     }
 
     const redis = new RedisClient(REDIS_CONFIG.url, REDIS_CONFIG.token);
-    
+
     // Obtener todas las claves de contadores de eventos
     const viewKeys = await redis.keys('event:*:views');
-    
+
     const stats = {
       pendingSync: viewKeys.length,
       totalPendingViews: 0,
-      events: []
+      events: [],
     };
 
     for (const key of viewKeys) {
       const eventId = key.split(':')[1];
       const redisCount = await redis.get(key);
-      
+
       if (redisCount) {
         const count = parseInt(redisCount);
         stats.totalPendingViews += count;
         stats.events.push({
           eventId,
-          pendingViews: count
+          pendingViews: count,
         });
       }
     }
 
     return NextResponse.json(stats);
-
   } catch (error) {
     console.error('Error fetching views stats:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch views stats',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch views stats',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -141,10 +143,10 @@ export async function POST(request: NextRequest) {
     }
 
     const redis = new RedisClient(REDIS_CONFIG.url, REDIS_CONFIG.token);
-    
+
     // Obtener todas las claves de contadores de eventos
     const viewKeys = await redis.keys('event:*:views');
-    
+
     if (viewKeys.length === 0) {
       return NextResponse.json({ message: 'No view counters to sync', synced: 0 });
     }
@@ -156,7 +158,7 @@ export async function POST(request: NextRequest) {
       try {
         // Extraer el ID del evento de la clave
         const eventId = key.split(':')[1];
-        
+
         if (!eventId) {
           console.warn(`Invalid view key format: ${key}`);
           continue;
@@ -164,13 +166,13 @@ export async function POST(request: NextRequest) {
 
         // Obtener el conteo actual de Redis
         const redisCount = await redis.get(key);
-        
+
         if (!redisCount) {
           continue;
         }
 
         const count = parseInt(redisCount);
-        
+
         if (isNaN(count) || count <= 0) {
           continue;
         }
@@ -180,30 +182,29 @@ export async function POST(request: NextRequest) {
           where: { eventoid: eventId },
           data: {
             views: {
-              increment: count
-            }
-          }
+              increment: count,
+            },
+          },
         });
-        
+
         // Eliminar el contador de Redis después de sincronizar
         await redis.del(key);
-        
+
         syncedCount += count;
         results.push({
           eventId,
           count,
-          synced: true
+          synced: true,
         });
 
         console.log(`Synced ${count} views for event ${eventId}`);
-        
       } catch (error) {
         console.error(`Error syncing views for key ${key}:`, error);
         results.push({
           eventId: key.split(':')[1],
           count: 0,
           synced: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -212,14 +213,16 @@ export async function POST(request: NextRequest) {
       message: 'View sync completed',
       synced: syncedCount,
       processed: viewKeys.length,
-      results
+      results,
     });
-
   } catch (error) {
     console.error('Error syncing views:', error);
-    return NextResponse.json({ 
-      error: 'Failed to sync views',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to sync views',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
+    );
   }
 }

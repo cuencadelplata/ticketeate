@@ -64,10 +64,10 @@ export function useViewMetrics() {
       }
 
       const result: SyncResult = await response.json();
-      
+
       // Refrescar las estadísticas después de la sincronización
       await fetchStats();
-      
+
       return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
