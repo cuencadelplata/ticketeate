@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
+import { PlusIcon } from 'lucide-react';
 
 export function NewNavbar() {
   return <Navbar />;
@@ -107,23 +108,22 @@ function Navbar() {
           {/* Right Side Buttons */}
           <div className="flex items-center gap-3 flex-shrink-0 ml-8">
             {isLoading ? (
-              <div className="flex items-center gap-3">
-                <div className="w-20 h-9 bg-stone-800 rounded-full animate-pulse"></div>
-                <div className="w-24 h-9 bg-stone-800 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-9 bg-stone-800 rounded-md animate-pulse"></div>
               </div>
             ) : (
               <>
                 {isAuthenticated ? (
                   <Link
                     href="/eventos"
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
                   >
                     Mi Panel
                   </Link>
                 ) : (
                   <Link
                     href="/sign-in"
-                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
                   >
                     Acceso
                   </Link>
@@ -132,7 +132,7 @@ function Navbar() {
             )}
             <Link
               href="/crear"
-              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-full transition-colors duration-200 shadow-sm hover:shadow-md"
+              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
             >
               Crear Evento
             </Link>
