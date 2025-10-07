@@ -23,9 +23,7 @@ export default function ConfiguracionPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Configuración</h1>
-          <p className="mt-2 text-gray-600">
-            Gestiona tu cuenta, perfil y configuraciones de pago
-          </p>
+          <p className="mt-2 text-gray-600">Gestiona tu cuenta, perfil y configuraciones de pago</p>
         </div>
 
         <Tabs defaultValue="perfil" className="space-y-6">
@@ -116,4 +114,3 @@ export default function ConfiguracionPage() {
     </div>
   );
 }
-

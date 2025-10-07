@@ -124,12 +124,16 @@ export default function UserNav() {
                   <div
                     className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.imageUrl ? 'hidden' : ''}`}
                   >
-                    {session?.user.firstName?.[0] || session?.user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+                    {session?.user.firstName?.[0] ||
+                      session?.user.emailAddresses[0]?.emailAddress?.[0] ||
+                      'U'}
                   </div>
                 </div>
                 <div className="flex flex-col">
                   <p className="text-sm font-medium leading-none text-default-600">
-                    {session?.user.fullName || session?.user.firstName || session?.user.emailAddresses[0]?.emailAddress}
+                    {session?.user.fullName ||
+                      session?.user.firstName ||
+                      session?.user.emailAddresses[0]?.emailAddress}
                   </p>
                   <p className="text-xs text-default-500">
                     {session?.user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
@@ -140,7 +144,9 @@ export default function UserNav() {
             <DropdownItem key="dashboard" href="/eventos">
               Mis Eventos
             </DropdownItem>
-            <DropdownItem key="settings" href="/configuracion">Configuración</DropdownItem>
+            <DropdownItem key="settings" href="/configuracion">
+              Configuración
+            </DropdownItem>
             <DropdownItem
               key="new_project"
               href="/crear"
@@ -151,7 +157,9 @@ export default function UserNav() {
           </DropdownSection>
 
           <DropdownSection showDivider aria-label="Preferences">
-            <DropdownItem key="profile_settings" href="/configuracion/perfil">Perfil</DropdownItem>
+            <DropdownItem key="profile_settings" href="/configuracion/perfil">
+              Perfil
+            </DropdownItem>
             <DropdownItem key="help_and_feedback">Ayuda y Soporte</DropdownItem>
           </DropdownSection>
 
