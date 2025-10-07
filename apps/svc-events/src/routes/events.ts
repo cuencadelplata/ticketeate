@@ -410,7 +410,7 @@ events.delete('/:id/categories/:categoryId', async (c) => {
 events.post('/publish-scheduled', async (c) => {
   try {
     const result = await EventService.publishScheduledEvents();
-    
+
     return c.json({
       message: 'Eventos programados procesados',
       published: result.published,

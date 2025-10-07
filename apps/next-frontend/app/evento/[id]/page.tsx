@@ -448,9 +448,7 @@ export default function EventoPage() {
                                 >
                                   <div className="flex items-center justify-between">
                                     <span>{s.name}</span>
-                                    <span className="text-stone-400">
-                                      {priceText}
-                                    </span>
+                                    <span className="text-stone-400">{priceText}</span>
                                   </div>
                                 </li>
                               );

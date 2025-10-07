@@ -418,7 +418,7 @@ export class EventService {
         },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
-      
+
       // Convertir BigInt a string para evitar errores de serialización JSON
       const eventoSerializado = {
         ...full,
@@ -427,7 +427,7 @@ export class EventService {
           precio: stock.precio.toString(),
         })),
       };
-      
+
       return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -645,7 +645,7 @@ export class EventService {
   static async publishScheduledEvents(): Promise<{ published: number; errors: number }> {
     try {
       const now = new Date();
-      
+
       // Buscar eventos que están programados para publicarse y aún están ocultos
       const scheduledEvents = await prisma.eventos.findMany({
         where: {
@@ -657,9 +657,9 @@ export class EventService {
               Estado: 'OCULTO',
               fecha_de_cambio: {
                 // Solo el estado más reciente
-              }
-            }
-          }
+              },
+            },
+          },
         },
         include: {
           evento_estado: {

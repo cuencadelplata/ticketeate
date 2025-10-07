@@ -65,10 +65,10 @@ export default function ConfiguracionPage() {
 
   // Mostrar loading mientras se carga la sesión
   if (sessionLoading) return <div className="p-6">Cargando...</div>;
-  
+
   // Si no hay sesión, el middleware debería haber redirigido, pero por seguridad mostramos un mensaje
   if (!session) return <div className="p-6">No autorizado</div>;
-  
+
   if (isLoading) return <div className="p-6">Cargando configuración...</div>;
   if (error) return <div className="p-6">Error al cargar configuración</div>;
 
@@ -76,11 +76,13 @@ export default function ConfiguracionPage() {
   const provider = data?.wallet_provider ?? 'mercado_pago';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 pt-12">
+    <div className="min-h-screen bg-black py-16 pt-26">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configuración</h1>
-          <p className="mt-2 text-gray-600">Gestiona tu cuenta, perfil y configuraciones de pago</p>
+          <h1 className="text-3xl font-bold text-stone-200">Configuración</h1>
+          <p className="mt-2 text-stone-300">
+            Gestiona tu cuenta, perfil y configuraciones de pago
+          </p>
         </div>
 
         {/* Notificación de estado */}
@@ -185,7 +187,8 @@ export default function ConfiguracionPage() {
                   {linked ? (
                     <div className="space-y-3">
                       <p className="text-sm text-stone-400">
-                        Tu billetera {provider === 'mock' ? 'simulada' : 'de Mercado Pago'} está vinculada y lista para recibir pagos.
+                        Tu billetera {provider === 'mock' ? 'simulada' : 'de Mercado Pago'} está
+                        vinculada y lista para recibir pagos.
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -222,7 +225,9 @@ export default function ConfiguracionPage() {
                           variant="outline"
                           className="w-full border-stone-600 text-stone-300 hover:bg-stone-800"
                         >
-                          {linkWallet.isPending ? 'Vinculando...' : '🔧 Simular billetera (Desarrollo)'}
+                          {linkWallet.isPending
+                            ? 'Vinculando...'
+                            : '🔧 Simular billetera (Desarrollo)'}
                         </Button>
                         <p className="text-xs text-stone-500">
                           Usa la simulación para probar la funcionalidad sin configurar Mercado Pago

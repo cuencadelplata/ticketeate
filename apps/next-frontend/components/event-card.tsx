@@ -125,7 +125,9 @@ export function EventCard({
       {/* Contenido de la card */}
       <div className="p-4 flex flex-col flex-grow">
         {/* Título */}
-        <h3 className="text-lg font-bold text-stone-900 dark:text-white line-clamp-2 mb-2">{title}</h3>
+        <h3 className="text-lg font-bold text-stone-900 dark:text-white line-clamp-2 mb-2">
+          {title}
+        </h3>
 
         {/* Descripción */}
         <p className="text-sm text-gray-600 dark:text-stone-300 line-clamp-2 mb-3">{description}</p>

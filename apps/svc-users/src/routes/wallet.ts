@@ -48,7 +48,7 @@ wallet.get('/', async (c) => {
   // Si no hay billetera mock, retornar estado por defecto
   return c.json({
     wallet_linked: false,
-    wallet_provider: null
+    wallet_provider: null,
   });
 });
 
@@ -60,12 +60,12 @@ wallet.post('/link', async (c) => {
   try {
     const body = await c.req.json();
     const provider = body.provider || 'mercado_pago';
-    
+
     if (provider === 'mock') {
       // Para simulación, almacenar en memoria
       const mockWallet = {
         wallet_linked: true,
-        wallet_provider: 'mock'
+        wallet_provider: 'mock',
       };
       mockWallets.set(userId, mockWallet);
       return c.json(mockWallet);
@@ -73,7 +73,7 @@ wallet.post('/link', async (c) => {
       // Para Mercado Pago real, aquí iría la lógica de OAuth
       return c.json({
         wallet_linked: true,
-        wallet_provider: 'mercado_pago'
+        wallet_provider: 'mercado_pago',
       });
     }
   } catch (error) {
@@ -91,14 +91,14 @@ wallet.post('/unlink', async (c) => {
     mockWallets.delete(userId);
     return c.json({
       wallet_linked: false,
-      wallet_provider: null
+      wallet_provider: null,
     });
   }
 
   // Para billeteras reales, aquí iría la lógica de desvinculación
   return c.json({
     wallet_linked: false,
-    wallet_provider: null
+    wallet_provider: null,
   });
 });
 
@@ -110,7 +110,7 @@ wallet.post('/simulate-payment', async (c) => {
   try {
     const body = await c.req.json();
     const { amount, eventId, ticketCount } = body;
-    
+
     // Verificar que el usuario tenga una billetera mock vinculada
     const mockWallet = mockWallets.get(userId);
     if (!mockWallet || mockWallet.wallet_provider !== 'mock') {
@@ -119,7 +119,7 @@ wallet.post('/simulate-payment', async (c) => {
 
     // Simular procesamiento de pago (siempre exitoso en modo mock)
     const paymentId = `mock_payment_${Date.now()}`;
-    
+
     return c.json({
       success: true,
       paymentId,
@@ -127,7 +127,7 @@ wallet.post('/simulate-payment', async (c) => {
       amount,
       eventId,
       ticketCount,
-      message: 'Pago simulado exitosamente'
+      message: 'Pago simulado exitosamente',
     });
   } catch (error) {
     return c.json({ error: 'Error al procesar el pago simulado' }, 400);

@@ -18,11 +18,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const now = new Date();
-    
+
     // Buscar eventos que están programados para publicarse y aún están ocultos
     const { data: scheduledEvents, error: fetchError } = await supabase
       .from('eventos')
-      .select(`
+      .select(
+        `
         eventoid,
         titulo,
         creadorid,
@@ -31,7 +32,8 @@ serve(async (req) => {
           Estado,
           fecha_de_cambio
         )
-      `)
+      `,
+      )
       .eq('evento_estado.Estado', 'OCULTO')
       .lte('fecha_publicacion', now.toISOString())
       .order('fecha_publicacion', { ascending: true });
@@ -40,19 +42,19 @@ serve(async (req) => {
       console.error('Error fetching scheduled events:', fetchError);
       return new Response(
         JSON.stringify({ error: 'Error fetching scheduled events', details: fetchError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
     if (!scheduledEvents || scheduledEvents.length === 0) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           message: 'No scheduled events to publish',
           published: 0,
           errors: 0,
-          timestamp: now.toISOString()
+          timestamp: now.toISOString(),
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -63,15 +65,13 @@ serve(async (req) => {
     for (const evento of scheduledEvents) {
       try {
         // Crear nuevo estado ACTIVO
-        const { error: stateError } = await supabase
-          .from('evento_estado')
-          .insert({
-            stateventid: crypto.randomUUID(),
-            eventoid: evento.eventoid,
-            Estado: 'ACTIVO',
-            usuarioid: evento.creadorid,
-            fecha_de_cambio: now.toISOString(),
-          });
+        const { error: stateError } = await supabase.from('evento_estado').insert({
+          stateventid: crypto.randomUUID(),
+          eventoid: evento.eventoid,
+          Estado: 'ACTIVO',
+          usuarioid: evento.creadorid,
+          fecha_de_cambio: now.toISOString(),
+        });
 
         if (stateError) {
           throw new Error(stateError.message);
@@ -83,7 +83,7 @@ serve(async (req) => {
           titulo: evento.titulo,
           published: true,
         });
-        
+
         console.log(`Published scheduled event: ${evento.titulo} (${evento.eventoid})`);
       } catch (error) {
         errors++;
@@ -106,7 +106,7 @@ serve(async (req) => {
         results,
         timestamp: now.toISOString(),
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
     console.error('Error in publish-scheduled-events function:', error);
@@ -115,7 +115,7 @@ serve(async (req) => {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
