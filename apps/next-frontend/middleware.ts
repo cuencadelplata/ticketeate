@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
-import { apiAuthPrefix, authRoutes, DEFAULT_LOGIN_REDIRECT, publicRoutes, protectedRoutes } from './routes';
+import {
+  apiAuthPrefix,
+  authRoutes,
+  DEFAULT_LOGIN_REDIRECT,
+  publicRoutes,
+  protectedRoutes,
+} from './routes';
 
 export async function middleware(request: NextRequest) {
   const session = getSessionCookie(request);

@@ -14,16 +14,17 @@ const formatEventDate = (date: Date) => {
   const now = new Date();
   const eventDate = new Date(date);
   const isToday = eventDate.toDateString() === now.toDateString();
-  const isTomorrow = eventDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString();
-  
+  const isTomorrow =
+    eventDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString();
+
   const dayName = eventDate.toLocaleDateString('es-AR', { weekday: 'long' });
   const dayNumber = eventDate.getDate();
   const monthName = eventDate.toLocaleDateString('es-AR', { month: 'long' });
   const year = eventDate.getFullYear();
-  const time = eventDate.toLocaleTimeString('es-AR', { 
-    hour: '2-digit', 
+  const time = eventDate.toLocaleTimeString('es-AR', {
+    hour: '2-digit',
     minute: '2-digit',
-    hour12: false 
+    hour12: false,
   });
 
   return {
@@ -35,7 +36,7 @@ const formatEventDate = (date: Date) => {
     year,
     time,
     fullDate: `${dayName}, ${dayNumber} de ${monthName} de ${year}`,
-    shortDate: `${dayNumber}/${eventDate.getMonth() + 1}/${year}`
+    shortDate: `${dayNumber}/${eventDate.getMonth() + 1}/${year}`,
   };
 };
 
@@ -221,18 +222,29 @@ export default function EventoPage() {
                       <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                       <h3 className="text-sm font-semibold text-stone-200">Fechas del evento</h3>
                     </div>
-                    
+
                     <div className="text-stone-300 space-y-3">
                       {event.fechas_evento.map((fecha) => {
                         const startDate = formatEventDate(new Date(fecha.fecha_hora));
-                        const endDate = fecha.fecha_fin ? formatEventDate(new Date(fecha.fecha_fin)) : null;
-                        
+                        const endDate = fecha.fecha_fin
+                          ? formatEventDate(new Date(fecha.fecha_fin))
+                          : null;
+
                         return (
                           <div key={fecha.fechaid} className="space-y-1">
                             <div className="font-medium text-stone-200">
-                              {startDate.dayName}, {startDate.dayNumber} de {startDate.monthName} de {startDate.year}
-                              {startDate.isToday && <span className="ml-2 text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">HOY</span>}
-                              {startDate.isTomorrow && <span className="ml-2 text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">MAÑANA</span>}
+                              {startDate.dayName}, {startDate.dayNumber} de {startDate.monthName} de{' '}
+                              {startDate.year}
+                              {startDate.isToday && (
+                                <span className="ml-2 text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full">
+                                  HOY
+                                </span>
+                              )}
+                              {startDate.isTomorrow && (
+                                <span className="ml-2 text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+                                  MAÑANA
+                                </span>
+                              )}
                             </div>
                             <div className="ml-2 flex flex-wrap gap-4">
                               <div className="flex items-center gap-2 text-sm">
@@ -297,166 +309,165 @@ export default function EventoPage() {
                 )}
 
                 {/* Tipos de entradas (si existen) */}
-                {Array.isArray(event.stock_entrada) &&
-                  event.stock_entrada.length > 0 && (
-                    <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                      <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
-                      <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
-                        {event.stock_entrada.map((stock) => (
-                          <li
-                            key={stock.stockid}
-                            className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium">{stock.nombre}</div>
-                              </div>
-                              <div className="text-right text-stone-300">
-                                <div>
-                                  ${Number(stock.precio)}
-                                </div>
-                                <div className="text-xs text-stone-400">
-                                  Cupo: {stock.cant_max} entradas
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                {/* Mapa de sectores y resumen de entradas (solo informativo) */}
-                {event.mapa_evento && 
-                 (event as any).mapa_evento && 
-                 ((event as any).mapa_evento.sectors?.length > 0 || (event as any).mapa_evento.elements?.length > 0) && (
+                {Array.isArray(event.stock_entrada) && event.stock_entrada.length > 0 && (
                   <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
-                    <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
-                    <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
-                    <div className="w-full">
-                      <div
-                        className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
-                        style={{ height: 320 }}
-                      >
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage: (event as any).mapa_evento?.backgroundImage
-                              ? `url(${(event as any).mapa_evento.backgroundImage})`
-                              : undefined,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}
-                        />
-                        {((event as any).mapa_evento?.sectors || []).map((s: any) => {
-                          const scale = 1.8;
-                          const baseW = (s.width / 800) * 100;
-                          const baseH = (s.height / 600) * 100;
-                          const w = baseW * scale;
-                          const h = baseH * scale;
-                          const baseL = (s.x / 800) * 100;
-                          const baseT = (s.y / 600) * 100;
-                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
-                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
-                          return (
-                            <div
-                              key={s.id}
-                              className="absolute rounded-md border-2 border-black/30 text-white shadow-md"
-                              style={{
-                                left: `${l}%`,
-                                top: `${t}%`,
-                                width: `${w}%`,
-                                height: `${h}%`,
-                                backgroundColor: s.color || 'rgba(255,255,255,0.25)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '14px',
-                                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-                              }}
-                              title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
-                            >
-                              <span className="backdrop-blur-[1px] drop-shadow">{s.name}</span>
+                    <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
+                    <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {event.stock_entrada.map((stock) => (
+                        <li
+                          key={stock.stockid}
+                          className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{stock.nombre}</div>
                             </div>
-                          );
-                        })}
-                        {((event as any).mapa_evento?.elements || []).map((el: any) => {
-                          const scale = 1.8;
-                          const baseW = (el.width / 800) * 100;
-                          const baseH = (el.height / 600) * 100;
-                          const w = baseW * scale;
-                          const h = baseH * scale;
-                          const baseL = (el.x / 800) * 100;
-                          const baseT = (el.y / 600) * 100;
-                          const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
-                          const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
-                          return (
-                            <div
-                              key={el.id}
-                              className="absolute rounded-md border border-black/30 text-white"
-                              style={{
-                                left: `${l}%`,
-                                top: `${t}%`,
-                                width: `${w}%`,
-                                height: `${h}%`,
-                                backgroundColor: el.color || 'rgba(0,0,0,0.35)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '14px',
-                              }}
-                              title={el.name}
-                            >
-                              <div className="text-center">
-                                <div className="text-lg">{el.icon}</div>
-                                <div className="text-[11px] opacity-90">{el.name}</div>
+                            <div className="text-right text-stone-300">
+                              <div>${Number(stock.precio)}</div>
+                              <div className="text-xs text-stone-400">
+                                Cupo: {stock.cant_max} entradas
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {((event as any).mapa_evento?.sectors || []).length > 0 && (
-                      <div className="pt-2">
-                        <h4 className="text-xs font-semibold text-stone-400">
-                          Entradas disponibles por sector
-                        </h4>
-                        <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
-                          {(event as any).mapa_evento.sectors.map((s: any) => {
-                            const matchingStock = event.stock_entrada?.find(
-                              (stock: any) => stock.nombre?.toLowerCase() === String(s.name).toLowerCase(),
-                            );
-                            const capText = matchingStock
-                              ? `${matchingStock.cant_max} entradas`
-                              : typeof s.capacity === 'number'
-                                ? `${s.capacity} entradas`
-                                : 'Capacidad no definida';
-                            const priceText = matchingStock
-                              ? ` • $${Number(matchingStock.precio)}`
-                              : typeof s.price === 'number'
-                                ? ` • $${s.price}`
-                                : '';
-                            return (
-                              <li
-                                key={s.id}
-                                className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span>{s.name}</span>
-                                  <span className="text-stone-400">
-                                    {capText}
-                                    {priceText}
-                                  </span>
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
+
+                {/* Mapa de sectores y resumen de entradas (solo informativo) */}
+                {event.mapa_evento &&
+                  (event as any).mapa_evento &&
+                  ((event as any).mapa_evento.sectors?.length > 0 ||
+                    (event as any).mapa_evento.elements?.length > 0) && (
+                    <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                      <h3 className="text-sm font-semibold text-stone-200">Mapa de sectores</h3>
+                      <div className="text-stone-400 text-xs">Vista previa (solo informativa)</div>
+                      <div className="w-full">
+                        <div
+                          className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
+                          style={{ height: 320 }}
+                        >
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              backgroundImage: (event as any).mapa_evento?.backgroundImage
+                                ? `url(${(event as any).mapa_evento.backgroundImage})`
+                                : undefined,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                            }}
+                          />
+                          {((event as any).mapa_evento?.sectors || []).map((s: any) => {
+                            const scale = 1.8;
+                            const baseW = (s.width / 800) * 100;
+                            const baseH = (s.height / 600) * 100;
+                            const w = baseW * scale;
+                            const h = baseH * scale;
+                            const baseL = (s.x / 800) * 100;
+                            const baseT = (s.y / 600) * 100;
+                            const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                            const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                            return (
+                              <div
+                                key={s.id}
+                                className="absolute rounded-md border-2 border-black/30 text-white shadow-md"
+                                style={{
+                                  left: `${l}%`,
+                                  top: `${t}%`,
+                                  width: `${w}%`,
+                                  height: `${h}%`,
+                                  backgroundColor: s.color || 'rgba(255,255,255,0.25)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                  textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                                }}
+                                title={`${s.name}${s.capacity ? ` • Cap.: ${s.capacity}` : ''}${s.price ? ` • $${s.price}` : ''}`}
+                              >
+                                <span className="backdrop-blur-[1px] drop-shadow">{s.name}</span>
+                              </div>
+                            );
+                          })}
+                          {((event as any).mapa_evento?.elements || []).map((el: any) => {
+                            const scale = 1.8;
+                            const baseW = (el.width / 800) * 100;
+                            const baseH = (el.height / 600) * 100;
+                            const w = baseW * scale;
+                            const h = baseH * scale;
+                            const baseL = (el.x / 800) * 100;
+                            const baseT = (el.y / 600) * 100;
+                            const l = Math.max(0, Math.min(100, baseL - (w - baseW) / 2));
+                            const t = Math.max(0, Math.min(100, baseT - (h - baseH) / 2));
+                            return (
+                              <div
+                                key={el.id}
+                                className="absolute rounded-md border border-black/30 text-white"
+                                style={{
+                                  left: `${l}%`,
+                                  top: `${t}%`,
+                                  width: `${w}%`,
+                                  height: `${h}%`,
+                                  backgroundColor: el.color || 'rgba(0,0,0,0.35)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                }}
+                                title={el.name}
+                              >
+                                <div className="text-center">
+                                  <div className="text-lg">{el.icon}</div>
+                                  <div className="text-[11px] opacity-90">{el.name}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {((event as any).mapa_evento?.sectors || []).length > 0 && (
+                        <div className="pt-2">
+                          <h4 className="text-xs font-semibold text-stone-400">
+                            Entradas disponibles por sector
+                          </h4>
+                          <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
+                            {(event as any).mapa_evento.sectors.map((s: any) => {
+                              const matchingStock = event.stock_entrada?.find(
+                                (stock: any) =>
+                                  stock.nombre?.toLowerCase() === String(s.name).toLowerCase(),
+                              );
+                              const capText = matchingStock
+                                ? `${matchingStock.cant_max} entradas`
+                                : typeof s.capacity === 'number'
+                                  ? `${s.capacity} entradas`
+                                  : 'Capacidad no definida';
+                              const priceText = matchingStock
+                                ? ` • $${Number(matchingStock.precio)}`
+                                : typeof s.price === 'number'
+                                  ? ` • $${s.price}`
+                                  : '';
+                              return (
+                                <li
+                                  key={s.id}
+                                  className="rounded-md bg-stone-800/60 px-2 py-1 text-xs text-stone-200"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{s.name}</span>
+                                    <span className="text-stone-400">
+                                      {capText}
+                                      {priceText}
+                                    </span>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 <div className="rounded-xl border-1 bg-stone-900 bg-opacity-60 p-2">
                   <button

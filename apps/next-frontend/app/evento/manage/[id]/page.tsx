@@ -13,10 +13,10 @@ import { use } from 'react';
 
 export default function ManageEventoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  
+
   // Hook para obtener el evento usando TanStack Query
   const { data: evento, isLoading, error } = useEvent(id);
-  
+
   // Hook para obtener el conteo de views del evento actual
   const { viewCount } = useViewCount(id);
 
@@ -69,7 +69,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   };
 
   const getEventImage = () => {
-    return evento?.imagenes_evento?.find(img => img.tipo === 'PORTADA')?.url;
+    return evento?.imagenes_evento?.find((img) => img.tipo === 'PORTADA')?.url;
   };
 
   const getEventStatus = () => {
@@ -82,8 +82,11 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   };
 
   const isEventFree = () => {
-    return !evento?.stock_entrada || evento.stock_entrada.length === 0 || 
-           evento.stock_entrada.every(stock => Number(stock.precio) === 0);
+    return (
+      !evento?.stock_entrada ||
+      evento.stock_entrada.length === 0 ||
+      evento.stock_entrada.every((stock) => Number(stock.precio) === 0)
+    );
   };
 
   return (
@@ -113,7 +116,10 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                   {evento.stock_entrada && evento.stock_entrada.length > 0 && (
                     <div className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      <span>Capacidad: {evento.stock_entrada.reduce((total, stock) => total + stock.cant_max, 0)}</span>
+                      <span>
+                        Capacidad:{' '}
+                        {evento.stock_entrada.reduce((total, stock) => total + stock.cant_max, 0)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -142,10 +148,10 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                       getEventStatus() === 'ACTIVO'
                         ? 'bg-green-500/20 text-green-400'
                         : getEventStatus() === 'CANCELADO'
-                        ? 'bg-red-500/20 text-red-400'
-                        : getEventStatus() === 'COMPLETADO'
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'bg-gray-500/20 text-gray-400'
+                          ? 'bg-red-500/20 text-red-400'
+                          : getEventStatus() === 'COMPLETADO'
+                            ? 'bg-blue-500/20 text-blue-400'
+                            : 'bg-gray-500/20 text-gray-400'
                     }`}
                   >
                     {getEventStatus()}

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,7 +9,7 @@ const SystemStatus = () => {
 
   return (
     <button
-      onClick={() => {}}  
+      onClick={() => {}}
       className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all duration-200 ${
         isSystemUp
           ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
