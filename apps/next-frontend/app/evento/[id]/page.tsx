@@ -5,7 +5,8 @@ import { Footer } from '@/components/footer';
 import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
-import { Calendar } from 'lucide-react';
+import { useViewCount } from '@/hooks/use-view-count';
+import { Calendar, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
@@ -28,6 +29,9 @@ export default function EventoPage() {
   // Hook para manejar reserva temporal
   const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
     useReservation();
+
+  // Hook para manejar conteo de views
+  const { viewCount } = useViewCount(id);
 
   // Función para manejar el clic en "Comprar Entradas"
   const handleComprarEntradas = () => {
@@ -83,7 +87,7 @@ export default function EventoPage() {
     undefined;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pt-16">
       {/* Banner de reserva temporal */}
       {isReserved && isReservationActive(id) && timeLeft > 0 && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
@@ -172,6 +176,16 @@ export default function EventoPage() {
                     {event.titulo}
                   </h1>
                 </div>
+
+                {/* Contador de views */}
+                {viewCount !== null && (
+                  <div className="flex items-center gap-2 text-stone-400">
+                    <Eye className="h-4 w-4" />
+                    <span className="text-sm">
+                      {viewCount.toLocaleString()} {viewCount === 1 ? 'visita' : 'visitas'}
+                    </span>
+                  </div>
+                )}
 
                 <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
                   <div className="flex items-center gap-2 pb-1">

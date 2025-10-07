@@ -1,14 +1,60 @@
+'use client';
+
 import { notFound } from 'next/navigation';
 import { getEventoById } from '@/lib/eventos';
 import { Navbar } from '@/components/navbar';
-import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info } from 'lucide-react';
+import { ViewMetricsPanel } from '@/components/view-metrics-panel';
+import { Calendar, MapPin, Users, Settings, Share2, BarChart3, Info, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
+import { useViewCount } from '@/hooks/use-view-count';
 
-export default async function ManageEventoPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const evento = await getEventoById(id);
+export default function ManageEventoPage({ params }: { params: Promise<{ id: string }> }) {
+  const [evento, setEvento] = useState<any>(null);
+  const [id, setId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Hook para obtener el conteo de views del evento actual
+  const { viewCount } = useViewCount(id || undefined);
+
+  useEffect(() => {
+    const loadEvento = async () => {
+      try {
+        const resolvedParams = await params;
+        setId(resolvedParams.id);
+        const eventData = await getEventoById(resolvedParams.id);
+        
+        if (!eventData) {
+          notFound();
+          return;
+        }
+        
+        setEvento(eventData);
+      } catch (error) {
+        console.error('Error loading evento:', error);
+        notFound();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvento();
+  }, [params]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <div className="pb-4">
+          <Navbar />
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-400">Cargando evento...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!evento) {
     return notFound();
@@ -165,7 +211,19 @@ export default async function ManageEventoPage({ params }: { params: Promise<{ i
           </div>
 
           {/* Estadísticas rápidas */}
-          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-[#1E1E1E] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">Total Views</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {viewCount !== null ? viewCount.toLocaleString() : '0'}
+                  </p>
+                </div>
+                <Eye className="h-8 w-8 text-blue-500" />
+              </div>
+            </div>
+
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -198,6 +256,13 @@ export default async function ManageEventoPage({ params }: { params: Promise<{ i
                   <span className="font-bold text-yellow-400">?</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Panel de métricas de views */}
+          <div className="mt-8">
+            <div className="rounded-lg bg-[#1E1E1E] p-6">
+              <ViewMetricsPanel />
             </div>
           </div>
         </div>

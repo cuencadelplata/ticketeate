@@ -87,6 +87,7 @@ model eventos {
   creadorid         String              @db.VarChar(255)
   mapa_evento       Json
   fecha_cambio      DateTime            @default(now()) @db.Timestamptz(6)
+  views             Int                 @default(0)
   colas_evento      colas_evento[]
   estadisticas      estadisticas[]
   evento_categorias evento_categorias[]
