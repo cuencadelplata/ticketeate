@@ -23,7 +23,7 @@ export function useLinkWallet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (provider: string) => {
+    mutationFn: async () => {
       // Redirigir al endpoint de OAuth de Mercado Pago
       window.location.href = '/api/mercadopago/auth';
     },

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
-import { PlusIcon } from 'lucide-react';
 
 export function NewNavbar() {
   return <Navbar />;
