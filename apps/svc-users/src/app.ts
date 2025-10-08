@@ -4,6 +4,9 @@ import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
 import { jwk } from 'hono/jwk';
 
+// Import types
+import './types/hono';
+
 // Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';

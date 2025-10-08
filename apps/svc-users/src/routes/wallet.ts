@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
-import { WalletService } from '../services/wallet-service';
 
 config();
 export const wallet = new Hono();
@@ -37,7 +36,8 @@ wallet.use('*', async (c, next) => {
 // Get wallet status
 wallet.get('/', async (c) => {
   const userId = c.get('userId');
-  if (!userId) return c.json({ error: 'Usuario no autenticado' }, 401);
+  if (!userId || typeof userId !== 'string')
+    return c.json({ error: 'Usuario no autenticado' }, 401);
 
   // Verificar si hay una billetera mock para este usuario
   const mockWallet = mockWallets.get(userId);
@@ -55,7 +55,8 @@ wallet.get('/', async (c) => {
 // Link wallet (Mercado Pago real o mock)
 wallet.post('/link', async (c) => {
   const userId = c.get('userId');
-  if (!userId) return c.json({ error: 'Usuario no autenticado' }, 401);
+  if (!userId || typeof userId !== 'string')
+    return c.json({ error: 'Usuario no autenticado' }, 401);
 
   try {
     const body = await c.req.json();
@@ -84,7 +85,8 @@ wallet.post('/link', async (c) => {
 // Unlink wallet
 wallet.post('/unlink', async (c) => {
   const userId = c.get('userId');
-  if (!userId) return c.json({ error: 'Usuario no autenticado' }, 401);
+  if (!userId || typeof userId !== 'string')
+    return c.json({ error: 'Usuario no autenticado' }, 401);
 
   // Si es una billetera mock, eliminarla del almacenamiento en memoria
   if (mockWallets.has(userId)) {
@@ -105,7 +107,8 @@ wallet.post('/unlink', async (c) => {
 // Endpoint para simular pagos (solo para desarrollo)
 wallet.post('/simulate-payment', async (c) => {
   const userId = c.get('userId');
-  if (!userId) return c.json({ error: 'Usuario no autenticado' }, 401);
+  if (!userId || typeof userId !== 'string')
+    return c.json({ error: 'Usuario no autenticado' }, 401);
 
   try {
     const body = await c.req.json();
