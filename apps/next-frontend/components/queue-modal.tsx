@@ -33,7 +33,7 @@ export function QueueModal({
   } = useMockQueue(eventId, userId);
 
   const [hasJoined, setHasJoined] = useState(false);
-  const [positionUpdateInterval, setPositionUpdateInterval] = useState<NodeJS.Timeout | null>(null);
+  const [positionUpdateInterval, setPositionUpdateInterval] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animatedPosition, setAnimatedPosition] = useState<number | null>(null);
 

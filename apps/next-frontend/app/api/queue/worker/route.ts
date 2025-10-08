@@ -3,7 +3,7 @@ import { redisClient } from '@/lib/redis-client';
 import { prisma } from '@repo/db';
 
 // Worker principal para procesar todas las colas
-export async function GET(_request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
   console.log('🚀 Iniciando worker de colas...');
 

@@ -9,7 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
 import { QueueModal } from '@/components/queue-modal';
-import { useMockQueue } from '@/hooks/use-mock-queue';
+// import { useMockQueue } from '@/hooks/use-mock-queue';
 
 // Helper function para formatear fechas de manera elegante
 const formatEventDate = (date: Date) => {
@@ -70,12 +70,8 @@ export default function EventoPage() {
   const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
   const countViewMutation = useCountView();
 
-  // Hook para manejar cola (SIMULADO)
-  const {
-    canEnter: _canEnter,
-    joinQueue: _joinQueue,
-    completePurchase: _completePurchase,
-  } = useMockQueue(id || '', userId);
+  // Hook para manejar cola (SIMULADO) - variables no utilizadas comentadas
+  // const { canEnter, joinQueue, completePurchase } = useMockQueue(id || '', userId);
 
   // Ref para controlar si ya se registró la view (evita re-renders)
   const hasRegisteredViewRef = useRef<string | null>(null);

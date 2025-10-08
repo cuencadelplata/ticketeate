@@ -37,7 +37,7 @@ export function useMockQueue(eventId: string, userId: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [canEnter, setCanEnter] = useState(false);
-  const positionUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const positionUpdateInterval = useRef<number | null>(null);
 
   // Inicializar cola si no existe
   useEffect(() => {

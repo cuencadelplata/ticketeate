@@ -81,6 +81,7 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
   };
 
   const handleDeleteConfig = async () => {
+    // eslint-disable-next-line no-undef
     if (!confirm('¿Estás seguro de que quieres eliminar la configuración de cola?')) {
       return;
     }

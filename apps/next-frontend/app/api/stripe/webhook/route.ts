@@ -6,7 +6,6 @@ import { randomUUID } from 'crypto';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const _signature = request.headers.get('stripe-signature');
 
     // En un entorno de producción, deberías verificar la firma del webhook
     // usando la biblioteca de Stripe y tu webhook secret
