@@ -402,12 +402,6 @@ importers:
       '@types/node':
         specifier: ^24.3.0
         version: 24.3.0
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.13.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.13.0
-        version: 6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
       prisma:
         specifier: ^6.15.0
         version: 6.15.0(typescript@5.9.2)
@@ -423,6 +417,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      typescript-eslint:
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
 
   apps/svc-events:
     dependencies:
@@ -469,12 +466,6 @@ importers:
       '@types/node':
         specifier: ^24.3.0
         version: 24.3.0
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.13.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.13.0
-        version: 6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
       prisma:
         specifier: ^6.15.0
         version: 6.15.0(typescript@5.9.2)
@@ -490,6 +481,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      typescript-eslint:
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
 
   apps/svc-producers:
     dependencies:
@@ -530,12 +524,6 @@ importers:
       '@types/node':
         specifier: ^24.3.0
         version: 24.3.0
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.13.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.13.0
-        version: 6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
       prisma:
         specifier: ^6.15.0
         version: 6.15.0(typescript@5.9.2)
@@ -551,6 +539,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      typescript-eslint:
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
 
   apps/svc-users:
     dependencies:
@@ -591,12 +582,6 @@ importers:
       '@types/node':
         specifier: ^24.3.0
         version: 24.3.0
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.13.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.13.0
-        version: 6.21.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
       prisma:
         specifier: ^6.15.0
         version: 6.15.0(typescript@5.9.2)
@@ -612,6 +597,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      typescript-eslint:
+        specifier: ^8.39.0
+        version: 8.40.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
 
   packages/db:
     dependencies:
