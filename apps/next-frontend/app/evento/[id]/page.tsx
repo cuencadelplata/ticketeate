@@ -5,7 +5,7 @@ import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useViewCount, useCountView } from '@/hooks/use-view-count';
 import { Calendar, Eye, Clock } from 'lucide-react';
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
 import { QueueModal } from '@/components/queue-modal';
@@ -71,7 +71,11 @@ export default function EventoPage() {
   const countViewMutation = useCountView();
 
   // Hook para manejar cola (SIMULADO)
-  const { canEnter, joinQueue, completePurchase } = useMockQueue(id || '', userId);
+  const {
+    canEnter: _canEnter,
+    joinQueue: _joinQueue,
+    completePurchase: _completePurchase,
+  } = useMockQueue(id || '', userId);
 
   // Ref para controlar si ya se registró la view (evita re-renders)
   const hasRegisteredViewRef = useRef<string | null>(null);

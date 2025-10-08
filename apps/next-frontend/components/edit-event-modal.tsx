@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit3, X, Save, Calendar, MapPin, Eye, EyeOff } from 'lucide-react';
+import { Edit3, X, Save, Calendar, MapPin, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Event } from '@/types/events';
 

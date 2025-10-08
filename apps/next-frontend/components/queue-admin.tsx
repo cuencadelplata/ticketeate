@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Play, Pause, Trash2, Users, Clock } from 'lucide-react';
+import { Settings, Play, Trash2, Clock } from 'lucide-react';
 
 interface QueueConfig {
   colaid: string;

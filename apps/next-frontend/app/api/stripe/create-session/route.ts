@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
     // Construir URLs con el evento incluido si está disponible en metadata
     const eventParam = metadata?.eventoid ? `&evento=${metadata.eventoid}` : '';
 
-    const payload = {
+    // Note: payload object is not used, keeping for reference
+    const _payload = {
       mode: 'payment',
       success_url: `${baseUrl}/comprar?stripe_status=success${eventParam}`,
       cancel_url: `${baseUrl}/comprar?stripe_status=cancel${eventParam}`,

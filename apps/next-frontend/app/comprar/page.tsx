@@ -7,7 +7,7 @@ import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Event } from '@/types/events';
-import { ReservationBanner } from '@/components/comprar/ReservationBanner';
+// import { ReservationBanner } from '@/components/comprar/ReservationBanner';
 import { EventHeader } from '@/components/comprar/EventHeader';
 import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
@@ -88,7 +88,7 @@ export default function ComprarPage() {
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showStripeMessage, setShowStripeMessage] = useState(false);
-  const comprobanteRef = useRef<HTMLDivElement | null>(null);
+  const _comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('');
 

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { useEffect } from 'react';
 
 // Configuración de Supabase para Realtime
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

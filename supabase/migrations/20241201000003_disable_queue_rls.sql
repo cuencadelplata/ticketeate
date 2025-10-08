@@ -11,3 +11,5 @@ DROP POLICY IF EXISTS "Allow public read access to cola_turnos" ON cola_turnos;
 DROP POLICY IF EXISTS "Allow service role insert to cola_turnos" ON cola_turnos;
 DROP POLICY IF EXISTS "Allow service role update to cola_turnos" ON cola_turnos;
 
+
+

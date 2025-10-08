@@ -30,3 +30,5 @@ CREATE POLICY "Allow service role update to cola_turnos" ON cola_turnos
 -- Habilitar RLS
 ALTER TABLE cola_turnos ENABLE ROW LEVEL SECURITY;
 
+
+
