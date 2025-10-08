@@ -317,7 +317,7 @@ events.put('/:id', async (c) => {
     });
 
     return c.json({
-      message: 'Evento actualizado exitosamente',
+      message: 'Evento actualizado exitosamente (soft update)',
       event: updated,
     });
   } catch (error) {
@@ -340,7 +340,7 @@ events.delete('/:id', async (c) => {
 
     const id = c.req.param('id');
     await EventService.softDeleteEvent(id, jwtPayload.id);
-    return c.json({ message: 'Evento cancelado (borrado lógico) correctamente' });
+    return c.json({ message: 'Evento ocultado (borrado lógico) correctamente' });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error deleting event:', error);
@@ -401,6 +401,28 @@ events.delete('/:id/categories/:categoryId', async (c) => {
     console.error('Error removing category:', error);
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// POST /api/events/publish-scheduled - Publicar eventos programados (para uso interno/cron)
+events.post('/publish-scheduled', async (c) => {
+  try {
+    const result = await EventService.publishScheduledEvents();
+
+    return c.json({
+      message: 'Eventos programados procesados',
+      published: result.published,
+      errors: result.errors,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error publishing scheduled events:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
       500,
     );
   }

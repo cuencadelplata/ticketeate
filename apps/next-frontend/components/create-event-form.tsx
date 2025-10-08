@@ -384,6 +384,7 @@ export default function CreateEventForm() {
           description: `${event.titulo} ha sido creado y está listo para compartir.`,
         });
 
+        // Limpiar el formulario
         setEventName('');
         setDescription('');
         setEventImages([]);
@@ -399,6 +400,11 @@ export default function CreateEventForm() {
           },
         ]);
         setSelectedCategories([]);
+
+        // Navegar a la página de eventos después de un breve delay para que el usuario vea el toast
+        setTimeout(() => {
+          router.push('/eventos');
+        }, 1500);
       },
       onError: (error) => {
         toast.error(error.message || 'Error al crear el evento');

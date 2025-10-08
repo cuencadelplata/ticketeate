@@ -34,6 +34,14 @@ export interface Event {
     fecha_de_cambio: string | Date;
     usuarioid?: string;
   }>;
+  evento_modificaciones?: Array<{
+    modificacionid: string;
+    campo_modificado: string;
+    valor_anterior?: string;
+    valor_nuevo?: string;
+    fecha_modificacion: string | Date;
+    usuarioid?: string;
+  }>;
   evento_categorias?: Array<{
     categoriaeventoid: number;
     categoriaevento: {

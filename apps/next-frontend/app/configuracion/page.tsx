@@ -8,8 +8,11 @@ import { User, CreditCard, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession } from '@/lib/auth-client';
+import { DevelopmentWalletInfo } from '@/components/development-wallet-info';
 
 export default function ConfiguracionPage() {
+  const { data: session, isPending: sessionLoading } = useSession();
   const { data, isLoading, error } = useWalletStatus();
   const linkWallet = useLinkWallet();
   const unlinkWallet = useUnlinkWallet();
@@ -60,18 +63,26 @@ export default function ConfiguracionPage() {
     }
   }, [searchParams]);
 
-  if (isLoading) return <div className="p-6">Cargando...</div>;
+  // Mostrar loading mientras se carga la sesión
+  if (sessionLoading) return <div className="p-6">Cargando...</div>;
+
+  // Si no hay sesión, el middleware debería haber redirigido, pero por seguridad mostramos un mensaje
+  if (!session) return <div className="p-6">No autorizado</div>;
+
+  if (isLoading) return <div className="p-6">Cargando configuración...</div>;
   if (error) return <div className="p-6">Error al cargar configuración</div>;
 
   const linked = data?.wallet_linked;
   const provider = data?.wallet_provider ?? 'mercado_pago';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-black py-24 pt-26">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configuración</h1>
-          <p className="mt-2 text-gray-600">Gestiona tu cuenta, perfil y configuraciones de pago</p>
+          <h1 className="text-3xl font-bold text-stone-200">Configuración</h1>
+          <p className="mt-2 text-stone-300">
+            Gestiona tu cuenta, perfil y configuraciones de pago
+          </p>
         </div>
 
         {/* Notificación de estado */}
@@ -176,28 +187,52 @@ export default function ConfiguracionPage() {
                   {linked ? (
                     <div className="space-y-3">
                       <p className="text-sm text-stone-400">
-                        Tu billetera de Mercado Pago está vinculada y lista para recibir pagos.
+                        Tu billetera {provider === 'mock' ? 'simulada' : 'de Mercado Pago'} está
+                        vinculada y lista para recibir pagos.
                       </p>
-                      <Button
-                        disabled={unlinkWallet.isPending}
-                        onClick={() => unlinkWallet.mutate()}
-                        className="bg-stone-700 text-white hover:bg-stone-600"
-                      >
-                        {unlinkWallet.isPending ? 'Desvinculando...' : 'Desvincular billetera'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          disabled={unlinkWallet.isPending}
+                          onClick={() => unlinkWallet.mutate()}
+                          className="bg-stone-700 text-white hover:bg-stone-600"
+                        >
+                          {unlinkWallet.isPending ? 'Desvinculando...' : 'Desvincular billetera'}
+                        </Button>
+                        {provider === 'mock' && (
+                          <div className="text-xs text-yellow-400 bg-yellow-900/20 px-2 py-1 rounded">
+                            Modo desarrollo
+                          </div>
+                        )}
+                      </div>
+                      {provider === 'mock' && <DevelopmentWalletInfo />}
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <p className="text-sm text-stone-400">
-                        Vincula tu billetera de Mercado Pago para recibir pagos de tus eventos.
+                        Vincula tu billetera para recibir pagos de tus eventos.
                       </p>
-                      <Button
-                        disabled={linkWallet.isPending}
-                        onClick={() => linkWallet.mutate(provider)}
-                        className="bg-white text-black hover:bg-stone-200"
-                      >
-                        {linkWallet.isPending ? 'Vinculando...' : 'Vincular Mercado Pago'}
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          disabled={linkWallet.isPending}
+                          onClick={() => linkWallet.mutate('mercado_pago')}
+                          className="bg-white text-black hover:bg-stone-200 w-full"
+                        >
+                          {linkWallet.isPending ? 'Vinculando...' : 'Vincular Mercado Pago'}
+                        </Button>
+                        <Button
+                          disabled={linkWallet.isPending}
+                          onClick={() => linkWallet.mutate('mock')}
+                          variant="outline"
+                          className="w-full border-stone-600 text-stone-300 hover:bg-stone-800"
+                        >
+                          {linkWallet.isPending
+                            ? 'Vinculando...'
+                            : '🔧 Simular billetera (Desarrollo)'}
+                        </Button>
+                        <p className="text-xs text-stone-500">
+                          Usa la simulación para probar la funcionalidad sin configurar Mercado Pago
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
