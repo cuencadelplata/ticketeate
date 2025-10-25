@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
@@ -60,7 +60,7 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
   return map;
 }
 
-export default function ComprarPage() {
+function ComprarPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = searchParams.get('evento');
@@ -811,5 +811,13 @@ export default function ComprarPage() {
       {/* Mensaje de éxito de Stripe */}
       {showStripeMessage && <StripeSuccessMessage onContinue={handleStripeContinue} />}
     </div>
+  );
+}
+
+export default function ComprarPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}>
+      <ComprarPageContent />
+    </Suspense>
   );
 }
