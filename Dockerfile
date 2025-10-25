@@ -63,3 +63,4 @@ WORKDIR /app/apps/next-frontend
 EXPOSE 3000
 
 CMD ["pnpm", "start"]
+CMD ["pnpm", "start"]
