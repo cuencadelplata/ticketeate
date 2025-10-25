@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { NavbarHome } from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +23,9 @@ export default function SobreNosotrosPage() {
   return (
     <main className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       {/* Navbar */}
-      <NavbarHome />
+      <Suspense fallback={<div className="h-16" />}>
+        <NavbarHome />
+      </Suspense>
 
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-6 bg-gradient-to-br from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">

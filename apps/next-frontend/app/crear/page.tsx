@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from '@/lib/auth-client';
 import AuthModal from '@/components/auth-modal';
 import CreateEventForm from '@/components/create-event-form';
@@ -22,12 +22,14 @@ export default function CrearPage() {
   return (
     <>
       <CreateEventForm />
-      <AuthModal
-        open={open}
-        onClose={() => setOpen(false)}
-        defaultTab="register"
-        defaultRole="ORGANIZADOR"
-      />
+      <Suspense fallback={null}>
+        <AuthModal
+          open={open}
+          onClose={() => setOpen(false)}
+          defaultTab="register"
+          defaultRole="ORGANIZADOR"
+        />
+      </Suspense>
     </>
   );
 }
