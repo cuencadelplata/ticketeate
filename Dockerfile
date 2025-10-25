@@ -26,6 +26,9 @@ COPY apps/next-frontend ./apps/next-frontend
 # Install dependencies using pnpm with workspace support
 RUN pnpm install --frozen-lockfile
 
+# Generate Prisma Client
+RUN pnpm --filter=@repo/db run db:generate
+
 # Build only the db package and next-frontend
 RUN pnpm --filter=@repo/db run build
 RUN pnpm --filter=Ticketeate run build
@@ -59,4 +62,5 @@ WORKDIR /app/apps/next-frontend
 
 EXPOSE 3000
 
+CMD ["pnpm", "start"]
 CMD ["pnpm", "start"]
