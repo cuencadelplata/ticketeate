@@ -816,9 +816,13 @@ function ComprarPageContent() {
 
 export default function ComprarPage() {
   return (
+<<<<<<< HEAD
     <Suspense
       fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}
     >
+=======
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}>
+>>>>>>> cf8cac284cc405cdd87ee67307df419ac3e621db
       <ComprarPageContent />
     </Suspense>
   );
