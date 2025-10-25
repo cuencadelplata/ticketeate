@@ -1,8 +1,8 @@
 # Build stage for monorepo with pnpm
 FROM node:20-alpine3.18 AS builder
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
+# Install pnpm directly via npm
+RUN npm install -g pnpm@10.10.0
 
 WORKDIR /app
 
@@ -33,8 +33,8 @@ RUN pnpm --filter=Ticketeate run build
 # Runner stage
 FROM node:20-alpine3.18 AS runner
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
+# Install pnpm directly via npm
+RUN npm install -g pnpm@10.10.0
 
 WORKDIR /app
 
