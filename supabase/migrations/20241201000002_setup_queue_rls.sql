@@ -32,3 +32,4 @@ ALTER TABLE cola_turnos ENABLE ROW LEVEL SECURITY;
 
 
 
+
