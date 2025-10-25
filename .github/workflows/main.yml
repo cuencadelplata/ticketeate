@@ -12,6 +12,11 @@ jobs:
       with:
         fetch-depth: 0  # Necesario para el tagging automático
 
+    - name: Configure Git
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -26,7 +31,7 @@ jobs:
     - name: Automatic Tagging of Releases
       id: increment-git-tag
       run: |
-        bash ./build/git_update.sh -v major
+        node ./build/git-tag-version.js -v major
 
     - name: Build, Tag, and Push the Image to Amazon ECR
       id: build-image
