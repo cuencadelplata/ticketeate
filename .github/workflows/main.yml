@@ -31,7 +31,7 @@ jobs:
     - name: Automatic Tagging of Releases
       id: increment-git-tag
       run: |
-        node ./build/git-tag-version.js -v major
+        node .github/scripts/git-tag-version.js -v major
 
     - name: Build, Tag, and Push the Image to Amazon ECR
       id: build-image
