@@ -9,7 +9,6 @@
  */
 
 const { execSync } = require('child_process');
-const fs = require('fs');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -23,46 +22,72 @@ for (let i = 0; i < args.length; i++) {
 
 // Validate version type
 if (!['major', 'minor', 'patch'].includes(versionType)) {
-  console.error(`❌ Error: Invalid version type "${versionType}"`);
+  console.error(`Error: Invalid version type "${versionType}"`);
   console.error('Usage: node git-tag-version.js -v [major|minor|patch]');
   process.exit(1);
 }
 
-console.log('🔖 Starting automatic git tagging...');
-console.log(`📊 Version type: ${versionType}`);
+console.log('Starting automatic git tagging...');
+console.log(`Version type: ${versionType}`);
 
 try {
   // Fetch and unshallow if necessary
-  console.log('📥 Fetching latest tags...');
+  console.log('Fetching latest tags...');
   try {
     execSync('git fetch --prune --unshallow 2>/dev/null', { stdio: 'pipe' });
   } catch (e) {
     // Already unshallowed, continue
   }
 
-  // Get current version
-  let currentVersion = '';
+  // Get all tags that match semantic versioning format
+  let allTags = [];
   try {
-    currentVersion = execSync('git describe --abbrev=0 --tags 2>/dev/null', { 
+    const tagsOutput = execSync('git tag -l "v*" 2>/dev/null', { 
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
     }).trim();
+    
+    if (tagsOutput) {
+      allTags = tagsOutput.split('\n').filter(tag => tag.match(/^v\d+\.\d+\.\d+$/));
+    }
   } catch (e) {
-    currentVersion = '';
+    // No tags found
   }
 
-  if (!currentVersion) {
-    currentVersion = 'v0.1.0';
-    console.log('📌 No previous tags found, starting from v0.1.0');
+  // Sort tags to get the latest valid one
+  let currentVersion = '';
+  if (allTags.length > 0) {
+    // Sort tags by version number (descending)
+    allTags.sort((a, b) => {
+      const aVersion = a.match(/v(\d+)\.(\d+)\.(\d+)/);
+      const bVersion = b.match(/v(\d+)\.(\d+)\.(\d+)/);
+      
+      if (!aVersion || !bVersion) return 0;
+      
+      const aMajor = parseInt(aVersion[1]);
+      const aMinor = parseInt(aVersion[2]);
+      const aPatch = parseInt(aVersion[3]);
+      
+      const bMajor = parseInt(bVersion[1]);
+      const bMinor = parseInt(bVersion[2]);
+      const bPatch = parseInt(bVersion[3]);
+      
+      if (aMajor !== bMajor) return bMajor - aMajor;
+      if (aMinor !== bMinor) return bMinor - aMinor;
+      return bPatch - aPatch;
+    });
+    
+    currentVersion = allTags[0];
+    console.log(`Current version: ${currentVersion}`);
   } else {
-    console.log(`📌 Current version: ${currentVersion}`);
+    currentVersion = 'v0.1.0';
+    console.log('No previous tags found, starting from v0.1.0');
   }
 
   // Parse version
   const versionMatch = currentVersion.match(/v(\d+)\.(\d+)\.(\d+)/);
   if (!versionMatch) {
-    console.error(`❌ Error: Invalid version format "${currentVersion}"`);
-    console.error('Expected format: vX.Y.Z (e.g., v1.0.0)');
+    console.error(`Error: Could not parse version from "${currentVersion}"`);
     process.exit(1);
   }
 
@@ -85,7 +110,7 @@ try {
   }
 
   const newTag = `v${major}.${minor}.${patch}`;
-  console.log(`✨ New version: ${newTag}`);
+  console.log(`New version: ${newTag}`);
 
   // Check if commit is already tagged
   const currentCommit = execSync('git rev-parse HEAD', { 
@@ -103,26 +128,26 @@ try {
   }
 
   if (isAlreadyTagged) {
-    console.log('⏭️  Commit is already tagged, skipping new tag');
+    console.log('Commit is already tagged, skipping new tag');
   } else {
     // Create and push tag
-    console.log(`🏷️  Creating tag ${newTag}...`);
+    console.log(`Creating tag ${newTag}...`);
     execSync(`git tag ${newTag}`);
     
-    console.log('📤 Pushing tag...');
+    console.log('Pushing tag...');
     execSync('git push --tags');
     
-    console.log('📤 Pushing branch...');
+    console.log('Pushing branch...');
     execSync('git push');
     
-    console.log(`✅ Successfully tagged with ${newTag}`);
+    console.log(`Successfully tagged with ${newTag}`);
   }
 
   // Output for GitHub Actions
   console.log(`\n::set-output name=git-tag::${newTag}`);
-  console.log(`::set-output name=image-tag::${newTag.substring(1)}`); // sin la 'v'
+  console.log(`::set-output name=image-tag::${newTag.substring(1)}`);
 
 } catch (error) {
-  console.error(`❌ Error: ${error.message}`);
+  console.error(`Error: ${error.message}`);
   process.exit(1);
 }
