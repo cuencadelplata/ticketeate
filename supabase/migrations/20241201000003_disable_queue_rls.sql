@@ -13,3 +13,4 @@ DROP POLICY IF EXISTS "Allow service role update to cola_turnos" ON cola_turnos;
 
 
 
+
