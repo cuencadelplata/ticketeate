@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, CreditCard, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { DevelopmentWalletInfo } from '@/components/development-wallet-info';
 
-export default function ConfiguracionPage() {
+function ConfiguracionPageContent() {
   const { data: session, isPending: sessionLoading } = useSession();
   const { data, isLoading, error } = useWalletStatus();
   const linkWallet = useLinkWallet();
@@ -242,5 +242,13 @@ export default function ConfiguracionPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function ConfiguracionPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}>
+      <ConfiguracionPageContent />
+    </Suspense>
   );
 }
