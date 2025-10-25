@@ -609,6 +609,9 @@ importers:
       better-auth:
         specifier: ^1.0.0
         version: 1.3.24(next@15.5.1(@babel/core@7.28.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
