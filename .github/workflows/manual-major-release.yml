@@ -1,132 +1,132 @@
-﻿name:ManualMajorRelease-TicketeateWeb
+name: Manual Major Release - Ticketeate Web
 
 on:
-workflow_dispatch:
-inputs:
-version:
-description:'Nuevaversiónmajor(ej:2.0.0)'
-required:true
-type:string
-release_notes:
-description:'Notasdelarelease(opcional)'
-required:false
-type:string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Nueva versión major (ej: 2.0.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Notas de la release (opcional)'
+        required: false
+        type: string
 
 permissions:
-contents:write
+  contents: write
 
 jobs:
-major-release:
-name:🚀CrearMajorRelease
-runs-on:ubuntu-latest
-steps:
--name:📥Checkout
-uses:actions/checkout@v4
-with:
-fetch-depth:0
-token:${{secrets.GITHUB_TOKEN}}
+  major-release:
+    name: 🚀 Crear Major Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
--name:✅Validarversión
-run:|
-VERSION="${{inputs.version}}"
-if![["$VERSION"=~^[0-9]+\.0\.0$]];then
-echo"❌Error:Laversióndebesermajor(x.0.0)"
-exit1
-fi
-echo"✅Versiónválida:$VERSION"
+      - name: ✅ Validar versión
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.0\.0$ ]]; then
+            echo "❌ Error: La versión debe ser major (x.0.0)"
+            exit 1
+          fi
+          echo "✅ Versión válida: $VERSION"
 
--name:🔧SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'22'
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
--name:📦Instalarpnpm
-run:npminstall-gpnpm@10.10.0
+      - name: 📦 Instalar pnpm
+        run: npm install -g pnpm@10.10.0
 
--name:🔐ConfigurarGit
-run:|
-gitconfig--globaluser.name"github-actions[bot]"
-gitconfig--globaluser.email"github-actions[bot]@users.noreply.github.com"
+      - name: 🔐 Configurar Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
--name:📝Actualizarpackage.json
-working-directory:apps/next-frontend
-run:|
-pnpmversion${{inputs.version}}--no-git-tag-version
+      - name: 📝 Actualizar package.json
+        working-directory: apps/next-frontend
+        run: |
+          pnpm version ${{ inputs.version }} --no-git-tag-version
+          
+      - name: 📋 Actualizar CHANGELOG
+        working-directory: apps/next-frontend
+        run: |
+          VERSION="${{ inputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Crear CHANGELOG si no existe
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "Todas las versiones notables de **next-frontend** serán documentadas en este archivo." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          
+          # Agregar nueva versión
+          NOTES="${{ inputs.release_notes }}"
+          if [ -z "$NOTES" ]; then
+            NOTES="Major release con cambios significativos"
+          fi
+          
+          # Insertar después del header
+          sed -i "/^# Changelog/a\\
+          \\
+          ## [$VERSION] - $DATE\\
+          \\
+          ### ⚠️ BREAKING CHANGES\\
+          \\
+          $NOTES\\
+          " CHANGELOG.md
 
--name:📋ActualizarCHANGELOG
-working-directory:apps/next-frontend
-run:|
-VERSION="${{inputs.version}}"
-DATE=$(date+%Y-%m-%d)
+      - name: 💾 Commit y crear tag
+        run: |
+          git add apps/next-frontend/package.json apps/next-frontend/CHANGELOG.md
+          git commit -m "chore(release): next-frontend v${{ inputs.version }} [skip ci]
 
-#CrearCHANGELOGsinoexiste
-if[!-fCHANGELOG.md];then
-echo"#Changelog">CHANGELOG.md
-echo"">>CHANGELOG.md
-echo"Todaslasversionesnotablesde**next-frontend**serándocumentadasenestearchivo.">>CHANGELOG.md
-echo"">>CHANGELOG.md
-fi
+          BREAKING CHANGE: Major release con cambios significativos
+          
+          ${{ inputs.release_notes }}"
+          
+          git tag -a "next-frontend-v${{ inputs.version }}" -m "Release next-frontend v${{ inputs.version }}"
+          git push origin main --tags
 
-#Agregarnuevaversión
-NOTES="${{inputs.release_notes}}"
-if[-z"$NOTES"];then
-NOTES="Majorreleaseconcambiossignificativos"
-fi
+      - name: 🎉 Crear GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const notes = `${{ inputs.release_notes }}` || 'Major release con cambios significativos';
+            
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: 'next-frontend-v${{ inputs.version }}',
+              name: '🔴 next-frontend v${{ inputs.version }}',
+              body: `## ⚠️ BREAKING CHANGES
+              
+              Esta es una **major release** que incluye cambios significativos.
+              
+              ### 📝 Notas de la versión
+              
+              ${notes}
+              
+              ### 🔄 Migración
+              
+              Revisa la documentación de migración antes de actualizar.
+              
+              ---
+              
+              **Fecha:** ${new Date().toLocaleDateString('es-ES')}
+              **Tipo:** Major Release`,
+              draft: false,
+              prerelease: false
+            });
 
-#Insertardespuésdelheader
-sed-i"/^#Changelog/a\\
-\\
-##[$VERSION]-$DATE\\
-\\
-###⚠️BREAKINGCHANGES\\
-\\
-$NOTES\\
-"CHANGELOG.md
-
--name:💾Commitycreartag
-run:|
-gitaddapps/next-frontend/package.jsonapps/next-frontend/CHANGELOG.md
-gitcommit-m"chore(release):next-frontendv${{inputs.version}}[skipci]
-
-BREAKINGCHANGE:Majorreleaseconcambiossignificativos
-
-${{inputs.release_notes}}"
-
-gittag-a"next-frontend-v${{inputs.version}}"-m"Releasenext-frontendv${{inputs.version}}"
-gitpushoriginmain--tags
-
--name:🎉CrearGitHubRelease
-uses:actions/github-script@v7
-with:
-script:|
-constnotes=`${{inputs.release_notes}}`||'Majorreleaseconcambiossignificativos';
-
-awaitgithub.rest.repos.createRelease({
-owner:context.repo.owner,
-repo:context.repo.repo,
-tag_name:'next-frontend-v${{inputs.version}}',
-name:'🔴next-frontendv${{inputs.version}}',
-body:`##⚠️BREAKINGCHANGES
-
-Estaesuna**majorrelease**queincluyecambiossignificativos.
-
-###📝Notasdelaversión
-
-${notes}
-
-###🔄Migración
-
-Revisaladocumentacióndemigraciónantesdeactualizar.
-
----
-
-**Fecha:**${newDate().toLocaleDateString('es-ES')}
-**Tipo:**MajorRelease`,
-draft:false,
-prerelease:false
-});
-
--name:✅MajorReleasecompletado
-run:|
-echo"🎉MajorReleasev${{inputs.version}}creadoexitosamente"
-echo"📦Verificalareleaseen:https://github.com/${{github.repository}}/releases"
+      - name: ✅ Major Release completado
+        run: |
+          echo "🎉 Major Release v${{ inputs.version }} creado exitosamente"
+          echo "📦 Verifica la release en: https://github.com/${{ github.repository }}/releases"

@@ -1,143 +1,143 @@
-﻿name:🚀Releasesvc-users
+name: Release svc-users
 
 on:
-push:
-branches:
--main
-paths:
--'apps/svc-users/**'
--'packages/**'
--'.github/workflows/release-svc-users.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/svc-users/**'
+      - 'packages/**'
+      - '.github/workflows/release-svc-users.yml'
 
 permissions:
-contents:write
-issues:write
-pull-requests:write
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-analyze-commits:
-name:📊Analizarcommits
-runs-on:ubuntu-latest
-outputs:
-has-feat:${{steps.check.outputs.has-feat}}
-has-fix:${{steps.check.outputs.has-fix}}
-has-breaking:${{steps.check.outputs.has-breaking}}
-steps:
--name:📥Checkout
-uses:actions/checkout@v4
-with:
-fetch-depth:0
+  analyze-commits:
+    name: Analizar commits
+    runs-on: ubuntu-latest
+    outputs:
+      has-feat: ${{ steps.check.outputs.has-feat }}
+      has-fix: ${{ steps.check.outputs.has-fix }}
+      has-breaking: ${{ steps.check.outputs.has-breaking }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
--name:🔍Revisarcommitsdesdeúltimotag
-id:check
-run:|
-#Obtenerelúltimotagdesvc-users
-LAST_TAG=$(gittag-l"svc-users-v*"--sort=-v:refname|head-n1)
+      - name: Revisar commits desde último tag
+        id: check
+        run: |
+          # Obtener el último tag de svc-users
+          LAST_TAG=$(git tag -l "svc-users-v*" --sort=-v:refname | head -n 1)
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "No hay tags previos, analizando todos los commits"
+            COMMITS=$(git log --oneline --no-merges)
+          else
+            echo "Último tag encontrado: $LAST_TAG"
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-merges -- apps/svc-users packages)
+          fi
+          
+          echo "Commits a analizar:"
+          echo "$COMMITS"
+          
+          # Verificar tipos de commits
+          HAS_FEAT=$(echo "$COMMITS" | grep -E "^[a-f0-9]+ feat(\([^)]*\))?:" || true)
+          HAS_FIX=$(echo "$COMMITS" | grep -E "^[a-f0-9]+ fix(\([^)]*\))?:" || true)
+          HAS_BREAKING=$(echo "$COMMITS" | grep -E "BREAKING CHANGE|!:" || true)
+          
+          if [ -n "$HAS_FEAT" ]; then
+            echo "has-feat=true" >> $GITHUB_OUTPUT
+            echo "✨ Encontrados commits de features"
+          else
+            echo "has-feat=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -n "$HAS_FIX" ]; then
+            echo "has-fix=true" >> $GITHUB_OUTPUT
+            echo "🐛 Encontrados commits de fixes"
+          else
+            echo "has-fix=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -n "$HAS_BREAKING" ]; then
+            echo "has-breaking=true" >> $GITHUB_OUTPUT
+            echo "💥 Encontrados breaking changes"
+          else
+            echo "has-breaking=false" >> $GITHUB_OUTPUT
+          fi
 
-if[-z"$LAST_TAG"];then
-echo"Nohaytagsprevios,analizandotodosloscommits"
-COMMITS=$(gitlog--oneline--no-merges)
-else
-echo"Últimotagencontrado:$LAST_TAG"
-COMMITS=$(gitlog${LAST_TAG}..HEAD--oneline--no-merges--apps/svc-userspackages)
-fi
+  notify-breaking:
+    name: Notificar breaking changes
+    needs: analyze-commits
+    if: needs.analyze-commits.outputs.has-breaking == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear issue para breaking change
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Breaking Change detectado en svc-users - Requiere release MAJOR',
+              body: `Se detectaron BREAKING CHANGES en los commits recientes de \`svc-users\`.
+              
+              ## ⚠️ Acción requerida
+              
+              Los breaking changes requieren un **release MAJOR** (incremento de versión X.0.0).
+              
+              ### Opciones:
+              
+              1. **Ejecutar el workflow manual**: Ve a [Manual Major Release](../actions/workflows/manual-major-release.yml) y ejecuta el workflow especificando la nueva versión major.
+              
+              2. **Revertir los commits**: Si los breaking changes no eran intencionales.
+              
+              ## 📋 Commits con breaking changes:
+              
+              Revisa los commits recientes para identificar los breaking changes.
+              
+              ---
+              *Este issue fue creado automáticamente por el workflow de release.*`,
+              labels: ['breaking-change', 'svc-users', 'release']
+            });
 
-echo"Commitsaanalizar:"
-echo"$COMMITS"
+  release:
+    name: Crear release
+    needs: analyze-commits
+    if: needs.analyze-commits.outputs.has-feat == 'true' || needs.analyze-commits.outputs.has-fix == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          persist-credentials: true
 
-#Verificartiposdecommits
-HAS_FEAT=$(echo"$COMMITS"|grep-E"^[a-f0-9]+feat(\([^)]*\))?:"||true)
-HAS_FIX=$(echo"$COMMITS"|grep-E"^[a-f0-9]+fix(\([^)]*\))?:"||true)
-HAS_BREAKING=$(echo"$COMMITS"|grep-E"BREAKINGCHANGE|!:"||true)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-if[-n"$HAS_FEAT"];then
-echo"has-feat=true">>$GITHUB_OUTPUT
-echo"✨Encontradoscommitsdefeatures"
-else
-echo"has-feat=false">>$GITHUB_OUTPUT
-fi
+      - name: Instalar pnpm
+        run: npm install -g pnpm@10.10.0
 
-if[-n"$HAS_FIX"];then
-echo"has-fix=true">>$GITHUB_OUTPUT
-echo"🐛Encontradoscommitsdefixes"
-else
-echo"has-fix=false">>$GITHUB_OUTPUT
-fi
+      - name: Instalar dependencias de semantic-release
+        run: |
+          cd apps/svc-users
+          pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
-if[-n"$HAS_BREAKING"];then
-echo"has-breaking=true">>$GITHUB_OUTPUT
-echo"💥Encontradosbreakingchanges"
-else
-echo"has-breaking=false">>$GITHUB_OUTPUT
-fi
-
-notify-breaking:
-name:⚠️Notificarbreakingchanges
-needs:analyze-commits
-if:needs.analyze-commits.outputs.has-breaking=='true'
-runs-on:ubuntu-latest
-steps:
--name:📝Crearissueparabreakingchange
-uses:actions/github-script@v7
-with:
-script:|
-awaitgithub.rest.issues.create({
-owner:context.repo.owner,
-repo:context.repo.repo,
-title:'⚠️BreakingChangedetectadoensvc-users-RequierereleaseMAJOR',
-body:`SedetectaronBREAKINGCHANGESenloscommitsrecientesde\`svc-users\`.
-
-##⚠️Acciónrequerida
-
-Losbreakingchangesrequierenun**releaseMAJOR**(incrementodeversiónX.0.0).
-
-###Opciones:
-
-1.**Ejecutarelworkflowmanual**:Vea[ManualMajorRelease](../actions/workflows/manual-major-release.yml)yejecutaelworkflowespecificandolanuevaversiónmajor.
-
-2.**Revertirloscommits**:Silosbreakingchangesnoeranintencionales.
-
-##📋Commitsconbreakingchanges:
-
-Revisaloscommitsrecientesparaidentificarlosbreakingchanges.
-
----
-*Esteissuefuecreadoautomáticamenteporelworkflowderelease.*`,
-labels:['breaking-change','svc-users','release']
-});
-
-release:
-name:🎉Crearrelease
-needs:analyze-commits
-if:needs.analyze-commits.outputs.has-feat=='true'||needs.analyze-commits.outputs.has-fix=='true'
-runs-on:ubuntu-latest
-steps:
--name:📥Checkout
-uses:actions/checkout@v4
-with:
-fetch-depth:0
-token:${{secrets.SEMANTIC_RELEASE_TOKEN}}
-persist-credentials:true
-
--name:SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'22'
-
--name:Instalarpnpm
-run:npminstall-gpnpm@10.10.0
-
--name:📚Instalardependenciasdesemantic-release
-run:|
-cdapps/svc-users
-pnpmadd-Dsemantic-release@semantic-release/changelog@semantic-release/github@semantic-release/commit-analyzer@semantic-release/release-notes-generator@semantic-release/exec@semantic-release/git
-
--name:🚀Ejecutarsemantic-release
-working-directory:apps/svc-users
-env:
-GITHUB_TOKEN:${{secrets.GITHUB_TOKEN}}
-GIT_AUTHOR_NAME:github-actions[bot]
-GIT_AUTHOR_EMAIL:github-actions[bot]@users.noreply.github.com
-GIT_COMMITTER_NAME:github-actions[bot]
-GIT_COMMITTER_EMAIL:github-actions[bot]@users.noreply.github.com
-run:npxsemantic-release
+      - name: Ejecutar semantic-release
+        working-directory: apps/svc-users
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: npx semantic-release

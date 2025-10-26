@@ -1,158 +1,158 @@
-﻿name:CI
+name: CI
 
 on:
-push:
-branches:[main,master,develop]
-pull_request:
-branches:[main,master,develop]
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
 
 jobs:
-lint:
-name:Lint&TypeCheck
-runs-on:ubuntu-latest
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-steps:
--name:Checkoutcode
-uses:actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
--name:SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'18'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
 
--name:Setuppnpm
-uses:pnpm/action-setup@v4
-with:
-version:10.10.0
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
--name:Getpnpmstoredirectory
-shell:bash
-run:|
-echo"STORE_PATH=$(pnpmstorepath--silent)">>$GITHUB_ENV
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
--name:Setuppnpmcache
-uses:actions/cache@v4
-with:
-path:${{env.STORE_PATH}}
-key:${{runner.os}}-pnpm-store-${{hashFiles('**/pnpm-lock.yaml')}}
-restore-keys:|
-${{runner.os}}-pnpm-store-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
--name:Installdependencies
-run:pnpminstall--frozen-lockfile
+      - name: Generate Prisma client and build database package
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+        run: |
+          pnpm db:generate
+          pnpm --filter @repo/db build
 
--name:GeneratePrismaclientandbuilddatabasepackage
-env:
-DATABASE_URL:"postgresql://dummy:dummy@localhost:5432/dummy"
-run:|
-pnpmdb:generate
-pnpm--filter@repo/dbbuild
+      - name: Run linting
+        run: pnpm lint
 
--name:Runlinting
-run:pnpmlint
+      - name: Check types
+        run: pnpm check-types
 
--name:Checktypes
-run:pnpmcheck-types
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-test:
-name:Test
-runs-on:ubuntu-latest
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-steps:
--name:Checkoutcode
-uses:actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
 
--name:SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'18'
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
--name:Setuppnpm
-uses:pnpm/action-setup@v4
-with:
-version:10.10.0
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
--name:Getpnpmstoredirectory
-shell:bash
-run:|
-echo"STORE_PATH=$(pnpmstorepath--silent)">>$GITHUB_ENV
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
--name:Setuppnpmcache
-uses:actions/cache@v4
-with:
-path:${{env.STORE_PATH}}
-key:${{runner.os}}-pnpm-store-${{hashFiles('**/pnpm-lock.yaml')}}
-restore-keys:|
-${{runner.os}}-pnpm-store-
+      - name: Generate Prisma client and build database package
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+        run: |
+          pnpm db:generate
+          pnpm --filter @repo/db build
 
--name:Installdependencies
-run:pnpminstall--frozen-lockfile
+      - name: Run tests
+        run: pnpm test
 
--name:GeneratePrismaclientandbuilddatabasepackage
-env:
-DATABASE_URL:"postgresql://dummy:dummy@localhost:5432/dummy"
-run:|
-pnpmdb:generate
-pnpm--filter@repo/dbbuild
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
--name:Runtests
-run:pnpmtest
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
--name:UploadcoveragereportstoCodecov
-uses:codecov/codecov-action@v4
-if:always()
-with:
-token:${{secrets.CODECOV_TOKEN}}
-fail_ci_if_error:false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-format-check:
-name:FormatCheck
-runs-on:ubuntu-latest
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
 
-steps:
--name:Checkoutcode
-uses:actions/checkout@v4
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
--name:SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'18'
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
--name:Setuppnpm
-uses:pnpm/action-setup@v4
-with:
-version:10.10.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
--name:Getpnpmstoredirectory
-shell:bash
-run:|
-echo"STORE_PATH=$(pnpmstorepath--silent)">>$GITHUB_ENV
+      - name: Generate Prisma client and build database package
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+        run: |
+          pnpm db:generate
+          pnpm --filter @repo/db build
 
--name:Setuppnpmcache
-uses:actions/cache@v4
-with:
-path:${{env.STORE_PATH}}
-key:${{runner.os}}-pnpm-store-${{hashFiles('**/pnpm-lock.yaml')}}
-restore-keys:|
-${{runner.os}}-pnpm-store-
+      - name: Check formatting
+        run: pnpm format:check
 
--name:Installdependencies
-run:pnpminstall--frozen-lockfile
-
--name:GeneratePrismaclientandbuilddatabasepackage
-env:
-DATABASE_URL:"postgresql://dummy:dummy@localhost:5432/dummy"
-run:|
-pnpmdb:generate
-pnpm--filter@repo/dbbuild
-
--name:Checkformatting
-run:pnpmformat:check
-
--name:Showformattingdifferences
-if:failure()
-run:|
-echo"❌Codeformattingcheckfailed!"
-echo"Run'pnpmformat'locallytofixformattingissues"
-echo"Orcheckthediffbelow:"
-pnpmformat:check||true
+      - name: Show formatting differences
+        if: failure()
+        run: |
+          echo "❌ Code formatting check failed!"
+          echo "Run 'pnpm format' locally to fix formatting issues"
+          echo "Or check the diff below:"
+          pnpm format:check || true

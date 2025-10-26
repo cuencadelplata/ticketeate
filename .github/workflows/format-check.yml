@@ -1,60 +1,60 @@
-﻿name:FormatCheck
+name: Format Check
 
 on:
-push:
-branches:[main,master,develop]
-pull_request:
-branches:[main,master,develop]
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
 
 jobs:
-format-check:
-name:FormatCheck
-runs-on:ubuntu-latest
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-steps:
--name:Checkoutcode
-uses:actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
--name:SetupNode.js
-uses:actions/setup-node@v4
-with:
-node-version:'18'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
 
--name:Setuppnpm
-uses:pnpm/action-setup@v4
-with:
-version:10.10.0
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
--name:Getpnpmstoredirectory
-shell:bash
-run:|
-echo"STORE_PATH=$(pnpmstorepath--silent)">>$GITHUB_ENV
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
--name:Setuppnpmcache
-uses:actions/cache@v4
-with:
-path:${{env.STORE_PATH}}
-key:${{runner.os}}-pnpm-store-${{hashFiles('**/pnpm-lock.yaml')}}
-restore-keys:|
-${{runner.os}}-pnpm-store-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
--name:Installdependencies
-run:pnpminstall--frozen-lockfile
+      - name: Generate Prisma client and build database package
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+        run: |
+          pnpm db:generate
+          pnpm --filter @repo/db build
 
--name:GeneratePrismaclientandbuilddatabasepackage
-env:
-DATABASE_URL:"postgresql://dummy:dummy@localhost:5432/dummy"
-run:|
-pnpmdb:generate
-pnpm--filter@repo/dbbuild
+      - name: Check formatting
+        run: pnpm format:check
 
--name:Checkformatting
-run:pnpmformat:check
-
--name:Showformattingdifferences
-if:failure()
-run:|
-echo"❌Codeformattingcheckfailed!"
-echo"Run'pnpmformat'locallytofixformattingissues"
-echo"Orcheckthediffbelow:"
-pnpmformat:check||true
+      - name: Show formatting differences
+        if: failure()
+        run: |
+          echo "❌ Code formatting check failed!"
+          echo "Run 'pnpm format' locally to fix formatting issues"
+          echo "Or check the diff below:"
+          pnpm format:check || true
