@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
@@ -60,25 +60,17 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
   return map;
 }
 
-function ComprarPageContent() {
+function ComprarEventPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('evento');
-  const stripeStatus = searchParams.get('stripe_status');
+  const params = useParams();
+  const eventId = params.eventId as string;
   const queryClient = useQueryClient();
 
   const [idUsuario] = useState<number>(1);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [showEventSelection, setShowEventSelection] = useState(!eventId);
 
   // Hook para manejar cola (usando mock para consistencia)
   const { canEnter, completePurchase } = useMockQueue(eventId || '', idUsuario.toString());
-
-  // Debug: verificar el eventId
-  useEffect(() => {
-    console.log('ComprarPage - eventId:', eventId);
-    console.log('ComprarPage - canEnter:', canEnter);
-  }, [eventId, canEnter]);
 
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
@@ -101,15 +93,13 @@ function ComprarPageContent() {
     isReservationActive,
   } = useReservation();
 
-  // Hooks para obtener eventos
-  const { data: allEvents = [], isLoading: eventsLoading } = useAllEvents();
-  const { data: eventData, isLoading: eventLoading } = usePublicEvent(eventId || undefined);
+  // Hook para obtener evento específico
+  const { data: eventData, isLoading: eventLoading } = usePublicEvent(eventId);
 
   // Efecto para cargar evento específico
   useEffect(() => {
     if (eventId && eventData) {
       setSelectedEvent(eventData);
-      setShowEventSelection(false);
       // set default sector
       const dyn = buildSectorsFromEvent(eventData);
       const first = Object.keys(dyn)[0] || '';
@@ -155,13 +145,6 @@ function ComprarPageContent() {
       (s) => String(s?.name || s?.nombre).toLowerCase() === String(sectorKey).toLowerCase(),
     );
     return Number(sec?.capacity ?? sec?.capacidad ?? 0);
-  };
-
-  // Función para seleccionar evento
-  const handleEventSelection = (event: Event) => {
-    setSelectedEvent(event);
-    setShowEventSelection(false);
-    router.push(`/comprar/${event.eventoid}`);
   };
 
   // Simple FX mock: ARS base; ajustar si tenés API de tipo de cambio
@@ -221,39 +204,6 @@ function ComprarPageContent() {
     }
   }, [metodo]);
 
-  // Manejar éxito/cancelación de Stripe
-  useEffect(() => {
-    if (stripeStatus === 'success') {
-      // Asegurar que tenemos un evento seleccionado cuando viene de Stripe
-      if (eventId && !selectedEvent && eventData) {
-        setSelectedEvent(eventData);
-        setShowEventSelection(false);
-      }
-
-      // Mostrar mensaje inicial de Stripe
-      setShowStripeMessage(true);
-      setMetodo('stripe');
-
-      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
-      const url = new URL(window.location.href);
-      url.searchParams.delete('stripe_status');
-      window.history.replaceState({}, '', url.toString());
-    } else if (stripeStatus === 'cancel') {
-      // Mostrar mensaje de cancelación
-      setError('El pago fue cancelado. Puedes intentar nuevamente.');
-
-      // Limpiar solo el parámetro stripe_status de la URL, mantener el evento
-      const url = new URL(window.location.href);
-      url.searchParams.delete('stripe_status');
-      window.history.replaceState({}, '', url.toString());
-
-      // Limpiar error después de unos segundos
-      setTimeout(() => {
-        setError(null);
-      }, 5000);
-    }
-  }, [stripeStatus, router, eventId, selectedEvent, eventData]);
-
   // Función para continuar después del mensaje de Stripe
   const handleStripeContinue = () => {
     setShowStripeMessage(false);
@@ -262,7 +212,6 @@ function ComprarPageContent() {
     const eventInfo = selectedEvent || eventData;
     if (eventInfo) {
       setSelectedEvent(eventInfo);
-      setShowEventSelection(false);
 
       // Configurar sector por defecto si no hay uno seleccionado
       if (!sector) {
@@ -313,29 +262,21 @@ function ComprarPageContent() {
     };
     setResultado(mockResultado);
     setShowSuccess(true);
-
-    console.log('Stripe continue - evento configurado:', eventInfo?.titulo);
-    console.log('Stripe continue - sector:', sector);
   };
 
   const comprar = async () => {
-    console.log('=== INICIANDO COMPRA ===');
-    console.log('selectedEvent:', selectedEvent);
-
     setLoading(true);
     setError(null);
     setResultado(null);
     setShowSuccess(false);
 
     if (isCardPayment && !isValidCardInputs()) {
-      console.log('Error: Datos de tarjeta inválidos');
       setLoading(false);
       setError('Completa correctamente número, vencimiento (MM/AA), CVV y DNI.');
       return;
     }
 
     if (!selectedEvent) {
-      console.log('Error: No hay evento seleccionado');
       setError('Por favor selecciona un evento');
       setLoading(false);
       return;
@@ -418,19 +359,14 @@ function ComprarPageContent() {
         body: JSON.stringify(datosCompra),
       });
 
-      console.log('Respuesta de la API:', res.status, res.statusText);
-      console.log('Content-Type:', res.headers.get('content-type'));
-
       // Verificar si la respuesta es JSON válido
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await res.text();
-        console.error('Respuesta no es JSON:', textResponse);
         throw new Error(`La API devolvió un error no JSON: ${textResponse}`);
       }
 
       const data = await res.json();
-      console.log('Datos recibidos:', data);
 
       if (!res.ok) throw new Error(data.error || 'Error');
 
@@ -478,8 +414,6 @@ function ComprarPageContent() {
     setCardCvv('');
     setCardDni('');
     clearReservation();
-    setSelectedEvent(null);
-    setShowEventSelection(true);
     router.push('/comprar');
   };
 
@@ -495,29 +429,18 @@ function ComprarPageContent() {
     setCardCvv('');
     setCardDni('');
     clearReservation();
-    setSelectedEvent(null);
-    setShowEventSelection(true);
     router.push('/');
   };
 
   const descargarComprobantePDF = async () => {
-    console.log('🎫 GENERANDO PDF - Datos disponibles:');
-    console.log('- resultado:', resultado);
-    console.log('- resultado.reserva:', resultado?.reserva);
-    console.log('- metodo:', metodo);
-    console.log('- cantidad:', cantidad);
-    console.log('- total:', total);
-
     const { jsPDF } = await import('jspdf');
     const QRCode = await import('qrcode');
 
     // Usar el ID de reserva real para el QR (usar reservaid que es el campo correcto)
     const reservaId =
       resultado?.reserva?.reservaid || resultado?.reserva?.id_reserva || 'no-reserva';
-    console.log('🆔 ID de reserva detectado:', reservaId);
 
     const qrData = `https://ticketeate.com/entrada/${reservaId}`;
-    console.log('🔗 QR Data:', qrData);
 
     // Generar QR como dataURL
     const qrDataUrl = await QRCode.toDataURL(qrData, {
@@ -626,59 +549,27 @@ function ComprarPageContent() {
     pdf.save(fileName);
   };
 
-  // Si está cargando eventos, mostrar loading
-  if (eventsLoading || eventLoading) {
+  // Si está cargando evento, mostrar loading
+  if (eventLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-white text-xl">Cargando eventos...</div>
+        <div className="text-white text-xl">Cargando evento...</div>
       </div>
     );
   }
 
-  // Si no hay evento seleccionado, mostrar selección de eventos
-  if (showEventSelection || !selectedEvent) {
+  // Si no hay evento o no se encontró, mostrar error
+  if (!eventId || !selectedEvent) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] p-4">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Seleccionar Evento</h1>
-            <p className="text-gray-300">Elige el evento para el cual deseas comprar entradas</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allEvents.map((event) => {
-              const portada = event.imagenes_evento?.find(
-                (i) => i.tipo === 'PORTADA' || i.tipo === 'portada',
-              )?.url;
-              const primera = event.imagenes_evento?.[0]?.url;
-              const image = portada || primera || '/icon-ticketeate.png';
-              const fecha = event.fechas_evento?.[0]?.fecha_hora
-                ? new Date(event.fechas_evento[0].fecha_hora as any)
-                : new Date(event.fecha_creacion as any);
-
-              return (
-                <div
-                  key={event.eventoid}
-                  onClick={() => handleEventSelection(event)}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
-                >
-                  <div className="relative h-48">
-                    <Image src={image} alt={event.titulo} fill className="object-cover" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">{event.titulo}</h3>
-                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                      {event.descripcion || 'Sin descripción'}
-                    </p>
-                    <div className="flex justify-between items-center text-sm text-gray-500">
-                      <span>{fecha.toLocaleDateString('es-AR')}</span>
-                      <span>{event.ubicacion || 'Ubicación por confirmar'}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">Evento no encontrado</div>
+          <button
+            onClick={() => router.push('/comprar')}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Volver a seleccionar evento
+          </button>
         </div>
       </div>
     );
@@ -688,7 +579,7 @@ function ComprarPageContent() {
     <div className="min-h-screen bg-[#0a0a0a] p-4 text-black">
       <div className={`mx-auto max-w-[1200px] space-y-4 pt-4`}>
         {/* Banner de reserva temporal */}
-        {isReserved && isReservationActive(eventId || undefined) && timeLeft > 0 && (
+        {isReserved && isReservationActive(eventId) && timeLeft > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
             <div className="flex justify-between items-center px-6 py-4">
               <div className="flex items-center space-x-3">
@@ -710,8 +601,6 @@ function ComprarPageContent() {
         <EventHeader
           event={selectedEvent}
           onBack={() => {
-            setSelectedEvent(null);
-            setShowEventSelection(true);
             router.push('/comprar');
           }}
         />
@@ -782,13 +671,13 @@ function ComprarPageContent() {
               formatPrice={formatPrice}
               currency={currency}
               onCurrencyChange={(c) => setCurrency(c)}
-              onReservar={() => startReservation(eventId || '', 300)}
+              onReservar={() => startReservation(eventId, 300)}
               onComprar={comprar}
               loading={loading}
               showSuccess={showSuccess}
               error={error}
               resetForm={resetForm}
-              isReservationActive={!!(isReserved && isReservationActive(eventId || undefined))}
+              isReservationActive={!!(isReserved && isReservationActive(eventId))}
               timeLeft={timeLeft}
             />
 
@@ -814,12 +703,12 @@ function ComprarPageContent() {
   );
 }
 
-export default function ComprarPage() {
+export default function ComprarEventPage() {
   return (
     <Suspense
       fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}
     >
-      <ComprarPageContent />
+      <ComprarEventPageContent />
     </Suspense>
   );
 }
