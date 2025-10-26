@@ -10,6 +10,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### 🎯 Próximas características
+
 - Pendiente de definir
 
 ---
