@@ -11,7 +11,9 @@
     "deploy:prod": "npm run build && serverless deploy --stage production",
     "lint": "eslint src",
     "check-types": "tsc --noEmit",
-    "test": "echo 'No tests configured yet'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "db:generate": "cd ../../packages/db && npm run db:generate",
     "db:push": "cd ../../packages/db && npm run db:push",
     "db:migrate": "cd ../../packages/db && npm run db:migrate",
@@ -32,11 +34,13 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "prisma": "^6.15.0",
     "serverless": "^3.38.0",
     "serverless-offline": "^13.3.0",
     "tsx": "^4.0.0",
     "typescript": "5.9.2",
-    "typescript-eslint": "^8.39.0"
+    "typescript-eslint": "^8.39.0",
+    "vitest": "^2.1.9"
   }
 }

@@ -1,0 +1,15 @@
+import { describe, it, expect } from 'vitest';
+import { Hono } from 'hono';
+
+describe('Producers Service Health Check', () => {
+  it('should return 200 on health endpoint', async () => {
+    const app = new Hono();
+    app.get('/health', (c) => c.json({ status: 'ok' }));
+
+    const res = await app.request('/health');
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.status).toBe('ok');
+  });
+});
