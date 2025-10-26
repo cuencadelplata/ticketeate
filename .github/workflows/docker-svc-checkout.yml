@@ -1,60 +1,60 @@
-name: 🐳 Build & Push svc-checkout to ECR
+﻿name:🐳Build&Pushsvc-checkouttoECR
 
 on:
-  push:
-    tags:
-      - 'svc-checkout-v*'
+push:
+tags:
+-'svc-checkout-v*'
 
 env:
-  AWS_REGION: us-east-2
-  ECR_REPOSITORY: ticketeate-svc-checkout
+AWS_REGION:us-east-2
+ECR_REPOSITORY:ticketeate-svc-checkout
 
 jobs:
-  build-and-push:
-    name: 🚀 Build and Push Docker Image
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+build-and-push:
+name:🚀BuildandPushDockerImage
+runs-on:ubuntu-latest
 
-      - name: 🏷️ Extract version from tag
-        id: extract_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/svc-checkout-v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Version: $VERSION"
+steps:
+-name:📥Checkoutcode
+uses:actions/checkout@v4
 
-      - name: 🔐 Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+-name:🏷️Extractversionfromtag
+id:extract_version
+run:|
+VERSION=${GITHUB_REF#refs/tags/svc-checkout-v}
+echo"version=$VERSION">>$GITHUB_OUTPUT
+echo"📦Version:$VERSION"
 
-      - name: 🔑 Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+-name:🔐ConfigureAWScredentials
+uses:aws-actions/configure-aws-credentials@v4
+with:
+aws-access-key-id:${{secrets.AWS_ACCESS_KEY_ID}}
+aws-secret-access-key:${{secrets.AWS_SECRET_ACCESS_KEY}}
+aws-region:${{env.AWS_REGION}}
 
-      - name: 🏗️ Build Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.extract_version.outputs.version }}
-        run: |
-          docker build \
-            -f apps/svc-checkout/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            .
-          echo "✅ Docker image built successfully"
+-name:🔑LogintoAmazonECR
+id:login-ecr
+uses:aws-actions/amazon-ecr-login@v2
 
-      - name: 📤 Push to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.extract_version.outputs.version }}
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "✅ Image pushed to ECR"
-          echo "📦 Image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "📦 Image: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+-name:🏗️BuildDockerimage
+env:
+ECR_REGISTRY:${{steps.login-ecr.outputs.registry}}
+IMAGE_TAG:${{steps.extract_version.outputs.version}}
+run:|
+dockerbuild\
+-fapps/svc-checkout/Dockerfile\
+-t$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\
+-t$ECR_REGISTRY/$ECR_REPOSITORY:latest\
+.
+echo"✅Dockerimagebuiltsuccessfully"
+
+-name:📤PushtoECR
+env:
+ECR_REGISTRY:${{steps.login-ecr.outputs.registry}}
+IMAGE_TAG:${{steps.extract_version.outputs.version}}
+run:|
+dockerpush$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+dockerpush$ECR_REGISTRY/$ECR_REPOSITORY:latest
+echo"✅ImagepushedtoECR"
+echo"📦Image:$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+echo"📦Image:$ECR_REGISTRY/$ECR_REPOSITORY:latest"
