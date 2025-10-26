@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   analyze-commits:
-    name: 📊 Analizar commits
+    name: Analizar commits
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
@@ -57,12 +57,12 @@ jobs:
           fi
 
   notify-breaking:
-    name: 🚨 Notificar Breaking Change
+    name: Notificar Breaking Change
     runs-on: ubuntu-latest
     needs: analyze-commits
     if: needs.analyze-commits.outputs.has_breaking == 'true'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: 💬 Crear issue para major release
@@ -104,36 +104,36 @@ jobs:
             console.log(`Issue creado: #${issue.data.number}`);
 
   release:
-    name: 🎉 Crear Release Automático
+    name: Crear Release Automático
     runs-on: ubuntu-latest
     needs: analyze-commits
     if: needs.analyze-commits.outputs.should_release == 'true'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: 📦 Instalar pnpm
+      - name: Instalar pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: 📚 Instalar dependencias de semantic-release
+      - name: Instalar dependencias de semantic-release
         run: |
           cd apps/next-frontend
-          pnpm add -D semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/npm
+          pnpm add -D semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec
 
-      - name: 🔐 Configurar Git
+      - name: Configurar Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 🚀 Ejecutar semantic-release
+      - name: Ejecutar semantic-release
         working-directory: apps/next-frontend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
           echo "🐳 El workflow de Docker build se ejecutará automáticamente con el nuevo tag"
 
   trigger-docker-build:
-    name: 🐳 Verificar Docker Build Trigger
+    name: Docker Build Trigger
     runs-on: ubuntu-latest
     needs: release
     if: success()
