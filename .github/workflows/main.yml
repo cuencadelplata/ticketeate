@@ -1,7 +1,9 @@
 name: Build and Push Ticketeate Frontend to AWS ECR
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'next-frontend-v*'  # Solo se ejecuta cuando semantic-release crea un tag
+
 jobs:
   build-and-push:
     name: Build and Push to ECR
@@ -9,13 +11,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Necesario para el tagging automático
 
-    - name: Configure Git
+    - name: Extract version from tag
+      id: extract-version
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
+        # Extrae la versión del tag (next-frontend-v1.2.3 -> 1.2.3)
+        TAG_NAME=${GITHUB_REF#refs/tags/next-frontend-v}
+        echo "version=$TAG_NAME" >> $GITHUB_OUTPUT
+        echo "📦 Version: $TAG_NAME"
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -28,17 +31,21 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Automatic Tagging of Releases
-      id: increment-git-tag
-      run: |
-        node .github/scripts/git-tag-version.js -v major
-
     - name: Build, Tag, and Push the Image to Amazon ECR
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ticketeate-web
-        IMAGE_TAG: ${{ steps.increment-git-tag.outputs.git-tag }}
+        IMAGE_TAG: ${{ steps.extract-version.outputs.version }}
       run: |
+        echo "🐳 Building Docker image..."
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        
+        echo "📤 Pushing to ECR..."
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        
+        echo "✅ Successfully pushed:"
+        echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"

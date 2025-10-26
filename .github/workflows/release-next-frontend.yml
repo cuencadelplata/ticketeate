@@ -1,4 +1,4 @@
-name: 🚀 Release - next-frontend
+name: Release - Ticketeate Web
 
 on:
   push:
@@ -148,3 +148,16 @@ jobs:
         run: |
           echo "🎉 Release creado exitosamente"
           echo "📦 Verifica la nueva versión en GitHub Releases"
+          echo "🐳 El workflow de Docker build se ejecutará automáticamente con el nuevo tag"
+
+  trigger-docker-build:
+    name: 🐳 Verificar Docker Build Trigger
+    runs-on: ubuntu-latest
+    needs: release
+    if: success()
+    steps:
+      - name: ℹ️ Info
+        run: |
+          echo "✅ El tag fue creado exitosamente"
+          echo "🔄 El workflow 'Build and Push to ECR' se ejecutará automáticamente"
+          echo "📍 Verifica en Actions → Build and Push Ticketeate Frontend to AWS ECR"

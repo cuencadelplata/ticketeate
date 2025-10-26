@@ -1,4 +1,4 @@
-name: 🔴 Manual Major Release - next-frontend
+name: Manual Major Release - Ticketeate Web
 
 on:
   workflow_dispatch:
