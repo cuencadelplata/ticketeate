@@ -13,6 +13,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  repository-projects: write
 
 jobs:
   analyze-commits:
@@ -109,11 +110,12 @@ jobs:
     needs: analyze-commits
     if: needs.analyze-commits.outputs.should_release == 'true'
     steps:
-      - name: Checkout
+      - name: 📥 Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -123,17 +125,12 @@ jobs:
       - name: Instalar pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Instalar dependencias de semantic-release
+      - name: 📚 Instalar dependencias de semantic-release
         run: |
           cd apps/next-frontend
-          pnpm add -D semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec
+          pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
-      - name: Configurar Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Ejecutar semantic-release
+      - name: 🚀 Ejecutar semantic-release
         working-directory: apps/next-frontend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
