@@ -1,0 +1,132 @@
+name: 🔴 Manual Major Release - next-frontend
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Nueva versión major (ej: 2.0.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Notas de la release (opcional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  major-release:
+    name: 🚀 Crear Major Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Validar versión
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.0\.0$ ]]; then
+            echo "❌ Error: La versión debe ser major (x.0.0)"
+            exit 1
+          fi
+          echo "✅ Versión válida: $VERSION"
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Instalar pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: 🔐 Configurar Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 📝 Actualizar package.json
+        working-directory: apps/next-frontend
+        run: |
+          pnpm version ${{ inputs.version }} --no-git-tag-version
+          
+      - name: 📋 Actualizar CHANGELOG
+        working-directory: apps/next-frontend
+        run: |
+          VERSION="${{ inputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Crear CHANGELOG si no existe
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "Todas las versiones notables de **next-frontend** serán documentadas en este archivo." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          
+          # Agregar nueva versión
+          NOTES="${{ inputs.release_notes }}"
+          if [ -z "$NOTES" ]; then
+            NOTES="Major release con cambios significativos"
+          fi
+          
+          # Insertar después del header
+          sed -i "/^# Changelog/a\\
+          \\
+          ## [$VERSION] - $DATE\\
+          \\
+          ### ⚠️ BREAKING CHANGES\\
+          \\
+          $NOTES\\
+          " CHANGELOG.md
+
+      - name: 💾 Commit y crear tag
+        run: |
+          git add apps/next-frontend/package.json apps/next-frontend/CHANGELOG.md
+          git commit -m "chore(release): next-frontend v${{ inputs.version }} [skip ci]
+
+          BREAKING CHANGE: Major release con cambios significativos
+          
+          ${{ inputs.release_notes }}"
+          
+          git tag -a "next-frontend-v${{ inputs.version }}" -m "Release next-frontend v${{ inputs.version }}"
+          git push origin main --tags
+
+      - name: 🎉 Crear GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const notes = `${{ inputs.release_notes }}` || 'Major release con cambios significativos';
+            
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: 'next-frontend-v${{ inputs.version }}',
+              name: '🔴 next-frontend v${{ inputs.version }}',
+              body: `## ⚠️ BREAKING CHANGES
+              
+              Esta es una **major release** que incluye cambios significativos.
+              
+              ### 📝 Notas de la versión
+              
+              ${notes}
+              
+              ### 🔄 Migración
+              
+              Revisa la documentación de migración antes de actualizar.
+              
+              ---
+              
+              **Fecha:** ${new Date().toLocaleDateString('es-ES')}
+              **Tipo:** Major Release`,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: ✅ Major Release completado
+        run: |
+          echo "🎉 Major Release v${{ inputs.version }} creado exitosamente"
+          echo "📦 Verifica la release en: https://github.com/${{ github.repository }}/releases"
