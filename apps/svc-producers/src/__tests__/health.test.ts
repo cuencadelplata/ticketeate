@@ -9,7 +9,7 @@ describe('Producers Service Health Check', () => {
     const res = await app.request('/health');
     expect(res.status).toBe(200);
 
-    const body = await res.json();
+    const body = (await res.json()) as { status: string };
     expect(body.status).toBe('ok');
   });
 });
