@@ -48,4 +48,3 @@ describe('Health Routes', () => {
     });
   });
 });
-

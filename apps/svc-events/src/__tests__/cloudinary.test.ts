@@ -28,4 +28,3 @@ describe('Cloudinary Config', () => {
     // Cloudinary should still be initialized even without env vars
   });
 });
-
