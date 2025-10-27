@@ -1,9 +1,14 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
 
 config();
 export const wallet = new Hono();
+
+// Helper function to get JWT payload from context
+function getJwtPayload(c: Context) {
+  return c.get('jwtPayload');
+}
 
 // Almacenamiento simple en memoria para billeteras mock (solo para desarrollo)
 const mockWallets = new Map<string, { wallet_linked: boolean; wallet_provider: string }>();
@@ -21,26 +26,15 @@ wallet.use(
   }),
 );
 
-// Middleware simple para extraer el token
-wallet.use('*', async (c, next) => {
-  const authHeader = c.req.header('Authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7);
-    // Por ahora, usamos el token como userId temporalmente
-    // En una implementación real, deberías validar el token
-    c.set('userId', token);
-  }
-  await next();
-});
-
 // Get wallet status
 wallet.get('/', async (c) => {
-  const userId = c.get('userId');
-  if (!userId || typeof userId !== 'string')
+  const jwtPayload = getJwtPayload(c);
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Usuario no autenticado' }, 401);
+  }
 
   // Verificar si hay una billetera mock para este usuario
-  const mockWallet = mockWallets.get(userId);
+  const mockWallet = mockWallets.get(jwtPayload.id);
   if (mockWallet) {
     return c.json(mockWallet);
   }
@@ -54,9 +48,10 @@ wallet.get('/', async (c) => {
 
 // Link wallet (Mercado Pago real o mock)
 wallet.post('/link', async (c) => {
-  const userId = c.get('userId');
-  if (!userId || typeof userId !== 'string')
+  const jwtPayload = getJwtPayload(c);
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Usuario no autenticado' }, 401);
+  }
 
   try {
     const body = await c.req.json();
@@ -68,7 +63,7 @@ wallet.post('/link', async (c) => {
         wallet_linked: true,
         wallet_provider: 'mock',
       };
-      mockWallets.set(userId, mockWallet);
+      mockWallets.set(jwtPayload.id, mockWallet);
       return c.json(mockWallet);
     } else {
       // Para Mercado Pago real, aquí iría la lógica de OAuth
@@ -84,13 +79,14 @@ wallet.post('/link', async (c) => {
 
 // Unlink wallet
 wallet.post('/unlink', async (c) => {
-  const userId = c.get('userId');
-  if (!userId || typeof userId !== 'string')
+  const jwtPayload = getJwtPayload(c);
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Usuario no autenticado' }, 401);
+  }
 
   // Si es una billetera mock, eliminarla del almacenamiento en memoria
-  if (mockWallets.has(userId)) {
-    mockWallets.delete(userId);
+  if (mockWallets.has(jwtPayload.id)) {
+    mockWallets.delete(jwtPayload.id);
     return c.json({
       wallet_linked: false,
       wallet_provider: null,
@@ -106,16 +102,17 @@ wallet.post('/unlink', async (c) => {
 
 // Endpoint para simular pagos (solo para desarrollo)
 wallet.post('/simulate-payment', async (c) => {
-  const userId = c.get('userId');
-  if (!userId || typeof userId !== 'string')
+  const jwtPayload = getJwtPayload(c);
+  if (!jwtPayload?.id) {
     return c.json({ error: 'Usuario no autenticado' }, 401);
+  }
 
   try {
     const body = await c.req.json();
     const { amount, eventId, ticketCount } = body;
 
     // Verificar que el usuario tenga una billetera mock vinculada
-    const mockWallet = mockWallets.get(userId);
+    const mockWallet = mockWallets.get(jwtPayload.id);
     if (!mockWallet || mockWallet.wallet_provider !== 'mock') {
       return c.json({ error: 'Billetera mock no vinculada' }, 400);
     }

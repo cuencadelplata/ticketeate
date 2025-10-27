@@ -22,3 +22,4 @@ describe('Prisma Config', () => {
     expect(typeof mockPrisma).toBe('object');
   });
 });
+

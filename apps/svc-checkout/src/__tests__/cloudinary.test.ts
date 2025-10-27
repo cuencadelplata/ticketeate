@@ -51,3 +51,4 @@ describe('Cloudinary Config', () => {
     expect(cloudinaryModule.default).toBe(mockCloudinary);
   });
 });
+
