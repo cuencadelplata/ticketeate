@@ -56,13 +56,17 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-4xl font-normal tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-7xl font-instrument-serif"
             >
-              Eventos sin{' '}
+              <span className="bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent">
+                Eventos sin{' '}
+              </span>
               <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent italic inline-block px-1 font-instrument-serif">
                 límites
               </span>
               ,
               <br />
-              gestión sin{' '}
+              <span className="bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent">
+                gestión sin{' '}
+              </span>
               <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent italic inline-block px-1 font-instrument-serif">
                 complicaciones
               </span>
