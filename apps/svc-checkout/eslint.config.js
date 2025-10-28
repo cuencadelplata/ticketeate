@@ -6,10 +6,13 @@ module.exports = [
   ...tseslint.configs.recommended,
   {
     files: ["src/**/*.ts", "dev.ts"],
+    ignores: ["**/*.config.js", "**/*.config.ts"],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: "module",
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
       },
     },
     rules: {

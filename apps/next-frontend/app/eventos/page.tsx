@@ -386,7 +386,7 @@ export default function EventosPage() {
           {loading ? (
             <EventsCardsSkeleton />
           ) : !hasEvents ? (
-            <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex flex-col items-center justify-center py-12 pb-6">
               <div className="mb-8 rounded-2xl bg-gradient-to-br from-[#2A2A2A] to-[#3A3A3A] p-8 border border-[#4A4A4A]">
                 <Calendar className="h-20 w-20 text-stone-400 mx-auto" />
               </div>
@@ -394,14 +394,16 @@ export default function EventosPage() {
                 Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
               </h2>
               <p className="mb-8 text-stone-400 text-lg text-center max-w-md">
-                {activeTab === 'proximos'
-                  ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
-                  : 'No tienes eventos pasados.'}
+                {activeTab === 'proximos' ? (
+                  <>¿Por qué no organizas uno?</>
+                ) : (
+                  'No tienes eventos pasados.'
+                )}
               </p>
               {activeTab === 'proximos' && (
                 <Link href="/crear">
-                  <button className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-lg font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
-                    <Plus className="h-5 w-5" />
+                  <button className="flex items-center gap-3 rounded-md bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-md font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
+                    <Plus className="h-4 w-4" />
                     <span>Crear mi primer evento</span>
                   </button>
                 </Link>

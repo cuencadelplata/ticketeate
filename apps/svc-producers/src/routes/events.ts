@@ -1,6 +1,5 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { cors } from 'hono/cors';
-import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
 import { config } from 'dotenv';
@@ -8,6 +7,11 @@ import { config } from 'dotenv';
 // Cargar variables de entorno
 config();
 const events = new Hono();
+
+// Helper function to get JWT payload from context
+function getJwtPayload(c: Context) {
+  return c.get('jwtPayload');
+}
 
 // CORS para permitir Authorization y cookies (credenciales)
 events.use(
@@ -22,19 +26,11 @@ events.use(
   }),
 );
 
-events.use(
-  '*',
-  clerkMiddleware({
-    secretKey: process.env.CLERK_SECRET_KEY,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-  }),
-);
-
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = getJwtPayload(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -65,7 +61,7 @@ events.post('/', async (c) => {
         fecha_fin: new Date(fecha.fecha_fin),
       })),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
-      clerkUserId: auth.userId,
+      clerkUserId: jwtPayload.id,
     };
 
     // Crear el evento
@@ -93,8 +89,8 @@ events.post('/', async (c) => {
 // POST /api/events/upload-image - Subir imagen para un evento
 events.post('/upload-image', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = getJwtPayload(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -121,7 +117,7 @@ events.post('/upload-image', async (c) => {
         format: uploadResult.format,
         size: uploadResult.size,
       },
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -138,17 +134,17 @@ events.post('/upload-image', async (c) => {
 // GET /api/events - Obtener eventos del usuario
 events.get('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = getJwtPayload(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
-    const events = await EventService.getUserEvents(auth.userId);
+    const events = await EventService.getUserEvents(jwtPayload.id);
 
     return c.json({
       events,
       total: events.length,
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -165,8 +161,8 @@ events.get('/', async (c) => {
 // GET /api/events/:id - Obtener evento específico
 events.get('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = getJwtPayload(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -180,7 +176,7 @@ events.get('/:id', async (c) => {
 
     return c.json({
       event,
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
