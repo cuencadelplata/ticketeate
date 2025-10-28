@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock de las rutas antes de importar la app
 vi.mock('../routes/api', () => ({
@@ -83,14 +83,14 @@ describe('App', () => {
   });
 
   describe('Environment Variables', () => {
-    it('should use environment variables for JWK configuration', () => {
+    it('should use environment variables for JWK configuration', async () => {
       // Verificar que la configuración de JWK usa las variables de entorno correctas
       const originalEnv = process.env.FRONTEND_URL;
 
       process.env.FRONTEND_URL = 'https://example.com';
 
       // Re-importar la app para que use la nueva variable de entorno
-      const { default: newApp } = require('../app');
+      const { default: newApp } = await import('../app');
 
       // Verificar que la app se crea correctamente con la nueva configuración
       expect(newApp).toBeDefined();
