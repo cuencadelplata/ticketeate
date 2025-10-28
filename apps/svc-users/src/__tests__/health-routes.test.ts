@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { healthRoutes } from '../routes/health';
+import { healthRoutes } from '../routes/health.js';
 
 describe('Health Routes', () => {
   describe('GET /health/', () => {

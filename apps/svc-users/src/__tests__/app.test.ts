@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../app';
+import app from '../app.js';
 import jwt from 'jsonwebtoken';
 
 // Mock environment variables
@@ -134,7 +134,7 @@ describe('App', () => {
       const testApp = new Hono();
 
       // Add the same middleware as the main app
-      testApp.use('*', (c, next) => {
+      testApp.use('*', (_c, next) => {
         return next();
       });
 
@@ -142,7 +142,7 @@ describe('App', () => {
         throw new Error('Test error');
       });
 
-      testApp.onError((err, c) => {
+      testApp.onError((_err, c) => {
         return c.json({ error: 'Internal Server Error' }, 500);
       });
 

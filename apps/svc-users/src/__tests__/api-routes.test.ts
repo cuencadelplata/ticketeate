@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { apiRoutes } from '../routes/api';
+import { apiRoutes } from '../routes/api.js';
 
 describe('API Routes', () => {
   beforeEach(() => {

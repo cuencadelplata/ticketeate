@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { wallet } from '../routes/wallet';
+import { wallet } from '../routes/wallet.js';
 
 describe('Wallet Routes', () => {
   beforeEach(() => {

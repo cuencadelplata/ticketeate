@@ -14,7 +14,7 @@ vi.mock('@repo/db', () => ({
 
 describe('WalletService', () => {
   it('should be importable', async () => {
-    const { WalletService } = await import('../services/wallet-service');
+    const { WalletService } = await import('../services/wallet-service.js');
     expect(WalletService).toBeDefined();
     expect(typeof WalletService.getWalletStatus).toBe('function');
     expect(typeof WalletService.linkWallet).toBe('function');
@@ -23,7 +23,7 @@ describe('WalletService', () => {
   });
 
   it('should have correct interface', async () => {
-    const { WalletService } = await import('../services/wallet-service');
+    const { WalletService } = await import('../services/wallet-service.js');
 
     // Test that the service has the expected methods
     expect(WalletService.getWalletStatus).toBeInstanceOf(Function);
