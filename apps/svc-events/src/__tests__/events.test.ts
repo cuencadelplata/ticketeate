@@ -352,23 +352,30 @@ describe('Events Routes', () => {
 
       vi.mocked(ImageUploadService.uploadImage).mockResolvedValue(mockUploadResult);
 
-      // Create a mock file
-      const mockFile = new File(['fake-image-data'], 'test.jpg', { type: 'image/jpeg' });
-      const formData = new FormData();
-      formData.append('file', mockFile);
+      // Create a mock FormData with file
+      const boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW';
+      const body = [
+        `------WebKitFormBoundary7MA4YWxkTrZu0gW`,
+        `Content-Disposition: form-data; name="file"; filename="test.jpg"`,
+        `Content-Type: image/jpeg`,
+        ``,
+        `fake-image-data`,
+        `------WebKitFormBoundary7MA4YWxkTrZu0gW--`,
+      ].join('\r\n');
 
       const res = await events.request('/upload-image', {
         method: 'POST',
         headers: {
           Authorization: 'Bearer valid-token',
+          'Content-Type': `multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW`,
         },
-        body: formData,
+        body,
       });
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
-      expect(body).toEqual({
+      const responseBody = await res.json();
+      expect(responseBody).toEqual({
         message: 'Imagen subida exitosamente',
         image: mockUploadResult,
         userId: 'user-123',
@@ -382,20 +389,22 @@ describe('Events Routes', () => {
         email: 'test@example.com',
       } as any);
 
-      const formData = new FormData();
+      // Empty multipart body
+      const body = `------WebKitFormBoundary7MA4YWxkTrZu0gW--\r\n`;
 
       const res = await events.request('/upload-image', {
         method: 'POST',
         headers: {
           Authorization: 'Bearer valid-token',
+          'Content-Type': `multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW`,
         },
-        body: formData,
+        body,
       });
 
       expect(res.status).toBe(400);
 
-      const body = await res.json();
-      expect(body).toEqual({
+      const responseBody = await res.json();
+      expect(responseBody).toEqual({
         error: 'No se proporcionó ninguna imagen válida',
       });
     });
