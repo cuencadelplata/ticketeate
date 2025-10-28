@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mock de Cloudinary antes de importar
-const mockCloudinary = {
+// Mock de Cloudinary usando vi.hoisted para evitar problemas de hoisting
+const mockCloudinary = vi.hoisted(() => ({
   uploader: {
     upload_stream: vi.fn(),
     destroy: vi.fn(),
   },
-};
+}));
 
 vi.mock('../config/cloudinary', () => ({
   default: mockCloudinary,

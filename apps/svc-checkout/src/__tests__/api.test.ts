@@ -1,30 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-// Mock de Clerk Auth
-vi.mock('@hono/clerk-auth', () => ({
-  clerkMiddleware: vi.fn(() => (c: any, next: any) => next()),
-  getAuth: vi.fn(),
-}));
+import { Hono } from 'hono';
 
 // Mock de las rutas de eventos
 vi.mock('../routes/events', () => ({
   events: new Hono(),
 }));
 
-import { Hono } from 'hono';
 import { apiRoutes } from '../routes/api';
-import { getAuth } from '@hono/clerk-auth';
 
 describe('API Routes', () => {
+  let testApp: Hono;
+
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Create a test app that includes middleware to set jwtPayload
+    testApp = new Hono();
   });
 
   describe('GET /api/users/:id', () => {
     it('should return user data when authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' });
+      // Setup middleware to mock JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/users/123');
+      const res = await testApp.request('/users/123');
 
       expect(res.status).toBe(200);
 
@@ -36,9 +39,10 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue(null);
+      // No JWT payload set
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/users/123');
+      const res = await testApp.request('/users/123');
 
       expect(res.status).toBe(401);
 
@@ -47,9 +51,14 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when userId is missing', async () => {
-      vi.mocked(getAuth).mockReturnValue({});
+      // Setup middleware with empty JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', {});
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/users/123');
+      const res = await testApp.request('/users/123');
 
       expect(res.status).toBe(401);
 
@@ -60,11 +69,16 @@ describe('API Routes', () => {
 
   describe('POST /api/users', () => {
     it('should create user when authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' });
+      // Setup middleware to mock JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
       const userData = { name: 'Jane Doe', email: 'jane@example.com' };
 
-      const res = await apiRoutes.request('/users', {
+      const res = await testApp.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -79,11 +93,12 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue(null);
+      // No JWT payload set
+      testApp.route('/', apiRoutes);
 
       const userData = { name: 'Jane Doe', email: 'jane@example.com' };
 
-      const res = await apiRoutes.request('/users', {
+      const res = await testApp.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -98,11 +113,16 @@ describe('API Routes', () => {
 
   describe('PUT /api/users/:id', () => {
     it('should update user when authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' });
+      // Setup middleware to mock JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
       const userData = { name: 'Jane Updated', email: 'jane.updated@example.com' };
 
-      const res = await apiRoutes.request('/users/123', {
+      const res = await testApp.request('/users/123', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -118,11 +138,12 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue(null);
+      // No JWT payload set
+      testApp.route('/', apiRoutes);
 
       const userData = { name: 'Jane Updated', email: 'jane.updated@example.com' };
 
-      const res = await apiRoutes.request('/users/123', {
+      const res = await testApp.request('/users/123', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -137,9 +158,14 @@ describe('API Routes', () => {
 
   describe('DELETE /api/users/:id', () => {
     it('should delete user when authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' });
+      // Setup middleware to mock JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/users/123', {
+      const res = await testApp.request('/users/123', {
         method: 'DELETE',
       });
 
@@ -152,9 +178,10 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue(null);
+      // No JWT payload set
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/users/123', {
+      const res = await testApp.request('/users/123', {
         method: 'DELETE',
       });
 
@@ -167,9 +194,19 @@ describe('API Routes', () => {
 
   describe('GET /api/protected/profile', () => {
     it('should return profile data when authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' });
+      // Setup middleware to mock JWT payload
+      testApp.use('*', async (c, next) => {
+        c.set('jwtPayload', {
+          id: 'user-123',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'admin',
+        });
+        await next();
+      });
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/protected/profile');
+      const res = await testApp.request('/protected/profile');
 
       expect(res.status).toBe(200);
 
@@ -182,9 +219,10 @@ describe('API Routes', () => {
     });
 
     it('should return 401 when not authenticated', async () => {
-      vi.mocked(getAuth).mockReturnValue(null);
+      // No JWT payload set
+      testApp.route('/', apiRoutes);
 
-      const res = await apiRoutes.request('/protected/profile');
+      const res = await testApp.request('/protected/profile');
 
       expect(res.status).toBe(401);
 

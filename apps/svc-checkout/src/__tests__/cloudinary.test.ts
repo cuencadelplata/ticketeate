@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
-// Mock de Cloudinary antes de importar
-const mockCloudinary = {
+// Mock de Cloudinary usando vi.hoisted para evitar problemas de hoisting
+const mockCloudinary = vi.hoisted(() => ({
   config: vi.fn(),
-};
+}));
 
 vi.mock('cloudinary', () => ({
   v2: mockCloudinary,
@@ -12,10 +12,15 @@ vi.mock('cloudinary', () => ({
 describe('Cloudinary Config', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules(); // Reset module cache
     // Limpiar variables de entorno
     delete process.env.CLOUDINARY_CLOUD_NAME;
     delete process.env.CLOUDINARY_API_KEY;
     delete process.env.CLOUDINARY_API_SECRET;
+  });
+
+  afterEach(() => {
+    vi.resetModules(); // Reset module cache after each test
   });
 
   it('should configure Cloudinary with environment variables', async () => {
