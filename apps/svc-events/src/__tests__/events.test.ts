@@ -353,7 +353,6 @@ describe('Events Routes', () => {
       vi.mocked(ImageUploadService.uploadImage).mockResolvedValue(mockUploadResult);
 
       // Create a mock FormData with file
-      const boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW';
       const body = [
         `------WebKitFormBoundary7MA4YWxkTrZu0gW`,
         `Content-Disposition: form-data; name="file"; filename="test.jpg"`,
