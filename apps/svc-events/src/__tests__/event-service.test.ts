@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EventService, CreateEventData } from '../services/event-service';
+import { Prisma } from '@prisma/client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock Prisma
 vi.mock('@repo/db', () => ({
   prisma: {
@@ -72,10 +74,16 @@ describe('EventService', () => {
         name: 'Test User',
         email: 'test@example.com',
         emailVerified: false,
+        image: null,
         role: 'USUARIO',
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+        wallet_linked: false,
+        wallet_provider: null,
+        mercado_pago_user_id: null,
+        mercado_pago_access_token: null,
+        mercado_pago_refresh_token: null,
+      } as any);
 
       vi.mocked(mockPrisma.prisma.categoriaevento.findFirst).mockResolvedValue({
         categoriaeventoid: 1,
@@ -92,6 +100,8 @@ describe('EventService', () => {
         fecha_publicacion: null,
         creadorid: 'user-123',
         fecha_creacion: new Date(),
+        fecha_cambio: new Date(),
+        views: 0,
       });
 
       vi.mocked(mockPrisma.prisma.imagenes_evento.createMany).mockResolvedValue({ count: 0 });
@@ -102,11 +112,13 @@ describe('EventService', () => {
         eventoid: 'event-123',
         total_vendidos: 0,
         total_cancelados: 0,
-        total_ingresos: 0,
-      });
+        total_ingresos: new Prisma.Decimal(0),
+        ultima_actualizacion: new Date(),
+      } as any);
       vi.mocked(mockPrisma.prisma.colas_evento.create).mockResolvedValue({
         colaid: 'queue-123',
         eventoid: 'event-123',
+        fecha_creacion: new Date(),
         max_concurrentes: 10,
         max_usuarios: 100,
       });
@@ -127,10 +139,9 @@ describe('EventService', () => {
         fecha_publicacion: null,
         creadorid: 'user-123',
         fecha_creacion: new Date(),
-        imagenes_evento: [],
-        fechas_evento: [],
-        evento_categorias: [],
-      });
+        fecha_cambio: new Date(),
+        views: 0,
+      } as any);
 
       const result = await EventService.createEvent(mockEventData);
 
@@ -177,7 +188,7 @@ describe('EventService', () => {
         evento_estado: [],
       };
 
-      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent);
+      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent as any);
 
       const result = await EventService.getEventById('event-123');
 
@@ -218,7 +229,7 @@ describe('EventService', () => {
         },
       ];
 
-      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockEvents);
+      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockEvents as any);
 
       const result = await EventService.getUserEvents('user-123');
 
@@ -264,7 +275,7 @@ describe('EventService', () => {
         },
       ];
 
-      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockEvents);
+      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockEvents as any);
 
       const result = await EventService.getAllPublicEvents();
 
@@ -283,7 +294,7 @@ describe('EventService', () => {
         creadorid: 'user-123',
       };
 
-      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent);
+      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent as any);
       vi.mocked(mockPrisma.prisma.evento_estado.create).mockResolvedValue({
         stateventid: 'state-123',
         eventoid: 'event-123',
@@ -323,7 +334,7 @@ describe('EventService', () => {
         creadorid: 'other-user',
       };
 
-      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent);
+      vi.mocked(mockPrisma.prisma.eventos.findUnique).mockResolvedValue(mockEvent as any);
 
       await expect(EventService.softDeleteEvent('event-123', 'user-123')).rejects.toThrow(
         'No autorizado',
@@ -345,7 +356,7 @@ describe('EventService', () => {
         },
       ];
 
-      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockScheduledEvents);
+      vi.mocked(mockPrisma.prisma.eventos.findMany).mockResolvedValue(mockScheduledEvents as any);
       vi.mocked(mockPrisma.prisma.evento_estado.create).mockResolvedValue({
         stateventid: 'state-123',
         eventoid: 'event-1',

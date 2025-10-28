@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { events } from '../routes/events';
 import jwt from 'jsonwebtoken';
+import { events } from '../routes/events';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock dependencies
 vi.mock('../services/event-service', () => ({
@@ -48,7 +50,7 @@ describe('Events Routes', () => {
 
   describe('GET /all', () => {
     it('should return all public events', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
       const mockEvents = [
         {
           eventoid: 'event-1',
@@ -71,7 +73,7 @@ describe('Events Routes', () => {
     });
 
     it('should handle errors when getting all events', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
 
       vi.mocked(EventService.getAllPublicEvents).mockRejectedValue(new Error('Database error'));
 
@@ -87,7 +89,7 @@ describe('Events Routes', () => {
 
   describe('GET /public/:id', () => {
     it('should return public event by id', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
       const mockEvent = {
         eventoid: 'event-1',
         titulo: 'Test Event',
@@ -107,7 +109,7 @@ describe('Events Routes', () => {
     });
 
     it('should return 404 when event not found', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
 
       vi.mocked(EventService.getPublicEventVisibleById).mockResolvedValue(null);
 
@@ -123,12 +125,12 @@ describe('Events Routes', () => {
 
   describe('POST /', () => {
     it('should create event with valid data', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
       const mockJwtVerify = vi.mocked(jwt.verify);
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const mockEvent = {
         eventoid: 'event-1',
@@ -194,7 +196,7 @@ describe('Events Routes', () => {
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const eventData = {
         titulo: 'Test Event',
@@ -278,12 +280,12 @@ describe('Events Routes', () => {
 
   describe('GET /', () => {
     it('should return user events when authenticated', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
       const mockJwtVerify = vi.mocked(jwt.verify);
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const mockEvents = [
         {
@@ -334,12 +336,12 @@ describe('Events Routes', () => {
 
   describe('POST /upload-image', () => {
     it('should upload image successfully', async () => {
-      const { ImageUploadService } = await import('../services/image-upload');
+      const { ImageUploadService } = await import('../services/image-upload.js');
       const mockJwtVerify = vi.mocked(jwt.verify);
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const mockUploadResult = {
         url: 'https://example.com/image.jpg',
@@ -378,7 +380,7 @@ describe('Events Routes', () => {
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const formData = new FormData();
 
@@ -401,7 +403,7 @@ describe('Events Routes', () => {
 
   describe('POST /publish-scheduled', () => {
     it('should publish scheduled events', async () => {
-      const { EventService } = await import('../services/event-service');
+      const { EventService } = await import('../services/event-service.js');
 
       const mockResult = {
         published: 2,

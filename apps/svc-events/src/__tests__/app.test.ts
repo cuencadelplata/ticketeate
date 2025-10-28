@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock JWT
 vi.mock('jsonwebtoken', () => ({
   default: {
@@ -27,7 +28,8 @@ describe('App', () => {
   describe('Root endpoint', () => {
     it('should return API info on root endpoint', async () => {
       // Import app after mocks are set up
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/');
       expect(res.status).toBe(200);
@@ -43,7 +45,8 @@ describe('App', () => {
 
   describe('Health endpoint', () => {
     it('should return health status', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/health');
       expect(res.status).toBe(200);
@@ -59,7 +62,8 @@ describe('App', () => {
 
   describe('JWT Middleware', () => {
     it('should reject requests without Authorization header', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/api/events');
       expect(res.status).toBe(401);
@@ -71,7 +75,8 @@ describe('App', () => {
     });
 
     it('should reject requests with invalid Authorization header format', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/api/events', {
         headers: {
@@ -87,7 +92,8 @@ describe('App', () => {
     });
 
     it('should reject requests with invalid JWT token', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
       const mockJwtVerify = vi.mocked(jwt.verify);
       mockJwtVerify.mockImplementation(() => {
         throw new Error('Invalid token');
@@ -107,12 +113,13 @@ describe('App', () => {
     });
 
     it('should accept requests with valid JWT token', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
       const mockJwtVerify = vi.mocked(jwt.verify);
       mockJwtVerify.mockReturnValue({
         id: 'user-123',
         email: 'test@example.com',
-      });
+      } as any);
 
       const res = await app.request('/api/events', {
         headers: {
@@ -127,7 +134,8 @@ describe('App', () => {
 
   describe('CORS', () => {
     it('should handle OPTIONS requests', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/api/events', {
         method: 'OPTIONS',
@@ -143,7 +151,8 @@ describe('App', () => {
 
   describe('404 handler', () => {
     it('should return 404 for non-existent routes', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       const res = await app.request('/non-existent-route');
       expect(res.status).toBe(404);
@@ -157,7 +166,8 @@ describe('App', () => {
 
   describe('Error handler', () => {
     it('should handle internal server errors', async () => {
-      const { default: app } = await import('../app');
+      const appModule = await import('../app.js');
+      const app = appModule.default as any;
 
       // This test would require mocking a route that throws an error
       // For now, we'll test that the error handler exists by checking the app structure

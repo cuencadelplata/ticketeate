@@ -15,7 +15,7 @@ describe('API Routes', () => {
 
   describe('GET /users/:id', () => {
     it('should return 401 when no JWT payload', async () => {
-      const { apiRoutes } = await import('../routes/api');
+      const { apiRoutes } = await import('../routes/api.js');
 
       const res = await apiRoutes.request('/users/123');
       expect(res.status).toBe(401);
@@ -29,7 +29,7 @@ describe('API Routes', () => {
 
   describe('POST /users', () => {
     it('should return 401 when no JWT payload', async () => {
-      const { apiRoutes } = await import('../routes/api');
+      const { apiRoutes } = await import('../routes/api.js');
 
       const res = await apiRoutes.request('/users', {
         method: 'POST',
@@ -49,7 +49,7 @@ describe('API Routes', () => {
 
   describe('PUT /users/:id', () => {
     it('should return 401 when no JWT payload', async () => {
-      const { apiRoutes } = await import('../routes/api');
+      const { apiRoutes } = await import('../routes/api.js');
 
       const res = await apiRoutes.request('/users/123', {
         method: 'PUT',
@@ -69,7 +69,7 @@ describe('API Routes', () => {
 
   describe('DELETE /users/:id', () => {
     it('should return 401 when no JWT payload', async () => {
-      const { apiRoutes } = await import('../routes/api');
+      const { apiRoutes } = await import('../routes/api.js');
 
       const res = await apiRoutes.request('/users/123', {
         method: 'DELETE',
@@ -85,7 +85,7 @@ describe('API Routes', () => {
 
   describe('GET /protected/profile', () => {
     it('should return 401 when no JWT payload', async () => {
-      const { apiRoutes } = await import('../routes/api');
+      const { apiRoutes } = await import('../routes/api.js');
 
       const res = await apiRoutes.request('/protected/profile');
       expect(res.status).toBe(401);
