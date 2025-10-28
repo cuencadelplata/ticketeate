@@ -112,7 +112,7 @@ export default function EventoPage() {
   const handleEnterPurchase = () => {
     if (id) {
       startReservation(id, 300);
-      router.push(`/comprar?evento=${id}`);
+      router.push(`/evento/comprar/${id}`);
     }
   };
 
@@ -517,7 +517,6 @@ export default function EventoPage() {
         </div>
       </div>
 
-      {/* Modal de cola */}
       {showQueueModal && (
         <QueueModal
           isOpen={showQueueModal}

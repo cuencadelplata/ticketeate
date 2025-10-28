@@ -1,8 +1,8 @@
-import { Hono } from 'hono';
+import { Hono, Context, Next } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
-import { jwk } from 'hono/jwk';
+import jwt from 'jsonwebtoken';
 
 // Import types
 import './types/hono';
@@ -10,6 +10,35 @@ import './types/hono';
 // Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
+
+// Custom JWT middleware using shared secret (same as frontend)
+async function jwtMiddleware(c: Context, next: Next) {
+  try {
+    const authHeader = c.req.header('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Missing or invalid Authorization header' }, 401);
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify JWT token using shared secret (same as frontend)
+    const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
+      issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
+      audience: process.env.FRONTEND_URL || 'http://localhost:3000',
+      algorithms: ['HS256'], // Specify algorithm
+    });
+
+    // Store JWT payload in context
+    c.set('jwtPayload', payload);
+
+    await next();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('JWT Middleware - JWT verification failed:', error);
+    return c.json({ error: 'Invalid token' }, 401);
+  }
+}
 
 const app = new Hono();
 
@@ -26,16 +55,8 @@ app.use(
   }),
 );
 
-// JWK Authentication middleware for protected routes
-app.use(
-  '/api/*',
-  jwk({
-    jwks_uri: process.env.FRONTEND_URL
-      ? `${process.env.FRONTEND_URL}/.well-known/jwks.json`
-      : 'http://localhost:3000/.well-known/jwks.json',
-    allow_anon: false, // Require authentication for API routes
-  }),
-);
+// JWT Authentication middleware for protected routes
+app.use('/api/*', jwtMiddleware);
 
 // Routes
 app.route('/api', apiRoutes);

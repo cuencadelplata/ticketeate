@@ -161,7 +161,7 @@ function ComprarPageContent() {
   const handleEventSelection = (event: Event) => {
     setSelectedEvent(event);
     setShowEventSelection(false);
-    router.push(`/comprar?evento=${event.eventoid}`);
+    router.push(`/comprar/${event.eventoid}`);
   };
 
   // Simple FX mock: ARS base; ajustar si tenés API de tipo de cambio
