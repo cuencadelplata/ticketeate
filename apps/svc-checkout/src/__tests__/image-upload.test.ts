@@ -32,7 +32,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         // Simular callback exitoso
         setTimeout(() => callback(null, mockResult), 0);
         return mockUploadStream;
@@ -75,7 +75,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         setTimeout(() => callback(null, mockResult), 0);
         return mockUploadStream;
       });
@@ -109,7 +109,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         setTimeout(() => callback(uploadError, null), 0);
         return mockUploadStream;
       });
@@ -126,7 +126,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         setTimeout(() => callback(null, null), 0);
         return mockUploadStream;
       });
@@ -150,7 +150,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         setTimeout(() => callback(null, mockResult), 0);
         return mockUploadStream;
       });
@@ -173,7 +173,7 @@ describe('ImageUploadService', () => {
         end: vi.fn(),
       };
 
-      mockCloudinary.uploader.upload_stream.mockImplementation((options, callback) => {
+      mockCloudinary.uploader.upload_stream.mockImplementation((_options, callback) => {
         setTimeout(() => callback(null, mockResult), 0);
         return mockUploadStream;
       });
@@ -187,7 +187,7 @@ describe('ImageUploadService', () => {
 
   describe('deleteImage', () => {
     it('should delete image successfully', async () => {
-      mockCloudinary.uploader.destroy.mockImplementation((publicId, callback) => {
+      mockCloudinary.uploader.destroy.mockImplementation((_publicId, callback) => {
         setTimeout(() => callback(null, { result: 'ok' }), 0);
       });
 
@@ -202,7 +202,7 @@ describe('ImageUploadService', () => {
     it('should handle delete errors', async () => {
       const deleteError = new Error('Delete failed');
 
-      mockCloudinary.uploader.destroy.mockImplementation((publicId, callback) => {
+      mockCloudinary.uploader.destroy.mockImplementation((_publicId, callback) => {
         setTimeout(() => callback(deleteError, null), 0);
       });
 

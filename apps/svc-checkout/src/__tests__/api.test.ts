@@ -22,7 +22,8 @@ describe('API Routes', () => {
     it('should return user data when authenticated', async () => {
       // Setup middleware to mock JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', { id: 'user-123', role: 'admin' });
         await next();
       });
       testApp.route('/', apiRoutes);
@@ -31,7 +32,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('id', 123);
       expect(body).toHaveProperty('name', 'John Doe');
       expect(body).toHaveProperty('email', 'john@example.com');
@@ -46,14 +47,15 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
 
     it('should return 401 when userId is missing', async () => {
       // Setup middleware with empty JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', {});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', {});
         await next();
       });
       testApp.route('/', apiRoutes);
@@ -62,7 +64,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
   });
@@ -71,7 +73,8 @@ describe('API Routes', () => {
     it('should create user when authenticated', async () => {
       // Setup middleware to mock JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', { id: 'user-123', role: 'admin' });
         await next();
       });
       testApp.route('/', apiRoutes);
@@ -86,7 +89,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(201);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('message', 'User created successfully');
       expect(body).toHaveProperty('user', userData);
       expect(body).toHaveProperty('authenticatedUserId', 'user-123');
@@ -106,7 +109,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
   });
@@ -115,7 +118,8 @@ describe('API Routes', () => {
     it('should update user when authenticated', async () => {
       // Setup middleware to mock JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', { id: 'user-123', role: 'admin' });
         await next();
       });
       testApp.route('/', apiRoutes);
@@ -130,7 +134,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('message', 'User updated successfully');
       expect(body).toHaveProperty('id', 123);
       expect(body).toHaveProperty('user', userData);
@@ -151,7 +155,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
   });
@@ -160,7 +164,8 @@ describe('API Routes', () => {
     it('should delete user when authenticated', async () => {
       // Setup middleware to mock JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', { id: 'user-123', role: 'admin' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', { id: 'user-123', role: 'admin' });
         await next();
       });
       testApp.route('/', apiRoutes);
@@ -171,7 +176,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('message', 'User deleted successfully');
       expect(body).toHaveProperty('id', 123);
       expect(body).toHaveProperty('authenticatedUserId', 'user-123');
@@ -187,7 +192,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
   });
@@ -196,7 +201,8 @@ describe('API Routes', () => {
     it('should return profile data when authenticated', async () => {
       // Setup middleware to mock JWT payload
       testApp.use('*', async (c, next) => {
-        c.set('jwtPayload', {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c as any).set('jwtPayload', {
           id: 'user-123',
           name: 'John Doe',
           email: 'john@example.com',
@@ -210,12 +216,12 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('message', 'This is a protected route');
       expect(body).toHaveProperty('user');
-      expect(body.user).toHaveProperty('id', 'user-123');
-      expect(body.user).toHaveProperty('name', 'John Doe');
-      expect(body.user).toHaveProperty('role', 'admin');
+      expect(body.user as Record<string, unknown>).toHaveProperty('id', 'user-123');
+      expect(body.user as Record<string, unknown>).toHaveProperty('name', 'John Doe');
+      expect(body.user as Record<string, unknown>).toHaveProperty('role', 'admin');
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -226,7 +232,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(401);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('error', 'Unauthorized');
     });
   });

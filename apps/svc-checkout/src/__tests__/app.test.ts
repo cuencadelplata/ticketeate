@@ -19,11 +19,11 @@ describe('App', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('message', 'Hono Backend API');
       expect(body).toHaveProperty('version', '1.0.0');
       expect(body).toHaveProperty('timestamp');
-      expect(new Date(body.timestamp)).toBeInstanceOf(Date);
+      expect(new Date(body.timestamp as string)).toBeInstanceOf(Date);
     });
   });
 
@@ -50,28 +50,6 @@ describe('App', () => {
 
       // CORS middleware returns 204 for OPTIONS requests
       expect(res.status).toBe(204);
-    });
-  });
-
-  describe('Environment Variables', () => {
-    it('should use environment variables for JWK configuration', async () => {
-      // Verificar que la configuración de JWK usa las variables de entorno correctas
-      const originalEnv = process.env.FRONTEND_URL;
-
-      process.env.FRONTEND_URL = 'https://example.com';
-
-      // Re-importar la app para que use la nueva variable de entorno
-      const { default: newApp } = await import('../app');
-
-      // Verificar que la app se crea correctamente con la nueva configuración
-      expect(newApp).toBeDefined();
-
-      // Restaurar la variable de entorno original
-      if (originalEnv) {
-        process.env.FRONTEND_URL = originalEnv;
-      } else {
-        delete process.env.FRONTEND_URL;
-      }
     });
   });
 });

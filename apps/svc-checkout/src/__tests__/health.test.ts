@@ -8,13 +8,13 @@ describe('Health Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('status', 'healthy');
       expect(body).toHaveProperty('timestamp');
       expect(body).toHaveProperty('uptime');
       expect(body).toHaveProperty('environment');
 
-      expect(new Date(body.timestamp)).toBeInstanceOf(Date);
+      expect(new Date(body.timestamp as string)).toBeInstanceOf(Date);
       expect(typeof body.uptime).toBe('number');
       expect(typeof body.environment).toBe('string');
     });
@@ -26,11 +26,11 @@ describe('Health Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('status', 'ready');
       expect(body).toHaveProperty('timestamp');
 
-      expect(new Date(body.timestamp)).toBeInstanceOf(Date);
+      expect(new Date(body.timestamp as string)).toBeInstanceOf(Date);
     });
   });
 
@@ -40,11 +40,11 @@ describe('Health Routes', () => {
 
       expect(res.status).toBe(200);
 
-      const body = await res.json();
+      const body = (await res.json()) as Record<string, unknown>;
       expect(body).toHaveProperty('status', 'alive');
       expect(body).toHaveProperty('timestamp');
 
-      expect(new Date(body.timestamp)).toBeInstanceOf(Date);
+      expect(new Date(body.timestamp as string)).toBeInstanceOf(Date);
     });
   });
 });
