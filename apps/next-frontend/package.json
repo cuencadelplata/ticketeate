@@ -1,7 +1,12 @@
 {
-  "name": "Ticketeate",
+  "name": "ticketeate",
   "version": "0.1.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cuencadelplata/ticketeate.git",
+    "directory": "apps/next-frontend"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

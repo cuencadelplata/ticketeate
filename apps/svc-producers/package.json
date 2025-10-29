@@ -2,6 +2,11 @@
   "name": "@ticketeate/svc-producers",
   "version": "1.0.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cuencadelplata/ticketeate.git",
+    "directory": "apps/svc-producers"
+  },
   "scripts": {
     "dev": "tsx watch dev.ts",
     "build": "tsc",
