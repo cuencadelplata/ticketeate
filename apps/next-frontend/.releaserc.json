@@ -1,5 +1,6 @@
 {
   "branches": ["main"],
+  "repositoryUrl": "https://github.com/cuencadelplata/ticketeate.git",
   "tagFormat": "next-frontend-v${version}",
   "plugins": [
     [
