@@ -52,21 +52,21 @@ jobs:
           
           if [ -n "$HAS_FEAT" ]; then
             echo "has-feat=true" >> $GITHUB_OUTPUT
-            echo "✨ Encontrados commits de features"
+            echo "Encontrados commits de features"
           else
             echo "has-feat=false" >> $GITHUB_OUTPUT
           fi
           
           if [ -n "$HAS_FIX" ]; then
             echo "has-fix=true" >> $GITHUB_OUTPUT
-            echo "🐛 Encontrados commits de fixes"
+            echo "Encontrados commits de fixes"
           else
             echo "has-fix=false" >> $GITHUB_OUTPUT
           fi
           
           if [ -n "$HAS_BREAKING" ]; then
             echo "has-breaking=true" >> $GITHUB_OUTPUT
-            echo "💥 Encontrados breaking changes"
+            echo "Encontrados breaking changes"
           else
             echo "has-breaking=false" >> $GITHUB_OUTPUT
           fi
@@ -84,10 +84,10 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '⚠️ Breaking Change detectado en svc-checkout - Requiere release MAJOR',
+              title: 'Breaking Change detectado en svc-checkout - Requiere release MAJOR',
               body: `Se detectaron BREAKING CHANGES en los commits recientes de \`svc-checkout\`.
               
-              ## ⚠️ Acción requerida
+              ## Acción requerida
               
               Los breaking changes requieren un **release MAJOR** (incremento de versión X.0.0).
               
@@ -97,7 +97,7 @@ jobs:
               
               2. **Revertir los commits**: Si los breaking changes no eran intencionales.
               
-              ## 📋 Commits con breaking changes:
+              ## Commits con breaking changes:
               
               Revisa los commits recientes para identificar los breaking changes.
               
@@ -116,7 +116,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
       - name: Setup Node.js
