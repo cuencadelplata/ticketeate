@@ -48,7 +48,7 @@ jobs:
             echo "BREAKING CHANGE detectado - No se lanzará automáticamente"
             echo "should_release=false" >> $GITHUB_OUTPUT
             echo "has_breaking=true" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -qE '^(feat|fix|perf|refactor):'; then
+          elif echo "$COMMITS" | grep -qE '^(feat|fix|perf|refactor)(\(.+\))?:'; then
             echo "Cambios menores/patch detectados - Se procederá con release"
             echo "should_release=true" >> $GITHUB_OUTPUT
             echo "has_breaking=false" >> $GITHUB_OUTPUT
