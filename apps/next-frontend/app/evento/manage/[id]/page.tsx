@@ -176,7 +176,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h1 className="mb-2 text-3xl font-bold">{evento.titulo}</h1>
-                <div className="mb-4 flex flex-wrap items-center gap-4 text-gray-400">
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-stone-400">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     <span>{formatDate(getEventDate())}</span>
@@ -259,7 +259,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-400">Información</h3>
-                  <p className="text-sm text-gray-400">Editar detalles del evento</p>
+                  <p className="text-sm text-stone-400">Editar detalles del evento</p>
                 </div>
               </div>
             </Link>
