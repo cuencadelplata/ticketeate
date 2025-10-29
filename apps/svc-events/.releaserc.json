@@ -1,5 +1,6 @@
 {
   "branches": ["main"],
+  "repositoryUrl": "https://github.com/cuencadelplata/ticketeate.git",
   "tagFormat": "svc-events-v${version}",
   "plugins": [
     [
