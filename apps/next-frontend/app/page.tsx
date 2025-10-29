@@ -32,7 +32,7 @@ export default function Home() {
       // Obtener fecha del evento
       const eventDate = evt.fechas_evento?.[0]?.fecha_hora
         ? new Date(evt.fechas_evento[0].fecha_hora)
-        : new Date(evt.fecha_creacion);
+        : new Date(evt.fecha_creacion || Date.now());
       const date = eventDate.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
@@ -80,7 +80,7 @@ export default function Home() {
         isFree,
         categorias: [categoriaPrincipal],
         fechasAdicionales: fechasAdicionales,
-        totalDates: (evt.fechas_evento?.length || 0) + 1, // +1 por la fecha principal
+        totalDates: evt.fechas_evento?.length || 1, // Total de fechas del evento
       };
     });
   }, [allEvents]);
@@ -120,14 +120,16 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 auto-rows-fr">
               {isLoading
                 ? Array.from({ length: 10 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
-                      <div className="space-y-2">
+                    <div key={i} className="animate-pulse h-[500px]">
+                      <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-56 mb-4"></div>
+                      <div className="space-y-2 p-4">
                         <div className="bg-stone-200 dark:bg-stone-700 h-4 rounded w-3/4"></div>
                         <div className="bg-stone-200 dark:bg-stone-700 h-3 rounded w-1/2"></div>
+                        <div className="bg-stone-200 dark:bg-stone-700 h-3 rounded w-2/3"></div>
+                        <div className="bg-stone-200 dark:bg-stone-700 h-8 rounded w-full mt-4"></div>
                       </div>
                     </div>
                   ))
@@ -154,12 +156,12 @@ export default function Home() {
                 <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-4 font-instrument-serif">
                   Próximos Eventos
                 </h2>
-                <p className="text-lg text-gray-600 dark:text-stone-400">
+                <p className="text-lg text-stone-600 dark:text-stone-400">
                   No te pierdas estos eventos que están por venir
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 auto-rows-fr">
                 {upcomingEvents.map((event, i) => (
                   <motion.div
                     key={`upcoming-${i}`}
@@ -194,7 +196,7 @@ export default function Home() {
                   Reviví los mejores momentos de eventos anteriores
                 </p>
               </motion.div>
-              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 auto-rows-fr">
                 {pastEvents.map((event, i) => (
                   <motion.div
                     key={`past-${i}`}

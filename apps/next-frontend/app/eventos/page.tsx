@@ -13,13 +13,16 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  Edit3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
+import { DeleteEventModal } from '@/components/delete-event-modal';
+import { EditEventModal } from '@/components/edit-event-modal';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { useEvents, useDeleteEvent } from '@/hooks/use-events';
+import { useEvents, useDeleteEvent, useUpdateEvent } from '@/hooks/use-events';
 import type { Event } from '@/types/events';
 
 // Componente Skeleton personalizado con animación de barrido
@@ -111,7 +114,7 @@ const getEventStatus = (event: Event) => {
 
 // Obtener categoría del evento
 const getEventCategory = (event: Event) => {
-  return event.categoriaevento?.nombre || 'Sin categoría';
+  return event.evento_categorias?.[0]?.categoriaevento?.nombre || 'Sin categoría';
 };
 
 // Obtener imagen de portada
@@ -120,6 +123,23 @@ const getCoverImage = (event: Event) => {
     event.imagenes_evento?.find((img) => img.tipo === 'PORTADA')?.url ||
     event.imagenes_evento?.[0]?.url
   );
+};
+
+// Obtener información de modificaciones del evento
+const getEventModifications = (event: Event) => {
+  return event.evento_modificaciones || [];
+};
+
+// Formatear fecha de modificación
+const formatModificationDate = (dateString: string | Date) => {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 // Obtener información detallada de fechas del evento
@@ -193,10 +213,11 @@ const isEventPast = (event: Event) => {
   }
 
   // Si no tiene ni fechas del evento ni fecha de publicación, usar fecha de creación
-  const fechaCreacion =
-    typeof event.fecha_creacion === 'string'
+  const fechaCreacion = event.fecha_creacion
+    ? typeof event.fecha_creacion === 'string'
       ? new Date(event.fecha_creacion)
-      : event.fecha_creacion;
+      : event.fecha_creacion
+    : new Date();
 
   return fechaCreacion < new Date();
 };
@@ -204,8 +225,25 @@ const isEventPast = (event: Event) => {
 export default function EventosPage() {
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    eventId: string | null;
+    eventTitle: string;
+  }>({
+    isOpen: false,
+    eventId: null,
+    eventTitle: '',
+  });
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    event: Event | null;
+  }>({
+    isOpen: false,
+    event: null,
+  });
   const { data: events = [], isLoading: loading } = useEvents();
   const deleteEventMutation = useDeleteEvent();
+  const updateEventMutation = useUpdateEvent();
 
   // filter events
   const proximosEvents = events.filter((event) => !isEventPast(event));
@@ -213,6 +251,81 @@ export default function EventosPage() {
   const filteredEvents = activeTab === 'proximos' ? proximosEvents : pasadosEvents;
 
   const hasEvents = filteredEvents.length > 0;
+
+  // Función para abrir el modal de confirmación
+  const handleDeleteClick = (eventId: string, eventTitle: string) => {
+    setDeleteModal({
+      isOpen: true,
+      eventId,
+      eventTitle,
+    });
+  };
+
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      eventId: null,
+      eventTitle: '',
+    });
+  };
+
+  // Función para confirmar la eliminación
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.eventId) return;
+
+    try {
+      await deleteEventMutation.mutateAsync(deleteModal.eventId);
+      toast.success('Evento eliminado correctamente');
+      handleCloseModal();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al eliminar el evento');
+    }
+  };
+
+  // Función para abrir el modal de edición
+  const handleEditClick = (event: Event) => {
+    setEditModal({
+      isOpen: true,
+      event,
+    });
+  };
+
+  // Función para cerrar el modal de edición
+  const handleCloseEditModal = () => {
+    setEditModal({
+      isOpen: false,
+      event: null,
+    });
+  };
+
+  // Función para guardar los cambios del evento
+  const handleSaveEvent = async (eventData: Partial<Event>) => {
+    if (!editModal.event) return;
+
+    try {
+      // Convertir los datos del evento al formato esperado por la API
+      const updateData = {
+        titulo: eventData.titulo,
+        descripcion: eventData.descripcion,
+        ubicacion: eventData.ubicacion,
+        estado: eventData.evento_estado?.[0]?.Estado as
+          | 'ACTIVO'
+          | 'CANCELADO'
+          | 'COMPLETADO'
+          | 'OCULTO',
+      };
+
+      await updateEventMutation.mutateAsync({
+        id: editModal.event.eventoid,
+        eventData: updateData,
+      });
+      toast.success('Evento actualizado correctamente');
+      handleCloseEditModal();
+    } catch (e: any) {
+      toast.error(e?.message || 'Error al actualizar el evento');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -273,7 +386,7 @@ export default function EventosPage() {
           {loading ? (
             <EventsCardsSkeleton />
           ) : !hasEvents ? (
-            <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex flex-col items-center justify-center py-12 pb-6">
               <div className="mb-8 rounded-2xl bg-gradient-to-br from-[#2A2A2A] to-[#3A3A3A] p-8 border border-[#4A4A4A]">
                 <Calendar className="h-20 w-20 text-stone-400 mx-auto" />
               </div>
@@ -281,14 +394,16 @@ export default function EventosPage() {
                 Sin eventos {activeTab === 'proximos' ? 'próximos' : 'pasados'}
               </h2>
               <p className="mb-8 text-stone-400 text-lg text-center max-w-md">
-                {activeTab === 'proximos'
-                  ? 'No tienes eventos próximos. ¿Por qué no organizas uno?'
-                  : 'No tienes eventos pasados.'}
+                {activeTab === 'proximos' ? (
+                  <>¿Por qué no organizas uno?</>
+                ) : (
+                  'No tienes eventos pasados.'
+                )}
               </p>
               {activeTab === 'proximos' && (
                 <Link href="/crear">
-                  <button className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-lg font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
-                    <Plus className="h-5 w-5" />
+                  <button className="flex items-center gap-3 rounded-md bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-md font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
+                    <Plus className="h-4 w-4" />
                     <span>Crear mi primer evento</span>
                   </button>
                 </Link>
@@ -312,10 +427,11 @@ export default function EventosPage() {
                       : event.fecha_publicacion;
                 } else {
                   // Como último recurso, usar fecha de creación
-                  headerDate =
-                    typeof event.fecha_creacion === 'string'
+                  headerDate = event.fecha_creacion
+                    ? typeof event.fecha_creacion === 'string'
                       ? new Date(event.fecha_creacion)
-                      : event.fecha_creacion;
+                      : event.fecha_creacion
+                    : new Date();
                 }
 
                 const formattedDate = formatEventDate(headerDate.toISOString());
@@ -325,9 +441,11 @@ export default function EventosPage() {
                   ? typeof event.fecha_publicacion === 'string'
                     ? new Date(event.fecha_publicacion)
                     : event.fecha_publicacion
-                  : typeof event.fecha_creacion === 'string'
-                    ? new Date(event.fecha_creacion)
-                    : event.fecha_creacion;
+                  : event.fecha_creacion
+                    ? typeof event.fecha_creacion === 'string'
+                      ? new Date(event.fecha_creacion)
+                      : event.fecha_creacion
+                    : new Date();
                 const hasLocation = !!event.ubicacion;
                 const coverImage = getCoverImage(event);
                 const eventStatus = getEventStatus(event);
@@ -559,6 +677,19 @@ export default function EventosPage() {
                                 <span>{event.stock_entrada?.length} tipo(s) de entrada</span>
                               </div>
                             )}
+
+                            {/* Modificaciones recientes */}
+                            {getEventModifications(event).length > 0 && (
+                              <div className="flex items-center gap-2 text-sm text-blue-300">
+                                <Edit3 className="h-4 w-4 text-blue-500" />
+                                <span>
+                                  Última modificación:{' '}
+                                  {formatModificationDate(
+                                    getEventModifications(event)[0].fecha_modificacion,
+                                  )}
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Categoría */}
@@ -580,14 +711,14 @@ export default function EventosPage() {
                               </button>
                             </Link>
                             <button
-                              onClick={async () => {
-                                try {
-                                  await deleteEventMutation.mutateAsync(event.eventoid);
-                                  toast.success('Evento eliminado');
-                                } catch (e: any) {
-                                  toast.error(e?.message || 'Error al eliminar');
-                                }
-                              }}
+                              onClick={() => handleEditClick(event)}
+                              className="flex items-center gap-2 rounded-lg bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/30"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(event.eventoid, event.titulo)}
                               className="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/30"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -622,6 +753,24 @@ export default function EventosPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación para eliminar evento */}
+      <DeleteEventModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        eventTitle={deleteModal.eventTitle}
+        isLoading={deleteEventMutation.isPending}
+      />
+
+      {/* Modal de edición de evento */}
+      <EditEventModal
+        isOpen={editModal.isOpen}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveEvent}
+        event={editModal.event}
+        isLoading={updateEventMutation.isPending}
+      />
     </div>
   );
 }

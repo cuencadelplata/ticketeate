@@ -91,7 +91,7 @@ export interface EventWithImages {
   stock_entrada?: Array<{
     stockid: string;
     nombre: string;
-    precio: bigint;
+    precio: string; // Changed from bigint to string for JSON serialization
     cant_max: number;
     fecha_creacion: Date;
     fecha_limite: Date;
@@ -336,9 +336,56 @@ export class EventService {
     data: Partial<Omit<CreateEventData, 'userId'>>,
   ): Promise<EventWithImages> {
     try {
-      const existing = await prisma.eventos.findUnique({ where: { eventoid: id } });
+      const existing = await prisma.eventos.findUnique({
+        where: { eventoid: id },
+        include: {
+          evento_estado: {
+            orderBy: { fecha_de_cambio: 'desc' },
+            take: 1,
+          },
+        },
+      });
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
+
+      // Detectar cambios en los campos principales para trazabilidad
+      const changes: Array<{
+        campo_modificado: string;
+        valor_anterior: string | null;
+        valor_nuevo: string | null;
+      }> = [];
+
+      if (data.titulo && data.titulo !== existing.titulo) {
+        changes.push({
+          campo_modificado: 'titulo',
+          valor_anterior: existing.titulo,
+          valor_nuevo: data.titulo,
+        });
+      }
+
+      if (data.descripcion && data.descripcion !== existing.descripcion) {
+        changes.push({
+          campo_modificado: 'descripcion',
+          valor_anterior: existing.descripcion,
+          valor_nuevo: data.descripcion,
+        });
+      }
+
+      if (data.ubicacion && data.ubicacion !== existing.ubicacion) {
+        changes.push({
+          campo_modificado: 'ubicacion',
+          valor_anterior: existing.ubicacion,
+          valor_nuevo: data.ubicacion,
+        });
+      }
+
+      if (data.eventMap && JSON.stringify(data.eventMap) !== JSON.stringify(existing.mapa_evento)) {
+        changes.push({
+          campo_modificado: 'mapa_evento',
+          valor_anterior: JSON.stringify(existing.mapa_evento),
+          valor_nuevo: JSON.stringify(data.eventMap),
+        });
+      }
 
       const updated = await prisma.eventos.update({
         where: { eventoid: id },
@@ -349,6 +396,36 @@ export class EventService {
           mapa_evento: data.eventMap ?? undefined,
         },
       });
+
+      // Crear registros de trazabilidad para cada cambio detectado
+      if (changes.length > 0) {
+        await Promise.all(
+          changes.map((change) =>
+            prisma.evento_modificaciones.create({
+              data: {
+                modificacionid: randomUUID(),
+                eventoid: id,
+                campo_modificado: change.campo_modificado,
+                valor_anterior: change.valor_anterior,
+                valor_nuevo: change.valor_nuevo,
+                usuarioid: userId,
+              },
+            }),
+          ),
+        );
+      }
+
+      // Si se cambia el estado, crear un nuevo registro en evento_estado
+      if (data.estado && data.estado !== existing.evento_estado?.[0]?.Estado) {
+        await prisma.evento_estado.create({
+          data: {
+            stateventid: randomUUID(),
+            eventoid: id,
+            Estado: data.estado,
+            usuarioid: userId,
+          },
+        });
+      }
 
       // Opcionales: actualizar imágenes principales sencillas (PORTADA + GALERIA)
       if (data.imageUrl || (data.galeria_imagenes && data.galeria_imagenes.length >= 0)) {
@@ -409,6 +486,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           evento_categorias: {
             include: {
               categoriaevento: true,
@@ -417,7 +495,17 @@ export class EventService {
         },
       });
       if (!full) throw new Error('Error al recuperar el evento actualizado');
-      return full as EventWithImages;
+
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...full,
+        stock_entrada: full.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+
+      return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error updating event:', error);
@@ -433,12 +521,12 @@ export class EventService {
       if (!existing) throw new Error('Evento no encontrado');
       if (existing.creadorid !== userId) throw new Error('No autorizado');
 
-      // Borrado lógico: crear registro de estado CANCELADO
+      // Borrado lógico: crear registro de estado OCULTO
       await prisma.evento_estado.create({
         data: {
           stateventid: randomUUID(),
           eventoid: id,
-          Estado: 'CANCELADO',
+          Estado: 'OCULTO',
           usuarioid: userId,
         },
       });
@@ -473,7 +561,18 @@ export class EventService {
         },
       });
 
-      return evento as EventWithImages | null;
+      if (!evento) return null;
+
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+
+      return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting event:', error);
@@ -492,6 +591,7 @@ export class EventService {
         include: {
           imagenes_evento: true,
           fechas_evento: true,
+          stock_entrada: true,
           evento_categorias: {
             include: {
               categoriaevento: true,
@@ -509,7 +609,16 @@ export class EventService {
         },
       });
 
-      return eventos as EventWithImages[];
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventosSerializados = eventos.map((evento) => ({
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      }));
+
+      return eventosSerializados as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting user events:', error);
@@ -543,8 +652,22 @@ export class EventService {
         },
       });
 
-      // Devolver todos los eventos encontrados (sin filtrar por estado) para asegurar visibilidad
-      return eventos as unknown as EventWithImages[];
+      // Filtrar eventos públicos basado en el estado
+      const eventosPublicos = eventos.filter((evento) => {
+        const estadoActual = evento.evento_estado?.[0]?.Estado;
+        return estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO';
+      });
+
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventosSerializados = eventosPublicos.map((evento) => ({
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      }));
+
+      return eventosSerializados as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting all public events:', error);
@@ -578,7 +701,88 @@ export class EventService {
     });
 
     if (!evento) return null;
-    // Retornar siempre el evento encontrado (sin filtrar por estado)
-    return evento as EventWithImages;
+
+    // Verificar si el evento es público basado en el estado
+    const estadoActual = evento.evento_estado?.[0]?.Estado;
+    if (estadoActual === 'ACTIVO' || estadoActual === 'COMPLETADO') {
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...evento,
+        stock_entrada: evento.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+      return eventoSerializado as EventWithImages;
+    }
+
+    return null;
+  }
+
+  static async publishScheduledEvents(): Promise<{ published: number; errors: number }> {
+    try {
+      const now = new Date();
+
+      // Buscar eventos que están programados para publicarse y aún están ocultos
+      const scheduledEvents = await prisma.eventos.findMany({
+        where: {
+          fecha_publicacion: {
+            lte: now, // fecha_publicacion <= ahora
+          },
+          evento_estado: {
+            some: {
+              Estado: 'OCULTO',
+              fecha_de_cambio: {
+                // Solo el estado más reciente
+              },
+            },
+          },
+        },
+        include: {
+          evento_estado: {
+            orderBy: {
+              fecha_de_cambio: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+
+      let published = 0;
+      let errors = 0;
+
+      for (const evento of scheduledEvents) {
+        try {
+          // Verificar que el estado actual es realmente OCULTO
+          const currentState = evento.evento_estado?.[0]?.Estado;
+          if (currentState !== 'OCULTO') {
+            continue;
+          }
+
+          // Crear nuevo estado ACTIVO
+          await prisma.evento_estado.create({
+            data: {
+              stateventid: randomUUID(),
+              eventoid: evento.eventoid,
+              Estado: 'ACTIVO',
+              usuarioid: evento.creadorid,
+            },
+          });
+
+          published++;
+          console.log(`Published scheduled event: ${evento.titulo} (${evento.eventoid})`);
+        } catch (error) {
+          errors++;
+          console.error(`Error publishing event ${evento.eventoid}:`, error);
+        }
+      }
+
+      return { published, errors };
+    } catch (error) {
+      console.error('Error in publishScheduledEvents:', error);
+      throw new Error(
+        `Error al publicar eventos programados: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 }

@@ -1,18 +1,19 @@
 'use client';
 
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Event } from '@/types/events';
-import { ReservationBanner } from '@/components/comprar/ReservationBanner';
+// import { ReservationBanner } from '@/components/comprar/ReservationBanner';
 import { EventHeader } from '@/components/comprar/EventHeader';
 import { SectorList } from '@/components/comprar/SectorList';
 import { CheckoutPanel } from '@/components/comprar/CheckoutPanel';
 import { SuccessCard } from '@/components/comprar/SuccessCard';
 import { StripeSuccessMessage } from '@/components/comprar/StripeSuccessMessage';
+import { useMockQueue } from '@/hooks/use-mock-queue';
 
 type SectorKey = string;
 
@@ -59,7 +60,7 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
   return map;
 }
 
-export default function ComprarPage() {
+function ComprarPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = searchParams.get('evento');
@@ -70,6 +71,15 @@ export default function ComprarPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEventSelection, setShowEventSelection] = useState(!eventId);
 
+  // Hook para manejar cola (usando mock para consistencia)
+  const { canEnter, completePurchase } = useMockQueue(eventId || '', idUsuario.toString());
+
+  // Debug: verificar el eventId
+  useEffect(() => {
+    console.log('ComprarPage - eventId:', eventId);
+    console.log('ComprarPage - canEnter:', canEnter);
+  }, [eventId, canEnter]);
+
   const [cantidad, setCantidad] = useState<number>(1);
   const [metodo, setMetodo] = useState<string>('tarjeta_debito');
   const [currency, setCurrency] = useState<'ARS' | 'USD' | 'EUR'>('ARS');
@@ -78,7 +88,6 @@ export default function ComprarPage() {
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showStripeMessage, setShowStripeMessage] = useState(false);
-  const comprobanteRef = useRef<HTMLDivElement | null>(null);
 
   const [sector, setSector] = useState<SectorKey>('');
 
@@ -107,6 +116,21 @@ export default function ComprarPage() {
       setSector(first);
     }
   }, [eventId, eventData]);
+
+  // Verificar si el usuario puede comprar (está en cola y es su turno)
+  useEffect(() => {
+    if (eventId && !canEnter) {
+      // Solo redirigir si realmente no puede entrar (no en el primer render)
+      // Esto evita redirecciones inmediatas cuando el hook aún se está inicializando
+      const timer = setTimeout(() => {
+        if (!canEnter) {
+          router.push(`/evento/${eventId}`);
+        }
+      }, 1000); // Esperar 1 segundo antes de verificar
+
+      return () => clearTimeout(timer);
+    }
+  }, [eventId, canEnter, router]);
 
   // Campos de tarjeta
   const [cardNumber, setCardNumber] = useState<string>('');
@@ -137,7 +161,7 @@ export default function ComprarPage() {
   const handleEventSelection = (event: Event) => {
     setSelectedEvent(event);
     setShowEventSelection(false);
-    router.push(`/comprar?evento=${event.eventoid}`);
+    router.push(`/comprar/${event.eventoid}`);
   };
 
   // Simple FX mock: ARS base; ajustar si tenés API de tipo de cambio
@@ -413,6 +437,9 @@ export default function ComprarPage() {
       setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
 
+      // Finalizar compra en la cola
+      await completePurchase(true);
+
       // Invalidar cache para actualizar disponibilidad
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -431,6 +458,9 @@ export default function ComprarPage() {
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
+
+      // Finalizar compra como fallida en la cola
+      await completePurchase(false);
     } finally {
       setLoading(false);
     }
@@ -781,5 +811,15 @@ export default function ComprarPage() {
       {/* Mensaje de éxito de Stripe */}
       {showStripeMessage && <StripeSuccessMessage onContinue={handleStripeContinue} />}
     </div>
+  );
+}
+
+export default function ComprarPage() {
+  return (
+    <Suspense
+      fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}
+    >
+      <ComprarPageContent />
+    </Suspense>
   );
 }

@@ -3,11 +3,13 @@
 import { useParams, useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
-import { useViewCount } from '@/hooks/use-view-count';
+import { useViewCount, useCountView } from '@/hooks/use-view-count';
 import { Calendar, Eye, Clock } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
+import { QueueModal } from '@/components/queue-modal';
+// import { useMockQueue } from '@/hooks/use-mock-queue';
 
 // Helper function para formatear fechas de manera elegante
 const formatEventDate = (date: Date) => {
@@ -55,6 +57,10 @@ export default function EventoPage() {
   });
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [displayAddress, setDisplayAddress] = useState<string | null>(null);
+  const [showQueueModal, setShowQueueModal] = useState(false);
+
+  // Mock userId - en producción esto vendría del sistema de autenticación
+  const userId = '1';
 
   // Hook para manejar reserva temporal
   const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
@@ -62,13 +68,51 @@ export default function EventoPage() {
 
   // Hook para manejar conteo de views
   const { data: viewCountData, isLoading: isLoadingViews } = useViewCount(id);
+  const countViewMutation = useCountView();
+
+  // Hook para manejar cola (SIMULADO) - variables no utilizadas comentadas
+  // const { canEnter, joinQueue, completePurchase } = useMockQueue(id || '', userId);
+
+  // Ref para controlar si ya se registró la view (evita re-renders)
+  const hasRegisteredViewRef = useRef<string | null>(null);
+
+  // Registrar view automáticamente cuando se carga la página - SOLO UNA VEZ
+  useEffect(() => {
+    if (id && event && !isLoading && hasRegisteredViewRef.current !== id) {
+      hasRegisteredViewRef.current = id;
+
+      // Usar setTimeout para evitar problemas de timing
+      const timeoutId = setTimeout(() => {
+        countViewMutation.mutate(id, {
+          onError: (error) => {
+            console.error('Error registering view:', error);
+            // En caso de error, permitir reintentar después de un tiempo
+            setTimeout(() => {
+              if (hasRegisteredViewRef.current === id) {
+                hasRegisteredViewRef.current = null;
+              }
+            }, 5000);
+          },
+        });
+      }, 100); // Pequeño delay para evitar problemas de timing
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [id, event, isLoading]); // Sin countViewMutation en dependencias
 
   // Función para manejar el clic en "Comprar Entradas"
   const handleComprarEntradas = () => {
+    if (!id) return;
+
+    // Siempre mostrar el modal de cola primero
+    setShowQueueModal(true);
+  };
+
+  // Función para entrar a comprar cuando es el turno
+  const handleEnterPurchase = () => {
     if (id) {
-      // Iniciar reserva temporal de 5 minutos
       startReservation(id, 300);
-      router.push(`/comprar?evento=${id}`);
+      router.push(`/evento/comprar/${id}`);
     }
   };
 
@@ -325,9 +369,6 @@ export default function EventoPage() {
                             </div>
                             <div className="text-right text-stone-300">
                               <div>${Number(stock.precio)}</div>
-                              <div className="text-xs text-stone-400">
-                                Cupo: {stock.cant_max} entradas
-                              </div>
                             </div>
                           </div>
                         </li>
@@ -431,7 +472,7 @@ export default function EventoPage() {
                       {((event as any).mapa_evento?.sectors || []).length > 0 && (
                         <div className="pt-2">
                           <h4 className="text-xs font-semibold text-stone-400">
-                            Entradas disponibles por sector
+                            Precios por sector
                           </h4>
                           <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
                             {(event as any).mapa_evento.sectors.map((s: any) => {
@@ -439,15 +480,10 @@ export default function EventoPage() {
                                 (stock: any) =>
                                   stock.nombre?.toLowerCase() === String(s.name).toLowerCase(),
                               );
-                              const capText = matchingStock
-                                ? `${matchingStock.cant_max} entradas`
-                                : typeof s.capacity === 'number'
-                                  ? `${s.capacity} entradas`
-                                  : 'Capacidad no definida';
                               const priceText = matchingStock
-                                ? ` • $${Number(matchingStock.precio)}`
+                                ? `$${Number(matchingStock.precio)}`
                                 : typeof s.price === 'number'
-                                  ? ` • $${s.price}`
+                                  ? `$${s.price}`
                                   : '';
                               return (
                                 <li
@@ -456,10 +492,7 @@ export default function EventoPage() {
                                 >
                                   <div className="flex items-center justify-between">
                                     <span>{s.name}</span>
-                                    <span className="text-stone-400">
-                                      {capText}
-                                      {priceText}
-                                    </span>
+                                    <span className="text-stone-400">{priceText}</span>
                                   </div>
                                 </li>
                               );
@@ -483,6 +516,17 @@ export default function EventoPage() {
           )}
         </div>
       </div>
+
+      {showQueueModal && (
+        <QueueModal
+          isOpen={showQueueModal}
+          onClose={() => setShowQueueModal(false)}
+          eventId={id || ''}
+          userId={userId}
+          eventTitle={event?.titulo || 'Evento'}
+          onEnterPurchase={handleEnterPurchase}
+        />
+      )}
     </main>
   );
 }

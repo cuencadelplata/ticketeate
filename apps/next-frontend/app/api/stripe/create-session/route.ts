@@ -30,22 +30,6 @@ export async function POST(request: NextRequest) {
     // Construir URLs con el evento incluido si está disponible en metadata
     const eventParam = metadata?.eventoid ? `&evento=${metadata.eventoid}` : '';
 
-    const payload = {
-      mode: 'payment',
-      success_url: `${baseUrl}/comprar?stripe_status=success${eventParam}`,
-      cancel_url: `${baseUrl}/comprar?stripe_status=cancel${eventParam}`,
-      line_items: [
-        {
-          price_data: {
-            currency: String(currency).toLowerCase(),
-            product_data: { name: title },
-            unit_amount: Math.round(Number(unit_price) * 100),
-          },
-          quantity: Number(quantity),
-        },
-      ],
-    };
-
     // Construir cuerpo x-www-form-urlencoded con claves anidadas que espera Stripe
     const form = new URLSearchParams();
     form.append('mode', 'payment');

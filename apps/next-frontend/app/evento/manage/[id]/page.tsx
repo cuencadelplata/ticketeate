@@ -114,7 +114,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="text-red-400 mb-4">Error al cargar el evento</div>
-            <div className="text-gray-400 text-sm">
+            <div className="text-stone-400 text-sm">
               {error instanceof Error ? error.message : 'Error desconocido'}
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h1 className="mb-2 text-3xl font-bold">{evento.titulo}</h1>
-                <div className="mb-4 flex flex-wrap items-center gap-4 text-gray-400">
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-stone-400">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     <span>{formatDate(getEventDate())}</span>
@@ -225,14 +225,14 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                           ? 'bg-red-500/20 text-red-400'
                           : getEventStatus() === 'COMPLETADO'
                             ? 'bg-blue-500/20 text-blue-400'
-                            : 'bg-gray-500/20 text-gray-400'
+                            : 'bg-stone-500/20 text-stone-400'
                     }`}
                   >
                     {getEventStatus()}
                   </span>
                 </div>
 
-                {evento.descripcion && <p className="mt-4 text-gray-300">{evento.descripcion}</p>}
+                {evento.descripcion && <p className="mt-4 text-stone-300">{evento.descripcion}</p>}
               </div>
 
               {getEventImage() && (
@@ -259,7 +259,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-400">Información</h3>
-                  <p className="text-sm text-gray-400">Editar detalles del evento</p>
+                  <p className="text-sm text-stone-400">Editar detalles del evento</p>
                 </div>
               </div>
             </Link>
@@ -274,7 +274,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-500">Invitados</h3>
-                  <p className="text-sm text-gray-400">Gestionar lista de invitados</p>
+                  <p className="text-sm text-stone-400">Gestionar lista de invitados</p>
                 </div>
               </div>
             </Link>
@@ -289,7 +289,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-600">Inscripción</h3>
-                  <p className="text-sm text-gray-400">Configurar registro</p>
+                  <p className="text-sm text-stone-400">Configurar registro</p>
                 </div>
               </div>
             </Link>
@@ -304,7 +304,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-700">Más opciones</h3>
-                  <p className="text-sm text-gray-400">Configuración avanzada</p>
+                  <p className="text-sm text-stone-400">Configuración avanzada</p>
                 </div>
               </div>
             </Link>
@@ -315,10 +315,10 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Views</p>
+                  <p className="text-sm text-stone-400">Total Views</p>
                   <p className="text-2xl font-bold text-orange-400">
                     {isLoadingViews ? (
-                      <span className="text-gray-400">Cargando...</span>
+                      <span className="text-stone-400">Cargando...</span>
                     ) : viewCountError ? (
                       <span className="text-red-400">Error</span>
                     ) : (
@@ -333,7 +333,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Invitados</p>
+                  <p className="text-sm text-stone-400">Total Invitados</p>
                   <p className="text-2xl font-bold text-orange-500">0</p>
                 </div>
                 <Users className="h-8 w-8 text-orange-600" />
@@ -343,7 +343,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Confirmados</p>
+                  <p className="text-sm text-stone-400">Confirmados</p>
                   <p className="text-2xl font-bold text-orange-600">0</p>
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600/20">

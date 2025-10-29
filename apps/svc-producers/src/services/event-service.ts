@@ -73,7 +73,7 @@ export interface EventWithImages {
   stock_entrada?: Array<{
     stockid: string;
     nombre: string;
-    precio: bigint;
+    precio: string; // Changed from bigint to string for JSON serialization
     cant_max: number;
   }>;
   evento_estado?: Array<{
@@ -221,7 +221,16 @@ export class EventService {
         throw new Error('Error al recuperar el evento creado');
       }
 
-      return eventoCompleto as EventWithImages;
+      // Convertir BigInt a string para evitar errores de serialización JSON
+      const eventoSerializado = {
+        ...eventoCompleto,
+        stock_entrada: eventoCompleto.stock_entrada?.map((stock) => ({
+          ...stock,
+          precio: stock.precio.toString(),
+        })),
+      };
+
+      return eventoSerializado as EventWithImages;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error creating event:', error);

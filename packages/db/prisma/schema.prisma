@@ -77,6 +77,21 @@ model evento_estado {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evento_modificaciones {
+  modificacionid String   @id @db.VarChar
+  eventoid       String   @db.VarChar
+  campo_modificado String @db.VarChar(50) // 'titulo', 'descripcion', 'ubicacion', 'mapa_evento', etc.
+  valor_anterior String?  @db.Text
+  valor_nuevo    String?  @db.Text
+  fecha_modificacion DateTime @default(now()) @db.Timestamptz(6)
+  usuarioid      String   @db.VarChar
+  eventos        eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user           user     @relation(fields: [usuarioid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([eventoid, fecha_modificacion(sort: Desc)], map: "idx_evento_modificaciones_eventoid_fecha")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model eventos {
   eventoid          String              @id @db.VarChar(255)
   titulo            String              @db.VarChar(200)
@@ -92,6 +107,7 @@ model eventos {
   estadisticas      estadisticas[]
   evento_categorias evento_categorias[]
   evento_estado     evento_estado[]
+  evento_modificaciones evento_modificaciones[]
   user              user                @relation(fields: [creadorid], references: [id], onDelete: Cascade)
   fechas_evento     fechas_evento[]
   historial_compras historial_compras[]
@@ -271,6 +287,7 @@ model user {
   account              account[]
   cola_turnos          cola_turnos[]
   evento_estado        evento_estado[]
+  evento_modificaciones evento_modificaciones[]
   eventos              eventos[]
   historial_compras    historial_compras[]
   logs_eventos         logs_eventos[]

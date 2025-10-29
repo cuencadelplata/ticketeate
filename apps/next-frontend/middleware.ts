@@ -51,7 +51,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/sign-in?redirect_url=${back}`, request.url));
   }
 
-  if (!session && !isPublicRoute) {
+  // Si no hay sesión y no es una ruta pública, redirigir al login
+  if (!session && !isPublicRoute && !isAuthRoute()) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 

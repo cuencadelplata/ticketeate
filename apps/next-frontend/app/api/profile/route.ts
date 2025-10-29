@@ -41,7 +41,7 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.name && { name: validatedData.name }),
         ...(validatedData.email && {
           email: validatedData.email,
-          emailVerified: false, // Requerir verificación si cambia el email
+          emailVerified: true, // No requerir verificación ya que está deshabilitada
         }),
         updatedAt: new Date(),
       },

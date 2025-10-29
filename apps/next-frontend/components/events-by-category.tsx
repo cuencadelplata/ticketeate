@@ -176,7 +176,7 @@ export function EventsByCategory({
                     isFree={isFree}
                     categorias={[categoriaPrincipal]}
                     fechasAdicionales={[]}
-                    totalDates={1}
+                    totalDates={event.fechas_evento?.length || 1}
                   />
                 </motion.div>
               );
