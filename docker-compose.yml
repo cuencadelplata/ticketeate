@@ -1,0 +1,306 @@
+version: '3.8'
+
+services:
+  # ================================
+  # NGINX Load Balancer
+  # ================================
+  nginx:
+    build:
+      context: ./apps/nginx
+      dockerfile: Dockerfile
+    container_name: ticketeate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - next-frontend-1
+      - next-frontend-2
+      - svc-checkout-1
+      - svc-checkout-2
+      - svc-events-1
+      - svc-events-2
+      - svc-producers-1
+      - svc-producers-2
+      - svc-users-1
+      - svc-users-2
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # ================================
+  # Next.js Frontend - 2 Replicas
+  # ================================
+  next-frontend-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketeate-next-frontend-1
+    environment:
+      - NODE_ENV=production
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - PORT=3000
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  next-frontend-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketeate-next-frontend-2
+    environment:
+      - NODE_ENV=production
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - PORT=3000
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # ================================
+  # Checkout Service - 2 Replicas
+  # ================================
+  svc-checkout-1:
+    build:
+      context: .
+      dockerfile: apps/svc-checkout/Dockerfile
+    container_name: ticketeate-svc-checkout-1
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3001
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  svc-checkout-2:
+    build:
+      context: .
+      dockerfile: apps/svc-checkout/Dockerfile
+    container_name: ticketeate-svc-checkout-2
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3001
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # Events Service - 2 Replicas
+  # ================================
+  svc-events-1:
+    build:
+      context: .
+      dockerfile: apps/svc-events/Dockerfile
+    container_name: ticketeate-svc-events-1
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3002
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  svc-events-2:
+    build:
+      context: .
+      dockerfile: apps/svc-events/Dockerfile
+    container_name: ticketeate-svc-events-2
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3002
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # Producers Service - 2 Replicas
+  # ================================
+  svc-producers-1:
+    build:
+      context: .
+      dockerfile: apps/svc-producers/Dockerfile
+    container_name: ticketeate-svc-producers-1
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3003
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  svc-producers-2:
+    build:
+      context: .
+      dockerfile: apps/svc-producers/Dockerfile
+    container_name: ticketeate-svc-producers-2
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3003
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ================================
+  # Users Service - 2 Replicas
+  # ================================
+  svc-users-1:
+    build:
+      context: .
+      dockerfile: apps/svc-users/Dockerfile
+    container_name: ticketeate-svc-users-1
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3004
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  svc-users-2:
+    build:
+      context: .
+      dockerfile: apps/svc-users/Dockerfile
+    container_name: ticketeate-svc-users-2
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3004
+    networks:
+      - ticketeate-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+networks:
+  ticketeate-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  db-data:
+    driver: local

@@ -61,5 +61,9 @@ ENV NODE_ENV=production
 # Expose port
 EXPOSE 3001
 
+# Health check para svc-checkout
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+
 # Start the service
 CMD ["node", "apps/svc-checkout/dist/index.js"]

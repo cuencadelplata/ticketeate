@@ -54,6 +54,68 @@ Contiene 1 aplicación Next.js (Web con panel administrativo integrado) y 4 apli
 
 Usamos Next.js, un framework fullstack basado en React (de pila completa, permite trabajar un frontend y backend en una única aplicación -mediante API Routes-)
 
+## 🚀 Alta Disponibilidad (HA)
+
+Este proyecto implementa **Alta Disponibilidad** con 2 réplicas por cada servicio crítico, balanceo de carga con NGINX y failover automático.
+
+### Características de HA
+
+✅ **2 réplicas activas** por servicio crítico (Frontend + 4 APIs)  
+✅ **Balanceo de carga** automático con NGINX (algoritmo least_conn)  
+✅ **Health checks** cada 15 segundos  
+✅ **Failover automático** en < 5 segundos  
+✅ **Disponibilidad ≥ 99.9%** durante fallos de réplica única  
+
+### Inicio Rápido con HA
+
+```bash
+# 1. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# 2. Levantar todos los servicios con réplicas
+docker-compose up -d --build
+
+# 3. Verificar estado de salud
+./scripts/monitor-ha.sh
+
+# 4. Probar alta disponibilidad
+./scripts/test-ha.sh
+```
+
+### Servicios con HA
+
+| Servicio | Réplicas | Puerto | Health Check |
+|----------|----------|--------|--------------|
+| Next.js Frontend | 2 | 3000 | `/health` |
+| Checkout Service | 2 | 3001 | `/health` |
+| Events Service | 2 | 3002 | `/health` |
+| Producers Service | 2 | 3003 | `/health` |
+| Users Service | 2 | 3004 | `/health` |
+
+**Total**: 11 contenedores (1 NGINX + 10 réplicas de servicios)
+
+### Documentación de HA
+
+- 📖 [Guía Completa de Alta Disponibilidad](./docs/HA-ALTA-DISPONIBILIDAD.md)
+- 🚀 [Guía de Inicio Rápido](./docs/QUICKSTART-HA.md)
+
+### Scripts de HA
+
+```bash
+# Monitorear estado de todos los servicios
+./scripts/monitor-ha.sh
+
+# Monitoreo en tiempo real
+watch -n 2 ./scripts/monitor-ha.sh
+
+# Probar HA (automático, ~3 min)
+./scripts/test-ha.sh
+
+# Prueba rápida de un servicio (~20 seg)
+./scripts/test-ha-quick.sh ticketeate-next-frontend-1 http://localhost/
+```
+
 ## Comandos Disponibles
 
 ### Desarrollo

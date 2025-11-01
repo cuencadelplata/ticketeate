@@ -61,5 +61,9 @@ ENV NODE_ENV=production
 # Expose port
 EXPOSE 3002
 
+# Health check para svc-events
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3002/health || exit 1
+
 # Start the service
 CMD ["node", "apps/svc-events/dist/index.js"]
