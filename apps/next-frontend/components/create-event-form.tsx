@@ -650,7 +650,7 @@ export default function CreateEventForm() {
 
                         <Button
                           size="sm"
-                          onClick={addEventDate}
+                          onPress={addEventDate}
                           className="flex-shrink-0 rounded-md !bg-stone-700 !bg-opacity-60 px-2 py-1 text-xs transition-colors hover:bg-stone-800/50"
                           color="primary"
                           variant="faded"
@@ -822,7 +822,7 @@ export default function CreateEventForm() {
               </div>
 
               <Button
-                onClick={handleCreateEvent}
+                onPress={handleCreateEvent}
                 size="md"
                 className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={createEventMutation.isPending || !session}
