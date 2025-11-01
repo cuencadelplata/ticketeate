@@ -13,10 +13,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const auth = betterAuth({
   url: process.env.BETTER_AUTH_URL,
 
-  // Base de datos
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
 
-  // Email & Password habilitado
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // Permitir registro pero verificar después
@@ -56,7 +54,6 @@ export const auth = betterAuth({
     },
   },
 
-  // OAuth con Google
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -65,7 +62,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    // Plugin de OTP para verificación por email
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         console.log(`[OTP] Sending ${type} code to ${email}:`, otp);
@@ -84,7 +80,7 @@ export const auth = betterAuth({
 
         try {
           const { data, error } = await resend.emails.send({
-            from: 'Ticketeate <onboarding@ticketeate.page>', // Usar dominio de Resend hasta configurar uno propio
+            from: 'Ticketeate <onboarding@ticketeate.page>',
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `
@@ -104,17 +100,8 @@ export const auth = betterAuth({
             console.error('[OTP] Resend error:', error);
             throw new Error(`Failed to send OTP: ${error.message}`);
           }
-
-          console.log('[OTP] Email sent successfully:', data);
         } catch (error) {
           console.error('[OTP] Failed to send email:', error);
-          // En desarrollo, mostrar el código en la consola como fallback
-          if (process.env.NODE_ENV === 'development') {
-            console.log('═══════════════════════════════════');
-            console.log(`📧 OTP CODE FOR ${email}`);
-            console.log(`   ${otp}`);
-            console.log('═══════════════════════════════════');
-          }
           throw error;
         }
       },
