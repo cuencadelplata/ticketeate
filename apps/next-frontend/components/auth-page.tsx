@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
-import { signIn, signUp, useSession } from '@/lib/auth-client';
+import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -24,6 +24,9 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [resendingOtp, setResendingOtp] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,12 +40,27 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   };
 
   useEffect(() => {
+    // No redirigir si:
+    // 1. Estamos mostrando el formulario de verificación OTP, O
+    // 2. El usuario no ha verificado su email aún
     if (session) {
-      const r = (session as any).role as Role | undefined;
-      const target = sp.get('redirect_url') || roleToPath(r);
-      router.push(target);
+      const user = session.user as any;
+      const emailVerified = user?.emailVerified;
+      
+      // Si no está verificado, mostrar formulario OTP
+      if (!emailVerified && !showOtpVerification) {
+        setShowOtpVerification(true);
+        return;
+      }
+      
+      // Si está verificado y no estamos en el flujo OTP, redirigir
+      if (emailVerified && !showOtpVerification) {
+        const r = user?.role as Role | undefined;
+        const target = sp.get('redirect_url') || roleToPath(r);
+        router.push(target);
+      }
     }
-  }, [session, sp, router]);
+  }, [session, sp, router, showOtpVerification]);
 
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
@@ -164,11 +182,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     setErr(null);
 
     try {
-      await signUp.email({
+      const result = await signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.email,
       });
+
+      // Verificar si hubo error en el registro
+      if (!result || (result as any).error) {
+        throw new Error((result as any)?.error?.message || 'Error al crear la cuenta');
+      }
 
       // Asignar rol según el tipo seleccionado
       if (role === 'COLABORADOR') {
@@ -195,6 +218,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         }
       }
       // USUARIO no requiere asignación de rol adicional - se asigna por defecto en el callback de auth
+
+      // Mostrar formulario de verificación OTP en la misma página
+      setLoading(false);
+      setShowOtpVerification(true);
+      
+      // No enviar OTP aquí - ya se envió automáticamente por sendVerificationOnSignUp
+      // await sendOtpCode();
+      return; // Salir para evitar mostrar error
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 
@@ -224,6 +255,81 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       setLoading(false);
     }
   }
+
+  // Función para enviar código OTP
+  const sendOtpCode = async () => {
+    try {
+      setResendingOtp(true);
+      const result = await sendVerificationOTP({
+        email: formData.email,
+        type: 'email-verification',
+      });
+      
+      if (result.error) {
+        showError('Error al enviar el código. Intenta nuevamente.');
+      }
+    } catch (error: any) {
+      console.error('Error sending OTP:', error);
+      showError('Error al enviar el código. Intenta nuevamente.');
+    } finally {
+      setResendingOtp(false);
+    }
+  };
+
+  // Función para verificar código OTP
+  const verifyOtpCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otp.length !== 6) {
+      showError('Ingresa el código de 6 dígitos');
+      return;
+    }
+
+    setLoading(true);
+    setErr(null);
+
+    try {
+      console.log('Verificando OTP:', { email: formData.email, otp });
+      
+      const result = await verifyEmail({
+        email: formData.email,
+        otp,
+      });
+
+      console.log('Resultado de verificación:', result);
+
+      if (result.error) {
+        console.error('Error en verifyEmail:', result.error);
+        throw new Error(result.error.message || 'Código inválido');
+      }
+
+      // Email verificado exitosamente, hacer login automático
+      const loginResult = await signIn.email({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log('Login result:', loginResult);
+
+      // Esperar un momento para que la sesión se actualice
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // La redirección se manejará automáticamente por el useEffect
+      // que detectará la sesión con emailVerified: true
+      setShowOtpVerification(false);
+    } catch (error: any) {
+      console.error('Error verifying OTP:', error);
+      let errorMessage = 'Código incorrecto o expirado';
+      
+      if (error?.message?.includes('TOO_MANY_ATTEMPTS')) {
+        errorMessage = 'Demasiados intentos. Solicita un nuevo código.';
+      }
+      
+      showError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Indicador de fortaleza de contraseña
   const getPasswordStrength = (password: string) => {
@@ -270,6 +376,83 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         return role;
     }
   };
+
+  // Si está en modo de verificación OTP, mostrar el formulario de OTP
+  if (showOtpVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Verifica tu email</h1>
+            <p className="text-stone-400">
+              Hemos enviado un código de 6 dígitos a <strong className="text-white">{formData.email}</strong>
+            </p>
+          </div>
+
+          <div className="bg-stone-900 rounded-2xl p-6 shadow-2xl">
+            <form onSubmit={verifyOtpCode} className="space-y-4">
+              <div>
+                <label className="text-sm text-stone-400 mb-2 block">Código de verificación</label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  maxLength={6}
+                  className="w-full rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-center text-2xl font-bold tracking-widest text-white outline-none focus:border-orange-500"
+                  disabled={loading}
+                  autoComplete="off"
+                />
+                <p className="mt-2 text-xs text-stone-500">El código expira en 10 minutos</p>
+              </div>
+
+              {err && (
+                <div className="rounded-lg bg-red-900/20 border border-red-700/50 px-3 py-2 text-sm text-red-400">
+                  {err}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-3 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Verificar código'
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={sendOtpCode}
+                disabled={resendingOtp}
+                className="w-full text-sm text-stone-400 hover:text-white disabled:opacity-50"
+              >
+                {resendingOtp ? 'Enviando...' : '¿No recibiste el código? Reenviar'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOtpVerification(false);
+                  setOtp('');
+                  setErr(null);
+                }}
+                className="w-full text-sm text-stone-400 hover:text-white"
+              >
+                Volver atrás
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 flex items-center justify-center p-4">
@@ -429,13 +612,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   Continuar
                 </button>
 
-                <button
-                  type="button"
-                  className="block w-full text-center text-xs text-stone-400 hover:text-stone-200"
-                  onClick={() => alert('Manda un correo a soporte para recuperar tu contraseña.')}
-                >
-                  ¿Olvidaste tu contraseña?
-                </button>
               </form>
             )}
 
@@ -480,13 +656,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   Continuar
                 </button>
 
-                <button
-                  type="button"
+                <Link
+                  href="/forgot-password"
                   className="block w-full text-center text-xs text-stone-400 hover:text-stone-200"
-                  onClick={() => alert('Manda un correo a soporte para recuperar tu contraseña.')}
                 >
                   ¿Olvidaste tu contraseña?
-                </button>
+                </Link>
               </form>
             )}
 

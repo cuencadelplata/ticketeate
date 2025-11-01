@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { customSession } from 'better-auth/plugins';
+import { customSession, emailOTP } from 'better-auth/plugins';
 import { prisma } from '@repo/db';
 import { Resend } from 'resend';
 
@@ -19,10 +19,10 @@ export const auth = betterAuth({
   // Email & Password habilitado
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: false, // Permitir registro pero verificar después
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.com>',
+        from: 'Ticketeate <noreply@ticketeate.page>',
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
         html: `
@@ -39,7 +39,7 @@ export const auth = betterAuth({
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
       await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.com>',
+        from: 'Ticketeate <noreply@ticketeate.page>',
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
         html: `
@@ -64,30 +64,64 @@ export const auth = betterAuth({
     },
   },
 
-  // OTP para verificación - DESHABILITADO
-  // otp: {
-  //   enabled: true,
-  //   sendOTP: async ({ email, otp }: { email: string; otp: string }) => {
-  //     await resend.emails.send({
-  //       from: 'Ticketeate <noreply@ticketeate.com>',
-  //       to: [email],
-  //       subject: 'Código de verificación - Ticketeate',
-  //       html: `
-  //         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  //           <h2>Código de verificación</h2>
-  //           <p>Tu código de verificación es:</p>
-  //           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px; margin: 20px 0;">
-  //             ${otp}
-  //           </div>
-  //           <p>Este código expirará en 10 minutos.</p>
-  //           <p>Si no solicitaste este código, puedes ignorar este correo.</p>
-  //         </div>
-  //       `,
-  //     });
-  //   },
-  // },
-
   plugins: [
+    // Plugin de OTP para verificación por email
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        console.log(`[OTP] Sending ${type} code to ${email}:`, otp);
+        
+        const subjects = {
+          'sign-in': 'Código de inicio de sesión - Ticketeate',
+          'email-verification': 'Verificar correo electrónico - Ticketeate',
+          'forget-password': 'Código para restablecer contraseña - Ticketeate',
+        };
+
+        const titles = {
+          'sign-in': 'Código de inicio de sesión',
+          'email-verification': 'Verificar correo electrónico',
+          'forget-password': 'Restablecer contraseña',
+        };
+
+        try {
+          const { data, error } = await resend.emails.send({
+            from: 'Ticketeate <onboarding@ticketeate.page>', // Usar dominio de Resend hasta configurar uno propio
+            to: [email],
+            subject: subjects[type] || 'Código de verificación - Ticketeate',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #333;">${titles[type] || 'Código de verificación'}</h2>
+                <p style="color: #666;">Tu código de verificación es:</p>
+                <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; border-radius: 5px; margin: 20px 0; color: #333;">
+                  ${otp}
+                </div>
+                <p style="color: #666;">Este código expirará en 10 minutos.</p>
+                <p style="color: #999; font-size: 14px;">Si no solicitaste este código, puedes ignorar este correo.</p>
+              </div>
+            `,
+          });
+
+          if (error) {
+            console.error('[OTP] Resend error:', error);
+            throw new Error(`Failed to send OTP: ${error.message}`);
+          }
+
+          console.log('[OTP] Email sent successfully:', data);
+        } catch (error) {
+          console.error('[OTP] Failed to send email:', error);
+          // En desarrollo, mostrar el código en la consola como fallback
+          if (process.env.NODE_ENV === 'development') {
+            console.log('═══════════════════════════════════');
+            console.log(`📧 OTP CODE FOR ${email}`);
+            console.log(`   ${otp}`);
+            console.log('═══════════════════════════════════');
+          }
+          throw error;
+        }
+      },
+      otpLength: 6,
+      expiresIn: 600, // 10 minutos
+      sendVerificationOnSignUp: true, // Enviar OTP automáticamente al registrarse
+    }),
     customSession(async ({ user, session }) => {
       // Obtener el usuario completo de la base de datos para incluir el rol
       const fullUser = await prisma.user.findUnique({
@@ -108,6 +142,7 @@ export const auth = betterAuth({
         user: {
           ...user,
           role: fullUser?.role || 'USUARIO',
+          emailVerified: fullUser?.emailVerified || false,
         },
         session: {
           ...session,
