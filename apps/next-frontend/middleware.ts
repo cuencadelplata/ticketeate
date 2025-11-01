@@ -1,61 +1,53 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
 
-import {
-  apiAuthPrefix,
-  authRoutes,
-  DEFAULT_LOGIN_REDIRECT,
-  publicRoutes,
-  protectedRoutes,
-} from './routes';
+import { apiAuthPrefix, authRoutes, publicRoutes, protectedRoutes } from './routes';
 
 export async function middleware(request: NextRequest) {
-  const session = getSessionCookie(request);
+  const { pathname } = request.nextUrl;
 
-  const isApiAuth = request.nextUrl.pathname.startsWith(apiAuthPrefix);
+  // 1. Permitir siempre rutas de API de autenticación
+  if (pathname.startsWith(apiAuthPrefix)) {
+    return NextResponse.next();
+  }
 
-  const isPublicRoute = publicRoutes.some((route) => {
+  // Helper para verificar rutas con wildcards
+  const matchesRoute = (route: string, path: string): boolean => {
     if (route.endsWith('/*')) {
       const baseRoute = route.slice(0, -2);
-      return request.nextUrl.pathname.startsWith(baseRoute);
+      return path.startsWith(baseRoute);
     }
-    return request.nextUrl.pathname === route;
-  });
-
-  const isProtectedRoute = protectedRoutes.some((route) => {
-    if (route.endsWith('/*')) {
-      const baseRoute = route.slice(0, -2);
-      return request.nextUrl.pathname.startsWith(baseRoute);
-    }
-    return request.nextUrl.pathname === route;
-  });
-
-  const isAuthRoute = () => {
-    return authRoutes.some((path) => request.nextUrl.pathname.startsWith(path));
+    return path === route;
   };
 
-  if (isApiAuth) {
+  // 2. Verificar si es ruta de autenticación (/sign-in, /sign-up, etc)
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(route, pathname));
+
+  if (isAuthRoute) {
+    // Siempre permitir acceso a rutas de autenticación
     return NextResponse.next();
   }
 
-  if (isAuthRoute()) {
-    if (session) {
-      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
+  // 3. Verificar si es ruta pública (siempre permitir)
+  const isPublicRoute = publicRoutes.some((route) => matchesRoute(route, pathname));
+
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // 4. Para rutas protegidas, verificar la sesión
+  const isProtectedRoute = protectedRoutes.some((route) => matchesRoute(route, pathname));
+
+  if (isProtectedRoute) {
+    // Verificar si tiene cookie de sesión
+    const sessionToken = request.cookies.get('better-auth.session_token');
+
+    if (!sessionToken) {
+      const back = encodeURIComponent(pathname);
+      return NextResponse.redirect(new URL(`/sign-in?redirect_url=${back}`, request.url));
     }
-    return NextResponse.next();
   }
 
-  // Proteger rutas específicas
-  if (isProtectedRoute && !session) {
-    const back = encodeURIComponent(request.nextUrl.pathname);
-    return NextResponse.redirect(new URL(`/sign-in?redirect_url=${back}`, request.url));
-  }
-
-  // Si no hay sesión y no es una ruta pública, redirigir al login
-  if (!session && !isPublicRoute && !isAuthRoute()) {
-    return NextResponse.redirect(new URL('/sign-in', request.url));
-  }
-
+  // 5. Para cualquier otra ruta, permitir acceso
   return NextResponse.next();
 }
 
