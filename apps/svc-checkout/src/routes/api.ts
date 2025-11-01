@@ -1,5 +1,4 @@
 import { Hono, Context } from 'hono';
-import { events } from './events';
 
 const api = new Hono();
 
@@ -7,8 +6,6 @@ const api = new Hono();
 function getJwtPayload(c: Context) {
   return c.get('jwtPayload');
 }
-
-api.route('/events', events);
 
 // GET /api/users/:id
 api.get('/users/:id', (c) => {

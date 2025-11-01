@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -28,7 +28,7 @@ describe('Cloudinary Config', () => {
     }));
 
     // Import after mocking
-    const cloudinaryModule = await import('../config/cloudinary');
+    const cloudinaryModule = await import('../config/cloudinary.js');
 
     expect(mockCloudinary.config).toHaveBeenCalledWith({
       cloud_name: 'test-cloud',
@@ -52,7 +52,7 @@ describe('Cloudinary Config', () => {
       v2: mockCloudinary,
     }));
 
-    await import('../config/cloudinary');
+    await import('../config/cloudinary.js');
 
     expect(mockCloudinary.config).toHaveBeenCalledWith({
       cloud_name: undefined,

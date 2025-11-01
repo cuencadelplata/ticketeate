@@ -1,7 +1,12 @@
 {
-  "name": "Ticketeate",
-  "version": "0.1.0",
+  "name": "ticketeate",
+  "version": "1.0.1",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cuencadelplata/ticketeate.git",
+    "directory": "apps/next-frontend"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -106,6 +111,12 @@
   },
   "devDependencies": {
     "@next/mdx": "^15.5.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@tanstack/react-query-devtools": "^5.85.5",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
@@ -131,6 +142,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "prisma": "^6.4.1",
+    "semantic-release": "^25.0.1",
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",

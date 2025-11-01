@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock Prisma to avoid import issues
 vi.mock('@repo/db', () => ({
   prisma: {
@@ -10,7 +11,8 @@ vi.mock('@repo/db', () => ({
 
 describe('Events Service Health Check', () => {
   it('should return 200 on health endpoint', async () => {
-    const { default: app } = await import('../app');
+    const appModule = await import('../app.js');
+    const app = appModule.default as any;
 
     const res = await app.request('/health');
     expect(res.status).toBe(200);
@@ -23,7 +25,8 @@ describe('Events Service Health Check', () => {
   });
 
   it('should return 200 on ready endpoint', async () => {
-    const { default: app } = await import('../app');
+    const appModule = await import('../app.js');
+    const app = appModule.default as any;
 
     const res = await app.request('/health/ready');
     expect(res.status).toBe(200);
@@ -34,7 +37,8 @@ describe('Events Service Health Check', () => {
   });
 
   it('should return 200 on live endpoint', async () => {
-    const { default: app } = await import('../app');
+    const appModule = await import('../app.js');
+    const app = appModule.default as any;
 
     const res = await app.request('/health/live');
     expect(res.status).toBe(200);

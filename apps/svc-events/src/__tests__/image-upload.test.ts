@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ImageUploadService } from '../services/image-upload';
+import { ImageUploadService } from '../services/image-upload.js';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock Cloudinary
-vi.mock('../config/cloudinary', () => ({
+vi.mock('../config/cloudinary.js', () => ({
   default: {
     uploader: {
       upload_stream: vi.fn(),
@@ -18,11 +19,11 @@ describe('ImageUploadService', () => {
 
   describe('uploadImage', () => {
     it('should upload image successfully', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
       const mockUploadStream = vi.fn();
 
-      vi.mocked(cloudinary.default.uploader.upload_stream).mockImplementation(
-        (options, callback) => {
+      vi.mocked((cloudinary.default as any).uploader.upload_stream).mockImplementation(
+        (_options: any, callback: any) => {
           // Simulate successful upload
           setTimeout(() => {
             callback(null, {
@@ -52,11 +53,11 @@ describe('ImageUploadService', () => {
     });
 
     it('should upload image with custom folder', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
       const mockUploadStream = vi.fn();
 
-      vi.mocked(cloudinary.default.uploader.upload_stream).mockImplementation(
-        (options, callback) => {
+      vi.mocked((cloudinary.default as any).uploader.upload_stream).mockImplementation(
+        (options: any, callback: any) => {
           expect(options.folder).toBe('custom/folder');
 
           setTimeout(() => {
@@ -81,11 +82,11 @@ describe('ImageUploadService', () => {
     });
 
     it('should handle upload errors', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
       const mockUploadStream = vi.fn();
 
-      vi.mocked(cloudinary.default.uploader.upload_stream).mockImplementation(
-        (options, callback) => {
+      vi.mocked((cloudinary.default as any).uploader.upload_stream).mockImplementation(
+        (_options: any, callback: any) => {
           setTimeout(() => {
             callback(new Error('Upload failed'), null);
           }, 0);
@@ -104,11 +105,11 @@ describe('ImageUploadService', () => {
     });
 
     it('should handle null result from Cloudinary', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
       const mockUploadStream = vi.fn();
 
-      vi.mocked(cloudinary.default.uploader.upload_stream).mockImplementation(
-        (options, callback) => {
+      vi.mocked((cloudinary.default as any).uploader.upload_stream).mockImplementation(
+        (_options: any, callback: any) => {
           setTimeout(() => {
             callback(null, null);
           }, 0);
@@ -129,25 +130,29 @@ describe('ImageUploadService', () => {
 
   describe('deleteImage', () => {
     it('should delete image successfully', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
 
-      vi.mocked(cloudinary.default.uploader.destroy).mockImplementation((publicId, callback) => {
-        setTimeout(() => {
-          callback(null, { result: 'ok' });
-        }, 0);
-      });
+      vi.mocked((cloudinary.default as any).uploader.destroy).mockImplementation(
+        (_publicId: any, callback: any) => {
+          setTimeout(() => {
+            callback(null, { result: 'ok' });
+          }, 0);
+        },
+      );
 
       await expect(ImageUploadService.deleteImage('test/test-image')).resolves.toBeUndefined();
     });
 
     it('should handle delete errors', async () => {
-      const cloudinary = await import('../config/cloudinary');
+      const cloudinary = await import('../config/cloudinary.js');
 
-      vi.mocked(cloudinary.default.uploader.destroy).mockImplementation((publicId, callback) => {
-        setTimeout(() => {
-          callback(new Error('Delete failed'), null);
-        }, 0);
-      });
+      vi.mocked((cloudinary.default as any).uploader.destroy).mockImplementation(
+        (_publicId: any, callback: any) => {
+          setTimeout(() => {
+            callback(new Error('Delete failed'), null);
+          }, 0);
+        },
+      );
 
       await expect(ImageUploadService.deleteImage('test/test-image')).rejects.toThrow(
         'Error deleting from Cloudinary: Delete failed',

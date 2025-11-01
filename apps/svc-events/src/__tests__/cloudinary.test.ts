@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 describe('Cloudinary Config', () => {
   beforeEach(() => {
     // Reset environment variables
@@ -14,15 +15,15 @@ describe('Cloudinary Config', () => {
     process.env.CLOUDINARY_API_KEY = 'test-key';
     process.env.CLOUDINARY_API_SECRET = 'test-secret';
 
-    const cloudinary = await import('../config/cloudinary');
+    const cloudinary = await import('../config/cloudinary.js');
 
     expect(cloudinary.default).toBeDefined();
-    expect(cloudinary.default.config).toBeDefined();
+    expect((cloudinary.default as any).config).toBeDefined();
   });
 
   it('should handle missing environment variables', async () => {
     // Don't set environment variables
-    const cloudinary = await import('../config/cloudinary');
+    const cloudinary = await import('../config/cloudinary.js');
 
     expect(cloudinary.default).toBeDefined();
     // Cloudinary should still be initialized even without env vars

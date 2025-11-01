@@ -14,13 +14,13 @@ vi.mock('@repo/db', () => ({
 
 describe('Prisma Config', () => {
   it('should export prisma instance', async () => {
-    const prismaModule = await import('../config/prisma');
+    const prismaModule = await import('../config/prisma.js');
 
     expect(prismaModule.prisma).toBe(mockPrisma);
   });
 
   it('should allow prisma operations', async () => {
-    const { prisma } = await import('../config/prisma');
+    const { prisma } = await import('../config/prisma.js');
 
     mockPrisma.user.findMany.mockResolvedValue([]);
 

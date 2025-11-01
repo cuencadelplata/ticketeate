@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
   issues: write
   pull-requests: write
   repository-projects: write
@@ -23,12 +24,12 @@ jobs:
       should_release: ${{ steps.check.outputs.should_release }}
       has_breaking: ${{ steps.check.outputs.has_breaking }}
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🔍 Verificar tipo de cambios
+      - name: Verificar tipo de cambios
         id: check
         run: |
           # Obtener commits desde el último tag
@@ -39,20 +40,20 @@ jobs:
             COMMITS=$(git log ${LAST_TAG}..HEAD --format=%s)
           fi
           
-          echo "📝 Commits a analizar:"
+          echo "Commits a analizar:"
           echo "$COMMITS"
           
           # Verificar si hay breaking changes
           if echo "$COMMITS" | grep -qE '^(feat!|fix!|perf!|refactor!|BREAKING CHANGE)'; then
-            echo "⚠️ BREAKING CHANGE detectado - No se lanzará automáticamente"
+            echo "BREAKING CHANGE detectado - No se lanzará automáticamente"
             echo "should_release=false" >> $GITHUB_OUTPUT
             echo "has_breaking=true" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -qE '^(feat|fix|perf|refactor):'; then
-            echo "✅ Cambios menores/patch detectados - Se procederá con release"
+          elif echo "$COMMITS" | grep -qE '^(feat|fix|perf|refactor)(\(.+\))?:'; then
+            echo "Cambios menores/patch detectados - Se procederá con release"
             echo "should_release=true" >> $GITHUB_OUTPUT
             echo "has_breaking=false" >> $GITHUB_OUTPUT
           else
-            echo "ℹ️ No hay cambios que requieran release"
+            echo "No hay cambios que requieran release"
             echo "should_release=false" >> $GITHUB_OUTPUT
             echo "has_breaking=false" >> $GITHUB_OUTPUT
           fi
@@ -66,29 +67,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 💬 Crear issue para major release
+      - name: Crear issue para major release
         uses: actions/github-script@v7
         with:
           script: |
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '🚨 BREAKING CHANGE detectado - Requiere Major Release Manual',
-              body: `## ⚠️ Breaking Change Detectado
+              title: 'BREAKING CHANGE detectado - Requiere Major Release Manual',
+              body: `## Breaking Change Detectado
               
               Se han detectado cambios con \`BREAKING CHANGE\` en los commits recientes.
               
-              ### 📋 Acción Requerida
+              ### Acción Requerida
               
               Una **major release** (cambio de versión mayor) requiere aprobación manual.
               
-              ### 🔧 Pasos para lanzar Major Release:
+              ### Pasos para lanzar Major Release:
               
               1. Ve a **Actions** → **Manual Major Release**
               2. Ejecuta el workflow manualmente
               3. Revisa y aprueba los cambios
               
-              ### 📝 Commits con Breaking Changes:
+              ### Commits con Breaking Changes:
               
               \`\`\`
               ${context.payload.commits.map(c => c.message).join('\n')}
@@ -110,12 +111,11 @@ jobs:
     needs: analyze-commits
     if: needs.analyze-commits.outputs.should_release == 'true'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
-          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -125,27 +125,23 @@ jobs:
       - name: Instalar pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: 📚 Instalar dependencias de semantic-release
+      - name: Instalar dependencias de semantic-release
         run: |
           cd apps/next-frontend
           pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
-      - name: 🚀 Ejecutar semantic-release
+      - name: Ejecutar semantic-release
         working-directory: apps/next-frontend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: npx semantic-release
 
-      - name: ✅ Release completado
+      - name: Release completado
         if: success()
         run: |
-          echo "🎉 Release creado exitosamente"
-          echo "📦 Verifica la nueva versión en GitHub Releases"
-          echo "🐳 El workflow de Docker build se ejecutará automáticamente con el nuevo tag"
+          echo "Release creado exitosamente"
+          echo "Verifica la nueva versión en GitHub Releases"
+          echo "El workflow de Docker build se ejecutará automáticamente con el nuevo tag"
 
   trigger-docker-build:
     name: Docker Build Trigger
@@ -153,8 +149,8 @@ jobs:
     needs: release
     if: success()
     steps:
-      - name: ℹ️ Info
+      - name: Info
         run: |
-          echo "✅ El tag fue creado exitosamente"
-          echo "🔄 El workflow 'Build and Push to ECR' se ejecutará automáticamente"
-          echo "📍 Verifica en Actions → Build and Push Ticketeate Frontend to AWS ECR"
+          echo "El tag fue creado exitosamente"
+          echo "El workflow 'Build and Push to ECR' se ejecutará automáticamente"
+          echo "Verifica en Actions → Build and Push Ticketeate Frontend to AWS ECR"

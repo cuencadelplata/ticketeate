@@ -1,0 +1,54 @@
+name: Build & Push nginx to ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/nginx/**'
+      - '.github/workflows/docker-nginx.yml'
+  workflow_dispatch:  # Permite ejecución manual
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: ticketeate-nginx
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          echo "Building nginx Docker image..."
+          docker build \
+            -f apps/nginx/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            apps/nginx
+          echo "✅ Docker image built successfully"
+
+      - name: Push to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          echo "Pushing to ECR..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "✅ Image pushed to ECR"
+          echo "📦 Image: $ECR_REGISTRY/$ECR_REPOSITORY:latest"

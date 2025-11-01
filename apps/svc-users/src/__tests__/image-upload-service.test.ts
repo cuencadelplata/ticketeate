@@ -14,14 +14,14 @@ vi.mock('../config/cloudinary', () => ({
 
 describe('ImageUploadService', () => {
   it('should be importable', async () => {
-    const { ImageUploadService } = await import('../services/image-upload');
+    const { ImageUploadService } = await import('../services/image-upload.js');
     expect(ImageUploadService).toBeDefined();
     expect(typeof ImageUploadService.uploadImage).toBe('function');
     expect(typeof ImageUploadService.deleteImage).toBe('function');
   });
 
   it('should have correct interface', async () => {
-    const { ImageUploadService } = await import('../services/image-upload');
+    const { ImageUploadService } = await import('../services/image-upload.js');
 
     // Test that the service has the expected methods
     expect(ImageUploadService.uploadImage).toBeInstanceOf(Function);

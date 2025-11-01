@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock environment variables
 const originalEnv = process.env;
@@ -16,7 +16,9 @@ describe('Index App', () => {
   it('should create app with development CORS', async () => {
     process.env.NODE_ENV = 'development';
 
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     // Test root route
     const res = await app.request('/');
@@ -35,7 +37,9 @@ describe('Index App', () => {
   it('should create app with production CORS', async () => {
     process.env.NODE_ENV = 'production';
 
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     // Test root route
     const res = await app.request('/');
@@ -51,7 +55,9 @@ describe('Index App', () => {
   });
 
   it('should handle health endpoint', async () => {
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     const res = await app.request('/health');
     expect(res.status).toBe(200);
@@ -65,7 +71,9 @@ describe('Index App', () => {
   });
 
   it('should handle users endpoint', async () => {
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     const res = await app.request('/api/users');
     expect(res.status).toBe(200);
@@ -82,7 +90,9 @@ describe('Index App', () => {
   });
 
   it('should handle 404 for non-existent routes', async () => {
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     const res = await app.request('/non-existent');
     expect(res.status).toBe(404);
@@ -100,7 +110,7 @@ describe('Index App', () => {
       throw new Error('Test error');
     });
 
-    testApp.onError((err, c) => {
+    testApp.onError((_err, c) => {
       return c.json({ error: 'Internal Server Error' }, 500);
     });
 
@@ -112,7 +122,9 @@ describe('Index App', () => {
   });
 
   it('should handle CORS preflight requests', async () => {
-    const { default: app } = await import('../index');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indexModule = (await import('../index.js')) as any;
+    const app = indexModule.default;
 
     const res = await app.request('/', {
       method: 'OPTIONS',
