@@ -130,6 +130,9 @@ jobs:
         run: |
           cd apps/svc-events
           pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+          
+      - name: Regenerar lockfile completo
+        run: pnpm install --no-frozen-lockfile
 
       - name: Ejecutar semantic-release
         working-directory: apps/svc-events
