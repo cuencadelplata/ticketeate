@@ -5,6 +5,20 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.0...next-frontend-v1.0.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* **panel:** admin panel colors ([#91](https://github.com/cuencadelplata/ticketeate/issues/91)) ([50050a7](https://github.com/cuencadelplata/ticketeate/commit/50050a7cbfc6da5593fa7fc4759356dab6a3460b))
+* **panel:** admin panel colors ([8308329](https://github.com/cuencadelplata/ticketeate/commit/830832950e770beb45af08e2b929b68943a60ee4))
+* **panel:** admin panel colors ([1889db2](https://github.com/cuencadelplata/ticketeate/commit/1889db206254f7a4b446e95705883edb6d2b82e7))
+* **panel:** admin panel colors ([1d54d37](https://github.com/cuencadelplata/ticketeate/commit/1d54d373f6cde1179216e4f521031eeacc06f19f))
+* **panel:** admin panel colors ([8941f90](https://github.com/cuencadelplata/ticketeate/commit/8941f907ac410d3d6169e8f843cd8342ce2a0784))
+* **panel:** admin panel colors ([ca916a9](https://github.com/cuencadelplata/ticketeate/commit/ca916a98829bd8bce10bc1a4d06357bd8c5bea45))
+* **ci:** corregir detección de commits con scope en release workflow ([#92](https://github.com/cuencadelplata/ticketeate/issues/92)) ([89a8682](https://github.com/cuencadelplata/ticketeate/commit/89a868201efdd7d8c5ec32cb5a61716ff8bb9fd3))
+* **ci:** corregir detección de commits con scope en release workflow ([1e6baaa](https://github.com/cuencadelplata/ticketeate/commit/1e6baaa32d8f845504f04b2a7cafaa5f4a5057cd))
+
 # 1.0.0 (2025-10-29)
 
 ### Bug Fixes
