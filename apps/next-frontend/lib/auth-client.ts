@@ -6,10 +6,7 @@ import type { auth } from './auth';
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000',
-  plugins: [
-    customSessionClient<typeof auth>(),
-    emailOTPClient(),
-  ],
+  plugins: [customSessionClient<typeof auth>(), emailOTPClient()],
 });
 
 export const {

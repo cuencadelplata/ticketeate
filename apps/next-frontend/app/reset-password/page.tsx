@@ -68,13 +68,13 @@ function ResetPasswordForm() {
     } catch (err: any) {
       console.error('Error:', err);
       let errorMessage = 'Error al restablecer la contraseña. Intenta nuevamente.';
-      
+
       if (err?.message?.includes('expired')) {
         errorMessage = 'El enlace ha expirado. Solicita uno nuevo.';
       } else if (err?.message?.includes('invalid')) {
         errorMessage = 'El enlace no es válido. Solicita uno nuevo.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -93,9 +93,7 @@ function ResetPasswordForm() {
             <p className="mt-3 text-sm text-gray-600">
               Tu contraseña ha sido actualizada exitosamente.
             </p>
-            <p className="mt-2 text-sm text-gray-500">
-              Serás redirigido al inicio de sesión...
-            </p>
+            <p className="mt-2 text-sm text-gray-500">Serás redirigido al inicio de sesión...</p>
           </div>
         </div>
       </div>
@@ -107,9 +105,7 @@ function ResetPasswordForm() {
       <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">Restablecer contraseña</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Ingresa tu nueva contraseña
-          </p>
+          <p className="mt-2 text-sm text-gray-600">Ingresa tu nueva contraseña</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -163,11 +159,7 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
           <button
             type="submit"
@@ -186,10 +178,7 @@ function ResetPasswordForm() {
         </form>
 
         <div className="text-center">
-          <Link
-            href="/sign-in"
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/sign-in" className="text-sm text-gray-600 hover:text-gray-900">
             Volver al inicio de sesión
           </Link>
         </div>
@@ -200,11 +189,13 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );

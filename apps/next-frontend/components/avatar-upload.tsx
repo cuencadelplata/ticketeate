@@ -59,7 +59,7 @@ export default function AvatarUpload() {
       }
 
       const data = await response.json();
-      
+
       // Refrescar la sesión para obtener la nueva imagen
       await refetchSession();
       setPreview(null);
@@ -77,7 +77,7 @@ export default function AvatarUpload() {
 
   const handleDelete = async () => {
     if (!currentImage) return;
-    
+
     const confirmed = window.confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?');
     if (!confirmed) return;
 
@@ -167,15 +167,15 @@ export default function AvatarUpload() {
       />
 
       {/* Error message */}
-      {error && (
-        <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{error}</div>}
 
       {/* Info text */}
       <p className="text-center text-sm text-gray-500">
-        {uploading ? 'Subiendo imagen...' : deleting ? 'Eliminando imagen...' : 'Haz clic en el icono de cámara para cambiar tu foto'}
+        {uploading
+          ? 'Subiendo imagen...'
+          : deleting
+            ? 'Eliminando imagen...'
+            : 'Haz clic en el icono de cámara para cambiar tu foto'}
         <br />
         <span className="text-xs">JPG, PNG o WEBP. Máximo 5MB</span>
       </p>

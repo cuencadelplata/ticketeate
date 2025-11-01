@@ -27,7 +27,7 @@ function VerifyOTPForm() {
 
   const handleSendOTP = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
     setError(null);
     setSending(true);
 
@@ -48,11 +48,11 @@ function VerifyOTPForm() {
         email,
         type: 'email-verification',
       });
-      
+
       if (result.error) {
         throw new Error(result.error.message || 'Error al enviar el código');
       }
-      
+
       setOtpSent(true);
     } catch (err: any) {
       console.error('Error:', err);
@@ -78,11 +78,11 @@ function VerifyOTPForm() {
         email,
         otp,
       });
-      
+
       if (result.error) {
         throw new Error(result.error.message || 'Código inválido o expirado');
       }
-      
+
       setSuccess(true);
       setTimeout(() => {
         router.push('/sign-in');
@@ -90,13 +90,13 @@ function VerifyOTPForm() {
     } catch (err: any) {
       console.error('Error:', err);
       let errorMessage = 'Código incorrecto o expirado';
-      
+
       if (err?.message?.includes('expired') || err?.message?.includes('TOO_MANY_ATTEMPTS')) {
         errorMessage = 'El código ha expirado o excediste los intentos. Solicita uno nuevo.';
       } else if (err?.message?.includes('invalid')) {
         errorMessage = 'Código inválido. Verifica e intenta nuevamente.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -112,12 +112,8 @@ function VerifyOTPForm() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">¡Email verificado!</h2>
-            <p className="mt-3 text-sm text-gray-600">
-              Tu email ha sido verificado exitosamente.
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              Serás redirigido al inicio de sesión...
-            </p>
+            <p className="mt-3 text-sm text-gray-600">Tu email ha sido verificado exitosamente.</p>
+            <p className="mt-2 text-sm text-gray-500">Serás redirigido al inicio de sesión...</p>
           </div>
         </div>
       </div>
@@ -157,11 +153,7 @@ function VerifyOTPForm() {
               </div>
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
             <button
               type="submit"
@@ -180,10 +172,7 @@ function VerifyOTPForm() {
           </form>
 
           <div className="text-center">
-            <Link
-              href="/sign-in"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
+            <Link href="/sign-in" className="text-sm text-gray-600 hover:text-gray-900">
               Volver al inicio de sesión
             </Link>
           </div>
@@ -224,11 +213,7 @@ function VerifyOTPForm() {
             <p className="mt-1 text-xs text-gray-500">El código expira en 10 minutos</p>
           </div>
 
-          {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
           <button
             type="submit"
@@ -256,10 +241,7 @@ function VerifyOTPForm() {
         </form>
 
         <div className="text-center">
-          <Link
-            href="/sign-in"
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/sign-in" className="text-sm text-gray-600 hover:text-gray-900">
             Volver al inicio de sesión
           </Link>
         </div>
@@ -270,11 +252,13 @@ function VerifyOTPForm() {
 
 export default function VerifyOTPPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
       <VerifyOTPForm />
     </Suspense>
   );

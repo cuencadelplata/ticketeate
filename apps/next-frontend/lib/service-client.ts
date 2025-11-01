@@ -39,7 +39,7 @@ export async function serviceFetch(url: string, options: FetchOptions = {}): Pro
  */
 export async function serviceGet<T = any>(
   url: string,
-  options: Omit<FetchOptions, 'method' | 'body'> = {}
+  options: Omit<FetchOptions, 'method' | 'body'> = {},
 ): Promise<T> {
   const response = await serviceFetch(url, {
     ...options,
@@ -59,7 +59,7 @@ export async function serviceGet<T = any>(
 export async function servicePost<T = any>(
   url: string,
   body?: any,
-  options: Omit<FetchOptions, 'method'> = {}
+  options: Omit<FetchOptions, 'method'> = {},
 ): Promise<T> {
   const response = await serviceFetch(url, {
     ...options,

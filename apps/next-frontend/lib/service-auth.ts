@@ -1,6 +1,6 @@
 /**
  * Sistema de autenticación entre servicios (Service-to-Service Auth)
- * 
+ *
  * Genera y valida tokens JWT para comunicación segura entre:
  * - next-frontend <-> svc-events
  * - next-frontend <-> svc-users
@@ -10,7 +10,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 
 // Secret compartido entre servicios (debe estar en .env)
-const SERVICE_SECRET = process.env.SERVICE_AUTH_SECRET || 'default-service-secret-change-in-production';
+const SERVICE_SECRET =
+  process.env.SERVICE_AUTH_SECRET || 'default-service-secret-change-in-production';
 const SECRET_KEY = new TextEncoder().encode(SERVICE_SECRET);
 
 // Identificadores de servicios
@@ -37,7 +38,7 @@ interface ServiceTokenPayload {
  */
 export async function generateServiceToken(
   serviceId: ServiceId,
-  expiresIn: number = 300
+  expiresIn: number = 300,
 ): Promise<string> {
   const token = await new SignJWT({ serviceId })
     .setProtectedHeader({ alg: 'HS256' })

@@ -69,7 +69,7 @@ export const auth = betterAuth({
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         console.log(`[OTP] Sending ${type} code to ${email}:`, otp);
-        
+
         const subjects = {
           'sign-in': 'Código de inicio de sesión - Ticketeate',
           'email-verification': 'Verificar correo electrónico - Ticketeate',

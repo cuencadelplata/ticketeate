@@ -47,13 +47,13 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     if (session) {
       const user = session.user as any;
       const emailVerified = user?.emailVerified;
-      
+
       // Si no está verificado, mostrar formulario OTP
       if (!emailVerified && !showOtpVerification) {
         setShowOtpVerification(true);
         return;
       }
-      
+
       // Si está verificado y no estamos en el flujo OTP, redirigir
       if (emailVerified && !showOtpVerification) {
         const r = user?.role as Role | undefined;
@@ -223,7 +223,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       // Mostrar formulario de verificación OTP en la misma página
       setLoading(false);
       setShowOtpVerification(true);
-      
+
       // No enviar OTP aquí - ya se envió automáticamente por sendVerificationOnSignUp
       // await sendOtpCode();
       return; // Salir para evitar mostrar error
@@ -277,12 +277,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     try {
       setResendingOtp(true);
       setErr(null);
-      
+
       const result = await sendVerificationOTP({
         email: formData.email,
         type: 'email-verification',
       });
-      
+
       if (result.error) {
         showError('Error al enviar el código. Intenta nuevamente.');
       } else {
@@ -300,7 +300,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   // Función para verificar código OTP
   const verifyOtpCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (otp.length !== 6) {
       showError('Ingresa el código de 6 dígitos');
       return;
@@ -311,7 +311,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
     try {
       console.log('Verificando OTP:', { email: formData.email, otp });
-      
+
       const result = await verifyEmail({
         email: formData.email,
         otp,
@@ -333,7 +333,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       console.log('Login result:', loginResult);
 
       // Esperar un momento para que la sesión se actualice
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // La redirección se manejará automáticamente por el useEffect
       // que detectará la sesión con emailVerified: true
@@ -341,11 +341,11 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       let errorMessage = 'Código incorrecto o expirado';
-      
+
       if (error?.message?.includes('TOO_MANY_ATTEMPTS')) {
         errorMessage = 'Demasiados intentos. Solicita un nuevo código.';
       }
-      
+
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -406,7 +406,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Verifica tu email</h1>
             <p className="text-stone-400">
-              Hemos enviado un código de 6 dígitos a <strong className="text-white">{formData.email}</strong>
+              Hemos enviado un código de 6 dígitos a{' '}
+              <strong className="text-white">{formData.email}</strong>
             </p>
           </div>
 
@@ -454,10 +455,10 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 disabled={resendingOtp || resendCooldown > 0}
                 className="w-full text-sm text-stone-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {resendingOtp 
-                  ? 'Enviando...' 
-                  : resendCooldown > 0 
-                    ? `Reenviar en ${resendCooldown}s` 
+                {resendingOtp
+                  ? 'Enviando...'
+                  : resendCooldown > 0
+                    ? `Reenviar en ${resendCooldown}s`
                     : '¿No recibiste el código? Reenviar'}
               </button>
 
@@ -636,7 +637,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Continuar
                 </button>
-
               </form>
             )}
 

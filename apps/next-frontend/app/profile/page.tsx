@@ -54,10 +54,7 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
-          <Link
-            href="/"
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
             Volver al inicio
           </Link>
         </div>

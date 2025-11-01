@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
         { error: 'Tipo de archivo no válido. Solo se permiten imágenes (JPG, PNG, WEBP)' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: 'El archivo es demasiado grande. Máximo 5MB' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
-        }
+        },
       );
 
       uploadStream.end(buffer);
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     console.error('Error al subir imagen:', error);
     return NextResponse.json(
       { error: 'Error al subir la imagen. Intenta nuevamente.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -134,7 +134,7 @@ export async function DELETE(req: NextRequest) {
     console.error('Error al eliminar imagen:', error);
     return NextResponse.json(
       { error: 'Error al eliminar la imagen. Intenta nuevamente.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
