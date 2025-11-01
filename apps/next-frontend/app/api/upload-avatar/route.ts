@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE() {
   try {
     // Verificar sesión
     const session = await auth.api.getSession({

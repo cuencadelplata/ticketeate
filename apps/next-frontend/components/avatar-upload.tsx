@@ -58,7 +58,7 @@ export default function AvatarUpload() {
         throw new Error(data.error || 'Error al subir la imagen');
       }
 
-      const data = await response.json();
+      await response.json();
 
       // Refrescar la sesión para obtener la nueva imagen
       await refetchSession();
