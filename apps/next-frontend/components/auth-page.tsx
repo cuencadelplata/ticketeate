@@ -27,6 +27,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [otp, setOtp] = useState('');
   const [resendingOtp, setResendingOtp] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0); // Segundos restantes para reenviar
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -256,10 +257,27 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     }
   }
 
+  // useEffect para el countdown del cooldown
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   // Función para enviar código OTP
   const sendOtpCode = async () => {
+    if (resendCooldown > 0) {
+      showError(`Espera ${resendCooldown} segundos antes de reenviar`);
+      return;
+    }
+
     try {
       setResendingOtp(true);
+      setErr(null);
+      
       const result = await sendVerificationOTP({
         email: formData.email,
         type: 'email-verification',
@@ -267,6 +285,9 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       
       if (result.error) {
         showError('Error al enviar el código. Intenta nuevamente.');
+      } else {
+        // Iniciar cooldown de 60 segundos
+        setResendCooldown(60);
       }
     } catch (error: any) {
       console.error('Error sending OTP:', error);
@@ -430,10 +451,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
               <button
                 type="button"
                 onClick={sendOtpCode}
-                disabled={resendingOtp}
-                className="w-full text-sm text-stone-400 hover:text-white disabled:opacity-50"
+                disabled={resendingOtp || resendCooldown > 0}
+                className="w-full text-sm text-stone-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {resendingOtp ? 'Enviando...' : '¿No recibiste el código? Reenviar'}
+                {resendingOtp 
+                  ? 'Enviando...' 
+                  : resendCooldown > 0 
+                    ? `Reenviar en ${resendCooldown}s` 
+                    : '¿No recibiste el código? Reenviar'}
               </button>
 
               <button
