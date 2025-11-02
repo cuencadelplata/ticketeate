@@ -21,7 +21,7 @@ interface QueueAdminProps {
   eventTitle: string;
 }
 
-export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
+export function QueueAdmin({ eventId, eventTitle }: Readonly<QueueAdminProps>) {
   const [queueConfig, setQueueConfig] = useState<QueueConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +45,8 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
       } else {
         setQueueConfig(null);
       }
-    } catch (error) {
-      console.error('Error loading queue config:', error);
+    } catch (err) {
+      console.error('Error loading queue config:', err);
     }
   };
 
@@ -73,7 +73,8 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
       } else {
         setError(data.error || 'Error al guardar configuración');
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error saving queue config:', err);
       setError('Error de conexión');
     } finally {
       setIsLoading(false);
@@ -104,7 +105,7 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
       } else {
         setError(data.error || 'Error al eliminar configuración');
       }
-    } catch (error) {
+    } catch {
       setError('Error de conexión');
     } finally {
       setIsLoading(false);
@@ -132,7 +133,8 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
       } else {
         setError(data.error || 'Error al procesar cola');
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error processing queue:', err);
       setError('Error de conexión');
     } finally {
       setIsLoading(false);
@@ -168,28 +170,29 @@ export function QueueAdmin({ eventId, eventTitle }: QueueAdminProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Máximo Concurrente</label>
+          <label htmlFor="maxConcurrent" className="block text-sm font-medium text-gray-700 mb-1">Máximo Concurrente</label>
           <input
+            id="maxConcurrent"
             type="number"
             min="1"
             max="100"
             value={maxConcurrent}
-            onChange={(e) => setMaxConcurrent(parseInt(e.target.value) || 1)}
+            onChange={(e) => setMaxConcurrent(Number.parseInt(e.target.value) || 1)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-500 mt-1">
             Número máximo de usuarios que pueden comprar simultáneamente
           </p>
         </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Máximo Usuarios</label>
+          <label htmlFor="maxUsers" className="block text-sm font-medium text-gray-700 mb-1">Máximo Usuarios</label>
           <input
+            id="maxUsers"
             type="number"
             min="1"
             max="10000"
             value={maxUsers}
-            onChange={(e) => setMaxUsers(parseInt(e.target.value) || 1)}
+            onChange={(e) => setMaxUsers(Number.parseInt(e.target.value) || 1)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-500 mt-1">

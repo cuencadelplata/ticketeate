@@ -32,6 +32,7 @@ async function getAuthHeaders() {
       'Content-Type': 'application/json',
     };
   } catch (error) {
+    console.error('Error obtaining JWT token:', error);
     throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
   }
 }

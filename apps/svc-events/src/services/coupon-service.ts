@@ -96,7 +96,7 @@ export class CouponService {
           },
         });
 
-        if (!event || !event.stock_entrada || event.stock_entrada.length === 0) {
+        if (!event?.stock_entrada?.length) {
           throw new Error('No se encontró información de precios para el evento');
         }
 
@@ -191,7 +191,7 @@ export class CouponService {
       });
       return true;
     } catch (error) {
-      console.error('Error al desactivar cupón:', error);
+      process.stderr.write(`Error al desactivar cupón: ${String(error)}\n`);
       return false;
     }
   }

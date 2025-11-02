@@ -48,6 +48,8 @@ export default function Contacto() {
         mensaje: '',
       });
     } catch (error) {
+      // Log the error so the caught exception is handled and not unused
+      console.error(error);
       toast.error('Error al enviar el mensaje', {
         description: 'Por favor, inténtalo de nuevo.',
       });
@@ -273,7 +275,7 @@ export default function Contacto() {
               <div className="grid gap-6">
                 {contactInfo.map((item, index) => (
                   <Card
-                    key={index}
+                    key={item.title}
                     className="bg-white backdrop-blur-sm border-stone-200 hover:shadow-lg transition-all duration-300 hover:bg-white/80"
                   >
                     <CardContent className="p-6">

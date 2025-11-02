@@ -9,8 +9,33 @@ interface QueueStatsProps {
   className?: string;
 }
 
-export function QueueStats({ eventId, className = '' }: QueueStatsProps) {
+export function QueueStats({ eventId, className = '' }: Readonly<QueueStatsProps>) {
   const { queueStats, isConnected, error } = useQueueRealtime(eventId);
+
+  // compute progress percentage based on queue stats and inject CSS rule to avoid inline styles
+  const progressPercent = queueStats
+    ? Math.min(
+        100,
+        (queueStats.totalActive / Math.max(queueStats.totalActive + queueStats.totalInQueue, 1)) * 100,
+      )
+    : 0;
+  const progressClass = `queue-progress-fill-${Math.round(progressPercent)}`;
+
+  useEffect(() => {
+    if (!queueStats) return;
+    const styleId = `style-${progressClass}`;
+    if (document.getElementById(styleId)) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.id = styleId;
+    styleEl.innerHTML = `.${progressClass} { width: ${Math.round(progressPercent)}%; }`;
+    document.head.appendChild(styleEl);
+
+    return () => {
+      const existing = document.getElementById(styleId);
+      if (existing) existing.remove();
+    };
+  }, [queueStats, progressClass, progressPercent]);
 
   if (error) {
     return (
@@ -47,12 +72,9 @@ export function QueueStats({ eventId, className = '' }: QueueStatsProps) {
               className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
             />
             <Users className="h-4 w-4 text-blue-500 mr-2" />
-            <span className="text-sm font-medium text-blue-800">Estadísticas en tiempo real</span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4 text-sm">
-          <div className="flex items-center">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-1" />
+            <div
+              className={`bg-blue-500 h-1 rounded-full transition-all duration-300 ${progressClass}`}
+            />
             <span className="text-gray-600">{queueStats.totalInQueue} en cola</span>
           </div>
           <div className="flex items-center">
@@ -73,10 +95,7 @@ export function QueueStats({ eventId, className = '' }: QueueStatsProps) {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1">
             <div
-              className="bg-blue-500 h-1 rounded-full transition-all duration-300"
-              style={{
-                width: `${Math.min(100, (queueStats.totalActive / Math.max(queueStats.totalActive + queueStats.totalInQueue, 1)) * 100)}%`,
-              }}
+              className={`bg-blue-500 h-1 rounded-full transition-all duration-300 ${progressClass}`}
             />
           </div>
         </div>
@@ -95,7 +114,7 @@ interface QueueStatusBadgeProps {
   className?: string;
 }
 
-export function QueueStatusBadge({ eventId, userId, className = '' }: QueueStatusBadgeProps) {
+export function QueueStatusBadge({ eventId, userId, className = '' }: Readonly<QueueStatusBadgeProps>) {
   const [status, setStatus] = useState<'idle' | 'in-queue' | 'can-enter' | 'error'>('idle');
   const [position, setPosition] = useState<number | null>(null);
 
@@ -120,7 +139,9 @@ export function QueueStatusBadge({ eventId, userId, className = '' }: QueueStatu
           setStatus('idle');
           setPosition(null);
         }
-      } catch (error) {
+      } catch (err: unknown) {
+        // Log the error for debugging/monitoring, then update state to reflect the error
+        console.error('Failed to fetch queue status', err);
         setStatus('error');
         setPosition(null);
       }
