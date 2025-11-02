@@ -56,16 +56,15 @@ function Navbar() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex-shrink-0 mr-4 lg:mr-6">
             <Image
-              src="/wordmark-light.png"
+              src="/wordmark-light-alt.png"
               alt="Ticketeate"
               width={180}
               height={40}
-              className="h-10 w-auto"
+              className="h-8 w-auto"
               priority
             />
           </Link>
 
-          {/* Barra de búsqueda expandida */}
           <form
             onSubmit={handleSearch}
             className="hidden lg:flex items-center flex-1 max-w-md mr-6"
@@ -84,7 +83,6 @@ function Navbar() {
             </div>
           </form>
 
-          {/* Navigation Menu */}
           <div className="flex-1 flex justify-center">
             <Menu setActive={setActive}>
               <MenuItem setActive={setActive} active={active} item="Descubrir">
@@ -141,9 +139,7 @@ function Navbar() {
             </Link>
           </div>
 
-          {/* Right Side Buttons */}
           <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-2 lg:ml-8">
-            {/* Botón de búsqueda móvil */}
             <button
               onClick={() => router.push('/descubrir')}
               className="lg:hidden p-2 text-zinc-300 hover:text-white transition-colors duration-200"

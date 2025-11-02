@@ -17,6 +17,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
     "db:seed-categories": "tsx src/seed-categories.ts",
+    "db:seed-events": "tsx src/seed-events.ts",
+    "db:seed-all": "tsx src/seed-categories.ts && tsx src/seed-events.ts",
     "categories:sync": "tsx src/categories-sync.ts",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"
