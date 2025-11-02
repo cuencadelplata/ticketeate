@@ -1,6 +1,6 @@
 import { prisma } from '@repo/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { CouponService } from '@/services/coupon-service';
+import { CouponService } from './../../services/coupon-service';
 
 export async function GET(req: NextRequest, { params }: { params: { eventId: string } }) {
   try {

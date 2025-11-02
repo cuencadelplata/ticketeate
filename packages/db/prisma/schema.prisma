@@ -1,5 +1,4 @@
-
-datasource db {
+atasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
@@ -7,6 +6,57 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+}
+
+enum ChangeType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+enum Role {
+  ADMIN
+  PRODUCTOR
+  USUARIO
+}
+
+// Nuevos modelos
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token         String?  @db.Text
+  session_state    String?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USUARIO)
+  accounts      Account[]
+  sessions      Session[]
+  events        Event[]
 }
 
 model Event {
@@ -33,7 +83,7 @@ model EventHistory {
   description String
   version     Int
   changedAt   DateTime  @default(now())
-  changedBy   String    // ID del usuario que realizó el cambio
+  changedBy   String    // ID del usuario que realizÃ³ el cambio
   changeType  ChangeType
 }
 
@@ -79,32 +129,38 @@ model TicketHistory {
   status      TicketStatus
   version     Int
   changedAt   DateTime  @default(now())
-  changedBy   String    // ID del usuario que realizó el cambio
+  changedBy   String    // ID del usuario que realizÃ³ el cambio
   changeType  ChangeType
 }
 
-model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  deletedAt DateTime? // Soft delete
-  isActive  Boolean   @default(true)
-  version   Int       @default(1)
-  events    Event[]   // Eventos creados por el usuario
-  tickets   Ticket[]  // Tickets comprados por el usuario
-  userHistory UserHistory[]
+model Purchase {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  eventId       String
+  event         Event     @relation(fields: [eventId], references: [id])
+  amount        Float
+  currency      String
+  status        String    // PENDING, COMPLETED, CANCELLED
+  tickets       Ticket[]
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+  paymentId     String?   // ID de referencia del sistema de pago
+  receiptUrl    String?
 }
 
 model UserHistory {
   id        String    @id @default(cuid())
   userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  changedAt DateTime @default(now())
+  changedBy String   // ID del usuario que realizÃ³ el cambio
+  changeType ChangeType
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model verification {
-  id         String   @id
+model Verification {
+  id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
@@ -114,62 +170,26 @@ model verification {
   @@unique([identifier, value])
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model user {
-  id                   String                 @id
-  name                 String
-  email                String                 @unique
-  emailVerified        Boolean
-  image                String?
-  role                 Role                   @default(USUARIO)
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  // Wallet fields for Mercado Pago OAuth
-  wallet_linked        Boolean                @default(false)
-  wallet_provider      String?
-  mercado_pago_user_id String?
-  mercado_pago_access_token String?
-  mercado_pago_refresh_token String?
-  mercado_pago_token_expires_at DateTime?
-  account              account[]
-  cola_turnos          cola_turnos[]
-  evento_estado        evento_estado[]
-  evento_modificaciones evento_modificaciones[]
-  eventos              eventos[]
-  historial_compras    historial_compras[]
-  logs_eventos         logs_eventos[]
-  movimientos_entradas movimientos_entradas[]
-  reservas             reservas[]
-  sesiones             sesiones[]
-  session              session[]
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model jwks {
-  id         String   @id
+model Jwks {
+  id         String   @id @default(cuid())
   publicKey  String
   privateKey String
   createdAt  DateTime @default(now())
 }
 
-model historial_compras {
-  id              String   @id @db.VarChar(255)
-  usuarioid       String   @db.VarChar(255)
-  reservaid       String   @db.VarChar(255)
-  eventoid        String   @db.VarChar(255)
-  cantidad        Int
-  monto_total     Decimal  @db.Decimal(10, 2)
-  moneda          String   @db.VarChar(3)
-  estado_compra   String   @db.VarChar(20)
-  fecha_compra    DateTime @default(now()) @db.Timestamptz(6)
-  fecha_evento    DateTime @db.Timestamptz(6)
-  comprobante_url String?  @db.VarChar(500)
-  eventos         eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  reservas        reservas @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
-  user            user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
 
-  @@index([eventoid, fecha_compra])
-  @@index([usuarioid, fecha_compra])
+enum TicketStatus {
+  PENDING
+  PAID
+  CANCELLED
+  USED
+  EXPIRED
 }
 
 model monedas {
@@ -178,8 +198,8 @@ model monedas {
   simbolo                                           String         @db.VarChar(5)
   activa                                            Boolean        @default(true)
   fecha_creacion                                    DateTime       @default(now()) @db.Timestamptz(6)
-  tasas_cambio_tasas_cambio_moneda_destinoTomonedas tasas_cambio[] @relation("tasas_cambio_moneda_destinoTomonedas")
-  tasas_cambio_tasas_cambio_moneda_origenTomonedas  tasas_cambio[] @relation("tasas_cambio_moneda_origenTomonedas")
+  tasas_cambio_tasas_cambio_moneda_destinoTomonedas tasas_cambio[] @relation("tasas_cambio_moneda_destinoTomonedas")   
+  tasas_cambio_tasas_cambio_moneda_origenTomonedas  tasas_cambio[] @relation("tasas_cambio_moneda_origenTomonedas")    
 }
 
 model tasas_cambio {
