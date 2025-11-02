@@ -47,8 +47,17 @@ export function useReservation() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           // Reserva expirada
+          console.log('[useReservation] Reservation expired for event:', reservation.eventId);
           localStorage.removeItem(RESERVATION_KEY);
           setReservation(null);
+          
+          // Disparar evento personalizado para que otros componentes puedan reaccionar
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('reservation-expired', { 
+              detail: { eventId: reservation.eventId } 
+            }));
+          }
+          
           return 0;
         }
         return prev - 1;
@@ -59,6 +68,34 @@ export function useReservation() {
   }, [reservation, timeLeft]);
 
   const startReservation = (eventId: string, duration: number = 300) => {
+    // Verificar si ya existe una reserva activa para este evento
+    const savedReservation = localStorage.getItem(RESERVATION_KEY);
+    
+    if (savedReservation) {
+      try {
+        const parsed: ReservationData = JSON.parse(savedReservation);
+        
+        // Si es para el mismo evento y aún está activa, NO resetear
+        if (parsed.eventId === eventId) {
+          const now = Date.now();
+          const elapsed = Math.floor((now - parsed.startTime) / 1000);
+          const remaining = Math.max(0, parsed.duration - elapsed);
+          
+          if (remaining > 0) {
+            console.log('[useReservation] Reservation already active, not resetting. Time left:', remaining);
+            // Mantener la reserva existente
+            setReservation(parsed);
+            setTimeLeft(remaining);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('[useReservation] Error parsing existing reservation:', error);
+      }
+    }
+
+    // Crear nueva reserva solo si no existe o si expiró
+    console.log('[useReservation] Creating new reservation for event:', eventId, 'duration:', duration);
     const reservationData: ReservationData = {
       eventId,
       startTime: Date.now(),

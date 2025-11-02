@@ -1,0 +1,8 @@
+{
+  "name": "redis-service",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up -d",
+    "stop": "docker compose down"
+  }
+}

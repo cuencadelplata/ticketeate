@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useReservation } from '@/hooks/use-reservation';
 import { useViewCount, useCountView } from '@/hooks/use-view-count';
+import { useSession } from '@/lib/auth-client';
 import { Calendar, Eye, Clock } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
@@ -55,9 +56,34 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [displayAddress, setDisplayAddress] = useState<string | null>(null);
   const [showQueueModal, setShowQueueModal] = useState(false);
+  const [showExpiredMessage, setShowExpiredMessage] = useState(false);
 
-  // Mock userId - en producción esto vendría del sistema de autenticación
-  const userId = '1';
+  // Obtener userId de la sesión de Better-Auth
+  const { data: session } = useSession();
+  const userId = session?.user?.id || '';
+
+  // Guardar userId en sessionStorage para que QueueGuard pueda acceder
+  useEffect(() => {
+    if (typeof window !== 'undefined' && userId) {
+      sessionStorage.setItem('queueUserId', userId);
+    }
+  }, [userId]);
+
+  // Detectar si viene del checkout con tiempo expirado
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('expired') === 'true') {
+        setShowExpiredMessage(true);
+        // Limpiar el parámetro de la URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+        
+        // Ocultar mensaje después de 5 segundos
+        setTimeout(() => setShowExpiredMessage(false), 5000);
+      }
+    }
+  }, []);
 
   // Hook para manejar reserva temporal
   const { isReserved, timeLeft, startReservation, formatTimeLeft, isReservationActive } =
@@ -95,11 +121,55 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
   }, [id, event, countViewMutation]); // Agregamos countViewMutation a las dependencias
 
   // Función para manejar el clic en "Comprar Entradas"
-  const handleComprarEntradas = () => {
+  const handleComprarEntradas = async () => {
     if (!id) return;
 
-    // Siempre mostrar el modal de cola primero
-    setShowQueueModal(true);
+    // Verificar que el usuario esté autenticado
+    if (!userId) {
+      console.error('[EventoContent] User not authenticated');
+      alert('Debes iniciar sesión para comprar entradas');
+      return;
+    }
+
+    try {
+      console.log('[EventoContent] Attempting to join queue for event:', id, 'user:', userId);
+
+      // Intentar unirse a la cola directamente (el backend decide si puede entrar)
+      const joinResponse = await fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: id, userId }),
+      });
+
+      if (!joinResponse.ok) {
+        console.error('[EventoContent] Failed to join queue, showing modal');
+        setShowQueueModal(true);
+        return;
+      }
+
+      const joinData = await joinResponse.json();
+      console.log('[EventoContent] Join queue response:', joinData);
+
+      // Si puede entrar directamente, redirigir al checkout
+      if (joinData.canEnter) {
+        console.log('[EventoContent] ✓ User can enter, redirecting to checkout...');
+        startReservation(id, 300);
+        // Navegar al checkout - QueueGuard verificará el acceso
+        router.push(`/evento/comprar/${id}`);
+        return;
+      }
+
+      // Si no puede entrar (está en cola), mostrar modal con su posición
+      console.log('[EventoContent] User in queue, showing modal. Position:', joinData.position);
+      setShowQueueModal(true);
+
+      // Si hay personas comprando o en cola, mostrar el modal
+      setShowQueueModal(true);
+    } catch (error) {
+      console.error('Error checking queue status:', error);
+      // En caso de error, mostrar el modal por seguridad
+      setShowQueueModal(true);
+    }
   };
 
   // Función para entrar a comprar cuando es el turno
@@ -491,6 +561,16 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                     )}
                   </div>
                 )}
+
+              {/* Mensaje de tiempo expirado */}
+              {showExpiredMessage && (
+                <div className="mb-3 rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">⏱️</span>
+                    <span>Tu tiempo de compra ha expirado. Puedes intentar comprar nuevamente.</span>
+                  </div>
+                </div>
+              )}
 
               <div className="rounded-xl border-1 bg-stone-900 bg-opacity-60 p-2">
                 <button
