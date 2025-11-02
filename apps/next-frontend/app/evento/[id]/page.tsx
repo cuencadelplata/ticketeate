@@ -17,15 +17,15 @@ export async function generateStaticParams() {
     const res = await fetch(API_ENDPOINTS.allEvents, {
       next: { revalidate: 3600 }, // Cache por 1 hora
     });
-    
+
     if (!res.ok) {
       console.error('Error fetching events for static params');
       return [];
     }
-    
+
     const data = await res.json();
     const events = data.events || [];
-    
+
     // Pre-generar las primeras 10 páginas
     return events.slice(0, 10).map((event: any) => ({
       id: event.eventoid.toString(),
@@ -56,8 +56,14 @@ async function getEvento(id: string): Promise<Event | null> {
   }
 }
 
-export default async function EventoPage({ params }: { params: { id: string } }) {
-  const event = await getEvento(params.id);
+export default async function EventoPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // En Next.js 15, params es una Promise y debe ser unwrapped
+  const { id } = await params;
+  const event = await getEvento(id);
 
   if (!event) {
     notFound();
@@ -65,7 +71,7 @@ export default async function EventoPage({ params }: { params: { id: string } })
 
   return (
     <Suspense fallback={<EventoSkeleton />}>
-      <EventoContent event={event} eventId={params.id} />
+      <EventoContent event={event} eventId={id} />
     </Suspense>
   );
 }
