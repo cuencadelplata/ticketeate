@@ -1,37 +1,71 @@
-'use client';
-
+import { Suspense } from 'react';
 import { EventoContent } from '@/components/evento-content';
 import { EventoSkeleton } from '@/components/evento-skeleton';
-import { usePublicEvent } from '@/hooks/use-events';
-import { useParams } from 'next/navigation';
+import { API_ENDPOINTS } from '@/lib/config';
+import type { Event } from '@/types/events';
+import { notFound } from 'next/navigation';
 
-export default function EventoPage() {
-  const params = useParams();
-  const id =
-    typeof params?.id === 'string'
-      ? params.id
-      : Array.isArray(params?.id)
-        ? params?.id[0]
-        : undefined;
-  
-  const { data: event, isLoading, error } = usePublicEvent(id);
+// Configuración ISR: regenerar cada 60 segundos
+export const revalidate = 60;
 
-  if (isLoading) {
-    return <EventoSkeleton />;
+// Habilitar generación estática incremental
+export const dynamicParams = true;
+
+// Generar rutas estáticas para los eventos más populares en build time
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(API_ENDPOINTS.allEvents, {
+      next: { revalidate: 3600 }, // Cache por 1 hora
+    });
+    
+    if (!res.ok) {
+      console.error('Error fetching events for static params');
+      return [];
+    }
+    
+    const data = await res.json();
+    const events = data.events || [];
+    
+    // Pre-generar las primeras 10 páginas
+    return events.slice(0, 10).map((event: any) => ({
+      id: event.eventoid.toString(),
+    }));
+  } catch (error) {
+    console.error('Error in generateStaticParams:', error);
+    return [];
+  }
+}
+
+// Server Component que obtiene los datos
+async function getEvento(id: string): Promise<Event | null> {
+  try {
+    const res = await fetch(API_ENDPOINTS.publicEventById(id), {
+      next: { revalidate: 60 }, // Revalidar cada 60 segundos
+    });
+
+    if (!res.ok) {
+      console.error(`Error fetching event ${id}: ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    return data.event;
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return null;
+  }
+}
+
+export default async function EventoPage({ params }: { params: { id: string } }) {
+  const event = await getEvento(params.id);
+
+  if (!event) {
+    notFound();
   }
 
-  if (error || !event) {
-    return (
-      <main className="min-h-screen py-16">
-        <div className="fixed left-0 top-0 z-5 h-full w-full bg-gradient-to-b from-neutral-950 to-neutral-900" />
-        <div className="relative z-20 min-h-screen text-zinc-200">
-          <div className="mx-auto max-w-[68rem] space-y-2 px-20 pb-3 pt-10">
-            <div className="text-red-200">No se pudo cargar el evento.</div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  return <EventoContent event={event} eventId={id} />;
+  return (
+    <Suspense fallback={<EventoSkeleton />}>
+      <EventoContent event={event} eventId={params.id} />
+    </Suspense>
+  );
 }

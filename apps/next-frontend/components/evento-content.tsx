@@ -462,9 +462,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
 
                     {((event as any).mapa_evento?.sectors || []).length > 0 && (
                       <div className="pt-2">
-                        <h4 className="text-xs font-semibold text-stone-400">
-                          Precios por sector
-                        </h4>
+                        <h4 className="text-xs font-semibold text-stone-400">Precios por sector</h4>
                         <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
                           {(event as any).mapa_evento.sectors.map((s: any) => {
                             const matchingStock = event.stock_entrada?.find(

@@ -15,7 +15,7 @@ export const EventoSkeleton = () => (
           {/* Columna izquierda - Imagen */}
           <div className="space-y-2">
             <ShimmerSkeleton className="aspect-square w-full rounded-xl" />
-            
+
             {/* Galería de imágenes skeleton */}
             <div className="space-y-2">
               <ShimmerSkeleton className="h-4 w-32" />
