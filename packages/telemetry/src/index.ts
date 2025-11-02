@@ -7,7 +7,7 @@ export interface TelemetryConfig {
 
 export class Telemetry {
   private static instance: Telemetry;
-  private metrics: ReturnType<typeof initMetrics>;
+  private readonly metrics: ReturnType<typeof initMetrics>;
 
   private constructor(config: TelemetryConfig) {
     initTracing(config.serviceName);

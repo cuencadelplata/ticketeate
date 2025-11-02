@@ -1,9 +1,6 @@
 import { trace } from '@opentelemetry/api';
 import { Request, Response, NextFunction } from 'express';
-import { SystemMetrics } from '../metrics/system-metrics';
-
-// Inicializar métricas del sistema
-const systemMetrics = new SystemMetrics();
+// SystemMetrics removed: metrics collection is handled elsewhere or can be added via a proper package/module.
 
 export const telemetryMiddleware = () => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +16,6 @@ export const telemetryMiddleware = () => {
     });
 
     // Capturar métricas del sistema al inicio de la petición
-    const startMemory = process.memoryUsage();
     const startCpu = process.cpuUsage();
 
     res.on('finish', () => {

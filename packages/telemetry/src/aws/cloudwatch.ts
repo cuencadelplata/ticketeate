@@ -1,4 +1,4 @@
-import { CloudWatchClient, PutMetricDataCommand } from '@aws-sdk/client-cloudwatch';
+import { CloudWatchClient, PutMetricDataCommand, StandardUnit } from '@aws-sdk/client-cloudwatch';
 
 export interface CloudWatchConfig {
   region: string;
@@ -6,7 +6,7 @@ export interface CloudWatchConfig {
 }
 
 export class CloudWatchMetrics {
-  private client: CloudWatchClient;
+  private readonly client: CloudWatchClient;
   private readonly namespace: string;
 
   constructor(config: CloudWatchConfig) {
@@ -17,7 +17,7 @@ export class CloudWatchMetrics {
   async putMetricData(
     metricName: string,
     value: number,
-    unit: string,
+    unit: StandardUnit,
     dimensions?: Record<string, string>,
   ) {
     const command = new PutMetricDataCommand({

@@ -127,14 +127,14 @@ export class EventService {
 
       // Imágenes de galería
       if (data.galeria_imagenes && data.galeria_imagenes.length > 0) {
-        data.galeria_imagenes.forEach((url) => {
+        for (const url of data.galeria_imagenes) {
           imagenesData.push({
             imagenid: randomUUID(),
             eventoid: evento.id,
             url: url,
             tipo: 'GALERIA',
           });
-        });
+        }
       }
 
       // Crear todas las imágenes en batch
