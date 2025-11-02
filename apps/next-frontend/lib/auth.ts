@@ -139,6 +139,22 @@ export const auth = betterAuth({
     }),
   ],
 
+  onPasswordReset: async ({ user }: { user: any }) => {
+    // Cerrar todas las sesiones del usuario después de restablecer la contraseña
+    if (user?.id) {
+      try {
+        // Eliminar todas las sesiones activas del usuario
+        await prisma.session.deleteMany({
+          where: {
+            userId: user.id,
+          },
+        });
+      } catch (error) {
+        console.error('[Security] Error revoking sessions after password reset:', error);
+      }
+    }
+  },
+
   callbacks: {
     async signIn({ user }: { user: { id: string; role?: string } }) {
       // Si el user no tiene rol, asignar USUARIO por defecto
