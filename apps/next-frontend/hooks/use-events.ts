@@ -170,7 +170,7 @@ export function useUpdateEvent() {
       }
       return res.json();
     },
-    onSuccess: (updatedEvent) => {
+    onSuccess: async (updatedEvent) => {
       // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -178,6 +178,21 @@ export function useUpdateEvent() {
 
       // Forzar refetch inmediato de las queries principales
       queryClient.refetchQueries({ queryKey: ['events'] });
+
+      // Revalidar ISR on-demand para esta página específica
+      try {
+        await fetch('/api/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: updatedEvent.eventoid,
+            // No enviamos secret desde el cliente por seguridad
+          }),
+        });
+      } catch (error) {
+        console.error('Error revalidating ISR:', error);
+        // No lanzar error, el cache eventualmente se actualizará
+      }
       queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
   });
@@ -203,7 +218,7 @@ export function useDeleteEvent() {
         throw new Error(msg);
       }
     },
-    onSuccess: (_, deletedId) => {
+    onSuccess: async (_, deletedId) => {
       // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -212,6 +227,20 @@ export function useDeleteEvent() {
       // Forzar refetch inmediato de las queries principales
       queryClient.refetchQueries({ queryKey: ['events'] });
       queryClient.refetchQueries({ queryKey: ['all-events'] });
+
+      // Revalidar ISR on-demand (tanto el evento eliminado como la lista)
+      try {
+        await fetch('/api/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: deletedId,
+            // No enviamos secret desde el cliente por seguridad
+          }),
+        });
+      } catch (error) {
+        console.error('Error revalidating ISR:', error);
+      }
     },
   });
 }

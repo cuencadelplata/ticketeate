@@ -5,8 +5,9 @@ import { API_ENDPOINTS } from '@/lib/config';
 import type { Event } from '@/types/events';
 import { notFound } from 'next/navigation';
 
-// Configuración ISR: regenerar cada 60 segundos
-export const revalidate = 60;
+// ISR con revalidación solo on-demand (cuando se actualiza el evento)
+// false = cache indefinido, solo se regenera con revalidatePath()
+export const revalidate = false;
 
 // Habilitar generación estática incremental
 export const dynamicParams = true;
@@ -15,7 +16,7 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   try {
     const res = await fetch(API_ENDPOINTS.allEvents, {
-      next: { revalidate: 3600 }, // Cache por 1 hora
+      cache: 'no-store', // No cachear durante build, siempre obtener datos frescos
     });
 
     if (!res.ok) {
@@ -34,13 +35,11 @@ export async function generateStaticParams() {
     console.error('Error in generateStaticParams:', error);
     return [];
   }
-}
-
-// Server Component que obtiene los datos
+} // Server Component que obtiene los datos
 async function getEvento(id: string): Promise<Event | null> {
   try {
     const res = await fetch(API_ENDPOINTS.publicEventById(id), {
-      next: { revalidate: 60 }, // Revalidar cada 60 segundos
+      cache: 'force-cache', // Cache indefinido, solo se invalida con revalidatePath()
     });
 
     if (!res.ok) {
@@ -56,11 +55,7 @@ async function getEvento(id: string): Promise<Event | null> {
   }
 }
 
-export default async function EventoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function EventoPage({ params }: { params: Promise<{ id: string }> }) {
   // En Next.js 15, params es una Promise y debe ser unwrapped
   const { id } = await params;
   const event = await getEvento(id);
