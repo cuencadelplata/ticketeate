@@ -150,4 +150,13 @@ canvas[data-engine="three.js r180"] {
   .font-instrument-serif {
     font-family: 'Instrument Serif', serif;
   }
+  
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
