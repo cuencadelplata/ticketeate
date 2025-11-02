@@ -151,6 +151,37 @@ export const auth = betterAuth({
       return true;
     },
   },
+
+  hooks: {
+    after: [
+      {
+        matcher: (context) => {
+          return context.path === '/reset-password';
+        },
+        handler: async (context) => {
+          // Cerrar todas las sesiones del usuario después de restablecer la contraseña
+          if (context.body && 'user' in context.body) {
+            const user = (context.body as any).user;
+            
+            if (user?.id) {
+              try {
+                // Eliminar todas las sesiones activas del usuario
+                await prisma.session.deleteMany({
+                  where: {
+                    userId: user.id,
+                  },
+                });
+                
+                console.log(`[Security] All sessions revoked for user ${user.id} after password reset`);
+              } catch (error) {
+                console.error('[Security] Error revoking sessions after password reset:', error);
+              }
+            }
+          }
+        },
+      },
+    ],
+  },
 });
 
 export default auth;

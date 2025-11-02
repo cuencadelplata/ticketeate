@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { Lock, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { resetPassword } from '@/lib/auth-client';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 import Link from 'next/link';
 
 function ResetPasswordForm() {
@@ -45,34 +45,42 @@ function ResetPasswordForm() {
     e.preventDefault();
     setError(null);
 
-    if (!token) {
-      setError('Token no válido');
+    if (!validatePassword()) {
       return;
     }
 
-    if (!validatePassword()) {
+    if (!token) {
+      setError('Token no válido');
       return;
     }
 
     setLoading(true);
 
     try {
-      await resetPassword({
-        newPassword: password,
-        token,
+      // Usar el cliente de better-auth directamente
+      const result = await authClient.$fetch('/reset-password', {
+        method: 'POST',
+        body: {
+          token: token,
+          newPassword: password,
+        },
       });
+
+      console.log('Reset password success:', result);
       setSuccess(true);
       setTimeout(() => {
         router.push('/sign-in');
       }, 3000);
     } catch (err: any) {
-      console.error('Error:', err);
+      console.error('Error al restablecer contraseña:', err);
       let errorMessage = 'Error al restablecer la contraseña. Intenta nuevamente.';
 
       if (err?.message?.includes('expired')) {
         errorMessage = 'El enlace ha expirado. Solicita uno nuevo.';
       } else if (err?.message?.includes('invalid')) {
         errorMessage = 'El enlace no es válido. Solicita uno nuevo.';
+      } else if (err?.message) {
+        errorMessage = err.message;
       }
 
       setError(errorMessage);
