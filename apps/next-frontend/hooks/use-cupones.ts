@@ -143,10 +143,7 @@ export function useUpdateCupon() {
     onMutate: async (updatedCupon) => {
       await queryClient.cancelQueries({ queryKey: ['cupones', updatedCupon.eventId] });
 
-      const previousCupones = queryClient.getQueryData<Cupon[]>([
-        'cupones',
-        updatedCupon.eventId,
-      ]);
+      const previousCupones = queryClient.getQueryData<Cupon[]>(['cupones', updatedCupon.eventId]);
 
       // Actualizar optimísticamente
       queryClient.setQueryData<Cupon[]>(['cupones', updatedCupon.eventId], (old) =>
@@ -165,8 +162,8 @@ export function useUpdateCupon() {
                 ...(updatedCupon.estado && { estado: updatedCupon.estado }),
                 version: cupon.version + 1,
               }
-            : cupon
-        )
+            : cupon,
+        ),
       );
 
       return { previousCupones };
@@ -214,7 +211,7 @@ export function useDeleteCupon() {
 
       // Remover optimísticamente
       queryClient.setQueryData<Cupon[]>(['cupones', eventId], (old) =>
-        old?.filter((cupon) => cupon.cuponid !== cuponId)
+        old?.filter((cupon) => cupon.cuponid !== cuponId),
       );
 
       return { previousCupones };

@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     const eventId = searchParams.get('eventId');
 
     if (!eventId) {
-      return NextResponse.json(
-        { error: 'eventId es requerido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'eventId es requerido' }, { status: 400 });
     }
 
     // Verificar que el usuario es el creador del evento
@@ -32,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!event || event.creadorid !== session.user.id) {
       return NextResponse.json(
         { error: 'No tienes permiso para ver los cupones de este evento' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -49,10 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ cupones }, { status: 200 });
   } catch (error) {
     console.error('Error al obtener cupones:', error);
-    return NextResponse.json(
-      { error: 'Error al obtener cupones' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al obtener cupones' }, { status: 500 });
   }
 }
 
@@ -71,10 +65,7 @@ export async function POST(request: NextRequest) {
     const { eventId, codigo, porcentaje_descuento, fecha_expiracion, limite_usos } = body;
 
     if (!eventId || !codigo || !porcentaje_descuento || !fecha_expiracion || !limite_usos) {
-      return NextResponse.json(
-        { error: 'Faltan campos requeridos' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
     }
 
     // Verificar que el usuario es el creador del evento
@@ -86,7 +77,7 @@ export async function POST(request: NextRequest) {
     if (!event || event.creadorid !== session.user.id) {
       return NextResponse.json(
         { error: 'No tienes permiso para crear cupones en este evento' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -102,7 +93,7 @@ export async function POST(request: NextRequest) {
     if (existingCupon) {
       return NextResponse.json(
         { error: 'Ya existe un cupón con este código para este evento' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -121,10 +112,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ cupon }, { status: 201 });
   } catch (error) {
     console.error('Error al crear cupón:', error);
-    return NextResponse.json(
-      { error: 'Error al crear cupón' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al crear cupón' }, { status: 500 });
   }
 }
 
@@ -143,10 +131,7 @@ export async function PATCH(request: NextRequest) {
     const { cuponId, eventId, ...updateData } = body;
 
     if (!cuponId || !eventId) {
-      return NextResponse.json(
-        { error: 'cuponId y eventId son requeridos' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'cuponId y eventId son requeridos' }, { status: 400 });
     }
 
     // Verificar que el usuario es el creador del evento
@@ -158,7 +143,7 @@ export async function PATCH(request: NextRequest) {
     if (!event || event.creadorid !== session.user.id) {
       return NextResponse.json(
         { error: 'No tienes permiso para actualizar cupones en este evento' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -168,10 +153,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!currentCupon || currentCupon.eventoid !== eventId) {
-      return NextResponse.json(
-        { error: 'Cupón no encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Cupón no encontrado' }, { status: 404 });
     }
 
     // Si se está cambiando el código, verificar que no exista ya
@@ -188,7 +170,7 @@ export async function PATCH(request: NextRequest) {
       if (existingCupon) {
         return NextResponse.json(
           { error: 'Ya existe un cupón con este código para este evento' },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -203,8 +185,7 @@ export async function PATCH(request: NextRequest) {
       prismaUpdateData.porcentaje_descuento = updateData.porcentaje_descuento;
     if (updateData.fecha_expiracion)
       prismaUpdateData.fecha_expiracion = new Date(updateData.fecha_expiracion);
-    if (updateData.limite_usos !== undefined)
-      prismaUpdateData.limite_usos = updateData.limite_usos;
+    if (updateData.limite_usos !== undefined) prismaUpdateData.limite_usos = updateData.limite_usos;
     if (updateData.estado) prismaUpdateData.estado = updateData.estado;
 
     const cupon = await prisma.cupones_evento.update({
@@ -215,10 +196,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ cupon }, { status: 200 });
   } catch (error) {
     console.error('Error al actualizar cupón:', error);
-    return NextResponse.json(
-      { error: 'Error al actualizar cupón' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al actualizar cupón' }, { status: 500 });
   }
 }
 
@@ -238,10 +216,7 @@ export async function DELETE(request: NextRequest) {
     const eventId = searchParams.get('eventId');
 
     if (!cuponId || !eventId) {
-      return NextResponse.json(
-        { error: 'cuponId y eventId son requeridos' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'cuponId y eventId son requeridos' }, { status: 400 });
     }
 
     // Verificar que el usuario es el creador del evento
@@ -253,7 +228,7 @@ export async function DELETE(request: NextRequest) {
     if (!event || event.creadorid !== session.user.id) {
       return NextResponse.json(
         { error: 'No tienes permiso para eliminar cupones en este evento' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -270,9 +245,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ cupon }, { status: 200 });
   } catch (error) {
     console.error('Error al eliminar cupón:', error);
-    return NextResponse.json(
-      { error: 'Error al eliminar cupón' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al eliminar cupón' }, { status: 500 });
   }
 }

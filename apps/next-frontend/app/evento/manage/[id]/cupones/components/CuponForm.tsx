@@ -36,9 +36,7 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="bg-card border rounded-lg p-6 shadow-sm">
-      <h3 className="text-xl font-semibold mb-4">
-        {cupon ? 'Editar Cupón' : 'Crear Nuevo Cupón'}
-      </h3>
+      <h3 className="text-xl font-semibold mb-4">{cupon ? 'Editar Cupón' : 'Crear Nuevo Cupón'}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -63,9 +61,7 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
             placeholder="DESCUENTO10"
             className={errors.codigo ? 'border-red-500' : ''}
           />
-          {errors.codigo && (
-            <p className="text-sm text-red-500">{errors.codigo.message}</p>
-          )}
+          {errors.codigo && <p className="text-sm text-red-500">{errors.codigo.message}</p>}
           <p className="text-xs text-muted-foreground">
             Usa mayúsculas, números, guiones (-) o guiones bajos (_)
           </p>

@@ -34,7 +34,11 @@ export default function CuponCard({
     if (isExpired) return <Badge variant="destructive">Expirado</Badge>;
     if (isMaxedOut) return <Badge variant="secondary">Agotado</Badge>;
     if (cupon.estado === 'INACTIVO') return <Badge variant="outline">Inactivo</Badge>;
-    return <Badge variant="default" className="bg-green-600">Activo</Badge>;
+    return (
+      <Badge variant="default" className="bg-green-600">
+        Activo
+      </Badge>
+    );
   };
 
   const usagePercentage = (cupon.usos_actuales / cupon.limite_usos) * 100;
@@ -56,15 +60,14 @@ export default function CuponCard({
               <Percent className="w-4 h-4 text-muted-foreground" />
               <span className="font-medium">{cupon.porcentaje_descuento}% de descuento</span>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span>
-                Expira:{' '}
-                {format(new Date(cupon.fecha_expiracion), 'dd MMM yyyy', { locale: es })}
+                Expira: {format(new Date(cupon.fecha_expiracion), 'dd MMM yyyy', { locale: es })}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm">
               <Users className="w-4 h-4 text-muted-foreground" />
               <span>
@@ -80,8 +83,8 @@ export default function CuponCard({
                 usagePercentage >= 90
                   ? 'bg-red-500'
                   : usagePercentage >= 70
-                  ? 'bg-yellow-500'
-                  : 'bg-green-500'
+                    ? 'bg-yellow-500'
+                    : 'bg-green-500'
               }`}
               style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
@@ -108,12 +111,7 @@ export default function CuponCard({
             )}
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(cupon)}
-            disabled={isDeleting}
-          >
+          <Button variant="outline" size="sm" onClick={() => onEdit(cupon)} disabled={isDeleting}>
             <Pencil className="w-4 h-4" />
           </Button>
 

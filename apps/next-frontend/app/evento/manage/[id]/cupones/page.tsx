@@ -2,7 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
-import { useCupones, useCreateCupon, useUpdateCupon, useDeleteCupon, Cupon } from '@/hooks/use-cupones';
+import {
+  useCupones,
+  useCreateCupon,
+  useUpdateCupon,
+  useDeleteCupon,
+  Cupon,
+} from '@/hooks/use-cupones';
 import { useEvent } from '@/hooks/use-events';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2, Copy, Check } from 'lucide-react';
@@ -12,8 +18,9 @@ import CuponCard from './components/CuponCard';
 
 export default function ManageCuponesPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : '';
-  
+  const id =
+    typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : '';
+
   const { data: event, isLoading: loadingEvent } = useEvent(id);
   const { data: cupones, isLoading: loadingCupones } = useCupones(id);
   const createCupon = useCreateCupon();
@@ -47,7 +54,7 @@ export default function ManageCuponesPage() {
 
   const handleUpdate = async (data: any) => {
     if (!editingCupon) return;
-    
+
     try {
       await updateCupon.mutateAsync({
         cuponId: editingCupon.cuponid,
@@ -132,9 +139,7 @@ export default function ManageCuponesPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Cupones de Descuento</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestiona los cupones para {event.titulo}
-          </p>
+          <p className="text-muted-foreground mt-1">Gestiona los cupones para {event.titulo}</p>
         </div>
         <Button
           onClick={() => {
@@ -178,9 +183,7 @@ export default function ManageCuponesPage() {
           ))
         ) : (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground text-lg">
-              No hay cupones creados para este evento
-            </p>
+            <p className="text-muted-foreground text-lg">No hay cupones creados para este evento</p>
             <Button
               onClick={() => {
                 setEditingCupon(null);
