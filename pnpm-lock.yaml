@@ -639,6 +639,24 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
+      '@semantic-release/changelog':
+        specifier: ^6.0.3
+        version: 6.0.3(semantic-release@25.0.1(typescript@5.9.2))
+      '@semantic-release/commit-analyzer':
+        specifier: ^13.0.1
+        version: 13.0.1(semantic-release@25.0.1(typescript@5.9.2))
+      '@semantic-release/exec':
+        specifier: ^7.1.0
+        version: 7.1.0(semantic-release@25.0.1(typescript@5.9.2))
+      '@semantic-release/git':
+        specifier: ^10.0.1
+        version: 10.0.1(semantic-release@25.0.1(typescript@5.9.2))
+      '@semantic-release/github':
+        specifier: ^12.0.0
+        version: 12.0.0(semantic-release@25.0.1(typescript@5.9.2))
+      '@semantic-release/release-notes-generator':
+        specifier: ^14.1.0
+        version: 14.1.0(semantic-release@25.0.1(typescript@5.9.2))
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
@@ -651,6 +669,9 @@ importers:
       prisma:
         specifier: ^6.15.0
         version: 6.18.0(magicast@0.3.5)(typescript@5.9.2)
+      semantic-release:
+        specifier: ^25.0.1
+        version: 25.0.1(typescript@5.9.2)
       serverless:
         specifier: ^3.38.0
         version: 3.40.0(@types/node@24.9.2)(bufferutil@4.0.9)
