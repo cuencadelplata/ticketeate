@@ -9,6 +9,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.40.3",
     "@opentelemetry/exporter-trace-otlp-http": "^0.46.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.46.0",
-    "@aws-sdk/client-xray": "^3.474.0"
+    "@aws-sdk/client-xray": "^3.474.0",
+    "@aws-sdk/client-cloudwatch": "^3.474.0"
   }
 }

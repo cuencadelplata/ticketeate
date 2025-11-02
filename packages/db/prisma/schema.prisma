@@ -1,4 +1,4 @@
-atasource db {
+datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
@@ -57,6 +57,9 @@ model User {
   accounts      Account[]
   sessions      Session[]
   events        Event[]
+  tickets       Ticket[]
+  purchases     Purchase[]
+  userHistories UserHistory[]
 }
 
 model Event {
@@ -70,6 +73,7 @@ model Event {
   isActive    Boolean       @default(true)
   categories  EventCategory[]
   tickets     Ticket[]
+  purchases   Purchase[]
   producer    User          @relation(fields: [producerId], references: [id])
   producerId  String
   eventHistory EventHistory[] // Historial de cambios
@@ -114,6 +118,8 @@ model Ticket {
   event       Event     @relation(fields: [eventId], references: [id])
   userId      String
   user        User      @relation(fields: [userId], references: [id])
+  purchaseId  String?
+  purchase    Purchase? @relation(fields: [purchaseId], references: [id])
   status      TicketStatus
   createdAt   DateTime  @default(now())
   deletedAt   DateTime? // Soft delete
@@ -227,12 +233,4 @@ enum EstadoPago {
   COMPLETADO
   CANCELADO
   REEMBOLSADO
-}
-
-enum TicketStatus {
-  PENDING
-  PAID
-  CANCELLED
-  USED
-  EXPIRED
 }
