@@ -14,20 +14,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const { eventId } = body;
 
     if (!eventId) {
-      return NextResponse.json(
-        { error: 'Event ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
     await QueueManager.leaveQueue(eventId, session.user.id);
@@ -38,9 +32,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error leaving queue:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

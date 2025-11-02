@@ -2,7 +2,7 @@
 
 /**
  * Script para ejecutar el Ticket Worker
- * 
+ *
  * Uso:
  *   tsx scripts/start-ticket-worker.ts
  *   npm run worker:tickets
@@ -25,11 +25,11 @@ console.log('');
 
 // Validar configuración requerida
 const requiredEnvVars = ['REDIS_URL', 'RESEND_API_KEY', 'NEXT_PUBLIC_APP_URL'];
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 if (missingVars.length > 0) {
   console.error('❌ Error: Missing required environment variables:');
-  missingVars.forEach(varName => {
+  missingVars.forEach((varName) => {
     console.error(`   - ${varName}`);
   });
   console.error('');

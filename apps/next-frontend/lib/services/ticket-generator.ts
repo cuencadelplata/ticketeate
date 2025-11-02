@@ -1,6 +1,6 @@
 /**
  * Ticket Generator Service
- * 
+ *
  * Servicio para generar QR codes y PDFs de entradas
  * Separado del contexto para reutilización y testing
  */
@@ -96,9 +96,7 @@ export async function generateTicketPDF(ticket: TicketData): Promise<Blob> {
   });
 
   // Convertir imagen del evento a data URL
-  const eventImgDataUrl = ticket.eventImageUrl
-    ? await imageToDataUrl(ticket.eventImageUrl)
-    : '';
+  const eventImgDataUrl = ticket.eventImageUrl ? await imageToDataUrl(ticket.eventImageUrl) : '';
 
   const pdf = new jsPDF('p', 'mm', 'a4');
   pdf.setFont('helvetica', 'normal');
@@ -136,7 +134,7 @@ export async function generateTicketPDF(ticket: TicketData): Promise<Blob> {
       imgW,
       imgH,
       undefined,
-      'FAST'
+      'FAST',
     );
     cursorY += 6 + imgH;
   }
@@ -151,7 +149,7 @@ export async function generateTicketPDF(ticket: TicketData): Promise<Blob> {
     qrSize,
     qrSize,
     undefined,
-    'FAST'
+    'FAST',
   );
   cursorY += 10 + qrSize + 10;
 

@@ -29,7 +29,7 @@ function ComprarEventPageContent() {
     showSuccess,
     resultado,
     showStripeMessage,
-    
+
     // Actions
     setSector,
     setCantidad,
@@ -39,7 +39,7 @@ function ComprarEventPageContent() {
     setCardExpiry,
     setCardCvv,
     setCardDni,
-    
+
     // Computed
     sectores,
     getDisponibilidad,
@@ -48,16 +48,16 @@ function ComprarEventPageContent() {
     total,
     isCardPayment,
     formatPrice,
-    
+
     // Validation
     isValidCardInputs,
-    
+
     // Flow
     comprar,
     resetForm,
     handleStripeContinue,
     descargarComprobantePDF,
-    
+
     // Reservation
     startReservation,
     isReserved,
@@ -99,10 +99,7 @@ function ComprarEventPageContent() {
         <ReservationBannerCheckout />
 
         {/* Event Header */}
-        <EventHeader
-          event={selectedEvent}
-          onBack={() => router.push('/comprar')}
-        />
+        <EventHeader event={selectedEvent} onBack={() => router.push('/comprar')} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_500px] xl:grid-cols-[1fr_600px]">

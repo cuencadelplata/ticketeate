@@ -1,6 +1,6 @@
 /**
  * Ticket Worker
- * 
+ *
  * Worker que procesa la cola de comprobantes de forma continua
  * Puede ejecutarse como:
  * - Script standalone: node ticket-worker.js
@@ -90,10 +90,9 @@ async function workerLoop(): Promise<void> {
 
       // Procesar job de forma asíncrona
       activeJobs++;
-      processJob(job.jobId, job)
-        .finally(() => {
-          activeJobs--;
-        });
+      processJob(job.jobId, job).finally(() => {
+        activeJobs--;
+      });
 
       // Pequeño delay antes de obtener el siguiente
       await sleep(100);

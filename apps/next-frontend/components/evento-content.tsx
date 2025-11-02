@@ -78,7 +78,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
         // Limpiar el parámetro de la URL
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
-        
+
         // Ocultar mensaje después de 5 segundos
         setTimeout(() => setShowExpiredMessage(false), 5000);
       }
@@ -567,7 +567,9 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                 <div className="mb-3 rounded-lg bg-red-500/20 border border-red-500/50 p-3 text-sm text-red-200">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">⏱️</span>
-                    <span>Tu tiempo de compra ha expirado. Puedes intentar comprar nuevamente.</span>
+                    <span>
+                      Tu tiempo de compra ha expirado. Puedes intentar comprar nuevamente.
+                    </span>
                   </div>
                 </div>
               )}

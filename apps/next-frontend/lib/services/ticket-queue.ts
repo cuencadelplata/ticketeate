@@ -1,6 +1,6 @@
 /**
  * Ticket Queue Manager
- * 
+ *
  * Sistema de cola para procesamiento asíncrono de comprobantes
  * Usa Redis para encolar trabajos de generación y envío de emails
  */
@@ -47,7 +47,7 @@ export async function enqueueTicketJob(
     userName?: string;
     priority?: number; // Menor número = mayor prioridad
     maxAttempts?: number;
-  }
+  },
 ): Promise<string> {
   const jobId = `ticket-${reservaId}-${Date.now()}`;
   const timestamp = Date.now();
@@ -70,17 +70,28 @@ export async function enqueueTicketJob(
   // Guardar datos del job
   await redis.hset(
     KEYS.jobData(jobId),
-    'jobId', job.jobId,
-    'reservaId', job.reservaId,
-    'userId', job.userId,
-    'userEmail', job.userEmail,
-    'userName', job.userName || '',
-    'eventId', job.eventId,
-    'ticketData', JSON.stringify(job.ticketData),
-    'status', job.status,
-    'attempts', job.attempts.toString(),
-    'maxAttempts', job.maxAttempts.toString(),
-    'createdAt', job.createdAt.toString()
+    'jobId',
+    job.jobId,
+    'reservaId',
+    job.reservaId,
+    'userId',
+    job.userId,
+    'userEmail',
+    job.userEmail,
+    'userName',
+    job.userName || '',
+    'eventId',
+    job.eventId,
+    'ticketData',
+    JSON.stringify(job.ticketData),
+    'status',
+    job.status,
+    'attempts',
+    job.attempts.toString(),
+    'maxAttempts',
+    job.maxAttempts.toString(),
+    'createdAt',
+    job.createdAt.toString(),
   );
 
   // Agregar a cola pendiente con prioridad
@@ -130,7 +141,7 @@ export async function getNextPendingJob(): Promise<TicketJob | null> {
       KEYS.pendingJobs,
       KEYS.processingJobs,
       jobId,
-      Date.now().toString()
+      Date.now().toString(),
     );
 
     if (moved === 0) {
@@ -150,7 +161,7 @@ export async function getNextPendingJob(): Promise<TicketJob | null> {
       reservaId: jobData.reservaId as string,
       userId: jobData.userId as string,
       userEmail: jobData.userEmail as string,
-      userName: jobData.userName as string || undefined,
+      userName: (jobData.userName as string) || undefined,
       eventId: jobData.eventId as string,
       ticketData: JSON.parse(jobData.ticketData as string),
       status: 'processing',
@@ -178,11 +189,7 @@ export async function markJobCompleted(jobId: string): Promise<void> {
     const now = Date.now().toString();
 
     // Actualizar estado
-    await redis.hset(
-      KEYS.jobData(jobId),
-      'status', 'completed',
-      'processedAt', now
-    );
+    await redis.hset(KEYS.jobData(jobId), 'status', 'completed', 'processedAt', now);
 
     // Mover de processing a completed
     await redis.hdel(KEYS.processingJobs, jobId);
@@ -200,7 +207,7 @@ export async function markJobCompleted(jobId: string): Promise<void> {
 export async function markJobFailed(
   jobId: string,
   error: string,
-  retry: boolean = true
+  retry: boolean = true,
 ): Promise<void> {
   try {
     const jobData = await redis.hgetall(KEYS.jobData(jobId));
@@ -230,9 +237,12 @@ export async function markJobFailed(
 
       await redis.hset(
         KEYS.jobData(jobId),
-        'status', 'failed',
-        'error', error,
-        'processedAt', Date.now().toString()
+        'status',
+        'failed',
+        'error',
+        error,
+        'processedAt',
+        Date.now().toString(),
       );
 
       await redis.hdel(KEYS.processingJobs, jobId);

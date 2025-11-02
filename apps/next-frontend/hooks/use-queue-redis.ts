@@ -40,7 +40,7 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInQueue, setIsInQueue] = useState(false);
-  
+
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousPositionRef = useRef<number | null>(null);
 
@@ -73,7 +73,7 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
       // Si puede entrar inmediatamente
       if (data.position?.position === 0 || data.position?.canEnter) {
         onCanEnter?.();
-        
+
         if (autoRedirect) {
           const url = redirectUrl || `/evento/comprar/${eventId}`;
           router.push(url);
@@ -112,10 +112,7 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
       setQueueStatus(status);
 
       // Detectar cambio de posición
-      if (
-        previousPositionRef.current !== null &&
-        previousPositionRef.current !== status.position
-      ) {
+      if (previousPositionRef.current !== null && previousPositionRef.current !== status.position) {
         onPositionChange?.(status.position);
       }
       previousPositionRef.current = status.position;
@@ -138,7 +135,15 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [eventId, queueStatus?.canEnter, onPositionChange, onCanEnter, autoRedirect, redirectUrl, router]);
+  }, [
+    eventId,
+    queueStatus?.canEnter,
+    onPositionChange,
+    onCanEnter,
+    autoRedirect,
+    redirectUrl,
+    router,
+  ]);
 
   /**
    * Salir de la cola
@@ -161,7 +166,7 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
 
       setIsInQueue(false);
       setQueueStatus(null);
-      
+
       // Detener polling
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);

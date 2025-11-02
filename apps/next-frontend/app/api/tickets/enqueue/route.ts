@@ -19,22 +19,14 @@ export interface EnqueueTicketRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: EnqueueTicketRequest = await request.json();
-    const {
-      reservaId,
-      userId,
-      userEmail,
-      userName,
-      eventId,
-      ticketData,
-      priority,
-    } = body;
+    const { reservaId, userId, userEmail, userName, eventId, ticketData, priority } = body;
 
     if (!reservaId || !userId || !userEmail || !eventId || !ticketData) {
       return NextResponse.json(
         {
           error: 'Missing required fields: reservaId, userId, userEmail, eventId, ticketData',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,18 +37,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Encolar el trabajo
-    const jobId = await enqueueTicketJob(
-      reservaId,
-      userId,
-      userEmail,
-      eventId,
-      ticketData,
-      {
-        userName,
-        priority,
-        maxAttempts: 3,
-      }
-    );
+    const jobId = await enqueueTicketJob(reservaId, userId, userEmail, eventId, ticketData, {
+      userName,
+      priority,
+      maxAttempts: 3,
+    });
 
     return NextResponse.json({
       success: true,
@@ -65,9 +50,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('[EnqueueTicket] Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }

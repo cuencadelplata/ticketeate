@@ -1,6 +1,6 @@
 /**
  * Queue System Architecture
- * 
+ *
  * Sistema de colas para control de concurrencia en compra de entradas
  * Utiliza Redis (Upstash) para gestionar estado distribuido
  */
@@ -43,7 +43,7 @@ export interface TicketReservation {
 
 /**
  * Redis Keys Structure:
- * 
+ *
  * queue:{eventId}:config -> QueueConfig (hash)
  * queue:{eventId}:waiting -> Sorted Set (score = timestamp)
  * queue:{eventId}:active -> Set de userIds activos comprando

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (!to || !ticketData) {
       return NextResponse.json(
         { error: 'Missing required fields: to, ticketData' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -73,10 +73,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('[SendTicketEmail] Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -151,17 +148,25 @@ function generateEmailHTML(userName: string, ticket: TicketData): string {
               </h2>
 
               <!-- Detalles del evento -->
-              ${ticket.eventLocation ? `
+              ${
+                ticket.eventLocation
+                  ? `
               <p style="margin: 0 0 12px 0; color: #4a5568; font-size: 16px;">
                 <strong style="color: #2d3748;">📍 Ubicación:</strong> ${ticket.eventLocation}
               </p>
-              ` : ''}
+              `
+                  : ''
+              }
 
-              ${ticket.eventDate ? `
+              ${
+                ticket.eventDate
+                  ? `
               <p style="margin: 0 0 12px 0; color: #4a5568; font-size: 16px;">
                 <strong style="color: #2d3748;">📅 Fecha:</strong> ${ticket.eventDate}
               </p>
-              ` : ''}
+              `
+                  : ''
+              }
 
               <p style="margin: 0 0 12px 0; color: #4a5568; font-size: 16px;">
                 <strong style="color: #2d3748;">🎫 Sector:</strong> ${ticket.sector}
@@ -338,10 +343,10 @@ function generateEmailHTML(userName: string, ticket: TicketData): string {
  */
 function formatPaymentMethod(metodo: string): string {
   const methods: Record<string, string> = {
-    'tarjeta_credito': 'Tarjeta de Crédito',
-    'tarjeta_debito': 'Tarjeta de Débito',
-    'mercado_pago': 'Mercado Pago',
-    'stripe': 'Stripe',
+    tarjeta_credito: 'Tarjeta de Crédito',
+    tarjeta_debito: 'Tarjeta de Débito',
+    mercado_pago: 'Mercado Pago',
+    stripe: 'Stripe',
   };
 
   return methods[metodo] || metodo;

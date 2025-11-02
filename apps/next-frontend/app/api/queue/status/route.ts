@@ -14,10 +14,7 @@ export async function GET(request: NextRequest) {
     const userIdParam = searchParams.get('userId');
 
     if (!eventId) {
-      return NextResponse.json(
-        { error: 'Event ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
     let userId = userIdParam;
@@ -33,7 +30,9 @@ export async function GET(request: NextRequest) {
     // Obtener estado de la cola
     const status = await QueueManager.getQueueStatus(eventId, userId);
 
-    console.log(`[API /queue/status] Event: ${eventId}, User: ${userId}, CanEnter: ${status.canEnter}, Queue: ${status.queueLength}, Active: ${status.activeBuyers}`);
+    console.log(
+      `[API /queue/status] Event: ${eventId}, User: ${userId}, CanEnter: ${status.canEnter}, Queue: ${status.queueLength}, Active: ${status.activeBuyers}`,
+    );
 
     return NextResponse.json({
       success: true,
@@ -41,9 +40,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error getting queue status:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

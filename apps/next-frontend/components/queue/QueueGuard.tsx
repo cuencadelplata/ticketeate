@@ -24,12 +24,12 @@ interface QueueStatus {
 
 /**
  * QueueGuard - Componente que verifica el acceso a la cola antes de permitir checkout
- * 
+ *
  * Verifica que:
  * 1. El usuario esté autenticado
  * 2. El usuario esté en la cola activa para el evento
  * 3. No haya expirado su tiempo de compra
- * 
+ *
  * Si no cumple, redirige a la página del evento
  */
 export function QueueGuard({
@@ -62,19 +62,25 @@ export function QueueGuard({
 
     try {
       // Obtener userId del sessionStorage (usado en evento-content)
-      const storedUserId = typeof window !== 'undefined' ? sessionStorage.getItem('queueUserId') : null;
-      
+      const storedUserId =
+        typeof window !== 'undefined' ? sessionStorage.getItem('queueUserId') : null;
+
       if (!storedUserId) {
         console.error('[QueueGuard] No userId found in sessionStorage');
         throw new Error('Usuario no autenticado');
       }
-      
-      console.log('[QueueGuard] Starting verification for userId:', storedUserId, 'eventId:', eventId);
+
+      console.log(
+        '[QueueGuard] Starting verification for userId:',
+        storedUserId,
+        'eventId:',
+        eventId,
+      );
 
       // Delay inicial para dar tiempo a que Redis procese completamente
       // Si el usuario acaba de unirse, esto da tiempo a que se cree la reserva
       console.log('[QueueGuard] Initial delay of 800ms...');
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       // Intentar promover usuarios de la cola antes de verificar
       await fetch('/api/queue/process', {
@@ -85,23 +91,23 @@ export function QueueGuard({
         // Ignorar errores de promoción, no es crítico
         console.warn('[QueueGuard] Could not process queue promotion');
       });
-      
+
       // Retry logic: intentar 5 veces con delay creciente entre intentos
       // Esto maneja el caso donde el usuario acaba de unirse y Redis aún está procesando
       let attempts = 0;
       let maxAttempts = 5;
       let status: QueueStatus | null = null;
-      
+
       while (attempts < maxAttempts) {
         attempts++;
-        
+
         // Delay antes de verificar (excepto en el primer intento)
         if (attempts > 1) {
           const delay = attempts * 300; // 300ms, 600ms, 900ms, 1200ms
           console.log(`[QueueGuard] Waiting ${delay}ms before attempt ${attempts}...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
-        
+
         // Verificar estado de la cola con el mismo userId
         const response = await fetch(`/api/queue/status?eventId=${eventId}&userId=${storedUserId}`);
 
@@ -164,7 +170,7 @@ export function QueueGuard({
     } catch (err) {
       console.error('Error verifying queue access:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
-      
+
       // En caso de error, permitir acceso (fail-safe)
       // TODO: En producción, considerar ser más restrictivo
       setHasAccess(true);
@@ -223,7 +229,7 @@ export function QueueGuard({
         <div className="max-w-md text-center space-y-6 p-6 bg-gray-900 rounded-lg border border-gray-800">
           <Clock className="h-16 w-16 text-yellow-500 mx-auto" />
           <h2 className="text-white text-2xl font-bold">Acceso Denegado</h2>
-          
+
           <div className="space-y-3 text-left bg-gray-800 rounded-lg p-4">
             <div className="flex justify-between">
               <span className="text-gray-400">Tu posición:</span>
@@ -236,8 +242,8 @@ export function QueueGuard({
             <div className="flex justify-between">
               <span className="text-gray-400">Tiempo estimado:</span>
               <span className="text-white font-semibold">
-                {queueStatus.estimatedWaitTime 
-                  ? `${Math.floor(queueStatus.estimatedWaitTime / 60)}m` 
+                {queueStatus.estimatedWaitTime
+                  ? `${Math.floor(queueStatus.estimatedWaitTime / 60)}m`
                   : 'Calculando...'}
               </span>
             </div>
@@ -247,9 +253,7 @@ export function QueueGuard({
             Aún no es tu turno para comprar. Por favor espera en la cola o vuelve más tarde.
           </p>
 
-          <div className="text-sm text-gray-500">
-            Redirigiendo en 2 segundos...
-          </div>
+          <div className="text-sm text-gray-500">Redirigiendo en 2 segundos...</div>
         </div>
       </div>
     );

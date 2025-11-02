@@ -41,7 +41,7 @@ export function QueueModalRedis({
     autoRedirect: false, // Manejamos el redirect manualmente para mostrar mensaje
     onCanEnter: () => {
       setShowSuccessMessage(true);
-      
+
       // Esperar 2 segundos antes de redirigir
       if (autoRedirect) {
         setTimeout(() => {
@@ -99,8 +99,8 @@ export function QueueModalRedis({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">Cola de Compra</h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             disabled={isJoining}
           >
@@ -133,11 +133,9 @@ export function QueueModalRedis({
               <div className="flex">
                 <Users className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Sistema de cola activado
-                  </h3>
+                  <h3 className="text-sm font-medium text-blue-800">Sistema de cola activado</h3>
                   <p className="mt-1 text-sm text-blue-700">
-                    Para garantizar una experiencia justa, hemos implementado una cola ordenada. 
+                    Para garantizar una experiencia justa, hemos implementado una cola ordenada.
                     Recibirás acceso cuando sea tu turno.
                   </p>
                 </div>
@@ -199,9 +197,7 @@ export function QueueModalRedis({
               <div className="flex">
                 <Clock className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
-                    Esperando tu turno
-                  </h3>
+                  <h3 className="text-sm font-medium text-yellow-800">Esperando tu turno</h3>
                   <p className="mt-1 text-sm text-yellow-700">
                     Estás en la posición <strong>{position}</strong> de{' '}
                     <strong>{queueStatus.totalInQueue}</strong> personas en cola.
@@ -215,16 +211,18 @@ export function QueueModalRedis({
               <div className="flex justify-between text-xs text-gray-600">
                 <span>Tu progreso</span>
                 <span>
-                  {position === 1 ? 'Siguiente!' : `${position} ${position === 1 ? 'persona' : 'personas'} adelante`}
+                  {position === 1
+                    ? 'Siguiente!'
+                    : `${position} ${position === 1 ? 'persona' : 'personas'} adelante`}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
                   className={`h-3 rounded-full transition-all duration-1000 ease-out ${
-                    position === 1 
-                      ? 'bg-green-500' 
-                      : position && position <= 3 
-                        ? 'bg-yellow-500' 
+                    position === 1
+                      ? 'bg-green-500'
+                      : position && position <= 3
+                        ? 'bg-yellow-500'
                         : 'bg-blue-500'
                   }`}
                   style={{
@@ -232,7 +230,7 @@ export function QueueModalRedis({
                   }}
                 />
               </div>
-              
+
               {/* Indicador de cambio de posición */}
               {previousPosition !== null && previousPosition > (position || 0) && (
                 <div className="text-center animate-in slide-in-from-top duration-300">
@@ -252,9 +250,7 @@ export function QueueModalRedis({
               </div>
               <div className="rounded-md bg-gray-50 p-3 border border-gray-200">
                 <p className="text-xs text-gray-600 mb-1">Tiempo estimado</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatTime(estimatedWaitTime)}
-                </p>
+                <p className="text-2xl font-bold text-gray-900">{formatTime(estimatedWaitTime)}</p>
               </div>
             </div>
 

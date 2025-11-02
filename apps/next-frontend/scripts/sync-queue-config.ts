@@ -59,7 +59,7 @@ async function syncQueueConfig(eventId?: string) {
         'reservationTimeSeconds',
         '300',
         'queueTimeoutSeconds',
-        '3600'
+        '3600',
       );
 
       // Verificar que se guardó correctamente

@@ -15,7 +15,7 @@ export class QueueManager {
     try {
       // Intentar obtener de Redis primero
       const config = await redis.hgetall(REDIS_KEYS.queueConfig(eventId));
-      
+
       if (config && Object.keys(config).length > 0) {
         return {
           eventId: config.eventId,
@@ -27,7 +27,9 @@ export class QueueManager {
       }
 
       // Si no está en Redis, buscar en la base de datos
-      console.log(`[QueueManager] Config not in Redis, fetching from database for event: ${eventId}`);
+      console.log(
+        `[QueueManager] Config not in Redis, fetching from database for event: ${eventId}`,
+      );
       const dbConfig = await prisma.colas_evento.findFirst({
         where: { eventoid: eventId },
       });
@@ -64,11 +66,16 @@ export class QueueManager {
     try {
       await redis.hset(
         REDIS_KEYS.queueConfig(config.eventId),
-        'eventId', config.eventId,
-        'maxConcurrentBuyers', config.maxConcurrentBuyers.toString(),
-        'queueEnabled', config.queueEnabled ? '1' : '0',
-        'reservationTimeSeconds', config.reservationTimeSeconds.toString(),
-        'queueTimeoutSeconds', config.queueTimeoutSeconds.toString()
+        'eventId',
+        config.eventId,
+        'maxConcurrentBuyers',
+        config.maxConcurrentBuyers.toString(),
+        'queueEnabled',
+        config.queueEnabled ? '1' : '0',
+        'reservationTimeSeconds',
+        config.reservationTimeSeconds.toString(),
+        'queueTimeoutSeconds',
+        config.queueTimeoutSeconds.toString(),
       );
       return true;
     } catch (error) {
@@ -83,7 +90,7 @@ export class QueueManager {
   static async joinQueue(eventId: string, userId: string): Promise<QueuePosition | null> {
     try {
       const config = await this.getQueueConfig(eventId);
-      
+
       // Si no hay config o cola deshabilitada, permitir entrada directa
       if (!config || !config.queueEnabled) {
         return {
@@ -123,7 +130,7 @@ export class QueueManager {
     try {
       // Verificar si está activo
       const isActive = await redis.sismember(REDIS_KEYS.queueActive(eventId), userId);
-      
+
       if (isActive) {
         return {
           userId,
@@ -137,7 +144,7 @@ export class QueueManager {
 
       // Buscar en cola de espera
       const rank = await redis.zrank(REDIS_KEYS.queueWaiting(eventId), userId);
-      
+
       if (rank === null) {
         return null; // No está en cola
       }
@@ -166,10 +173,12 @@ export class QueueManager {
   static async getQueueStatus(eventId: string, userId?: string): Promise<QueueStatus> {
     try {
       const config = await this.getQueueConfig(eventId);
-      
+
       // Si no hay configuración de cola, permitir acceso directo (sin cola)
       if (!config || !config.queueEnabled) {
-        console.log(`[QueueManager] No queue config or queue disabled for event ${eventId}, allowing direct access`);
+        console.log(
+          `[QueueManager] No queue config or queue disabled for event ${eventId}, allowing direct access`,
+        );
         return {
           eventId,
           queueLength: 0,
@@ -186,7 +195,7 @@ export class QueueManager {
 
       const queueLength = await redis.zcard(REDIS_KEYS.queueWaiting(eventId));
       const activeBuyers = await redis.zcard(REDIS_KEYS.queueActive(eventId)); // ZCARD para Sorted Sets
-      
+
       let userPosition: number | undefined;
       let canEnter = false;
 
@@ -194,7 +203,7 @@ export class QueueManager {
         // Verificar si tiene una reserva activa (esto es lo que determina si puede comprar)
         const reservationExists = await redis.exists(REDIS_KEYS.reservation(eventId, userId));
         canEnter = reservationExists === 1;
-        
+
         if (!canEnter) {
           // No está activo, verificar si está en la cola de espera
           const rank = await redis.zrank(REDIS_KEYS.queueWaiting(eventId), userId);
@@ -210,7 +219,7 @@ export class QueueManager {
         activeBuyers: activeBuyers || 0,
         userPosition,
         canEnter,
-        estimatedWaitTime: ((userPosition || 0) * 120), // 2 min por persona
+        estimatedWaitTime: (userPosition || 0) * 120, // 2 min por persona
       };
     } catch (error) {
       console.error('Error getting queue status:', error);
@@ -238,7 +247,11 @@ export class QueueManager {
       if (spotsAvailable <= 0) return 0;
 
       // Obtener los primeros N usuarios de la cola
-      const usersToPromote = await redis.zrange(REDIS_KEYS.queueWaiting(eventId), 0, spotsAvailable - 1);
+      const usersToPromote = await redis.zrange(
+        REDIS_KEYS.queueWaiting(eventId),
+        0,
+        spotsAvailable - 1,
+      );
 
       if (!usersToPromote || usersToPromote.length === 0) return 0;
 
@@ -246,12 +259,9 @@ export class QueueManager {
       for (const userId of usersToPromote) {
         await redis.sadd(REDIS_KEYS.queueActive(eventId), userId);
         await redis.zrem(REDIS_KEYS.queueWaiting(eventId), userId);
-        
+
         // Establecer TTL para auto-expiración
-        await redis.expire(
-          REDIS_KEYS.queueActive(eventId),
-          config.reservationTimeSeconds
-        );
+        await redis.expire(REDIS_KEYS.queueActive(eventId), config.reservationTimeSeconds);
       }
 
       return usersToPromote.length;
@@ -267,10 +277,10 @@ export class QueueManager {
   static async leaveQueue(eventId: string, userId: string): Promise<boolean> {
     try {
       console.log(`[QueueManager] User ${userId} leaving queue for event ${eventId}`);
-      
+
       // Remover de activos (ZSET)
       await redis.zrem(REDIS_KEYS.queueActive(eventId), userId);
-      
+
       // Remover de cola de espera (ZSET)
       await redis.zrem(REDIS_KEYS.queueWaiting(eventId), userId);
 
@@ -294,7 +304,7 @@ export class QueueManager {
   static async canUserBuy(eventId: string, userId: string): Promise<boolean> {
     try {
       const config = await this.getQueueConfig(eventId);
-      
+
       // Si no hay cola configurada o está deshabilitada, permitir
       if (!config || !config.queueEnabled) {
         return true;
@@ -315,7 +325,7 @@ export class QueueManager {
     try {
       // Obtener todos los usuarios en active
       const activeUsers = await redis.zrange(REDIS_KEYS.queueActive(eventId), 0, -1);
-      
+
       if (activeUsers.length === 0) {
         return 0;
       }
@@ -325,7 +335,7 @@ export class QueueManager {
       // Verificar cada usuario si tiene reservación
       for (const userId of activeUsers) {
         const hasReservation = await redis.exists(REDIS_KEYS.reservation(eventId, userId));
-        
+
         if (hasReservation === 0) {
           // No tiene reservación, remover de active
           await redis.zrem(REDIS_KEYS.queueActive(eventId), userId);
@@ -335,7 +345,9 @@ export class QueueManager {
       }
 
       if (removedCount > 0) {
-        console.log(`[QueueManager] Cleaned ${removedCount} stale active entries for event: ${eventId}`);
+        console.log(
+          `[QueueManager] Cleaned ${removedCount} stale active entries for event: ${eventId}`,
+        );
       }
 
       return removedCount;
@@ -354,7 +366,7 @@ export class QueueManager {
       if (!config) return;
 
       const now = Date.now();
-      const expireTime = now - (config.queueTimeoutSeconds * 1000);
+      const expireTime = now - config.queueTimeoutSeconds * 1000;
 
       // Remover usuarios antiguos de la cola de espera
       await redis.zremrangebyscore(REDIS_KEYS.queueWaiting(eventId), 0, expireTime);

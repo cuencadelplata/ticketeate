@@ -15,10 +15,7 @@ export function CheckoutHeader() {
         >
           Cancelar
         </button>
-        <button
-          className="font-semibold text-orange-500 hover:underline"
-          onClick={resetForm}
-        >
+        <button className="font-semibold text-orange-500 hover:underline" onClick={resetForm}>
           Limpiar selección
         </button>
       </div>

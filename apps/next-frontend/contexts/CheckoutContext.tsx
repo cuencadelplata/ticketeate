@@ -19,7 +19,12 @@ export type UISector = {
   color: string;
 };
 
-export type PaymentMethod = 'tarjeta_credito' | 'tarjeta_debito' | 'mercado_pago' | 'stripe' | string;
+export type PaymentMethod =
+  | 'tarjeta_credito'
+  | 'tarjeta_debito'
+  | 'mercado_pago'
+  | 'stripe'
+  | string;
 
 export type Currency = 'ARS' | 'USD' | 'EUR';
 
@@ -34,22 +39,22 @@ export interface CheckoutState {
   // Event data
   eventId: string;
   selectedEvent: Event | null;
-  
+
   // Selection
   sector: SectorKey;
   cantidad: number;
-  
+
   // Payment
   metodo: PaymentMethod;
   currency: Currency;
   cardData: CardData;
-  
+
   // UI State
   loading: boolean;
   error: string | null;
   showSuccess: boolean;
   resultado: any;
-  
+
   // Stripe specific
   showStripeMessage: boolean;
 }
@@ -57,10 +62,10 @@ export interface CheckoutState {
 export interface CheckoutContextValue extends CheckoutState {
   // Event data
   eventLoading: boolean;
-  
+
   // Queue
   canEnter: boolean;
-  
+
   // Reservation
   isReserved: boolean;
   timeLeft: number;
@@ -68,7 +73,7 @@ export interface CheckoutContextValue extends CheckoutState {
   formatTimeLeft: (seconds: number) => string;
   startReservation: (eventId: string, seconds: number) => void;
   clearReservation: () => void;
-  
+
   // Actions
   setSector: (sector: SectorKey) => void;
   setCantidad: (cantidad: number) => void;
@@ -78,7 +83,7 @@ export interface CheckoutContextValue extends CheckoutState {
   setCardExpiry: (value: string) => void;
   setCardCvv: (value: string) => void;
   setCardDni: (value: string) => void;
-  
+
   // Computed
   sectores: Record<SectorKey, UISector>;
   getDisponibilidad: (sectorKey: SectorKey) => number;
@@ -87,10 +92,10 @@ export interface CheckoutContextValue extends CheckoutState {
   total: number;
   isCardPayment: boolean;
   formatPrice: (amount: number) => string;
-  
+
   // Validation
   isValidCardInputs: () => boolean;
-  
+
   // Purchase flow
   comprar: () => Promise<void>;
   resetForm: () => void;
@@ -130,7 +135,7 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
   const sectorsEn = (event as any)?.mapa_evento?.sectors as Array<any> | undefined;
   const sectorsEs = (event as any)?.mapa_evento?.sectores as Array<any> | undefined;
   const sectors = sectorsEn || sectorsEs;
-  
+
   if (sectors && sectors.length > 0) {
     sectors.forEach((s: any, idx: number) => {
       const key = String(s?.name || s?.nombre || `Sector ${idx + 1}`);
@@ -142,7 +147,7 @@ function buildSectorsFromEvent(event?: Event | null): Record<SectorKey, UISector
       };
     });
   }
-  
+
   return map;
 }
 
@@ -154,18 +159,18 @@ interface CheckoutProviderProps {
 export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  
+
   // Get real user ID from Better-Auth session
   const { data: session } = useSession();
   const idUsuario = session?.user?.id || '';
-  
+
   // Event data
   const { data: eventData, isLoading: eventLoading } = usePublicEvent(eventId);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  
+
   // Queue
   const { canEnter, completePurchase } = useMockQueue(eventId || '', idUsuario);
-  
+
   // Reservation
   const {
     isReserved,
@@ -175,11 +180,11 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     formatTimeLeft,
     isReservationActive,
   } = useReservation();
-  
+
   // Selection state
   const [sector, setSector] = useState<SectorKey>('');
   const [cantidad, setCantidad] = useState<number>(1);
-  
+
   // Payment state
   const [metodo, setMetodo] = useState<PaymentMethod>('tarjeta_debito');
   const [currency, setCurrency] = useState<Currency>('ARS');
@@ -189,14 +194,14 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     cvv: '',
     dni: '',
   });
-  
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [showStripeMessage, setShowStripeMessage] = useState(false);
-  
+
   // Load event
   useEffect(() => {
     if (eventId && eventData) {
@@ -206,7 +211,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       setSector(first);
     }
   }, [eventId, eventData]);
-  
+
   // DISABLED: QueueGuard already handles access verification
   // This useEffect was causing race conditions and premature redirects
   // useEffect(() => {
@@ -224,17 +229,17 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   useEffect(() => {
     const handleReservationExpired = (event: CustomEvent) => {
       const expiredEventId = event.detail?.eventId;
-      
+
       if (expiredEventId === eventId) {
         console.log('[CheckoutContext] Reservation expired, redirecting to event page');
-        
+
         // Limpiar la cola en el backend
         fetch('/api/queue/leave', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ eventId }),
-        }).catch(err => console.error('Error leaving queue:', err));
-        
+        }).catch((err) => console.error('Error leaving queue:', err));
+
         // Redirigir al evento con mensaje (usando setTimeout para evitar setState durante render)
         setTimeout(() => {
           router.push(`/evento/${eventId}?expired=true`);
@@ -243,28 +248,28 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     };
 
     window.addEventListener('reservation-expired', handleReservationExpired as EventListener);
-    
+
     return () => {
       window.removeEventListener('reservation-expired', handleReservationExpired as EventListener);
     };
   }, [eventId, router]);
-  
+
   // Force currency for payment methods
   useEffect(() => {
     if (metodo === 'mercado_pago' && currency !== 'ARS') {
       setCurrency('ARS');
     }
   }, [metodo, currency]);
-  
+
   useEffect(() => {
     if (metodo === 'stripe' && currency !== 'USD') {
       setCurrency('USD');
     }
   }, [metodo, currency]);
-  
+
   // Computed values
   const sectores = buildSectorsFromEvent(selectedEvent);
-  
+
   const getDisponibilidad = (sectorKey: SectorKey): number => {
     if (selectedEvent?.stock_entrada && selectedEvent.stock_entrada.length > 0) {
       const item = (selectedEvent.stock_entrada as any[]).find(
@@ -272,7 +277,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       );
       return item?.cant_max || 0;
     }
-    
+
     const sectorsEn = (selectedEvent as any)?.mapa_evento?.sectors as any[] | undefined;
     const sectorsEs = (selectedEvent as any)?.mapa_evento?.sectores as any[] | undefined;
     const mix = sectorsEn || sectorsEs || [];
@@ -281,10 +286,10 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     );
     return Number(sec?.capacity ?? sec?.capacidad ?? 0);
   };
-  
+
   // Pricing
   const rates: Record<Currency, number> = { ARS: 1, USD: 1 / 1300, EUR: 1 / 1600 };
-  
+
   const formatPrice = (amount: number) => {
     const value = amount * rates[currency];
     return value.toLocaleString('es-AR', {
@@ -293,29 +298,29 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       maximumFractionDigits: currency === 'ARS' ? 0 : 2,
     });
   };
-  
+
   const s = sector && sectores[sector] ? sectores[sector] : Object.values(sectores)[0];
   const base = s ? s.precioDesde : 0;
   const feeUnitario = Math.round(base * 0.1);
   const precioUnitario = base + feeUnitario;
   const total = precioUnitario * cantidad;
-  
+
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
-  
+
   // Card helpers
   const sanitizeNumber = (v: string) => v.replace(/[^0-9]/g, '');
-  
+
   const formatCardNumber = (v: string) =>
     sanitizeNumber(v)
       .slice(0, 19)
       .replace(/(\d{4})(?=\d)/g, '$1 ');
-  
+
   const formatExpiry = (v: string) => {
     const n = sanitizeNumber(v).slice(0, 4);
     if (n.length <= 2) return n;
     return `${n.slice(0, 2)}/${n.slice(2)}`;
   };
-  
+
   const isValidCardInputs = () => {
     if (!isCardPayment) return true;
     const numberOk =
@@ -325,39 +330,39 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     const dniOk = /^\d{7,10}$/.test(cardData.dni.trim());
     return Boolean(numberOk && expMatch && cvvOk && dniOk);
   };
-  
+
   // Card setters with validation
   const setCardNumber = (value: string) => {
     setCardData((prev) => ({ ...prev, number: formatCardNumber(value) }));
   };
-  
+
   const setCardExpiry = (value: string) => {
     setCardData((prev) => ({ ...prev, expiry: formatExpiry(value) }));
   };
-  
+
   const setCardCvv = (value: string) => {
     setCardData((prev) => ({ ...prev, cvv: value.replace(/[^0-9]/g, '').slice(0, 4) }));
   };
-  
+
   const setCardDni = (value: string) => {
     setCardData((prev) => ({ ...prev, dni: value.replace(/[^0-9]/g, '').slice(0, 10) }));
   };
-  
+
   // Stripe continue handler
   const handleStripeContinue = () => {
     setShowStripeMessage(false);
-    
+
     const eventInfo = selectedEvent || eventData;
     if (eventInfo) {
       setSelectedEvent(eventInfo);
-      
+
       if (!sector) {
         const dyn = buildSectorsFromEvent(eventInfo);
         const firstSector = Object.keys(dyn)[0] || 'General';
         setSector(firstSector);
       }
     }
-    
+
     const mockResultado = {
       reserva: {
         reservaid: 'stripe-' + Date.now(),
@@ -396,30 +401,30 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       ui_sector: sector || 'General',
       ui_total: total,
     };
-    
+
     setResultado(mockResultado);
     setShowSuccess(true);
   };
-  
+
   // Purchase function
   const comprar = async () => {
     setLoading(true);
     setError(null);
     setResultado(null);
     setShowSuccess(false);
-    
+
     if (isCardPayment && !isValidCardInputs()) {
       setLoading(false);
       setError('Completa correctamente número, vencimiento (MM/AA), CVV y DNI.');
       return;
     }
-    
+
     if (!selectedEvent) {
       setError('Por favor selecciona un evento');
       setLoading(false);
       return;
     }
-    
+
     const datosCompra = {
       id_usuario: idUsuario,
       id_evento: selectedEvent.eventoid,
@@ -435,7 +440,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
           }
         : undefined,
     };
-    
+
     try {
       // Mercado Pago
       if (metodo === 'mercado_pago') {
@@ -460,7 +465,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
         window.location.href = prefData.init_point || prefData.sandbox_init_point;
         return;
       }
-      
+
       // Stripe
       if (metodo === 'stripe') {
         const unitUsd = Number((precioUnitario * (1 / 1300)).toFixed(2));
@@ -486,31 +491,31 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
         window.location.href = stripeData.url;
         return;
       }
-      
+
       // Traditional payment
       const res = await fetch('/api/comprar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosCompra),
       });
-      
+
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await res.text();
         throw new Error(`La API devolvió un error no JSON: ${textResponse}`);
       }
-      
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
-      
+
       setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
-      
+
       await completePurchase(true);
-      
+
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      
+
       if (metodo !== 'stripe') {
         setTimeout(() => {
           setShowSuccess(false);
@@ -529,7 +534,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       setLoading(false);
     }
   };
-  
+
   // Reset form
   const resetForm = () => {
     setShowSuccess(false);
@@ -542,7 +547,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     clearReservation();
     router.push('/comprar');
   };
-  
+
   // Cancel purchase
   const cancelPurchase = () => {
     setShowSuccess(false);
@@ -555,7 +560,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     clearReservation();
     router.push('/');
   };
-  
+
   // Enviar comprobante por email (async via cola)
   const descargarComprobantePDF = async () => {
     try {
@@ -571,7 +576,10 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
         eventTitle: selectedEvent?.titulo || resultado?.evento?.titulo || 'Evento',
         eventLocation: selectedEvent?.ubicacion || resultado?.evento?.ubicacion,
         eventDate: selectedEvent?.fechas_evento?.[0]?.fecha_hora || resultado?.evento?.fecha_hora,
-        eventImageUrl: selectedEvent?.imagenes_evento?.[0]?.url || resultado?.evento?.imagen_url || '/icon-ticketeate.png',
+        eventImageUrl:
+          selectedEvent?.imagenes_evento?.[0]?.url ||
+          resultado?.evento?.imagen_url ||
+          '/icon-ticketeate.png',
         sector: sector || resultado?.ui_sector || 'General',
         cantidad,
         precioUnitario,
@@ -609,7 +617,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       alert('Error al procesar el comprobante. Por favor contacta a soporte.');
     }
   };
-  
+
   const value: CheckoutContextValue = {
     // State
     eventId,
@@ -624,13 +632,13 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     showSuccess,
     resultado,
     showStripeMessage,
-    
+
     // Event
     eventLoading,
-    
+
     // Queue
     canEnter,
-    
+
     // Reservation
     isReserved,
     timeLeft,
@@ -638,7 +646,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     formatTimeLeft,
     startReservation,
     clearReservation,
-    
+
     // Setters
     setSector,
     setCantidad,
@@ -648,7 +656,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     setCardExpiry,
     setCardCvv,
     setCardDni,
-    
+
     // Computed
     sectores,
     getDisponibilidad,
@@ -657,10 +665,10 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     total,
     isCardPayment,
     formatPrice,
-    
+
     // Validation
     isValidCardInputs,
-    
+
     // Actions
     comprar,
     resetForm,
@@ -668,6 +676,6 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     handleStripeContinue,
     descargarComprobantePDF,
   };
-  
+
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }
