@@ -79,7 +79,7 @@ export const auth = betterAuth({
         };
 
         try {
-          const { data, error } = await resend.emails.send({
+          const { error } = await resend.emails.send({
             from: 'Ticketeate <onboarding@ticketeate.page>',
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
@@ -120,8 +120,6 @@ export const auth = betterAuth({
           role: true,
           emailVerified: true,
           image: true,
-          createdAt: true,
-          updatedAt: true,
         },
       });
 

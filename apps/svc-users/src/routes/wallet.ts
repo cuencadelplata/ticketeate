@@ -73,6 +73,9 @@ wallet.post('/link', async (c) => {
       });
     }
   } catch (error) {
+    // Log the error for debugging
+    // eslint-disable-next-line no-console
+    console.error(error);
     return c.json({ error: 'Error al procesar la solicitud' }, 400);
   }
 });
@@ -113,7 +116,7 @@ wallet.post('/simulate-payment', async (c) => {
 
     // Verificar que el usuario tenga una billetera mock vinculada
     const mockWallet = mockWallets.get(jwtPayload.id);
-    if (!mockWallet || mockWallet.wallet_provider !== 'mock') {
+    if (mockWallet?.wallet_provider !== 'mock') {
       return c.json({ error: 'Billetera mock no vinculada' }, 400);
     }
 
@@ -130,6 +133,9 @@ wallet.post('/simulate-payment', async (c) => {
       message: 'Pago simulado exitosamente',
     });
   } catch (error) {
+    // Log the error for debugging
+    // eslint-disable-next-line no-console
+    console.error(error);
     return c.json({ error: 'Error al procesar el pago simulado' }, 400);
   }
 });

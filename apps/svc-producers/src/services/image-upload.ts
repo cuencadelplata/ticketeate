@@ -50,11 +50,7 @@ export class ImageUploadService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(
         publicId,
-        (
-          error,
-          // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-          _result,
-        ) => {
+        (error) => {
           if (error) {
             reject(new Error(`Error deleting from Cloudinary: ${error.message}`));
             return;

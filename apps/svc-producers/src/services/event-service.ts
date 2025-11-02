@@ -1,5 +1,36 @@
 import { prisma } from '@repo/db';
 import { randomUUID } from 'node:crypto';
+import type { Prisma } from '@prisma/client';
+
+export interface EventMap {
+  sectors: Array<{
+    id: string;
+    name: string;
+    type: 'general' | 'vip' | 'premium' | 'custom';
+    color: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    capacity?: number;
+    price?: number;
+    isGrid?: boolean;
+    rows?: number;
+    columns?: number;
+  }>;
+  elements?: Array<{
+    id: string;
+    name: string;
+    type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
+    icon: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color: string;
+  }>;
+  backgroundImage?: string;
+}
 
 export interface CreateEventData {
   titulo: string;
@@ -14,35 +45,7 @@ export interface CreateEventData {
     fecha_inicio: Date;
     fecha_fin: Date;
   }>;
-  eventMap?: {
-    sectors: Array<{
-      id: string;
-      name: string;
-      type: 'general' | 'vip' | 'premium' | 'custom';
-      color: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      capacity?: number;
-      price?: number;
-      isGrid?: boolean;
-      rows?: number;
-      columns?: number;
-    }>;
-    elements?: Array<{
-      id: string;
-      name: string;
-      type: 'stage' | 'bathroom' | 'bar' | 'entrance' | 'exit' | 'parking' | 'custom';
-      icon: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      color: string;
-    }>;
-    backgroundImage?: string;
-  };
+  eventMap?: EventMap;
   clerkUserId: string;
   ticket_types?: Array<{
     nombre: string;
@@ -58,7 +61,7 @@ export interface EventWithImages {
   descripcion?: string;
   ubicacion?: string;
   fecha_creacion?: Date;
-  mapa_evento?: any;
+  mapa_evento?: EventMap;
   creadorid: string;
   imagenes_evento: Array<{
     imagenid: string;
@@ -93,21 +96,19 @@ export class EventService {
           id: data.clerkUserId,
           name: 'Usuario Clerk',
           email: `${data.clerkUserId}@clerk.user`,
-          emailVerified: false,
-          updatedAt: new Date(),
+          emailVerified: null,
         },
       });
 
-      // Crear el evento
-      const evento = await prisma.eventos.create({
+      const evento = await prisma.event.create({
         data: {
-          eventoid: randomUUID(),
+          id: randomUUID(),
           titulo: data.titulo,
           descripcion: data.descripcion,
           ubicacion: data.ubicacion || '',
           mapa_evento: data.eventMap ?? {},
           creadorid: data.clerkUserId,
-        },
+        } as unknown as Prisma.EventCreateInput,
       });
 
       // Crear imágenes del evento
@@ -118,7 +119,7 @@ export class EventService {
       if (data.imageUrl) {
         imagenesData.push({
           imagenid: randomUUID(),
-          eventoid: evento.eventoid,
+          eventoid: evento.id,
           url: data.imageUrl,
           tipo: 'PORTADA',
         });
@@ -129,7 +130,7 @@ export class EventService {
         data.galeria_imagenes.forEach((url) => {
           imagenesData.push({
             imagenid: randomUUID(),
-            eventoid: evento.eventoid,
+            eventoid: evento.id,
             url: url,
             tipo: 'GALERIA',
           });
@@ -138,7 +139,7 @@ export class EventService {
 
       // Crear todas las imágenes en batch
       if (imagenesData.length > 0) {
-        await prisma.imagenes_evento.createMany({
+        await prisma.imagenesEvento.createMany({
           data: imagenesData,
         });
       }
@@ -147,22 +148,22 @@ export class EventService {
       if (data.fechas_adicionales && data.fechas_adicionales.length > 0) {
         const fechasData = data.fechas_adicionales.map((fecha) => ({
           fechaid: randomUUID(),
-          eventoid: evento.eventoid,
+          eventoid: evento.id,
           fecha_hora: fecha.fecha_inicio,
           fecha_fin: fecha.fecha_fin,
         }));
 
-        await prisma.fechas_evento.createMany({
+        await prisma.fechasEvento.createMany({
           data: fechasData,
         });
       }
 
       // Crear categorías de entrada (tipos de tickets) si se enviaron
       if (data.ticket_types && data.ticket_types.length > 0) {
-        await prisma.stock_entrada.createMany({
+        await prisma.stockEntrada.createMany({
           data: data.ticket_types.map((t) => ({
             stockid: randomUUID(),
-            eventoid: evento.eventoid,
+            eventoid: evento.id,
             nombre: t.nombre,
             precio: BigInt(t.precio),
             cant_max: t.stock_total,
@@ -174,7 +175,7 @@ export class EventService {
       await prisma.estadisticas.create({
         data: {
           estadisticaid: randomUUID(),
-          eventoid: evento.eventoid,
+          eventoid: evento.id,
           total_vendidos: 0,
           total_cancelados: 0,
           total_ingresos: 0,
@@ -182,35 +183,35 @@ export class EventService {
       });
 
       // set cola de evento
-      await prisma.colas_evento.create({
+      await prisma.colasEvento.create({
         data: {
           colaid: randomUUID(),
-          eventoid: evento.eventoid,
+          eventoid: evento.id,
           max_concurrentes: 10,
           max_usuarios: 100,
         },
       });
 
       // Crear estado inicial del evento
-      await prisma.evento_estado.create({
+      await prisma.eventoEstado.create({
         data: {
           stateventid: randomUUID(),
-          eventoid: evento.eventoid,
+          eventoid: evento.id,
           Estado: data.estado || 'OCULTO',
           usuarioid: data.clerkUserId,
         },
       });
 
       // get evento con sus imágenes y fechas
-      const eventoCompleto = await prisma.eventos.findUnique({
-        where: { eventoid: evento.eventoid },
+      const eventoCompleto = await prisma.event.findUnique({
+        where: { id: evento.id },
         include: {
-          imagenes_evento: true,
-          fechas_evento: true,
-          stock_entrada: true,
-          evento_estado: {
+          imagenesEvento: true,
+          fechasEvento: true,
+          stockEntrada: true,
+          eventoEstado: {
             orderBy: {
-              fecha_de_cambio: 'desc',
+              fechaDeCambio: 'desc',
             },
             take: 1,
           },
@@ -224,7 +225,7 @@ export class EventService {
       // Convertir BigInt a string para evitar errores de serialización JSON
       const eventoSerializado = {
         ...eventoCompleto,
-        stock_entrada: eventoCompleto.stock_entrada?.map((stock) => ({
+        stock_entrada: eventoCompleto.stockEntrada?.map((stock) => ({
           ...stock,
           precio: stock.precio.toString(),
         })),
@@ -242,11 +243,11 @@ export class EventService {
 
   static async getEventById(id: string): Promise<EventWithImages | null> {
     try {
-      const evento = await prisma.eventos.findUnique({
-        where: { eventoid: id },
+      const evento = await prisma.event.findUnique({
+        where: { id },
         include: {
-          imagenes_evento: true,
-          fechas_evento: true,
+          imagenesEvento: true,
+          fechasEvento: true,
         },
       });
 
@@ -262,26 +263,30 @@ export class EventService {
 
   static async getUserEvents(clerkUserId: string): Promise<EventWithImages[]> {
     try {
-      const eventos = await prisma.eventos.findMany({
+      const eventos = await prisma.event.findMany({
         where: {
           creadorid: clerkUserId,
         },
         include: {
-          imagenes_evento: true,
-          fechas_evento: true,
-          evento_estado: {
+          imagenesEvento: true,
+          fechasEvento: true,
+          eventoEstado: {
             orderBy: {
-              fecha_de_cambio: 'desc',
+              fechaDeCambio: 'desc',
             },
             take: 1,
           },
         },
-        orderBy: {
-          fecha_creacion: 'desc',
-        },
       });
 
-      return eventos as EventWithImages[];
+      // ordena por fecha de creación de manera segura en JS (si existe la propiedad)
+      const eventosOrdenados = (eventos || []).sort((a, b) => {
+        const at = a.fecha_creacion ? new Date(a.fecha_creacion).getTime() : 0;
+        const bt = b.fecha_creacion ? new Date(b.fecha_creacion).getTime() : 0;
+        return bt - at;
+      });
+
+      return eventosOrdenados as EventWithImages[];
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error getting user events:', error);

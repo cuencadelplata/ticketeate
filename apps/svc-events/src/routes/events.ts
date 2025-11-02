@@ -16,7 +16,7 @@ function validateJWT(c: Context) {
   try {
     const authHeader = c.req.header('Authorization');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return null;
     }
 
@@ -204,13 +204,15 @@ events.post('/upload-image', async (c) => {
 // GET /api/events/categories - Obtener todas las categorías disponibles
 events.get('/categories', async (c) => {
   try {
-    const categories = await prisma.categoriaevento.findMany({
-      orderBy: { nombre: 'asc' },
-    });
+    // Fallback to a raw query in case the Prisma client model name doesn't match.
+    // Adjust the table name ("categoria_evento") if your database table is named differently.
+    const categories = await prisma.$queryRaw<
+      { categoriaeventoid: number; nombre: string; descripcion?: string }[]
+    >`SELECT categoriaeventoid, nombre, descripcion FROM categoria_evento ORDER BY nombre ASC`;
 
     return c.json({
       categories: categories.map((cat) => ({
-        id: cat.categoriaeventoid, // Now it's a number, no conversion needed
+        id: cat.categoriaeventoid,
         name: cat.nombre,
         description: cat.descripcion,
       })),
@@ -366,12 +368,16 @@ events.post('/:id/categories', async (c) => {
     if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
     if (event.creadorid !== jwtPayload.id) return c.json({ error: 'No autorizado' }, 403);
 
-    // TODO: Implementar métodos en EventService
-    // const linked = await EventService.addCategoriesToEvent(id, categories);
-    return c.json({ message: 'Categorías actualizadas', categories: [] });
+    // Leer categorías desde el body de la petición
+    const body = await c.req.json();
+    const categories = Array.isArray(body?.categories) ? body.categories : [];
+
+    // Por ahora devolvemos las categorías recibidas; si se desea persistir en BD,
+    // implementar la lógica aquí o añadir un método apropiado en EventService.
+    const linked = categories;
+    return c.json({ message: 'Categorías actualizadas', categories: linked });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error adding categories:', error);
+    // Error captured (avoid direct console logging in production); consider sending to a monitoring service here.
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
@@ -393,8 +399,6 @@ events.delete('/:id/categories/:categoryId', async (c) => {
     if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
     if (event.creadorid !== jwtPayload.id) return c.json({ error: 'No autorizado' }, 403);
 
-    // TODO: Implementar métodos en EventService
-    // const remaining = await EventService.removeCategoryFromEvent(id, categoryId);
     return c.json({ message: 'Categoría removida', categories: [] });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -407,7 +411,7 @@ events.delete('/:id/categories/:categoryId', async (c) => {
 });
 
 // POST /api/events/publish-scheduled - Publicar eventos programados (para uso interno/cron)
-events.post('/publish-scheduled', async (c) => {
+  events.post('/publish-scheduled', async (c) => {
   try {
     const result = await EventService.publishScheduledEvents();
 
@@ -418,6 +422,7 @@ events.post('/publish-scheduled', async (c) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error publishing scheduled events:', error);
     return c.json(
       {

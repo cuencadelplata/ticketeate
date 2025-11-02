@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import app from '../app.js';
 import jwt from 'jsonwebtoken';
 
@@ -73,7 +74,7 @@ describe('App', () => {
     });
 
     it('should reject request with invalid JWT token', async () => {
-      (jwt.verify as any).mockImplementation(() => {
+      (jwt.verify as Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -96,7 +97,7 @@ describe('App', () => {
         role: 'user',
       };
 
-      (jwt.verify as any).mockReturnValue(mockPayload);
+      (jwt.verify as Mock).mockReturnValue(mockPayload);
 
       const res = await app.request('/api/users/1', {
         headers: {

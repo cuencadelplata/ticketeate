@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     const stats = await redisClient.getQueueStats(eventId);
 
     // Configurar headers para Server-Sent Events
-    // eslint-disable-next-line no-undef
     const headers = new Headers({
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -23,12 +22,10 @@ export async function GET(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Cache-Control',
     });
 
-    // eslint-disable-next-line no-undef
     const stream = new ReadableStream({
       start(controller) {
         // Enviar datos iniciales
         const initialData = `data: ${JSON.stringify(stats)}\n\n`;
-        // eslint-disable-next-line no-undef
         controller.enqueue(new TextEncoder().encode(initialData));
 
         // Configurar intervalo para enviar updates
@@ -36,7 +33,6 @@ export async function GET(request: NextRequest) {
           try {
             const updatedStats = await redisClient.getQueueStats(eventId);
             const data = `data: ${JSON.stringify(updatedStats)}\n\n`;
-            // eslint-disable-next-line no-undef
             controller.enqueue(new TextEncoder().encode(data));
           } catch (error) {
             console.error('Error sending queue update:', error);
@@ -59,3 +55,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
+ 

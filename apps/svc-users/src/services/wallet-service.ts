@@ -132,8 +132,7 @@ export class WalletService {
       });
 
       return true;
-    } catch (error) {
-      // Log error without console statement to avoid linting warnings
+    } catch {
       // In production, this should use a proper logging service
       return false;
     }

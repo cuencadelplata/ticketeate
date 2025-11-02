@@ -56,7 +56,7 @@ events.post('/', async (c) => {
       estado: body.estado || 'OCULTO',
       imageUrl: body.imageUrl, // URL de imagen de portada ya subida a Cloudinary
       galeria_imagenes: body.galeria_imagenes, // Array de URLs de galería
-      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
+      fechas_adicionales: body.fechas_adicionales?.map((fecha: { fecha_inicio: string | number | Date; fecha_fin: string | number | Date }) => ({
         fecha_inicio: new Date(fecha.fecha_inicio),
         fecha_fin: new Date(fecha.fecha_fin),
       })),
