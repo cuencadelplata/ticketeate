@@ -5,6 +5,23 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.0.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.1...next-frontend-v1.0.2) (2025-11-02)
+
+
+### Bug Fixes
+
+* add semantic-release dependencies to svc-users to sync lockfile ([7d4a250](https://github.com/cuencadelplata/ticketeate/commit/7d4a2503516333aac0b09722476df01b03fd9172))
+* auth - middleware - otp email ([1da6520](https://github.com/cuencadelplata/ticketeate/commit/1da6520e18a4311ca50f3748ffc3a1bca59360d6))
+* auth - middleware - otp email ([#93](https://github.com/cuencadelplata/ticketeate/issues/93)) ([91e52f2](https://github.com/cuencadelplata/ticketeate/commit/91e52f2d721ec1eeb0748279486bd06782531bd7))
+* **next-frontend:** auth - middleware - otp email ([#94](https://github.com/cuencadelplata/ticketeate/issues/94)) ([e6f6ea7](https://github.com/cuencadelplata/ticketeate/commit/e6f6ea72b378ff0c54a5bf24e012951846f6a7ad))
+* **next-frontend:** auth - middleware - otp email ([f360028](https://github.com/cuencadelplata/ticketeate/commit/f3600289958a49d08767ceb6c4a716f6b29b85c9))
+* **next-frontend:** auth - middleware - otp email ([925534a](https://github.com/cuencadelplata/ticketeate/commit/925534ae8a1e0250d778d00abf70fbc8b0a808aa))
+* cooldown resend email ([b61fa56](https://github.com/cuencadelplata/ticketeate/commit/b61fa5640c821efc9385ac0bc8a7a336b0c95e08))
+* format ([68b8006](https://github.com/cuencadelplata/ticketeate/commit/68b800688e9d54aa7f50b1c679f792571a502fe9))
+* reset password ([0c0a262](https://github.com/cuencadelplata/ticketeate/commit/0c0a262907ed803560e917ded3a68196a21e5a57))
+* tsconfig - import google fonts ([0572c6f](https://github.com/cuencadelplata/ticketeate/commit/0572c6f681bf28bc558c451ccea3edda1723a5dd))
+* unused vars ([4d1f2c9](https://github.com/cuencadelplata/ticketeate/commit/4d1f2c9f3aa61d6950e06c2d0e3b4c6755283314))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.0...next-frontend-v1.0.1) (2025-10-29)
 
 

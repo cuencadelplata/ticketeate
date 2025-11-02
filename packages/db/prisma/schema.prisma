@@ -99,19 +99,114 @@ model User {
 model UserHistory {
   id        String    @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  email     String
-  name      String?
-  version   Int
-  changedAt DateTime  @default(now())
-  changedBy String    // ID del usuario que realizó el cambio
-  changeType ChangeType
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum ChangeType {
-  CREATED
-  UPDATED
-  DELETED
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+
+  @@unique([identifier, value])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user {
+  id                   String                 @id
+  name                 String
+  email                String                 @unique
+  emailVerified        Boolean
+  image                String?
+  role                 Role                   @default(USUARIO)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  // Wallet fields for Mercado Pago OAuth
+  wallet_linked        Boolean                @default(false)
+  wallet_provider      String?
+  mercado_pago_user_id String?
+  mercado_pago_access_token String?
+  mercado_pago_refresh_token String?
+  mercado_pago_token_expires_at DateTime?
+  account              account[]
+  cola_turnos          cola_turnos[]
+  evento_estado        evento_estado[]
+  evento_modificaciones evento_modificaciones[]
+  eventos              eventos[]
+  historial_compras    historial_compras[]
+  logs_eventos         logs_eventos[]
+  movimientos_entradas movimientos_entradas[]
+  reservas             reservas[]
+  sesiones             sesiones[]
+  session              session[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model jwks {
+  id         String   @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+}
+
+model historial_compras {
+  id              String   @id @db.VarChar(255)
+  usuarioid       String   @db.VarChar(255)
+  reservaid       String   @db.VarChar(255)
+  eventoid        String   @db.VarChar(255)
+  cantidad        Int
+  monto_total     Decimal  @db.Decimal(10, 2)
+  moneda          String   @db.VarChar(3)
+  estado_compra   String   @db.VarChar(20)
+  fecha_compra    DateTime @default(now()) @db.Timestamptz(6)
+  fecha_evento    DateTime @db.Timestamptz(6)
+  comprobante_url String?  @db.VarChar(500)
+  eventos         eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  reservas        reservas @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+  user            user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+
+  @@index([eventoid, fecha_compra])
+  @@index([usuarioid, fecha_compra])
+}
+
+model monedas {
+  codigo                                            String         @id @db.VarChar(3)
+  nombre                                            String         @db.VarChar(50)
+  simbolo                                           String         @db.VarChar(5)
+  activa                                            Boolean        @default(true)
+  fecha_creacion                                    DateTime       @default(now()) @db.Timestamptz(6)
+  tasas_cambio_tasas_cambio_moneda_destinoTomonedas tasas_cambio[] @relation("tasas_cambio_moneda_destinoTomonedas")
+  tasas_cambio_tasas_cambio_moneda_origenTomonedas  tasas_cambio[] @relation("tasas_cambio_moneda_origenTomonedas")
+}
+
+model tasas_cambio {
+  id                                           String   @id @db.VarChar(255)
+  moneda_origen                                String   @db.VarChar(3)
+  moneda_destino                               String   @db.VarChar(3)
+  tasa                                         Decimal  @db.Decimal(12, 6)
+  fecha_actualizacion                          DateTime @default(now()) @db.Timestamptz(6)
+  activa                                       Boolean  @default(true)
+  monedas_tasas_cambio_moneda_destinoTomonedas monedas  @relation("tasas_cambio_moneda_destinoTomonedas", fields: [moneda_destino], references: [codigo], onDelete: Cascade)
+  monedas_tasas_cambio_moneda_origenTomonedas  monedas  @relation("tasas_cambio_moneda_origenTomonedas", fields: [moneda_origen], references: [codigo], onDelete: Cascade)
+
+  @@unique([moneda_origen, moneda_destino])
+  @@index([moneda_origen, moneda_destino, fecha_actualizacion])
+}
+
+enum EstadoEntrada {
+  VALIDA
+  USADA
+  CANCELADA
+}
+
+enum EstadoPago {
+  PENDIENTE
+  COMPLETADO
+  CANCELADO
+  REEMBOLSADO
 }
 
 enum TicketStatus {

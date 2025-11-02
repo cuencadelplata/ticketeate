@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { useAllEvents, usePublicEvent } from '@/hooks/use-events';
+import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Event } from '@/types/events';

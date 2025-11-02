@@ -105,7 +105,13 @@ module.exports = [
         Response: "readonly",
         FormData: "readonly",
         alert: "readonly",
-        user: "readonly"
+        user: "readonly",
+        Buffer: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        RequestInit: "readonly",
+        HeadersInit: "readonly",
+        Headers: "readonly"
       }
     },
     plugins: {

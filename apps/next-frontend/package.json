@@ -1,6 +1,6 @@
 {
   "name": "ticketeate",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "repository": {
     "type": "git",
@@ -79,12 +79,13 @@
     "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",
     "input-otp": "1.4.1",
+    "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.454.0",
     "motion": "^12.23.12",
-    "next": "^15.5.1",
+    "next": "^16.0.1",
     "next-themes": "^0.4.4",
     "pg": "^8.16.3",
     "postprocessing": "^6.37.8",
@@ -110,7 +111,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@next/mdx": "^15.5.1",
+    "@next/mdx": "^16.0.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
@@ -134,7 +135,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^9.33.0",
-    "eslint-config-next": "^15.5.1",
+    "eslint-config-next": "^16.0.1",
     "eslint-plugin-react": "^7.37.5",
     "jest": "^30.1.1",
     "jest-environment-jsdom": "^30.1.1",
