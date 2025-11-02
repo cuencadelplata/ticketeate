@@ -66,7 +66,10 @@ function Navbar() {
           </Link>
 
           {/* Barra de búsqueda expandida */}
-          <form onSubmit={handleSearch} className="hidden lg:flex items-center flex-1 max-w-md mr-6">
+          <form
+            onSubmit={handleSearch}
+            className="hidden lg:flex items-center flex-1 max-w-md mr-6"
+          >
             <div className="relative w-full">
               <input
                 type="search"

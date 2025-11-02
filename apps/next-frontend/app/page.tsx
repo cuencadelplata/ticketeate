@@ -144,9 +144,7 @@ export default function Home() {
 
       switch (filter.id) {
         case 'online':
-          filtered = filtered.filter((event) =>
-            event.category2?.toLowerCase().includes('online'),
-          );
+          filtered = filtered.filter((event) => event.category2?.toLowerCase().includes('online'));
           break;
         case 'today':
           filtered = filtered.filter((event) => {
@@ -164,9 +162,7 @@ export default function Home() {
           filtered = filtered.filter((event) => event.isFree);
           break;
         case 'music':
-          filtered = filtered.filter((event) =>
-            event.category?.toLowerCase().includes('música'),
-          );
+          filtered = filtered.filter((event) => event.category?.toLowerCase().includes('música'));
           break;
       }
     });
@@ -182,9 +178,9 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <Hero />
-      
+
       <CategorySelector />
-      
+
       {/* Barra de filtros sticky */}
       <EventFiltersBar onFilterChange={setActiveFilters} />
 
