@@ -63,8 +63,8 @@ export class CouponService {
         }
 
         // Verificar si el cupón está activo y válido
-        if (coupon.estado !== 'ACTIVO') {
-          throw new Error(\`Cupón no válido: \${coupon.estado}`);
+          if (coupon.estado !== 'ACTIVO') {
+            throw new Error('Cupón no válido: ' + coupon.estado);
         }
 
         if (coupon.fecha_expiracion < new Date()) {

@@ -1,5 +1,11 @@
 import { api } from '@/lib/api';
-import { Coupon, CreateCouponData, RedeemCouponData, RedemptionResult, CouponStats } from '@/types/coupons';
+import {
+  Coupon,
+  CreateCouponData,
+  RedeemCouponData,
+  RedemptionResult,
+  CouponStats,
+} from '@/types/coupons';
 
 export class CouponService {
   static async getEventCoupons(eventId: string): Promise<Coupon[]> {
@@ -7,7 +13,10 @@ export class CouponService {
     return response.data;
   }
 
-  static async createCoupon(eventId: string, data: Omit<CreateCouponData, 'eventoid'>): Promise<Coupon> {
+  static async createCoupon(
+    eventId: string,
+    data: Omit<CreateCouponData, 'eventoid'>,
+  ): Promise<Coupon> {
     const response = await api.post<Coupon>(`/eventos/${eventId}/cupones`, data);
     return response.data;
   }

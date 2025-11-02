@@ -14,7 +14,12 @@ export class CloudWatchMetrics {
     this.namespace = config.namespace;
   }
 
-  async putMetricData(metricName: string, value: number, unit: string, dimensions?: Record<string, string>) {
+  async putMetricData(
+    metricName: string,
+    value: number,
+    unit: string,
+    dimensions?: Record<string, string>,
+  ) {
     const command = new PutMetricDataCommand({
       Namespace: this.namespace,
       MetricData: [
@@ -22,7 +27,7 @@ export class CloudWatchMetrics {
           MetricName: metricName,
           Value: value,
           Unit: unit,
-          Dimensions: dimensions 
+          Dimensions: dimensions
             ? Object.entries(dimensions).map(([Name, Value]) => ({ Name, Value }))
             : undefined,
           Timestamp: new Date(),

@@ -8,9 +8,9 @@ const systemMetrics = new SystemMetrics();
 export const telemetryMiddleware = () => {
   return (req: Request, res: Response, next: NextFunction) => {
     const tracer = trace.getTracer('express-tracer');
-    
+
     const span = tracer.startSpan(`${req.method} ${req.path}`);
-    
+
     span.setAttributes({
       'http.method': req.method,
       'http.url': req.url,
@@ -34,7 +34,7 @@ export const telemetryMiddleware = () => {
         'system.cpu.user': endCpu.user,
         'system.cpu.system': endCpu.system,
       });
-      
+
       span.end();
     });
 

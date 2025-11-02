@@ -6,10 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const { userId } = auth();
     if (!userId) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const data = await req.json();
@@ -19,18 +16,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error al redimir cupón:', error);
-    return NextResponse.json(
-      { error: 'Error al redimir el cupón' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al redimir el cupón' }, { status: 500 });
   }
 }

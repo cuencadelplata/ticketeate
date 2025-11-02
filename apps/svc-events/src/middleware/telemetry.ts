@@ -15,23 +15,23 @@ const cloudWatch = new CloudWatchMetrics({
 // Middleware para monitorear colas y usuarios activos
 export const telemetryMiddleware = async (c, next) => {
   const start = Date.now();
-  
+
   try {
     await next();
   } finally {
     const duration = Date.now() - start;
-    
+
     // Registrar tiempo de respuesta
     telemetry.recordProcessingTime(duration);
     await cloudWatch.recordProcessingTime(duration);
-    
+
     // Si la ruta es para verificar la cola
     if (c.req.path.includes('/queue/status')) {
       const queueLength = c.res.body?.queueLength || 0;
       telemetry.recordQueueLength(queueLength);
       await cloudWatch.recordQueueLength(queueLength);
     }
-    
+
     // Monitorear usuarios activos
     if (c.req.path.includes('/events') && c.res.status === 200) {
       const activeUsers = await getActiveUsers(); // Implementar esta función según tu lógica

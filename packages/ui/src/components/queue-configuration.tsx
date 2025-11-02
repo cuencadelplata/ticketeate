@@ -8,7 +8,11 @@ interface QueueConfigProps {
   isDisabled?: boolean;
 }
 
-export function QueueConfigurationPanel({ settings, onChange, isDisabled = false }: QueueConfigProps) {
+export function QueueConfigurationPanel({
+  settings,
+  onChange,
+  isDisabled = false,
+}: QueueConfigProps) {
   const handleChange = (field: keyof QueueSettings, value: any) => {
     onChange({
       ...settings,

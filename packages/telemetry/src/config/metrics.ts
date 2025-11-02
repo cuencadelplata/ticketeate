@@ -1,7 +1,10 @@
 import { metrics, MeterProvider } from '@opentelemetry/api';
 import { Resource } from '@opentelemetry/resources';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { PeriodicExportingMetricReader, MeterProvider as SDKMeterProvider } from '@opentelemetry/sdk-metrics';
+import {
+  PeriodicExportingMetricReader,
+  MeterProvider as SDKMeterProvider,
+} from '@opentelemetry/sdk-metrics';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 export function initMetrics(serviceName: string) {
@@ -16,10 +19,12 @@ export function initMetrics(serviceName: string) {
     }),
   });
 
-  meterProvider.addMetricReader(new PeriodicExportingMetricReader({
-    exporter: metricExporter,
-    exportIntervalMillis: 1000,
-  }));
+  meterProvider.addMetricReader(
+    new PeriodicExportingMetricReader({
+      exporter: metricExporter,
+      exportIntervalMillis: 1000,
+    }),
+  );
 
   metrics.setGlobalMeterProvider(meterProvider);
 

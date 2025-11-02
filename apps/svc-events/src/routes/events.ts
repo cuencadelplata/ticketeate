@@ -411,7 +411,7 @@ events.delete('/:id/categories/:categoryId', async (c) => {
 });
 
 // POST /api/events/publish-scheduled - Publicar eventos programados (para uso interno/cron)
-  events.post('/publish-scheduled', async (c) => {
+events.post('/publish-scheduled', async (c) => {
   try {
     const result = await EventService.publishScheduledEvents();
 

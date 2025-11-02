@@ -37,7 +37,7 @@ export function CategoryConfigurationPanel({
       };
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleDeleteCategory = React.useCallback(
@@ -45,7 +45,7 @@ export function CategoryConfigurationPanel({
       const updatedCategories = categories.filter((_, i) => i !== index);
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleAddBenefit = React.useCallback(
@@ -57,7 +57,7 @@ export function CategoryConfigurationPanel({
       };
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleUpdateBenefit = React.useCallback(
@@ -66,18 +66,18 @@ export function CategoryConfigurationPanel({
       updatedCategories[categoryIndex].benefits[benefitIndex] = value;
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleDeleteBenefit = React.useCallback(
     (categoryIndex: number, benefitIndex: number) => {
       const updatedCategories = [...categories];
       updatedCategories[categoryIndex].benefits = updatedCategories[categoryIndex].benefits.filter(
-        (_, i) => i !== benefitIndex
+        (_, i) => i !== benefitIndex,
       );
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   return (

@@ -184,9 +184,7 @@ export function CategoryConfigurationPanel({
                     <input
                       type="text"
                       value={benefit}
-                      onChange={(e) =>
-                        handleUpdateBenefit(index, benefitIndex, e.target.value)
-                      }
+                      onChange={(e) => handleUpdateBenefit(index, benefitIndex, e.target.value)}
                       placeholder="Describe el beneficio..."
                       disabled={isDisabled}
                       className="flex-1 rounded-lg border border-stone-600 bg-stone-700 px-3 py-1.5 text-sm text-white"

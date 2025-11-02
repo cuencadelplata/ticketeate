@@ -15,16 +15,16 @@ const cloudWatch = new CloudWatchMetrics({
 // Middleware para monitorear tiempos de respuesta
 export const telemetryMiddleware = async (c, next) => {
   const start = Date.now();
-  
+
   try {
     await next();
   } finally {
     const duration = Date.now() - start;
-    
+
     // Registrar tiempo de respuesta
     telemetry.recordProcessingTime(duration);
     await cloudWatch.recordProcessingTime(duration);
-    
+
     // Si es una compra exitosa
     if (c.req.path.includes('/purchase') && c.res.status === 200) {
       const amount = c.req.body?.amount || 0;

@@ -8,10 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: { eventId: str
     return NextResponse.json(cupones);
   } catch (error) {
     console.error('Error al obtener cupones:', error);
-    return NextResponse.json(
-      { error: 'Error al obtener cupones del evento' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al obtener cupones del evento' }, { status: 500 });
   }
 }
 
@@ -23,9 +20,6 @@ export async function POST(req: NextRequest, { params }: { params: { eventId: st
     return NextResponse.json(cupon, { status: 201 });
   } catch (error) {
     console.error('Error al crear cupón:', error);
-    return NextResponse.json(
-      { error: 'Error al crear el cupón' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al crear el cupón' }, { status: 500 });
   }
 }

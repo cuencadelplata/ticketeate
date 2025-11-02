@@ -1,5 +1,4 @@
-npm install aws-cdk-lib aws-cdk
-npm install -D @types/aws-cdk
+import * as cdk from 'aws-cdk-lib';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 
 export class TicketeateDashboard extends cdk.Stack {

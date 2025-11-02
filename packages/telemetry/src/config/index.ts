@@ -20,7 +20,7 @@ export const initTelemetry = () => {
     metricExporter: new OTLPMetricExporter({
       url: process.env.OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     }),
-    instrumentations: [getNodeAutoInstrumentations()]
+    instrumentations: [getNodeAutoInstrumentations()],
   });
 
   return sdk;

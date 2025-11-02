@@ -38,7 +38,7 @@ export function CategoryConfigurationPanel({
       };
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleDeleteCategory = React.useCallback(
@@ -46,7 +46,7 @@ export function CategoryConfigurationPanel({
       const updatedCategories = categories.filter((_, i) => i !== index);
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleAddBenefit = React.useCallback(
@@ -58,7 +58,7 @@ export function CategoryConfigurationPanel({
       };
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleUpdateBenefit = React.useCallback(
@@ -67,18 +67,18 @@ export function CategoryConfigurationPanel({
       updatedCategories[categoryIndex].benefits[benefitIndex] = value;
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   const handleDeleteBenefit = React.useCallback(
     (categoryIndex: number, benefitIndex: number) => {
       const updatedCategories = [...categories];
       updatedCategories[categoryIndex].benefits = updatedCategories[categoryIndex].benefits.filter(
-        (_, i) => i !== benefitIndex
+        (_, i) => i !== benefitIndex,
       );
       onChange(updatedCategories);
     },
-    [categories, onChange]
+    [categories, onChange],
   );
 
   return (
@@ -91,12 +91,7 @@ export function CategoryConfigurationPanel({
           className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:opacity-50"
           aria-label="Agregar nueva categoría"
         >
-          <img
-            src="/icons/ticket.svg"
-            alt=""
-            className="h-4 w-4"
-            aria-hidden="true"
-          />
+          <img src="/icons/ticket.svg" alt="" className="h-4 w-4" aria-hidden="true" />
           <span>Agregar Categoría</span>
         </button>
       </div>
@@ -149,12 +144,7 @@ export function CategoryConfigurationPanel({
                 className="rounded-full p-2 text-stone-400 hover:bg-stone-700 hover:text-white"
                 aria-label={`Eliminar categoría ${category.name || 'sin nombre'}`}
               >
-                <img
-                  src="/icons/trash.svg"
-                  alt=""
-                  className="h-4 w-4"
-                  aria-hidden="true"
-                />
+                <img src="/icons/trash.svg" alt="" className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
 
@@ -220,12 +210,7 @@ export function CategoryConfigurationPanel({
                   className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-400 hover:bg-stone-700 hover:text-white"
                   aria-label="Agregar nuevo beneficio"
                 >
-                  <img
-                    src="/icons/edit.svg"
-                    alt=""
-                    className="h-3 w-3"
-                    aria-hidden="true"
-                  />
+                  <img src="/icons/edit.svg" alt="" className="h-3 w-3" aria-hidden="true" />
                   <span>Agregar beneficio</span>
                 </button>
               </div>
@@ -251,12 +236,7 @@ export function CategoryConfigurationPanel({
                       className="rounded-full p-1 text-stone-400 hover:bg-stone-700 hover:text-white"
                       aria-label={`Eliminar beneficio ${benefitIndex + 1}`}
                     >
-                      <img
-                        src="/icons/trash.svg"
-                        alt=""
-                        className="h-3 w-3"
-                        aria-hidden="true"
-                      />
+                      <img src="/icons/trash.svg" alt="" className="h-3 w-3" aria-hidden="true" />
                     </button>
                   </li>
                 ))}

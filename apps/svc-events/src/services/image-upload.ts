@@ -48,16 +48,13 @@ export class ImageUploadService {
 
   static async deleteImage(publicId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(
-        publicId,
-        (error) => {
-          if (error) {
-            reject(new Error(`Error deleting from Cloudinary: ${error.message}`));
-            return;
-          }
-          resolve();
-        },
-      );
+      cloudinary.uploader.destroy(publicId, (error) => {
+        if (error) {
+          reject(new Error(`Error deleting from Cloudinary: ${error.message}`));
+          return;
+        }
+        resolve();
+      });
     });
   }
 }
