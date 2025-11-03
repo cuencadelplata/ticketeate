@@ -1,0 +1,209 @@
+version: '3.8'
+
+# Red compartida para todos los servicios
+networks:
+  ticketeate:
+    driver: bridge
+
+# Volúmenes para persistencia
+volumes:
+  redis-data:
+    driver: local
+  nginx-cache:
+    driver: local
+
+services:
+  # ============================================
+  # NGINX - API Gateway & Load Balancer
+  # ============================================
+  nginx:
+    build:
+      context: ./apps/nginx
+      dockerfile: Dockerfile
+    container_name: ticketeate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - ticketeate
+    depends_on:
+      - next-frontend-1
+      - next-frontend-2
+      - svc-users
+      - svc-events
+      - svc-producers
+      - svc-checkout
+    restart: unless-stopped
+    volumes:
+      - nginx-cache:/var/cache/nginx
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # FRONTEND - Next.js (2 réplicas)
+  # ============================================
+  next-frontend-1:
+    build:
+      context: .
+      dockerfile: apps/next-frontend/Dockerfile
+    container_name: ticketeate-next-1
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - API_BASE_URL=http://nginx
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  next-frontend-2:
+    build:
+      context: .
+      dockerfile: apps/next-frontend/Dockerfile
+    container_name: ticketeate-next-2
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - API_BASE_URL=http://nginx
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # BACKEND SERVICES - Hono APIs
+  # ============================================
+  svc-users:
+    build:
+      context: .
+      dockerfile: apps/svc-users/Dockerfile
+    container_name: ticketeate-svc-users
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  svc-events:
+    build:
+      context: .
+      dockerfile: apps/svc-events/Dockerfile
+    container_name: ticketeate-svc-events
+    environment:
+      - NODE_ENV=production
+      - PORT=4002
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  svc-producers:
+    build:
+      context: .
+      dockerfile: apps/svc-producers/Dockerfile
+    container_name: ticketeate-svc-producers
+    environment:
+      - NODE_ENV=production
+      - PORT=4003
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  svc-checkout:
+    build:
+      context: .
+      dockerfile: apps/svc-checkout/Dockerfile
+    container_name: ticketeate-svc-checkout
+    environment:
+      - NODE_ENV=production
+      - PORT=4004
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
+    networks:
+      - ticketeate
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # REDIS - Cache & Session Store
+  # ============================================
+  redis:
+    build:
+      context: .
+      dockerfile: apps/redis-service/Dockerfile
+    container_name: ticketeate-redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - ticketeate
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

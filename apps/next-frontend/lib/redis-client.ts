@@ -1,3 +1,4 @@
+import Redis from 'ioredis';
 import { REDIS_CONFIG } from './config';
 
 export interface QueuePosition {
@@ -23,62 +24,10 @@ export interface ReservationData {
 }
 
 class RedisClient {
-  private url: string;
-  private token: string;
+  private client: Redis;
 
-  constructor(url: string, token: string) {
-    this.url = url;
-    this.token = token;
-  }
-
-  private async executeScript(script: string, keys: string[], args: string[]): Promise<any> {
-    try {
-      const response = await fetch(`${this.url}/eval`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          script,
-          keys,
-          args,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Redis script execution failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.result;
-    } catch (error) {
-      console.error('Redis script execution error:', error);
-      throw error;
-    }
-  }
-
-  private async executeCommand(command: string, args: string[] = []): Promise<any> {
-    try {
-      const response = await fetch(`${this.url}/${command}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(args),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Redis command failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.result;
-    } catch (error) {
-      console.error('Redis command error:', error);
-      throw error;
-    }
+  constructor(url: string) {
+    this.client = new Redis(url);
   }
 
   // Script Lua para unirse a la cola
@@ -97,24 +46,41 @@ class RedisClient {
       local eventId = ARGV[1]
       local userId = ARGV[2]
       local maxConcurrent = tonumber(ARGV[3])
-      local timestamp = tonumber(ARGGV[4])
+      local timestamp = tonumber(ARGV[4])
       
-      local queueKey = "queue:" .. eventId
-      local activeKey = "active:" .. eventId
-      local reservationKey = "reservation:" .. eventId .. ":" .. userId
+      local queueKey = "queue:" .. eventId .. ":waiting"
+      local activeKey = "queue:" .. eventId .. ":active"
+      local reservationKey = "queue:" .. eventId .. ":reservations:" .. userId
       
-      -- Verificar si el usuario ya está en la cola o activo
-      local existingPosition = redis.call('ZRANK', queueKey, userId)
+      -- Verificar si el usuario ya está activo (con reserva válida)
       local isActive = redis.call('EXISTS', reservationKey)
       
-      if existingPosition or isActive then
-        return {false, "Usuario ya está en la cola o comprando"}
+      if isActive == 1 then
+        -- Usuario ya está comprando, retornar éxito
+        return {1, 0, 1, reservationKey}
       end
+      
+      -- Verificar si el usuario está en activeKey pero sin reserva (reserva expirada)
+      local inActiveKey = redis.call('ZRANK', activeKey, userId)
+      if inActiveKey then
+        -- Limpiar entrada inválida de activeKey
+        redis.call('ZREM', activeKey, userId)
+      end
+      
+      -- Verificar si el usuario ya está en la cola de espera
+      local existingPosition = redis.call('ZRANK', queueKey, userId)
       
       -- Verificar si hay espacio disponible
       local activeCount = redis.call('ZCARD', activeKey)
       
       if activeCount < maxConcurrent then
+        -- Hay espacio disponible, promover a activo
+        
+        -- Si ya estaba en la cola de espera, removerlo
+        if existingPosition then
+          redis.call('ZREM', queueKey, userId)
+        end
+        
         -- Crear reserva temporal (5 minutos)
         local expiresAt = timestamp + 300
         redis.call('HSET', reservationKey, 'userId', userId, 'eventId', eventId, 'timestamp', timestamp, 'expiresAt', expiresAt)
@@ -123,29 +89,44 @@ class RedisClient {
         -- Agregar a usuarios activos
         redis.call('ZADD', activeKey, timestamp, userId)
         
-        return {true, 0, true, reservationKey}
+        return {1, 0, 1, reservationKey}
       else
-        -- Agregar a la cola
-        local queueSize = redis.call('ZCARD', queueKey)
-        redis.call('ZADD', queueKey, timestamp, userId)
-        
-        return {true, queueSize + 1, false}
+        -- No hay espacio, agregar o mantener en la cola
+        if existingPosition then
+          -- Ya está en la cola, retornar posición actual
+          return {1, existingPosition + 1, 0}
+        else
+          -- Agregar a la cola
+          local queueSize = redis.call('ZCARD', queueKey)
+          redis.call('ZADD', queueKey, timestamp, userId)
+          
+          return {1, queueSize + 1, 0}
+        end
       end
     `;
 
     try {
-      const result = await this.executeScript(
+      const result = (await this.client.eval(
         script,
-        [],
-        [eventId, userId, maxConcurrent.toString(), Date.now().toString()],
-      );
+        0,
+        eventId,
+        userId,
+        maxConcurrent.toString(),
+        Date.now().toString(),
+      )) as [number, number | string, number?, string?];
+
+      if (result[0] === 0) {
+        return {
+          success: false,
+          error: result[1] as string,
+        };
+      }
 
       return {
-        success: result[0],
-        position: result[1],
-        canEnter: result[2],
+        success: true,
+        position: result[1] as number,
+        canEnter: result[2] === 1,
         reservationId: result[3],
-        error: result[1] === false ? result[1] : undefined,
       };
     } catch (error) {
       return {
@@ -161,9 +142,9 @@ class RedisClient {
       local eventId = ARGV[1]
       local userId = ARGV[2]
       
-      local queueKey = "queue:" .. eventId
-      local activeKey = "active:" .. eventId
-      local reservationKey = "reservation:" .. eventId .. ":" .. userId
+      local queueKey = "queue:" .. eventId .. ":waiting"
+      local activeKey = "queue:" .. eventId .. ":active"
+      local reservationKey = "queue:" .. eventId .. ":reservations:" .. userId
       
       -- Verificar si está activo
       local isActive = redis.call('EXISTS', reservationKey)
@@ -187,7 +168,7 @@ class RedisClient {
     `;
 
     try {
-      const result = await this.executeScript(script, [], [eventId, userId]);
+      const result = (await this.client.eval(script, 0, eventId, userId)) as number[] | null;
 
       if (!result) return null;
 
@@ -217,8 +198,8 @@ class RedisClient {
       local maxConcurrent = tonumber(ARGV[2])
       local timestamp = tonumber(ARGV[3])
       
-      local queueKey = "queue:" .. eventId
-      local activeKey = "active:" .. eventId
+      local queueKey = "queue:" .. eventId .. ":waiting"
+      local activeKey = "queue:" .. eventId .. ":active"
       
       local activeCount = redis.call('ZCARD', activeKey)
       local availableSlots = maxConcurrent - activeCount
@@ -238,7 +219,7 @@ class RedisClient {
         local userTimestamp = tonumber(queueMembers[i + 1])
         
         -- Crear reserva temporal
-        local reservationKey = "reservation:" .. eventId .. ":" .. userId
+        local reservationKey = "queue:" .. eventId .. ":reservations:" .. userId
         local expiresAt = timestamp + 300
         redis.call('HSET', reservationKey, 'userId', userId, 'eventId', eventId, 'timestamp', userTimestamp, 'expiresAt', expiresAt)
         redis.call('EXPIRE', reservationKey, 300)
@@ -257,11 +238,13 @@ class RedisClient {
     `;
 
     try {
-      const result = await this.executeScript(
+      const result = (await this.client.eval(
         script,
-        [],
-        [eventId, maxConcurrent.toString(), Date.now().toString()],
-      );
+        0,
+        eventId,
+        maxConcurrent.toString(),
+        Date.now().toString(),
+      )) as [number, string[]];
 
       return {
         processed: result[0],
@@ -279,13 +262,13 @@ class RedisClient {
       local eventId = ARGV[1]
       local userId = ARGV[2]
       
-      local activeKey = "active:" .. eventId
-      local reservationKey = "reservation:" .. eventId .. ":" .. userId
+      local activeKey = "queue:" .. eventId .. ":active"
+      local reservationKey = "queue:" .. eventId .. ":reservations:" .. userId
       
       -- Verificar que existe la reserva
       local exists = redis.call('EXISTS', reservationKey)
       if exists == 0 then
-        return false
+        return 0
       end
       
       -- Remover de activos
@@ -294,12 +277,12 @@ class RedisClient {
       -- Eliminar reserva
       redis.call('DEL', reservationKey)
       
-      return true
+      return 1
     `;
 
     try {
-      const result = await this.executeScript(script, [], [eventId, userId]);
-      return result === true;
+      const result = (await this.client.eval(script, 0, eventId, userId)) as number;
+      return result === 1;
     } catch (error) {
       console.error('Error completing purchase:', error);
       return false;
@@ -312,36 +295,36 @@ class RedisClient {
       local eventId = ARGV[1]
       local userId = ARGV[2]
       
-      local queueKey = "queue:" .. eventId
-      local activeKey = "active:" .. eventId
-      local reservationKey = "reservation:" .. eventId .. ":" .. userId
+      local queueKey = "queue:" .. eventId .. ":waiting"
+      local activeKey = "queue:" .. eventId .. ":active"
+      local reservationKey = "queue:" .. eventId .. ":reservations:" .. userId
       
-      local removed = false
+      local removed = 0
       
       -- Remover de la cola
       local queueRemoved = redis.call('ZREM', queueKey, userId)
       if queueRemoved == 1 then
-        removed = true
+        removed = 1
       end
       
       -- Remover de activos
       local activeRemoved = redis.call('ZREM', activeKey, userId)
       if activeRemoved == 1 then
-        removed = true
+        removed = 1
       end
       
       -- Eliminar reserva
       local reservationRemoved = redis.call('DEL', reservationKey)
       if reservationRemoved == 1 then
-        removed = true
+        removed = 1
       end
       
       return removed
     `;
 
     try {
-      const result = await this.executeScript(script, [], [eventId, userId]);
-      return result === true;
+      const result = (await this.client.eval(script, 0, eventId, userId)) as number;
+      return result === 1;
     } catch (error) {
       console.error('Error leaving queue:', error);
       return false;
@@ -360,8 +343,8 @@ class RedisClient {
       const activeKey = `active:${eventId}`;
 
       const [queueMembers, activeMembers] = await Promise.all([
-        this.executeCommand('ZRANGE', [queueKey, '0', '-1']),
-        this.executeCommand('ZRANGE', [activeKey, '0', '-1']),
+        this.client.zrange(queueKey, 0, -1),
+        this.client.zrange(activeKey, 0, -1),
       ]);
 
       return {
@@ -387,8 +370,8 @@ class RedisClient {
       local eventId = ARGV[1]
       local currentTime = tonumber(ARGV[2])
       
-      local activeKey = "active:" .. eventId
-      local pattern = "reservation:" .. eventId .. ":*"
+      local activeKey = "queue:" .. eventId .. ":active"
+      local pattern = "queue:" .. eventId .. ":reservations:*"
       
       local keys = redis.call('KEYS', pattern)
       local cleaned = 0
@@ -398,7 +381,7 @@ class RedisClient {
         local reservation = redis.call('HMGET', key, 'expiresAt')
         
         if reservation[1] and tonumber(reservation[1]) < currentTime then
-          local userId = string.match(key, "reservation:" .. eventId .. ":(.+)")
+          local userId = string.match(key, "queue:" .. eventId .. ":reservations:(.+)")
           if userId then
             redis.call('ZREM', activeKey, userId)
             redis.call('DEL', key)
@@ -411,7 +394,7 @@ class RedisClient {
     `;
 
     try {
-      const result = await this.executeScript(script, [], [eventId, Date.now().toString()]);
+      const result = (await this.client.eval(script, 0, eventId, Date.now().toString())) as number;
       return result || 0;
     } catch (error) {
       console.error('Error cleaning up expired reservations:', error);
@@ -421,4 +404,4 @@ class RedisClient {
 }
 
 // Instancia singleton del cliente Redis
-export const redisClient = new RedisClient(REDIS_CONFIG.url!, REDIS_CONFIG.token!);
+export const redisClient = new RedisClient(REDIS_CONFIG.url);

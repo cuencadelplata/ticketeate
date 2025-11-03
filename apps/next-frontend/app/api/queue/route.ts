@@ -33,29 +33,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Si puede entrar inmediatamente, crear registro en BD
+    // Si puede entrar inmediatamente, crear o actualizar registro en BD
     if (result.canEnter && result.reservationId) {
-      await prisma.cola_turnos.create({
-        data: {
-          turnoid: result.reservationId,
+      // Verificar si ya existe un registro para este usuario y cola
+      const existingTurno = await prisma.cola_turnos.findFirst({
+        where: {
           colaid: queueConfig.colaid,
           usuarioid: userId,
-          estado: 'en_compra',
-          posicion: 0,
-          fecha_atencion: new Date(),
+          estado: { in: ['esperando', 'en_compra'] },
         },
       });
+
+      if (existingTurno) {
+        // Actualizar registro existente
+        await prisma.cola_turnos.update({
+          where: { turnoid: existingTurno.turnoid },
+          data: {
+            estado: 'en_compra',
+            posicion: 0,
+            fecha_atencion: new Date(),
+          },
+        });
+      } else {
+        // Crear nuevo registro
+        await prisma.cola_turnos.create({
+          data: {
+            turnoid: result.reservationId,
+            colaid: queueConfig.colaid,
+            usuarioid: userId,
+            estado: 'en_compra',
+            posicion: 0,
+            fecha_atencion: new Date(),
+          },
+        });
+      }
     } else if (result.position !== undefined) {
-      // Si está en cola, crear registro de espera
-      await prisma.cola_turnos.create({
-        data: {
-          turnoid: `queue-${Date.now()}-${userId}`,
+      // Si está en cola, verificar si ya existe
+      const existingTurno = await prisma.cola_turnos.findFirst({
+        where: {
           colaid: queueConfig.colaid,
           usuarioid: userId,
           estado: 'esperando',
-          posicion: result.position,
         },
       });
+
+      if (!existingTurno) {
+        // Solo crear si no existe
+        await prisma.cola_turnos.create({
+          data: {
+            turnoid: `queue-${Date.now()}-${userId}`,
+            colaid: queueConfig.colaid,
+            usuarioid: userId,
+            estado: 'esperando',
+            posicion: result.position,
+          },
+        });
+      }
     }
 
     return NextResponse.json({

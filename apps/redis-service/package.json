@@ -1,0 +1,23 @@
+{
+  "name": "redis-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Redis service for TicketEate with persistence and monitoring",
+  "scripts": {
+    "dev": "docker compose up -d",
+    "dev:logs": "docker compose logs -f",
+    "stop": "docker compose down",
+    "clean": "docker compose down -v",
+    "restart": "docker compose restart",
+    "redis:cli": "docker exec -it ticketeate-redis-local redis-cli -a ticketeate123",
+    "redis:info": "docker exec -it ticketeate-redis-local redis-cli -a ticketeate123 INFO",
+    "redis:monitor": "docker exec -it ticketeate-redis-local redis-cli -a ticketeate123 MONITOR"
+  },
+  "keywords": [
+    "redis",
+    "cache",
+    "ticketeate"
+  ],
+  "author": "TicketEate Team",
+  "license": "MIT"
+}

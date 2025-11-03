@@ -21,7 +21,6 @@
     "src/index.ts",
     "src/auth.ts",
     "src/categories-sync.ts",
-    "src/seed-categories.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -5,6 +5,7 @@ import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { ConditionalNavbar } from '../components/conditional-navbar';
 import { Footer } from '@/components/footer';
+import { SearchProvider } from '@/contexts/search-context';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -36,9 +37,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" suppressHydrationWarning>
       <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
         <Providers>
-          <ConditionalNavbar />
-          {children}
-          <Footer />
+          <SearchProvider>
+            <ConditionalNavbar />
+            {children}
+            <Footer />
+          </SearchProvider>
         </Providers>
         <Toaster position="top-right" richColors closeButton expand={true} />
       </body>
