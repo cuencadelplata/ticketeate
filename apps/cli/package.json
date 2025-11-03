@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "cargo build"
+    "build": "node -e \"if (process.env.TURBO_BUILD_CLI === '1' || process.env.FORCE_CLI_BUILD === '1') { const { spawnSync } = require('child_process'); const res = spawnSync('cargo', ['build'], { stdio: 'inherit' }); if (res.error) { console.error('cargo build failed:', res.error); process.exit(res.status || 1); } } else { console.log('Skipping cli build (Cargo builds inside Docker). Set TURBO_BUILD_CLI=1 to force local build.'); }\"",
+    "lint": "echo 'Skipping lint for cli (Rust project)'",
+    "check": "echo 'No checks for cli'"
   }
 }

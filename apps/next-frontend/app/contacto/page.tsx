@@ -273,7 +273,7 @@ export default function Contacto() {
               </div>
 
               <div className="grid gap-6">
-                {contactInfo.map((item, index) => (
+                {contactInfo.map((item) => (
                   <Card
                     key={item.title}
                     className="bg-white backdrop-blur-sm border-stone-200 hover:shadow-lg transition-all duration-300 hover:bg-white/80"

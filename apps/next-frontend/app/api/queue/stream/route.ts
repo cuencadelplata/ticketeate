@@ -1,3 +1,4 @@
+/* global ReadableStream */
 import { NextRequest, NextResponse } from 'next/server';
 import { redisClient } from '@/lib/redis-client';
 
