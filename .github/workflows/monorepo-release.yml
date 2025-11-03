@@ -31,13 +31,30 @@ jobs:
         run: |
           echo "🔍 Analyzing commits for project changes..."
           
-          # Obtener commits desde el último tag o últimos 10 commits
+          # Obtener el último commit del push
+          LAST_COMMIT=$(git log -1 --format="%H")
+          PREV_COMMIT=$(git log -2 --format="%H" | tail -1)
+          
+          # Si es el primer commit, comparar con HEAD~1
+          if [ -z "$PREV_COMMIT" ] || [ "$LAST_COMMIT" = "$PREV_COMMIT" ]; then
+            PREV_COMMIT="HEAD~1"
+          fi
+          
+          echo "Comparing $PREV_COMMIT...$LAST_COMMIT"
+          
+          # Obtener archivos cambiados
+          CHANGED_FILES=$(git diff --name-only $PREV_COMMIT $LAST_COMMIT 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Obtener commits recientes para análisis de scope
           COMMITS=$(git log --oneline -10 --format="%s")
+          echo ""
           echo "Recent commits:"
           echo "$COMMITS"
           
-          # Detectar cambios por scope en commits
-          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-users\)"; then
+          # Detectar cambios por archivos O por scope en commits
+          if echo "$CHANGED_FILES" | grep -q "apps/svc-users" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-users\)"; then
             echo "svc-users=true" >> $GITHUB_OUTPUT
             echo "✅ svc-users: changes detected"
           else
@@ -45,7 +62,7 @@ jobs:
             echo "❌ svc-users: no changes"
           fi
           
-          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-events\)"; then
+          if echo "$CHANGED_FILES" | grep -q "apps/svc-events" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-events\)"; then
             echo "svc-events=true" >> $GITHUB_OUTPUT
             echo "✅ svc-events: changes detected"
           else
@@ -53,7 +70,7 @@ jobs:
             echo "❌ svc-events: no changes"
           fi
           
-          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-producers\)"; then
+          if echo "$CHANGED_FILES" | grep -q "apps/svc-producers" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-producers\)"; then
             echo "svc-producers=true" >> $GITHUB_OUTPUT
             echo "✅ svc-producers: changes detected"
           else
@@ -61,7 +78,7 @@ jobs:
             echo "❌ svc-producers: no changes"
           fi
           
-          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-checkout\)"; then
+          if echo "$CHANGED_FILES" | grep -q "apps/svc-checkout" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-checkout\)"; then
             echo "svc-checkout=true" >> $GITHUB_OUTPUT
             echo "✅ svc-checkout: changes detected"
           else
@@ -69,7 +86,7 @@ jobs:
             echo "❌ svc-checkout: no changes"
           fi
           
-          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(next-frontend\)"; then
+          if echo "$CHANGED_FILES" | grep -q "apps/next-frontend" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(next-frontend\)"; then
             echo "next-frontend=true" >> $GITHUB_OUTPUT
             echo "✅ next-frontend: changes detected"
           else

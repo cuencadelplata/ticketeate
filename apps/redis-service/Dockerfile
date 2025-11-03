@@ -2,8 +2,8 @@
 FROM redis:7-alpine
 
 # Metadatos
-LABEL maintainer="TicketEate Team"
-LABEL description="Redis Server con configuración optimizada para TicketEate"
+LABEL maintainer="Ticketeate Team"
+LABEL description="Redis Server con configuración optimizada para Ticketeate"
 
 # Copiar configuración personalizada
 COPY redis.conf /usr/local/etc/redis/redis.conf
