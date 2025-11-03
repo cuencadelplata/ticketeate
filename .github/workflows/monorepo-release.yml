@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - santi  # Temporal para testing
 
 permissions:
   contents: write
