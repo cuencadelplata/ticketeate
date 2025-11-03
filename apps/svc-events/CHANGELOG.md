@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.1...svc-events-v1.1.0) (2025-11-03)
+
+
+### Features
+
+* **svc-events:** test release workflow with version bump ([#98](https://github.com/cuencadelplata/ticketeate/issues/98)) ([bab7624](https://github.com/cuencadelplata/ticketeate/commit/bab76244920468490e2325016bb42b7e9d6b1cab))
+* **svc-events:** test release workflow with version bump ([4112dcb](https://github.com/cuencadelplata/ticketeate/commit/4112dcb64b164a195ee7704a25d8fd634645ae97))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.0...svc-events-v1.0.1) (2025-11-03)
 
 
