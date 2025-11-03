@@ -18,7 +18,6 @@ const estadoEvents: Record<string, string> = {
 };
 
 function mapEstados(estado?: string) {
-  //mapeo disponibilidad events
   return estadoEvents[estado ?? ''] ?? 'Oculto';
 }
 
