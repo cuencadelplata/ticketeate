@@ -53,11 +53,12 @@ export function useReservation() {
 
           // Disparar evento personalizado para que otros componentes puedan reaccionar
           if (typeof window !== 'undefined') {
-            window.dispatchEvent(
-              new CustomEvent('reservation-expired', {
-                detail: { eventId: reservation.eventId },
-              }),
-            );
+            const event = new Event('reservation-expired') as CustomEvent;
+            Object.defineProperty(event, 'detail', {
+              value: { eventId: reservation.eventId },
+              writable: false,
+            });
+            window.dispatchEvent(event);
           }
 
           return 0;

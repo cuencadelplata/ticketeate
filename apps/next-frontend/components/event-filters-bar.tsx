@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, DollarSign, Music, Wifi, Clock } from 'lucide-react';
+import { Calendar, DollarSign, Music, Wifi, Clock } from 'lucide-react';
 import { Button } from '@heroui/react';
 
 export type EventFilter = {

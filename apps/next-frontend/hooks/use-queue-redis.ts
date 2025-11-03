@@ -41,7 +41,7 @@ export function useQueueRedis(eventId: string, options: UseQueueOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [isInQueue, setIsInQueue] = useState(false);
 
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previousPositionRef = useRef<number | null>(null);
 
   /**

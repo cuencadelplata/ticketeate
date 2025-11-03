@@ -49,7 +49,7 @@ export function QueueModalRedis({
         }, 2000);
       }
     },
-    onPositionChange: (newPosition) => {
+    onPositionChange: () => {
       setPreviousPosition(position);
     },
   });

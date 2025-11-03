@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Ticket, Tag, Clock } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 
 type EventCardProps = {
   title: string;
@@ -58,7 +58,6 @@ function getDisponibilidadBadge(disponibilidad: string) {
 
 export function EventCard({
   title,
-  description,
   price,
   date,
   image,
@@ -67,8 +66,6 @@ export function EventCard({
   disponibilidad,
   href,
   isFree = false,
-  categorias = [],
-  fechasAdicionales = [],
   totalDates = 1,
 }: EventCardProps) {
   const badge = getDisponibilidadBadge(disponibilidad);

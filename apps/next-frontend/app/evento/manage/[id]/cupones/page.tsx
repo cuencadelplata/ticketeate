@@ -11,7 +11,7 @@ import {
 } from '@/hooks/use-cupones';
 import { useEvent } from '@/hooks/use-events';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Copy, Check } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CuponForm from './components/CuponForm';
 import CuponCard from './components/CuponCard';
@@ -77,6 +77,7 @@ export default function ManageCuponesPage() {
   };
 
   const handleDelete = async (cuponId: string) => {
+    // eslint-disable-next-line no-restricted-globals
     if (!confirm('¿Estás seguro de que deseas eliminar este cupón?')) return;
 
     try {

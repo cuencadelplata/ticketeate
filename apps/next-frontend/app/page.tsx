@@ -91,11 +91,6 @@ export default function Home() {
   }, [allEvents]);
 
   // Filtrar eventos por fecha
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
-    return uiEvents.filter((event) => event.eventDate > now);
-  }, [uiEvents]);
-
   const pastEvents = useMemo(() => {
     const now = new Date();
     return uiEvents.filter((event) => event.eventDate <= now);

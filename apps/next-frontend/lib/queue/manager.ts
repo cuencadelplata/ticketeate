@@ -1,5 +1,5 @@
 import { redisClient } from '../redis-client';
-import type { QueueConfig, QueuePosition, QueueStatus, TicketReservation } from './types';
+import type { QueueConfig, QueuePosition, QueueStatus } from './types';
 import { REDIS_KEYS } from './types';
 import { prisma } from '@repo/db';
 

@@ -197,7 +197,8 @@ if (typeof process !== 'undefined') {
 }
 
 // Si se ejecuta directamente (no como import)
-if (require.main === module) {
+// eslint-disable-next-line no-undef
+if (typeof require !== 'undefined' && require.main === module) {
   startWorker().catch((error) => {
     console.error('[TicketWorker] Fatal error:', error);
     process.exit(1);

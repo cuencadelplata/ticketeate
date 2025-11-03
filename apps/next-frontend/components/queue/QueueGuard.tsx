@@ -165,7 +165,7 @@ export function QueueGuard({
       } else {
         // No tiene acceso, redirigir
         console.log('[QueueGuard] Access denied, redirecting...');
-        handleAccessDenied(status);
+        handleAccessDenied();
       }
     } catch (err) {
       console.error('Error verifying queue access:', err);
@@ -179,7 +179,7 @@ export function QueueGuard({
     }
   };
 
-  const handleAccessDenied = (status: QueueStatus) => {
+  const handleAccessDenied = () => {
     // Llamar callback si existe
     onAccessDenied?.();
 
