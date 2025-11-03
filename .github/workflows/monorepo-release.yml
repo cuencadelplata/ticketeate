@@ -16,54 +16,67 @@ jobs:
     name: Detect Changed Projects
     runs-on: ubuntu-latest
     outputs:
-      svc-users: ${{ steps.filter.outputs.svc-users }}
-      svc-events: ${{ steps.filter.outputs.svc-events }}
-      svc-producers: ${{ steps.filter.outputs.svc-producers }}
-      svc-checkout: ${{ steps.filter.outputs.svc-checkout }}
-      next-frontend: ${{ steps.filter.outputs.next-frontend }}
-      redis-service: ${{ steps.filter.outputs.redis-service }}
-      packages: ${{ steps.filter.outputs.packages }}
+      svc-users: ${{ steps.analyze.outputs.svc-users }}
+      svc-events: ${{ steps.analyze.outputs.svc-events }}
+      svc-producers: ${{ steps.analyze.outputs.svc-producers }}
+      svc-checkout: ${{ steps.analyze.outputs.svc-checkout }}
+      next-frontend: ${{ steps.analyze.outputs.next-frontend }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check for changed files
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          base: ${{ github.event.before }}
-          filters: |
-            svc-users:
-              - 'apps/svc-users/**'
-              - 'packages/**'
-            svc-events:
-              - 'apps/svc-events/**'
-              - 'packages/**'
-            svc-producers:
-              - 'apps/svc-producers/**'
-              - 'packages/**'
-            svc-checkout:
-              - 'apps/svc-checkout/**'
-              - 'packages/**'
-            next-frontend:
-              - 'apps/next-frontend/**'
-              - 'packages/**'
-            redis-service:
-              - 'apps/redis-service/**'
-            packages:
-              - 'packages/**'
-
-      - name: Debug - Show detected changes
+      - name: Analyze commits for changes
+        id: analyze
         run: |
-          echo "🔍 Change Detection Results:"
-          echo "svc-users: ${{ steps.filter.outputs.svc-users }}"
-          echo "svc-events: ${{ steps.filter.outputs.svc-events }}"
-          echo "svc-producers: ${{ steps.filter.outputs.svc-producers }}"
-          echo "svc-checkout: ${{ steps.filter.outputs.svc-checkout }}"
-          echo "next-frontend: ${{ steps.filter.outputs.next-frontend }}"
-          echo "packages: ${{ steps.filter.outputs.packages }}"
+          echo "🔍 Analyzing commits for project changes..."
+          
+          # Obtener commits desde el último tag o últimos 10 commits
+          COMMITS=$(git log --oneline -10 --format="%s")
+          echo "Recent commits:"
+          echo "$COMMITS"
+          
+          # Detectar cambios por scope en commits
+          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-users\)"; then
+            echo "svc-users=true" >> $GITHUB_OUTPUT
+            echo "✅ svc-users: changes detected"
+          else
+            echo "svc-users=false" >> $GITHUB_OUTPUT
+            echo "❌ svc-users: no changes"
+          fi
+          
+          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-events\)"; then
+            echo "svc-events=true" >> $GITHUB_OUTPUT
+            echo "✅ svc-events: changes detected"
+          else
+            echo "svc-events=false" >> $GITHUB_OUTPUT
+            echo "❌ svc-events: no changes"
+          fi
+          
+          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-producers\)"; then
+            echo "svc-producers=true" >> $GITHUB_OUTPUT
+            echo "✅ svc-producers: changes detected"
+          else
+            echo "svc-producers=false" >> $GITHUB_OUTPUT
+            echo "❌ svc-producers: no changes"
+          fi
+          
+          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(svc-checkout\)"; then
+            echo "svc-checkout=true" >> $GITHUB_OUTPUT
+            echo "✅ svc-checkout: changes detected"
+          else
+            echo "svc-checkout=false" >> $GITHUB_OUTPUT
+            echo "❌ svc-checkout: no changes"
+          fi
+          
+          if echo "$COMMITS" | grep -E "(feat|fix|perf|refactor)\(next-frontend\)"; then
+            echo "next-frontend=true" >> $GITHUB_OUTPUT
+            echo "✅ next-frontend: changes detected"
+          else
+            echo "next-frontend=false" >> $GITHUB_OUTPUT
+            echo "❌ next-frontend: no changes"
+          fi
 
   release-svc-users:
     name: Release svc-users
