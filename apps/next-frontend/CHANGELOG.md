@@ -5,6 +5,14 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.0...next-frontend-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** correct next-frontend package name filter in build ([#106](https://github.com/cuencadelplata/ticketeate/issues/106)) ([3f00d83](https://github.com/cuencadelplata/ticketeate/commit/3f00d8330e183ccdcbd5fceb1b3dce445043e7ef))
+* **docker:** correct next-frontend package name filter in build ([ee4cfda](https://github.com/cuencadelplata/ticketeate/commit/ee4cfda8c0ab0ea55bd515fbb8e0ff862bb7dd4d))
+
 # [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.2...next-frontend-v1.1.0) (2025-11-03)
 
 
