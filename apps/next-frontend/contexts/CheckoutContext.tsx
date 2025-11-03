@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { usePublicEvent } from '@/hooks/use-events';
 import { useReservation } from '@/hooks/use-reservation';
-import { useMockQueue } from '@/hooks/use-mock-queue';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/lib/auth-client';
 import type { Event } from '@/types/events';
@@ -168,8 +167,9 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   const { data: eventData, isLoading: eventLoading } = usePublicEvent(eventId);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  // Queue
-  const { canEnter, completePurchase } = useMockQueue(eventId || '', idUsuario);
+  // Queue - TODO: Integrate Redis queue if needed
+  // For now, allow all users to enter
+  const canEnter = true;
 
   // Reservation
   const {
@@ -511,7 +511,8 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       setResultado({ ...data, ui_sector: sector || 'Sector', ui_total: total });
       setShowSuccess(true);
 
-      await completePurchase(true);
+      // completePurchase removed - was part of mock queue
+      // TODO: Integrate with Redis queue if needed
 
       queryClient.invalidateQueries({ queryKey: ['public-event', eventId] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -529,7 +530,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     } catch (e: any) {
       console.error('Error en compra:', e);
       setError(e.message);
-      await completePurchase(false);
+      // completePurchase removed - was part of mock queue
     } finally {
       setLoading(false);
     }
