@@ -135,71 +135,73 @@ export default function ManageCuponesPage() {
   }
 
   return (
-      <div className="pt-12">
-    <div className="container mx-auto p-6 max-w-6xl py-12">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Cupones de Descuento</h1>
-          <p className="text-muted-foreground mt-1">Gestiona los cupones para {event.titulo}</p>
-        </div>
-        <Button
-          onClick={() => {
-            setEditingCupon(null);
-            setShowForm(true);
-          }}
-          disabled={showForm}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Cupón
-        </Button>
-      </div>
-
-      {showForm && (
-        <div className="mb-6">
-          <CuponForm
-            cupon={editingCupon}
-            onSubmit={editingCupon ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setShowForm(false);
+    <div className="pt-12">
+      <div className="container mx-auto p-6 max-w-6xl py-12">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Cupones de Descuento</h1>
+            <p className="text-muted-foreground mt-1">Gestiona los cupones para {event.titulo}</p>
+          </div>
+          <Button
+            onClick={() => {
               setEditingCupon(null);
+              setShowForm(true);
             }}
-            isLoading={createCupon.isPending || updateCupon.isPending}
-          />
+            disabled={showForm}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Cupón
+          </Button>
         </div>
-      )}
 
-      <div className="space-y-4">
-        {cupones && cupones.length > 0 ? (
-          cupones.map((cupon) => (
-            <CuponCard
-              key={cupon.cuponid}
-              cupon={cupon}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onCopyCode={handleCopyCode}
-              onToggleEstado={handleToggleEstado}
-              copiedCode={copiedCode}
-              isDeleting={deleteCupon.isPending}
-            />
-          ))
-        ) : (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground text-lg">No hay cupones creados para este evento</p>
-            <Button
-              onClick={() => {
+        {showForm && (
+          <div className="mb-6">
+            <CuponForm
+              cupon={editingCupon}
+              onSubmit={editingCupon ? handleUpdate : handleCreate}
+              onCancel={() => {
+                setShowForm(false);
                 setEditingCupon(null);
-                setShowForm(true);
               }}
-              className="mt-4"
-              variant="outline"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Crear primer cupón
-            </Button>
+              isLoading={createCupon.isPending || updateCupon.isPending}
+            />
           </div>
         )}
+
+        <div className="space-y-4">
+          {cupones && cupones.length > 0 ? (
+            cupones.map((cupon) => (
+              <CuponCard
+                key={cupon.cuponid}
+                cupon={cupon}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onCopyCode={handleCopyCode}
+                onToggleEstado={handleToggleEstado}
+                copiedCode={copiedCode}
+                isDeleting={deleteCupon.isPending}
+              />
+            ))
+          ) : (
+            <div className="text-center py-12 border-2 border-dashed rounded-lg">
+              <p className="text-muted-foreground text-lg">
+                No hay cupones creados para este evento
+              </p>
+              <Button
+                onClick={() => {
+                  setEditingCupon(null);
+                  setShowForm(true);
+                }}
+                className="mt-4"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear primer cupón
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-</div>
   );
 }
