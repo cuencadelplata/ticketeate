@@ -76,9 +76,8 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Install semantic-release
-        working-directory: apps/svc-users
-        run: pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
       - name: Run semantic-release
         id: semantic
@@ -86,7 +85,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release > release-output.txt 2>&1 || true
+          semantic-release > release-output.txt 2>&1 || true
           cat release-output.txt
           
           if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
@@ -122,9 +121,8 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Install semantic-release
-        working-directory: apps/svc-events
-        run: pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
       - name: Run semantic-release
         id: semantic
@@ -132,7 +130,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release > release-output.txt 2>&1 || true
+          semantic-release > release-output.txt 2>&1 || true
           cat release-output.txt
           
           if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
@@ -168,9 +166,8 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Install semantic-release
-        working-directory: apps/svc-producers
-        run: pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
       - name: Run semantic-release
         id: semantic
@@ -178,7 +175,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release > release-output.txt 2>&1 || true
+          semantic-release > release-output.txt 2>&1 || true
           cat release-output.txt
           
           if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
@@ -214,9 +211,8 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Install semantic-release
-        working-directory: apps/svc-checkout
-        run: pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
       - name: Run semantic-release
         id: semantic
@@ -224,7 +220,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release > release-output.txt 2>&1 || true
+          semantic-release > release-output.txt 2>&1 || true
           cat release-output.txt
           
           if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
@@ -260,9 +256,8 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10.10.0
 
-      - name: Install semantic-release
-        working-directory: apps/next-frontend
-        run: pnpm add -D semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
 
       - name: Run semantic-release
         id: semantic
@@ -270,7 +265,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release > release-output.txt 2>&1 || true
+          semantic-release > release-output.txt 2>&1 || true
           cat release-output.txt
           
           if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
