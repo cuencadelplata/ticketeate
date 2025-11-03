@@ -23,8 +23,8 @@ COPY packages/db/tsup.config.ts ./packages/db/
 # Copy svc-events source
 COPY apps/svc-events ./apps/svc-events
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (using --no-frozen-lockfile to allow dynamic resolution)
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate

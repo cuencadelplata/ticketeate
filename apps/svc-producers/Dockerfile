@@ -24,7 +24,7 @@ COPY packages/db/tsup.config.ts ./packages/db/
 COPY apps/svc-producers ./apps/svc-producers
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate
