@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - santi  # Temporal para testing
 
 permissions:
   contents: write
@@ -53,6 +54,16 @@ jobs:
               - 'apps/redis-service/**'
             packages:
               - 'packages/**'
+
+      - name: Debug - Show detected changes
+        run: |
+          echo "🔍 Change Detection Results:"
+          echo "svc-users: ${{ steps.filter.outputs.svc-users }}"
+          echo "svc-events: ${{ steps.filter.outputs.svc-events }}"
+          echo "svc-producers: ${{ steps.filter.outputs.svc-producers }}"
+          echo "svc-checkout: ${{ steps.filter.outputs.svc-checkout }}"
+          echo "next-frontend: ${{ steps.filter.outputs.next-frontend }}"
+          echo "packages: ${{ steps.filter.outputs.packages }}"
 
   release-svc-users:
     name: Release svc-users
