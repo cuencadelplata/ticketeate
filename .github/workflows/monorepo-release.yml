@@ -19,6 +19,7 @@ jobs:
       svc-events: ${{ steps.analyze.outputs.svc-events }}
       svc-producers: ${{ steps.analyze.outputs.svc-producers }}
       svc-checkout: ${{ steps.analyze.outputs.svc-checkout }}
+      redis-service: ${{ steps.analyze.outputs.redis-service }}
       next-frontend: ${{ steps.analyze.outputs.next-frontend }}
     steps:
       - name: Checkout
@@ -63,6 +64,8 @@ jobs:
           echo "✅ svc-producers: FORCED BUILD"
           echo "svc-checkout=true" >> $GITHUB_OUTPUT
           echo "✅ svc-checkout: FORCED BUILD"
+          echo "redis-service=true" >> $GITHUB_OUTPUT
+          echo "✅ redis-service: FORCED BUILD"
           echo "next-frontend=true" >> $GITHUB_OUTPUT
           echo "✅ next-frontend: FORCED BUILD"
           
@@ -333,6 +336,51 @@ jobs:
             echo "ℹ️  No release created"
           fi
 
+  release-redis-service:
+    name: Release redis-service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.redis-service == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/redis-service
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "redis-service-v*" --sort=-v:refname | head -n 1 | sed 's/redis-service-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
   # Docker build jobs
   docker-svc-users:
     name: Build & Push svc-users Docker
@@ -358,33 +406,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get version from package.json
-        id: get-version
-        run: |
-          VERSION=$(node -p "require('./apps/svc-users/package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-users
-          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
-          echo "🐳 Building Docker image for svc-users:$IMAGE_TAG"
+          echo "🐳 Building Docker image for svc-users"
           docker build \
             -f apps/svc-users/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "📤 Pushing to ECR (latest only to save space)..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
-          echo "✅ Successfully pushed:"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   docker-svc-events:
     name: Build & Push svc-events Docker
@@ -410,33 +446,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get version from package.json
-        id: get-version
-        run: |
-          VERSION=$(node -p "require('./apps/svc-events/package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-events
-          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
-          echo "🐳 Building Docker image for svc-events:$IMAGE_TAG"
+          echo "🐳 Building Docker image for svc-events"
           docker build \
             -f apps/svc-events/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "📤 Pushing to ECR (latest only to save space)..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
-          echo "✅ Successfully pushed:"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   docker-svc-producers:
     name: Build & Push svc-producers Docker
@@ -462,33 +486,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get version from package.json
-        id: get-version
-        run: |
-          VERSION=$(node -p "require('./apps/svc-producers/package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-producers
-          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
-          echo "🐳 Building Docker image for svc-producers:$IMAGE_TAG"
+          echo "🐳 Building Docker image for svc-producers"
           docker build \
             -f apps/svc-producers/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "📤 Pushing to ECR (latest only to save space)..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
-          echo "✅ Successfully pushed:"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   docker-svc-checkout:
     name: Build & Push svc-checkout Docker
@@ -514,33 +526,61 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get version from package.json
-        id: get-version
-        run: |
-          VERSION=$(node -p "require('./apps/svc-checkout/package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-checkout
-          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
-          echo "🐳 Building Docker image for svc-checkout:$IMAGE_TAG"
+          echo "🐳 Building Docker image for svc-checkout"
           docker build \
             -f apps/svc-checkout/Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "📤 Pushing to ECR (latest only to save space)..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
-          echo "✅ Successfully pushed:"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-redis-service:
+    name: Build & Push redis-service Docker
+    needs: [detect-changes, release-redis-service]
+    if: needs.detect-changes.outputs.redis-service == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-redis-service.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-redis
+        run: |
+          echo "🐳 Building Docker image for redis-service"
+          docker build \
+            -f apps/redis-service/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   docker-next-frontend:
     name: Build & Push next-frontend Docker
@@ -566,37 +606,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get version from package.json
-        id: get-version
-        run: |
-          VERSION=$(node -p "require('./apps/next-frontend/package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-web
-          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
-          echo "🐳 Building Docker image for next-frontend:$IMAGE_TAG"
+          echo "🐳 Building Docker image for next-frontend"
           docker build \
             -f Dockerfile \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
-          echo "📤 Pushing to ECR..."
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "📤 Pushing to ECR (latest only to save space)..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
-          echo "✅ Successfully pushed:"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          echo "   - $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   summary:
     name: Release Summary
-    needs: [detect-changes, release-svc-users, release-svc-events, release-svc-producers, release-svc-checkout, release-next-frontend]
+    needs: [detect-changes, release-svc-users, release-svc-events, release-svc-producers, release-svc-checkout, release-redis-service, release-next-frontend]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -630,6 +658,12 @@ jobs:
             echo "- ℹ️  **svc-checkout** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
           fi
           
+          if [ "${{ needs.release-redis-service.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **redis-service** → v${{ needs.release-redis-service.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.redis-service }}" == "true" ]; then
+            echo "- ℹ️  **redis-service** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
           if [ "${{ needs.release-next-frontend.outputs.has-release }}" == "true" ]; then
             echo "- ✅ **next-frontend** → v${{ needs.release-next-frontend.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.detect-changes.outputs.next-frontend }}" == "true" ]; then
@@ -638,4 +672,4 @@ jobs:
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Docker Images" >> $GITHUB_STEP_SUMMARY
-          echo "All images with new versions have been pushed to ECR with both version tag and :latest tag" >> $GITHUB_STEP_SUMMARY
+          echo "All images pushed to ECR with :latest tag only (to save space)" >> $GITHUB_STEP_SUMMARY
