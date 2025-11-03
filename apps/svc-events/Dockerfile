@@ -12,6 +12,8 @@ COPY tsconfig.json turbo.json ./
 
 # Copy package.json files for workspace packages
 COPY packages/db/package.json ./packages/db/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY apps/svc-events/package.json ./apps/svc-events/
 
 # Copy essential source files for packages
@@ -19,6 +21,8 @@ COPY packages/db/prisma ./packages/db/prisma
 COPY packages/db/src ./packages/db/src
 COPY packages/db/tsconfig.json ./packages/db/
 COPY packages/db/tsup.config.ts ./packages/db/
+COPY packages/eslint-config ./packages/eslint-config
+COPY packages/typescript-config ./packages/typescript-config
 
 # Copy svc-events source
 COPY apps/svc-events ./apps/svc-events
