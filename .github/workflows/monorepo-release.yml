@@ -336,8 +336,10 @@ jobs:
   # Docker build jobs
   docker-svc-users:
     name: Build & Push svc-users Docker
-    needs: release-svc-users
-    if: needs.release-svc-users.outputs.has-release == 'true'
+    needs: [detect-changes, release-svc-users]
+    if: needs.detect-changes.outputs.svc-users == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-users.outputs.has-release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -356,11 +358,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./apps/svc-users/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-users
-          IMAGE_TAG: ${{ needs.release-svc-users.outputs.new-version }}
+          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
           echo "🐳 Building Docker image for svc-users:$IMAGE_TAG"
           docker build \
@@ -379,8 +388,10 @@ jobs:
 
   docker-svc-events:
     name: Build & Push svc-events Docker
-    needs: release-svc-events
-    if: needs.release-svc-events.outputs.has-release == 'true'
+    needs: [detect-changes, release-svc-events]
+    if: needs.detect-changes.outputs.svc-events == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-events.outputs.has-release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -399,11 +410,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./apps/svc-events/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-events
-          IMAGE_TAG: ${{ needs.release-svc-events.outputs.new-version }}
+          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
           echo "🐳 Building Docker image for svc-events:$IMAGE_TAG"
           docker build \
@@ -422,8 +440,10 @@ jobs:
 
   docker-svc-producers:
     name: Build & Push svc-producers Docker
-    needs: release-svc-producers
-    if: needs.release-svc-producers.outputs.has-release == 'true'
+    needs: [detect-changes, release-svc-producers]
+    if: needs.detect-changes.outputs.svc-producers == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-producers.outputs.has-release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -442,11 +462,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./apps/svc-producers/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-producers
-          IMAGE_TAG: ${{ needs.release-svc-producers.outputs.new-version }}
+          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
           echo "🐳 Building Docker image for svc-producers:$IMAGE_TAG"
           docker build \
@@ -465,8 +492,10 @@ jobs:
 
   docker-svc-checkout:
     name: Build & Push svc-checkout Docker
-    needs: release-svc-checkout
-    if: needs.release-svc-checkout.outputs.has-release == 'true'
+    needs: [detect-changes, release-svc-checkout]
+    if: needs.detect-changes.outputs.svc-checkout == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-checkout.outputs.has-release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -485,11 +514,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./apps/svc-checkout/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-svc-checkout
-          IMAGE_TAG: ${{ needs.release-svc-checkout.outputs.new-version }}
+          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
           echo "🐳 Building Docker image for svc-checkout:$IMAGE_TAG"
           docker build \
@@ -508,8 +544,10 @@ jobs:
 
   docker-next-frontend:
     name: Build & Push next-frontend Docker
-    needs: release-next-frontend
-    if: needs.release-next-frontend.outputs.has-release == 'true'
+    needs: [detect-changes, release-next-frontend]
+    if: needs.detect-changes.outputs.next-frontend == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-next-frontend.outputs.has-release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -528,11 +566,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./apps/next-frontend/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-web
-          IMAGE_TAG: ${{ needs.release-next-frontend.outputs.new-version }}
+          IMAGE_TAG: ${{ steps.get-version.outputs.version }}
         run: |
           echo "🐳 Building Docker image for next-frontend:$IMAGE_TAG"
           docker build \
