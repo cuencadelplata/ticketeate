@@ -47,3 +47,14 @@ appendonly.aof
 
 #Ignore cursor AI rules
 .cursor\rules\codacy.mdc
+
+# Terraform
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup
+infrastructure/terraform.tfvars
+infrastructure/*.tfplan
+infrastructure/.terraform.tfstate.lock.info
