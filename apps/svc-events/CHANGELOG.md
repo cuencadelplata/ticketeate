@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.1.0...svc-events-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to preve… ([#100](https://github.com/cuencadelplata/ticketeate/issues/100)) ([27c3058](https://github.com/cuencadelplata/ticketeate/commit/27c3058542e8348f25378a781df4d7ae944e3439))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to prevent CI conflicts ([01be6c2](https://github.com/cuencadelplata/ticketeate/commit/01be6c2d5d1745c3d5f5417f51fd0d4c47e15b62))
+
 # [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.1...svc-events-v1.1.0) (2025-11-03)
 
 
