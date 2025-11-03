@@ -5,6 +5,17 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.1.0...svc-users-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** correct next-frontend package name filter in build ([#106](https://github.com/cuencadelplata/ticketeate/issues/106)) ([3f00d83](https://github.com/cuencadelplata/ticketeate/commit/3f00d8330e183ccdcbd5fceb1b3dce445043e7ef))
+* **docker:** correct next-frontend package name filter in build ([ee4cfda](https://github.com/cuencadelplata/ticketeate/commit/ee4cfda8c0ab0ea55bd515fbb8e0ff862bb7dd4d))
+* **tsconfig:** enable emit for all services to produce dist in Docker builds ([ceb598d](https://github.com/cuencadelplata/ticketeate/commit/ceb598da68e9d1345f45bc8b62cde35295ccdfcd))
+* **tsconfig:** enable emit for svc-users build ([#104](https://github.com/cuencadelplata/ticketeate/issues/104)) ([9bbe842](https://github.com/cuencadelplata/ticketeate/commit/9bbe8425b71905dd8665c090e77608bf8d5e8031))
+* **tsconfig:** enable emit for svc-users build to produce dist in Docker builds ([5e08686](https://github.com/cuencadelplata/ticketeate/commit/5e086867404f97cf148b2452301bd58308f76e40))
+
 # [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.0.0...svc-users-v1.1.0) (2025-11-03)
 
 
