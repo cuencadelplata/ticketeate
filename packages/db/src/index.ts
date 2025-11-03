@@ -27,7 +27,14 @@ export type {
 // TypeScript los reconocerá después de regenerar el cliente
 // export type { cupones_evento, cupones_evento_history, cupones_redimidos } from '@prisma/client';
 
-export { EstadoEntrada, EstadoPago, EstadoReserva, EventoEstado, TipoImagen } from '@prisma/client';
+export {
+  EstadoEntrada,
+  EstadoPago,
+  EstadoReserva,
+  EventoEstado,
+  TipoImagen,
+  change_type,
+} from '@prisma/client';
 
 export type { PrismaClient } from '@prisma/client';
 

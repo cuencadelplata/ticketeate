@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Enviar email con Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'TicketEate <tickets@ticketeate.com>',
+      from: process.env.RESEND_FROM_EMAIL || 'Ticketeate <noreply@ticketeate.page>',
       to: [to],
       subject: `🎉 Tu entrada para ${ticketData.eventTitle}`,
       html: generateEmailHTML(userName || 'Usuario', ticketData),

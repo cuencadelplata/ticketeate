@@ -70,9 +70,9 @@ export default function UserNav() {
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
           <div className="relative cursor-pointer">
-            {session?.user.imageUrl ? (
+            {session?.user.image ? (
               <Image
-                src={session?.user.imageUrl}
+                src={session?.user.image}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -81,11 +81,9 @@ export default function UserNav() {
               />
             ) : null}
             <div
-              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.imageUrl ? 'hidden' : ''}`}
+              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.image ? 'hidden' : ''}`}
             >
-              {session?.user.firstName?.[0] ||
-                session?.user.emailAddresses[0]?.emailAddress?.[0] ||
-                'U'}
+              {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
             </div>
           </div>
         </DropdownTrigger>
@@ -111,9 +109,9 @@ export default function UserNav() {
             <DropdownItem key="profile" isReadOnly className="h-14 gap-2 opacity-100">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  {session?.user.imageUrl ? (
+                  {session?.user.image ? (
                     <Image
-                      src={session?.user.imageUrl}
+                      src={session?.user.image}
                       alt="Profile"
                       width={32}
                       height={32}
@@ -122,21 +120,17 @@ export default function UserNav() {
                     />
                   ) : null}
                   <div
-                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.imageUrl ? 'hidden' : ''}`}
+                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.image ? 'hidden' : ''}`}
                   >
-                    {session?.user.firstName?.[0] ||
-                      session?.user.emailAddresses[0]?.emailAddress?.[0] ||
-                      'U'}
+                    {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
                   </div>
                 </div>
                 <div className="flex flex-col">
                   <p className="text-sm font-medium leading-none text-default-600">
-                    {session?.user.fullName ||
-                      session?.user.firstName ||
-                      session?.user.emailAddresses[0]?.emailAddress}
+                    {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {session?.user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                    {(session as any)?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
                   </p>
                 </div>
               </div>

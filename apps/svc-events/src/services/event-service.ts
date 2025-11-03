@@ -201,6 +201,7 @@ export class EventService {
           mapa_evento: data.eventMap ?? {},
           fecha_publicacion: data.fecha_publicacion ? new Date(data.fecha_publicacion) : null,
           creadorid: data.userId,
+          updated_by: data.userId,
           evento_categorias: {
             create: categoriaIds.map((categoriaId) => ({
               categoriaeventoid: Number(categoriaId),

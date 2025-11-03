@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@repo/db';
+import { prisma, change_type } from '@repo/db';
 import { auth } from '@/lib/auth';
 
 // GET - Obtener cupones de un evento
@@ -33,17 +33,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const cupones = await prisma.cupones_evento.findMany({
-      where: {
-        eventoid: eventId,
-        is_active: true,
-      },
-      orderBy: {
-        fecha_creacion: 'desc',
-      },
-    });
+    // Obtener la última versión de cada cupón desde el historial (append-only)
+    const cuponesHistory = await prisma.$queryRaw<any[]>`
+      WITH latest_versions AS (
+        SELECT DISTINCT ON (cuponid)
+          cuponid,
+          eventoid,
+          codigo,
+          porcentaje_descuento,
+          fecha_creacion,
+          fecha_expiracion,
+          limite_usos,
+          usos_actuales,
+          estado,
+          version,
+          changed_at,
+          changed_by,
+          change_type
+        FROM cupones_evento_history
+        WHERE eventoid::text = ${eventId}
+        ORDER BY cuponid, version DESC, changed_at DESC
+      )
+      SELECT * FROM latest_versions
+      WHERE change_type::text != 'DELETE'
+      ORDER BY fecha_creacion DESC
+    `;
 
-    return NextResponse.json({ cupones }, { status: 200 });
+    return NextResponse.json({ cupones: cuponesHistory }, { status: 200 });
   } catch (error) {
     console.error('Error al obtener cupones:', error);
     return NextResponse.json({ error: 'Error al obtener cupones' }, { status: 500 });
@@ -101,9 +117,9 @@ export async function POST(request: NextRequest) {
       data: {
         eventoid: eventId,
         codigo: codigo,
-        porcentaje_descuento: porcentaje_descuento,
+        porcentaje_descuento: Number(porcentaje_descuento),
         fecha_expiracion: new Date(fecha_expiracion),
-        limite_usos: limite_usos,
+        limite_usos: Number(limite_usos),
         estado: 'ACTIVO',
         updated_by: session.user.id,
       },
@@ -175,22 +191,30 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const prismaUpdateData: any = {
-      updated_by: session.user.id,
-      version: { increment: 1 },
-    };
-
-    if (updateData.codigo) prismaUpdateData.codigo = updateData.codigo;
-    if (updateData.porcentaje_descuento !== undefined)
-      prismaUpdateData.porcentaje_descuento = updateData.porcentaje_descuento;
-    if (updateData.fecha_expiracion)
-      prismaUpdateData.fecha_expiracion = new Date(updateData.fecha_expiracion);
-    if (updateData.limite_usos !== undefined) prismaUpdateData.limite_usos = updateData.limite_usos;
-    if (updateData.estado) prismaUpdateData.estado = updateData.estado;
-
-    const cupon = await prisma.cupones_evento.update({
-      where: { cuponid: cuponId },
-      data: prismaUpdateData,
+    // Registrar en el historial (append-only)
+    const cupon = await prisma.cupones_evento_history.create({
+      data: {
+        cuponid: cuponId,
+        eventoid: currentCupon.eventoid,
+        codigo: updateData.codigo ?? currentCupon.codigo,
+        porcentaje_descuento:
+          updateData.porcentaje_descuento !== undefined
+            ? Number(updateData.porcentaje_descuento)
+            : currentCupon.porcentaje_descuento,
+        fecha_creacion: currentCupon.fecha_creacion,
+        fecha_expiracion: updateData.fecha_expiracion
+          ? new Date(updateData.fecha_expiracion)
+          : currentCupon.fecha_expiracion,
+        limite_usos:
+          updateData.limite_usos !== undefined
+            ? Number(updateData.limite_usos)
+            : currentCupon.limite_usos,
+        usos_actuales: currentCupon.usos_actuales,
+        estado: updateData.estado ?? currentCupon.estado,
+        version: currentCupon.version + 1,
+        changed_by: session.user.id,
+        change_type: change_type.UPDATE,
+      },
     });
 
     return NextResponse.json({ cupon }, { status: 200 });
@@ -232,13 +256,30 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const cupon = await prisma.cupones_evento.update({
+    // Obtener el cupón actual
+    const currentCupon = await prisma.cupones_evento.findUnique({
       where: { cuponid: cuponId },
+    });
+
+    if (!currentCupon || currentCupon.eventoid !== eventId) {
+      return NextResponse.json({ error: 'Cupón no encontrado' }, { status: 404 });
+    }
+
+    // Registrar la eliminación en el historial (append-only)
+    const cupon = await prisma.cupones_evento_history.create({
       data: {
-        is_active: false,
-        deleted_at: new Date(),
-        updated_by: session.user.id,
-        version: { increment: 1 },
+        cuponid: cuponId,
+        eventoid: currentCupon.eventoid,
+        codigo: currentCupon.codigo,
+        porcentaje_descuento: currentCupon.porcentaje_descuento,
+        fecha_creacion: currentCupon.fecha_creacion,
+        fecha_expiracion: currentCupon.fecha_expiracion,
+        limite_usos: currentCupon.limite_usos,
+        usos_actuales: currentCupon.usos_actuales,
+        estado: 'INACTIVO',
+        version: currentCupon.version + 1,
+        changed_by: session.user.id,
+        change_type: change_type.DELETE,
       },
     });
 

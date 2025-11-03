@@ -135,7 +135,8 @@ export default function ManageCuponesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+      <div className="pt-12">
+    <div className="container mx-auto p-6 max-w-6xl py-12">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Cupones de Descuento</h1>
@@ -199,5 +200,6 @@ export default function ManageCuponesPage() {
         )}
       </div>
     </div>
+</div>
   );
 }
