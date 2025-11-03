@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - santi
 
 permissions:
   contents: write
@@ -54,46 +53,60 @@ jobs:
           echo "Recent commits:"
           echo "$COMMITS"
           
+          # TEMPORARY: Force all projects to build (remove after first successful deploy)
+          echo "🚀 FORCING ALL BUILDS - Change detection temporarily disabled"
+          echo "svc-users=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-users: FORCED BUILD"
+          echo "svc-events=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-events: FORCED BUILD"
+          echo "svc-producers=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-producers: FORCED BUILD"
+          echo "svc-checkout=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-checkout: FORCED BUILD"
+          echo "next-frontend=true" >> $GITHUB_OUTPUT
+          echo "✅ next-frontend: FORCED BUILD"
+          
+          # TODO: Restore this code after first successful deployment to all services
           # Detectar cambios por archivos O por scope en commits
-          if echo "$CHANGED_FILES" | grep -q "apps/svc-users" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-users\)"; then
-            echo "svc-users=true" >> $GITHUB_OUTPUT
-            echo "✅ svc-users: changes detected"
-          else
-            echo "svc-users=false" >> $GITHUB_OUTPUT
-            echo "❌ svc-users: no changes"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "apps/svc-events" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-events\)"; then
-            echo "svc-events=true" >> $GITHUB_OUTPUT
-            echo "✅ svc-events: changes detected"
-          else
-            echo "svc-events=false" >> $GITHUB_OUTPUT
-            echo "❌ svc-events: no changes"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "apps/svc-producers" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-producers\)"; then
-            echo "svc-producers=true" >> $GITHUB_OUTPUT
-            echo "✅ svc-producers: changes detected"
-          else
-            echo "svc-producers=false" >> $GITHUB_OUTPUT
-            echo "❌ svc-producers: no changes"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "apps/svc-checkout" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-checkout\)"; then
-            echo "svc-checkout=true" >> $GITHUB_OUTPUT
-            echo "✅ svc-checkout: changes detected"
-          else
-            echo "svc-checkout=false" >> $GITHUB_OUTPUT
-            echo "❌ svc-checkout: no changes"
-          fi
-          
-          if echo "$CHANGED_FILES" | grep -q "apps/next-frontend" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(next-frontend\)"; then
-            echo "next-frontend=true" >> $GITHUB_OUTPUT
-            echo "✅ next-frontend: changes detected"
-          else
-            echo "next-frontend=false" >> $GITHUB_OUTPUT
-            echo "❌ next-frontend: no changes"
-          fi
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-users" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-users\)"; then
+          #   echo "svc-users=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-users: changes detected"
+          # else
+          #   echo "svc-users=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-users: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-events" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-events\)"; then
+          #   echo "svc-events=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-events: changes detected"
+          # else
+          #   echo "svc-events=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-events: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-producers" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-producers\)"; then
+          #   echo "svc-producers=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-producers: changes detected"
+          # else
+          #   echo "svc-producers=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-producers: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-checkout" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-checkout\)"; then
+          #   echo "svc-checkout=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-checkout: changes detected"
+          # else
+          #   echo "svc-checkout=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-checkout: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/next-frontend" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(next-frontend\)"; then
+          #   echo "next-frontend=true" >> $GITHUB_OUTPUT
+          #   echo "✅ next-frontend: changes detected"
+          # else
+          #   echo "next-frontend=false" >> $GITHUB_OUTPUT
+          #   echo "❌ next-frontend: no changes"
+          # fi
 
   release-svc-users:
     name: Release svc-users
