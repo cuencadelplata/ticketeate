@@ -3,8 +3,6 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
 import jwt from 'jsonwebtoken';
-
-// Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
 
