@@ -5,8 +5,8 @@ FROM redis:7-alpine
 LABEL maintainer="Ticketeate Team"
 LABEL description="Redis Server con configuración optimizada para Ticketeate"
 
-# Copiar configuración personalizada
-COPY redis.conf /usr/local/etc/redis/redis.conf
+# Copiar configuración personalizada desde la raíz del monorepo
+COPY ./redis.conf /usr/local/etc/redis/redis.conf
 
 # Crear directorio para datos con permisos correctos
 RUN mkdir -p /data && \
