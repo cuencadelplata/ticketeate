@@ -53,6 +53,7 @@ export function useReservation() {
 
           // Disparar evento personalizado para que otros componentes puedan reaccionar
           if (typeof window !== 'undefined') {
+            // eslint-disable-next-line no-undef
             const event = new Event('reservation-expired') as CustomEvent;
             Object.defineProperty(event, 'detail', {
               value: { eventId: reservation.eventId },

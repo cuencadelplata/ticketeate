@@ -68,8 +68,6 @@ export function EventCard({
   isFree = false,
   totalDates = 1,
 }: EventCardProps) {
-  const badge = getDisponibilidadBadge(disponibilidad);
-
   return (
     <Link href={href || '#'} className="block group">
       <motion.div

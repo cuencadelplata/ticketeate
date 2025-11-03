@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Cache-Control',
     });
 
+    // eslint-disable-next-line no-undef
     const stream = new ReadableStream({
       start(controller) {
         // Enviar datos iniciales
