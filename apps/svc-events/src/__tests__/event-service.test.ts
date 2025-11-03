@@ -102,6 +102,10 @@ describe('EventService', () => {
         fecha_creacion: new Date(),
         fecha_cambio: new Date(),
         views: 0,
+        version: 1,
+        is_active: true,
+        deleted_at: null,
+        updated_by: null,
       });
 
       vi.mocked(mockPrisma.prisma.imagenes_evento.createMany).mockResolvedValue({ count: 0 });
