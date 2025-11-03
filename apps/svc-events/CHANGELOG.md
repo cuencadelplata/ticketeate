@@ -5,6 +5,20 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.0...svc-events-v1.0.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* add semantic-release dependencies to svc-users to sync lockfile ([7d4a250](https://github.com/cuencadelplata/ticketeate/commit/7d4a2503516333aac0b09722476df01b03fd9172))
+* **next-frontend:** auth - middleware - otp email ([#94](https://github.com/cuencadelplata/ticketeate/issues/94)) ([e6f6ea7](https://github.com/cuencadelplata/ticketeate/commit/e6f6ea72b378ff0c54a5bf24e012951846f6a7ad))
+* **next-frontend:** auth - middleware - otp email ([f360028](https://github.com/cuencadelplata/ticketeate/commit/f3600289958a49d08767ceb6c4a716f6b29b85c9))
+* **next-frontend:** auth - middleware - otp email ([925534a](https://github.com/cuencadelplata/ticketeate/commit/925534ae8a1e0250d778d00abf70fbc8b0a808aa))
+* queues - rsc - profile config ([#96](https://github.com/cuencadelplata/ticketeate/issues/96)) ([dc0d3ed](https://github.com/cuencadelplata/ticketeate/commit/dc0d3edb9a306d8428ecad7d009315e262b98172))
+* reset password ([0c0a262](https://github.com/cuencadelplata/ticketeate/commit/0c0a262907ed803560e917ded3a68196a21e5a57))
+* tsconfig - import google fonts ([0572c6f](https://github.com/cuencadelplata/ticketeate/commit/0572c6f681bf28bc558c451ccea3edda1723a5dd))
+* workflows aws ecr ([f8885c0](https://github.com/cuencadelplata/ticketeate/commit/f8885c083e5bfcd45bc81fd11858dd4d1cb82dd9))
+
 # 1.0.0 (2025-11-01)
 
 
