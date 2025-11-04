@@ -19,8 +19,8 @@ app.use(
       const allowedOrigins = [
         'http://localhost:3000',
         'http://localhost:3001',
-        'https://ticketeate.online',
-        'https://www.ticketeate.online',
+        'https://ticketeate.com.ar',
+        'https://www.ticketeate.com.ar',
       ];
       return allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0];
     },

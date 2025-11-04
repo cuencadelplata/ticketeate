@@ -8,7 +8,7 @@
   "sideEffects": false,
   "license": "MIT",
   "scripts": {
-  "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts src/seed-categories.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck --types node --typeRoots ./node_modules/@types",
+    "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck",
     "dev": "tsup --watch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "db:generate": "prisma generate",
@@ -17,6 +17,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
     "db:seed-categories": "tsx src/seed-categories.ts",
+    "db:seed-events": "tsx src/seed-events.ts",
+    "db:seed-all": "tsx src/seed-categories.ts && tsx src/seed-events.ts",
     "categories:sync": "tsx src/categories-sync.ts",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"

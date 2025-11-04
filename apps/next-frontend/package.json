@@ -1,6 +1,6 @@
 {
   "name": "ticketeate",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "private": true,
   "repository": {
     "type": "git",
@@ -79,6 +79,7 @@
     "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",
     "input-otp": "1.4.1",
+    "ioredis": "^5.8.2",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.2",

@@ -76,9 +76,7 @@ export default function UserNav() {
             <div
               className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.image ? 'hidden' : ''}`}
             >
-              {session?.user.name?.[0] ||
-                session?.user.email?.[0] ||
-                'U'}
+              {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
             </div>
           </div>
         </DropdownTrigger>
@@ -117,9 +115,7 @@ export default function UserNav() {
                   <div
                     className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.image ? 'hidden' : ''}`}
                   >
-                    {session?.user.name?.[0] ||
-                      session?.user.email?.[0] ||
-                      'U'}
+                    {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
                   </div>
                 </div>
                 <div className="flex flex-col">
@@ -127,7 +123,7 @@ export default function UserNav() {
                     {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {String(session?.user.role) === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                    {(session as any)?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
                   </p>
                 </div>
               </div>

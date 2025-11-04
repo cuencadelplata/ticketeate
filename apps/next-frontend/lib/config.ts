@@ -42,8 +42,7 @@ export const CLOUDINARY_CONFIG = {
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
 } as const;
 
-// Configuración de Redis (Upstash)
+// Configuración de Redis (local con ioredis)
 export const REDIS_CONFIG = {
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: process.env.REDIS_URL || 'redis://default:localpassword@localhost:6379',
 } as const;

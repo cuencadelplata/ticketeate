@@ -37,7 +37,7 @@ ENV BETTER_AUTH_SECRET="dummy-secret-for-build" \
 
 # Build only the db package and next-frontend
 RUN pnpm --filter=@repo/db run build
-RUN pnpm --filter=Ticketeate run build
+RUN pnpm --filter=ticketeate run build
 
 # Runner stage
 FROM node:20-alpine3.18 AS runner
