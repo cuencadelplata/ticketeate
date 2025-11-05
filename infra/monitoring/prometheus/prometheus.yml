@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'ticketeate-services'
+    metrics_path: /metrics
+    static_configs:
+      # Servicios que exponen Prometheus metrics (por defecto puerto 9464)
+      - targets: ['next-frontend:9464', 'svc-events:9464', 'svc-producers:9464', 'svc-checkout:9464']
+
+  - job_name: 'local-dev'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:9464']

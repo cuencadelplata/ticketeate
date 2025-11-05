@@ -1,6 +1,7 @@
 import { metrics, MeterProvider } from '@opentelemetry/api';
 import { Resource } from '@opentelemetry/resources';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import {
   PeriodicExportingMetricReader,
   MeterProvider as SDKMeterProvider,
@@ -8,9 +9,22 @@ import {
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 export function initMetrics(serviceName: string) {
-  const metricExporter = new OTLPMetricExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/metrics',
-  });
+  const enablePrometheus = process.env.ENABLE_PROMETHEUS === 'true' || process.env.OTEL_EXPORTER === 'prometheus';
+
+  let metricExporter: any;
+  const prometheusPort = Number(process.env.PROMETHEUS_PORT || '9464');
+
+  if (enablePrometheus) {
+    // Prometheus exporter will start an HTTP server exposed on prometheusPort
+    metricExporter = new PrometheusExporter({ startServer: true, port: prometheusPort }, () => {
+      // eslint-disable-next-line no-console
+      console.log(`Prometheus scrape endpoint: http://localhost:${prometheusPort}/metrics`);
+    });
+  } else {
+    metricExporter = new OTLPMetricExporter({
+      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/metrics',
+    });
+  }
 
   const meterProvider = new SDKMeterProvider({
     resource: new Resource({
@@ -19,6 +33,7 @@ export function initMetrics(serviceName: string) {
     }),
   });
 
+  // If Prometheus exporter is used, it handles collection; still register reader to keep consistency
   meterProvider.addMetricReader(
     new PeriodicExportingMetricReader({
       exporter: metricExporter,

@@ -1,0 +1,22 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Cola - Longitud (ticketeate_queue_length)",
+      "targets": [
+        {
+          "expr": "ticketeate_queue_length",
+          "interval": "",
+          "legendFormat": "queue_length"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    }
+  ],
+  "schemaVersion": 36,
+  "title": "Ticketeate Basic",
+  "version": 1
+}
