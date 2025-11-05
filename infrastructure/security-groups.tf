@@ -76,6 +76,15 @@ resource "aws_security_group" "nextjs" {
     cidr_blocks = [var.my_ip]
   }
 
+  # SSH from GitHub Actions
+  ingress {
+    description = "SSH from GitHub Actions"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # GitHub Actions uses dynamic IPs
+  }
+
   # Allow all outbound traffic
   egress {
     description = "Allow all outbound traffic"
