@@ -622,9 +622,97 @@ jobs:
           
           echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
+  # Deployment jobs
+  deploy-lambdas:
+    name: Deploy Lambda Functions
+    needs: [docker-svc-users, docker-svc-events, docker-svc-producers, docker-svc-checkout]
+    if: always() && (needs.docker-svc-users.result == 'success' || needs.docker-svc-events.result == 'success' || needs.docker-svc-producers.result == 'success' || needs.docker-svc-checkout.result == 'success')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: svc-users
+            lambda_name: ticketeate-svc-users-production
+            ecr_repo: ticketeate-svc-users
+          - name: svc-events
+            lambda_name: ticketeate-svc-events-production
+            ecr_repo: ticketeate-svc-events
+          - name: svc-producers
+            lambda_name: ticketeate-svc-producers-production
+            ecr_repo: ticketeate-svc-producers
+          - name: svc-checkout
+            lambda_name: ticketeate-svc-checkout-production
+            ecr_repo: ticketeate-svc-checkout
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Update Lambda ${{ matrix.service.name }}
+        run: |
+          IMAGE_URI="665352994810.dkr.ecr.us-east-2.amazonaws.com/${{ matrix.service.ecr_repo }}:latest"
+          
+          echo "Updating Lambda: ${{ matrix.service.lambda_name }}"
+          aws lambda update-function-code \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --image-uri $IMAGE_URI \
+            --region us-east-2
+          
+          echo "Waiting for update to complete..."
+          aws lambda wait function-updated \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --region us-east-2
+          
+          echo "✅ Lambda ${{ matrix.service.lambda_name }} updated!"
+
+  deploy-nextjs:
+    name: Deploy Next.js to EC2
+    needs: [docker-next-frontend]
+    if: needs.docker-next-frontend.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance:
+          - name: nextjs-1
+            host: 3.145.87.228
+          - name: nextjs-2
+            host: 18.118.83.113
+    steps:
+      - name: Deploy to ${{ matrix.instance.name }}
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ matrix.instance.host }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            # Login to ECR
+            aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com
+            
+            # Pull latest image
+            docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-web:latest
+            
+            # Stop and remove old container
+            docker stop nextjs-app || true
+            docker rm nextjs-app || true
+            
+            # Start new container
+            docker run -d \
+              --name nextjs-app \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-web:latest
+            
+            # Clean up
+            docker image prune -f
+            
+            echo "✅ Deployed to ${{ matrix.instance.name }}"
+
   summary:
     name: Release Summary
-    needs: [detect-changes, release-svc-users, release-svc-events, release-svc-producers, release-svc-checkout, release-redis-service, release-next-frontend]
+    needs: [detect-changes, release-svc-users, release-svc-events, release-svc-producers, release-svc-checkout, release-redis-service, release-next-frontend, deploy-lambdas, deploy-nextjs]
     if: always()
     runs-on: ubuntu-latest
     steps:
