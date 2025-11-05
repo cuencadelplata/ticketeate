@@ -89,7 +89,7 @@ output "deployment_summary" {
   value = <<-EOT
   
   ==========================================
-  TicketEate Infrastructure Deployed!
+  Ticketeate Infrastructure Deployed!
   ==========================================
   
   🌐 Frontend:
@@ -109,10 +109,38 @@ output "deployment_summary" {
   
   📋 Next Steps:
     1. Configure DNS: ${var.domain_name} → ${aws_instance.nginx.public_ip}
-    2. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_instance.nginx.public_ip)}
-    3. Deploy containers using GitHub Actions
-    4. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
+    2. Upload environment variables: ./scripts/upload-env-vars.ps1 -Environment production
+    3. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_instance.nginx.public_ip)}
+    4. Deploy Next.js: sudo ~/deploy-nextjs.sh (on each EC2 instance)
+    5. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
+  
+  📚 Documentation:
+    - Environment Variables: infrastructure/docs/ENV_QUICKSTART.md
+    - Full Docs: infrastructure/docs/ENVIRONMENT_VARIABLES.md
   
   ==========================================
+  EOT
+}
+
+output "environment_variables_info" {
+  description = "Information about environment variables configuration"
+  value = <<-EOT
+  
+  🔐 Environment Variables Configuration
+  
+  Variables are managed via AWS Systems Manager Parameter Store:
+  Path: /ticketeate/${var.environment}/*
+  
+  To upload variables:
+    cd infrastructure/scripts
+    ./upload-env-vars.ps1 -Environment ${var.environment}
+  
+  To view current variables:
+    aws ssm get-parameters-by-path --path /ticketeate/${var.environment}/ --region ${var.aws_region}
+  
+  Lambda functions will automatically receive all variables from Parameter Store.
+  EC2 instances require running deploy-nextjs.sh script to inject variables.
+  
+  See infrastructure/docs/ENVIRONMENT_VARIABLES.md for details.
   EOT
 }
