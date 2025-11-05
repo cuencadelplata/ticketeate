@@ -124,7 +124,7 @@ export function Hero() {
                       fill="url(#1752500502803-7613136_sparkle_existing_0_mj429roqu)"
                       data-glass="clone"
                       filter="url(#1752500502803-7613136_sparkle_filter_alhgtlde0)"
-                      clip-path="url(#1752500502803-7613136_sparkle_clipPath_92n6igug9)"
+                      clipPath="url(#1752500502803-7613136_sparkle_clipPath_92n6igug9)"
                     ></path>
                     <path
                       d="M16.6562 9.21226L14.3939 3.51196C13.893 2.24987 12.1067 2.24971 11.6056 3.51172L9.34194 9.21226C9.31834 9.27153 9.27153 9.31834 9.21226 9.34194L3.51085 11.6059C2.24896 12.107 2.24896 13.893 3.51085 14.3941L9.21226 16.6581C9.27153 16.6817 9.31834 16.7285 9.34194 16.7877L11.6055 22.4883C12.1067 23.7503 13.8929 23.7501 14.3939 22.488L16.6562 16.7877C16.6799 16.7283 16.7273 16.6816 16.7868 16.6581L22.4888 14.3941C23.7507 13.8931 23.7507 12.1069 22.4888 11.6059L16.7868 9.34194C16.7273 9.3184 16.6799 9.27173 16.6562 9.21226Z"
@@ -144,8 +144,8 @@ export function Hero() {
                         y2="13.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#575757"></stop>
-                        <stop offset="1" stop-color="#fff"></stop>
+                        <stop stopColor="#575757"></stop>
+                        <stop offset="1" stopColor="#fff"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502803-7613136_sparkle_existing_1_itr2rlc6a"
@@ -155,8 +155,8 @@ export function Hero() {
                         y2="26"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
-                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                        <stop stopColor="#E3E3E5" stopOpacity=".6"></stop>
+                        <stop offset="1" stopColor="#BBBBC0" stopOpacity=".6"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502803-7613136_sparkle_existing_2_7lj7nb2b2"
@@ -166,8 +166,8 @@ export function Hero() {
                         y2="13.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#fff"></stop>
-                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                        <stop stopColor="#fff"></stop>
+                        <stop offset="1" stopColor="#fff" stopOpacity="0"></stop>
                       </linearGradient>
                       <filter
                         id="1752500502803-7613136_sparkle_filter_alhgtlde0"
@@ -226,7 +226,7 @@ export function Hero() {
                       fill="url(#1752500502796-6054278_magnifier_existing_0_gpzbpr1b3)"
                       data-glass="clone"
                       filter="url(#1752500502796-6054278_magnifier_filter_u6qjvmab1)"
-                      clip-path="url(#1752500502796-6054278_magnifier_clipPath_k96ejzfu8)"
+                      clipPath="url(#1752500502796-6054278_magnifier_clipPath_k96ejzfu8)"
                     ></path>
                     <path
                       d="M18.5 10C18.5 14.6943 14.6943 18.5 10 18.5C5.30567 18.5 1.5 14.6943 1.5 10C1.5 5.30567 5.30567 1.5 10 1.5C14.6943 1.5 18.5 5.30567 18.5 10Z"
@@ -246,8 +246,8 @@ export function Hero() {
                         y2="22.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#575757"></stop>
-                        <stop offset="1" stop-color="#fff"></stop>
+                        <stop stopColor="#575757"></stop>
+                        <stop offset="1" stopColor="#fff"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502796-6054278_magnifier_existing_1_82nwa6xrf"
@@ -257,8 +257,8 @@ export function Hero() {
                         y2="18.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
-                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                        <stop stopColor="#E3E3E5" stopOpacity=".6"></stop>
+                        <stop offset="1" stopColor="#BBBBC0" stopOpacity=".6"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502796-6054278_magnifier_existing_2_8ve8k2etb"
@@ -268,8 +268,8 @@ export function Hero() {
                         y2="11.345"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#fff"></stop>
-                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                        <stop stopColor="#fff"></stop>
+                        <stop offset="1" stopColor="#fff" stopOpacity="0"></stop>
                       </linearGradient>
                       <filter
                         id="1752500502796-6054278_magnifier_filter_u6qjvmab1"

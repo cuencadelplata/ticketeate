@@ -18,8 +18,12 @@ import CuponCard from './components/CuponCard';
 
 export default function ManageCuponesPage() {
   const params = useParams();
-  const id =
-    typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params?.id[0] : '';
+  let id: string = '';
+  if (typeof params?.id === 'string') {
+    id = params.id;
+  } else if (Array.isArray(params?.id)) {
+    id = params?.id[0] ?? '';
+  }
 
   const { data: event, isLoading: loadingEvent } = useEvent(id);
   const { data: cupones, isLoading: loadingCupones } = useCupones(id);
