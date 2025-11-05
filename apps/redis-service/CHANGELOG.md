@@ -5,6 +5,14 @@ Todas las versiones notables de **redis-service** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.0.0...redis-service-v1.0.1) (2025-11-05)
+
+
+### Bug Fixes
+
+* workflows ([3ff0ddf](https://github.com/cuencadelplata/ticketeate/commit/3ff0ddf8d9cddbcf832d0aab8f8c2856c9ac8fbc))
+* workflows ([#113](https://github.com/cuencadelplata/ticketeate/issues/113)) ([3d20386](https://github.com/cuencadelplata/ticketeate/commit/3d203866bcf4d90303ed212eb2bdb2740eb185ec))
+
 # 1.0.0 (2025-11-05)
 
 
