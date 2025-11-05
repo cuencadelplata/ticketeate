@@ -55,11 +55,12 @@ resource "aws_lambda_function" "svc_users" {
   }
 
   environment {
-    variables = {
-      ENVIRONMENT = var.environment
-      REDIS_HOST  = aws_instance.redis.private_ip
-      REDIS_PORT  = "6379"
-    }
+    variables = merge(
+      local.common_env_vars,
+      {
+        PORT = "3002"
+      }
+    )
   }
 
   tags = merge(
@@ -94,11 +95,12 @@ resource "aws_lambda_function" "svc_events" {
   }
 
   environment {
-    variables = {
-      ENVIRONMENT = var.environment
-      REDIS_HOST  = aws_instance.redis.private_ip
-      REDIS_PORT  = "6379"
-    }
+    variables = merge(
+      local.common_env_vars,
+      {
+        PORT = "3001"
+      }
+    )
   }
 
   tags = merge(
@@ -133,11 +135,12 @@ resource "aws_lambda_function" "svc_producers" {
   }
 
   environment {
-    variables = {
-      ENVIRONMENT = var.environment
-      REDIS_HOST  = aws_instance.redis.private_ip
-      REDIS_PORT  = "6379"
-    }
+    variables = merge(
+      local.common_env_vars,
+      {
+        PORT = "3004"
+      }
+    )
   }
 
   tags = merge(
@@ -172,11 +175,12 @@ resource "aws_lambda_function" "svc_checkout" {
   }
 
   environment {
-    variables = {
-      ENVIRONMENT = var.environment
-      REDIS_HOST  = aws_instance.redis.private_ip
-      REDIS_PORT  = "6379"
-    }
+    variables = merge(
+      local.common_env_vars,
+      {
+        PORT = "3003"
+      }
+    )
   }
 
   tags = merge(
