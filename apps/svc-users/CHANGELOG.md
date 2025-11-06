@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.2](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.1.1...svc-users-v1.1.2) (2025-11-06)
+
+
+### Bug Fixes
+
+* workflows ([3ff0ddf](https://github.com/cuencadelplata/ticketeate/commit/3ff0ddf8d9cddbcf832d0aab8f8c2856c9ac8fbc))
+* workflows ([#113](https://github.com/cuencadelplata/ticketeate/issues/113)) ([3d20386](https://github.com/cuencadelplata/ticketeate/commit/3d203866bcf4d90303ed212eb2bdb2740eb185ec))
+
 ## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.1.0...svc-users-v1.1.1) (2025-11-03)
 
 
