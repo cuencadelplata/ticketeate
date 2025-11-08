@@ -5,10 +5,8 @@ import PixelBlast from './pixel-blast';
 
 export function Hero() {
   return (
-    <section className="relative min-h-[70vh] sm:min-h-[75vh] lg:min-h-[80vh] flex items-center pt-10">
-      {/* Capas de fondo */}
+    <section className="relative h-[400px] sm:h-[600px] lg:h-[700px] flex items-center">
       <div className="absolute inset-0 z-0 bg-black overflow-hidden">
-        {/* Imagen de fondo con baja opacidad */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
@@ -18,10 +16,8 @@ export function Hero() {
           }}
         />
 
-        {/* Gradiente oscuro para fusionar */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
 
-        {/* PixelBlast encima */}
         <PixelBlast
           variant="circle"
           pixelSize={6}
@@ -40,29 +36,18 @@ export function Hero() {
           speed={0.6}
           edgeFade={0.25}
           transparent={false}
-          className="!w-full !h-full mix-blend-screen"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'block',
-            opacity: 0.85,
-          }}
+          className="absolute inset-0 opacity-85"
         />
       </div>
 
-      <div className="max-w-6xl mx-auto px-16 w-full relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-16 w-full relative z-10">
         <div className="flex flex-col items-center justify-center text-center">
-          {/* Contenido de texto y botones centrado */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-8 max-w-4xl"
           >
-            {/* Título principal */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -86,18 +71,16 @@ export function Hero() {
               .
             </motion.h1>
 
-            {/* Subtítulo */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-md text-gray-200 sm:text-lg max-w-2xl mx-auto"
+              className="text-base text-gray-200 sm:text-lg max-w-2xl mx-auto"
             >
               Crea, gestiona y vende entradas en minutos con{' '}
               <span className="text-white">Ticketeate</span>.
             </motion.p>
 
-            {/* Botones de acción */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -124,7 +107,7 @@ export function Hero() {
                       fill="url(#1752500502803-7613136_sparkle_existing_0_mj429roqu)"
                       data-glass="clone"
                       filter="url(#1752500502803-7613136_sparkle_filter_alhgtlde0)"
-                      clip-path="url(#1752500502803-7613136_sparkle_clipPath_92n6igug9)"
+                      clipPath="url(#1752500502803-7613136_sparkle_clipPath_92n6igug9)"
                     ></path>
                     <path
                       d="M16.6562 9.21226L14.3939 3.51196C13.893 2.24987 12.1067 2.24971 11.6056 3.51172L9.34194 9.21226C9.31834 9.27153 9.27153 9.31834 9.21226 9.34194L3.51085 11.6059C2.24896 12.107 2.24896 13.893 3.51085 14.3941L9.21226 16.6581C9.27153 16.6817 9.31834 16.7285 9.34194 16.7877L11.6055 22.4883C12.1067 23.7503 13.8929 23.7501 14.3939 22.488L16.6562 16.7877C16.6799 16.7283 16.7273 16.6816 16.7868 16.6581L22.4888 14.3941C23.7507 13.8931 23.7507 12.1069 22.4888 11.6059L16.7868 9.34194C16.7273 9.3184 16.6799 9.27173 16.6562 9.21226Z"
@@ -226,7 +209,7 @@ export function Hero() {
                       fill="url(#1752500502796-6054278_magnifier_existing_0_gpzbpr1b3)"
                       data-glass="clone"
                       filter="url(#1752500502796-6054278_magnifier_filter_u6qjvmab1)"
-                      clip-path="url(#1752500502796-6054278_magnifier_clipPath_k96ejzfu8)"
+                      clipPath="url(#1752500502796-6054278_magnifier_clipPath_k96ejzfu8)"
                     ></path>
                     <path
                       d="M18.5 10C18.5 14.6943 14.6943 18.5 10 18.5C5.30567 18.5 1.5 14.6943 1.5 10C1.5 5.30567 5.30567 1.5 10 1.5C14.6943 1.5 18.5 5.30567 18.5 10Z"
