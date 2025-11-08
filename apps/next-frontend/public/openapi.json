@@ -1,0 +1,500 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ticketeate API",
+    "version": "1.0.0",
+    "description": "Documentación de la API de Ticketeate (OAS 3.0). Actualiza los schemas de request/response cuando cierres cada endpoint."
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Desarrollo local" }
+  ],
+  "tags": [
+    { "name": "Admin" },
+    { "name": "Auth" },
+    { "name": "Compras" },
+    { "name": "Cupones" },
+    { "name": "Eventos" },
+    { "name": "GitHub" },
+    { "name": "Pagos (MercadoPago/Stripe)" },
+    { "name": "Perfil" },
+    { "name": "Cola de Tickets (Queue)" },
+    { "name": "Revalidate" },
+    { "name": "Tickets" },
+    { "name": "Uploads" },
+    { "name": "Usuarios" },
+    { "name": "Vistas/Views" }
+  ],
+  "paths": {
+    "/api/admin/views": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Listar/consultar vistas admin",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Crear/actualizar vistas admin",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+
+    "/api/auth/assign-role": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Asignar rol a usuario",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "userId": { "type": "string" }, "role": { "type": "string" } }, "required": ["userId","role"] } } } },
+        "responses": { "200": { "description": "Rol asignado" } }
+      }
+    },
+    "/api/auth/check-user": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verificar usuario/credenciales",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+    "/api/auth/otp": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Solicitar/verificar OTP",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/auth/password-reset": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset de contraseña",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/auth/token": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Obtener token/estado",
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+
+    "/api/comprar": {
+      "post": {
+        "tags": ["Compras"],
+        "summary": "Realizar compra de entradas",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Compra creada" }, "400": { "description": "Solicitud inválida" } }
+      }
+    },
+    "/api/compras/historial": {
+      "get": {
+        "tags": ["Compras"],
+        "summary": "Historial de compras del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+
+    "/api/cupones": {
+      "get": {
+        "tags": ["Cupones"],
+        "summary": "Listar cupones",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "tags": ["Cupones"],
+        "summary": "Crear cupón",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Creado" } }
+      },
+      "patch": {
+        "tags": ["Cupones"],
+        "summary": "Actualizar cupón",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "Actualizado" }, "404": { "description": "No encontrado" } }
+      },
+      "delete": {
+        "tags": ["Cupones"],
+        "summary": "Eliminar cupón",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminado" }, "404": { "description": "No encontrado" } }
+      }
+    },
+    "/api/cupones/validate": {
+      "post": {
+        "tags": ["Cupones"],
+        "summary": "Validar cupón",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "code": { "type": "string" } }, "required": ["code"] } } } },
+        "responses": { "200": { "description": "Válido/Inválido" } }
+      }
+    },
+
+    "/api/generate-description": {
+      "post": {
+        "tags": ["Eventos"],
+        "summary": "Generar descripción (AI) para evento",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/get-events": {
+      "get": {
+        "tags": ["Eventos"],
+        "summary": "Listar eventos (servicio interno)",
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/github/deploys": {
+      "get": {
+        "tags": ["GitHub"],
+        "summary": "Listar deploys",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/github/workflows": {
+      "get": {
+        "tags": ["GitHub"],
+        "summary": "Listar workflows",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/mercadopago/auth": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Auth de MercadoPago (redirect/estado)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/mercadopago/callback": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Callback de MercadoPago",
+        "parameters": [
+          { "name": "payment_id", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/mercadopago/create-preference": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Crear preferencia de pago",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Creada" } }
+      }
+    },
+    "/api/mercadopago/mock-callback": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Mock de callback (testing)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/profile": {
+      "get": {
+        "tags": ["Perfil"],
+        "summary": "Obtener perfil",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      },
+      "put": {
+        "tags": ["Perfil"],
+        "summary": "Actualizar perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "Actualizado" } }
+      }
+    },
+    "/api/profile/image": {
+      "post": {
+        "tags": ["Perfil"],
+        "summary": "Subir/actualizar imagen de perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Perfil"],
+        "summary": "Eliminar imagen de perfil",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+
+    "/api/queue": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Crear/abrir cola",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Creada" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado general de colas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Cerrar/eliminar cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+    "/api/queue/complete": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Completar atención en cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/config": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Configurar cola",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Obtener config de cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Eliminar config de cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+    "/api/queue/join": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Unirse a la cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/leave": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Salir de la cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/process": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Procesar la cola (tick)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Obtener estado de procesamiento",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/status": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado de la cola del usuario/evento",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/stream": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Stream SSE/WebSocket de la cola",
+        "responses": { "200": { "description": "OK (stream)" } }
+      }
+    },
+    "/api/queue/worker": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado del worker",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Control del worker (start/stop/…) ",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/revalidate": {
+      "post": {
+        "tags": ["Revalidate"],
+        "summary": "Solicitar revalidación de rutas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "tags": ["Revalidate"],
+        "summary": "Revalidación específica",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/stripe/create-session": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Crear sesión de pago (Stripe Checkout)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/stripe/verify-payment": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Verificar pago (Stripe)",
+        "parameters": [
+          { "name": "session_id", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Webhook de Stripe",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/tickets/enqueue": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Encolar generación/envío de ticket",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "202": { "description": "Encolado" } }
+      }
+    },
+    "/api/tickets/send-email": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Enviar ticket por email",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "Enviado" } }
+      }
+    },
+
+    "/api/upload-avatar": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Subir avatar",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "201": { "description": "Subido" } }
+      },
+      "delete": {
+        "tags": ["Uploads"],
+        "summary": "Eliminar avatar",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminado" } }
+      }
+    },
+
+    "/api/user/role": {
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Asignar/cambiar rol de usuario",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "userId": { "type": "string" }, "role": { "type": "string" } }, "required": ["userId","role"] } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/views/{id}": {
+      "parameters": [
+        { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+      ],
+      "post": {
+        "tags": ["Vistas/Views"],
+        "summary": "Registrar/actualizar vista por id",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Obtener vista por id",
+        "responses": { "200": { "description": "OK" }, "404": { "description": "No encontrado" } }
+      }
+    },
+    "/api/views/{id}/history": {
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Histórico de vistas por id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/views/{id}/daily-sync": {
+      "post": {
+        "tags": ["Vistas/Views"],
+        "summary": "Sincronizar vistas diarias por id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Obtener sync diario por id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  }
+}
