@@ -1,100 +1,176 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-// Mock data for demonstration purposes
-const mockDeploys = [
-  {
-    id: '1',
-    status: 'ready' as const,
-    environment: 'production',
-    isCurrent: true,
-    duration: '2m 30s',
-    timeAgo: '2 hours ago',
-    repository: 'ticketeate/web',
-    branch: 'main',
-    commit: 'a1b2c3d',
-    message: 'feat: Add new ticket management features',
-    date: '2024-01-15T10:30:00Z',
-    author: 'John Doe',
-    avatar: 'https://github.com/github.png',
-    htmlUrl: 'https://github.com/ticketeate/web/commit/a1b2c3d',
-    runNumber: 123,
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-01-15T10:32:30Z',
-  },
-  {
-    id: '2',
-    status: 'error' as const,
-    environment: 'staging',
-    isCurrent: false,
-    duration: '1m 45s',
-    timeAgo: '4 hours ago',
-    repository: 'ticketeate/web',
-    branch: 'feature/new-ui',
-    commit: 'e4f5g6h',
-    message: 'fix: Resolve authentication issues',
-    date: '2024-01-15T08:15:00Z',
-    author: 'Jane Smith',
-    avatar: 'https://github.com/github.png',
-    htmlUrl: 'https://github.com/ticketeate/web/commit/e4f5g6h',
-    runNumber: 122,
-    createdAt: '2024-01-15T08:15:00Z',
-    updatedAt: '2024-01-15T08:16:45Z',
-  },
-  {
-    id: '3',
-    status: 'building' as const,
-    environment: 'development',
-    isCurrent: false,
-    duration: '0m 30s',
-    timeAgo: '10 minutes ago',
-    repository: 'ticketeate/web',
-    branch: 'hotfix/urgent-fix',
-    commit: 'i7j8k9l',
-    message: 'hotfix: Fix critical payment bug',
-    date: '2024-01-15T12:20:00Z',
-    author: 'Bob Johnson',
-    avatar: 'https://github.com/github.png',
-    htmlUrl: 'https://github.com/ticketeate/web/commit/i7j8k9l',
-    runNumber: 124,
-    createdAt: '2024-01-15T12:20:00Z',
-    updatedAt: '2024-01-15T12:20:30Z',
-  },
-];
+interface Deploy {
+  id: string;
+  status: 'ready' | 'error' | 'building';
+  environment: string;
+  isCurrent: boolean;
+  duration: string;
+  timeAgo: string;
+  repository: string;
+  branch: string;
+  commit: string;
+  message: string;
+  date: string;
+  author: string;
+  avatar: string;
+  htmlUrl: string;
+  runNumber: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const environment = searchParams.get('environment') || 'all';
-    const page = parseInt(searchParams.get('page') || '1');
-    const perPage = parseInt(searchParams.get('per_page') || '10');
+  const { searchParams } = new URL(request.url);
+  const owner = searchParams.get('owner') || process.env.GITHUB_OWNER;
+  const repo = searchParams.get('repo') || process.env.GITHUB_REPO;
+  const environment = searchParams.get('environment') || 'all';
+  const page = parseInt(searchParams.get('page') || '1');
+  const perPage = parseInt(searchParams.get('per_page') || '10');
 
-    // Filter deploys by environment
-    let filteredDeploys = mockDeploys;
-    if (environment !== 'all') {
-      filteredDeploys = mockDeploys.filter((deploy) => deploy.environment === environment);
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'GitHub token not configured' },
+      { status: 500 }
+    );
+  }
+
+  try {
+    // Obtener workflow runs (deploys)
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/actions/runs?per_page=${perPage}&page=${page}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'Admin-Panel-App',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
     }
 
-    // Calculate pagination
-    const totalCount = filteredDeploys.length;
-    const totalPages = Math.ceil(totalCount / perPage);
-    const startIndex = (page - 1) * perPage;
-    const endIndex = startIndex + perPage;
-    const paginatedDeploys = filteredDeploys.slice(startIndex, endIndex);
+    const data = await response.json();
+    const totalCount = data.total_count;
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Obtener información del deployment más reciente para determinar cuál es el "current"
+    const deploymentsResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/deployments?per_page=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'Admin-Panel-App',
+        },
+      }
+    );
+
+    let currentDeploymentId = null;
+    if (deploymentsResponse.ok) {
+      const deploymentsData = await deploymentsResponse.json();
+      if (deploymentsData.length > 0) {
+        currentDeploymentId = deploymentsData[0].id;
+      }
+    }
+
+    const deploys: Deploy[] = data.workflow_runs.map((run: any) => {
+      const startTime = new Date(run.created_at);
+      const endTime = run.updated_at ? new Date(run.updated_at) : new Date();
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const duration = formatDuration(durationMs);
+      const timeAgo = formatTimeAgo(startTime);
+
+      return {
+        id: run.id.toString(),
+        status: mapGitHubStatus(run.status, run.conclusion),
+        environment: 'Production', // Por defecto, se puede expandir después
+        isCurrent: run.id.toString() === currentDeploymentId?.toString(),
+        duration,
+        timeAgo,
+        repository: repo,
+        branch: run.head_branch,
+        commit: run.head_commit?.sha?.substring(0, 7) || 'N/A',
+        message: run.head_commit?.message || 'No commit message',
+        date: startTime.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        author: run.head_commit?.author?.name || 'Unknown',
+        avatar: run.head_commit?.author?.avatar_url || '/placeholder.svg',
+        htmlUrl: run.html_url,
+        runNumber: run.run_number,
+        createdAt: run.created_at,
+        updatedAt: run.updated_at,
+      };
+    });
+
+    // Filtrar por environment si no es "all"
+    const filteredDeploys =
+      environment === 'all'
+        ? deploys
+        : deploys.filter(
+            (deploy: Deploy) =>
+              deploy.environment.toLowerCase() === environment.toLowerCase()
+          );
 
     return NextResponse.json({
-      deploys: paginatedDeploys,
+      deploys: filteredDeploys,
       pagination: {
         page,
         perPage,
         totalCount,
-        totalPages,
+        totalPages: Math.ceil(totalCount / perPage),
       },
     });
   } catch (error) {
-    console.error('Error fetching deploys:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching GitHub deploys:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch deploys' },
+      { status: 500 }
+    );
+  }
+}
+
+function mapGitHubStatus(
+  status: string,
+  conclusion: string
+): 'ready' | 'error' | 'building' {
+  if (status === 'completed') {
+    return conclusion === 'success' ? 'ready' : 'error';
+  } else if (status === 'in_progress') {
+    return 'building';
+  } else if (status === 'queued' || status === 'waiting') {
+    return 'building';
+  } else {
+    return 'error';
+  }
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes > 0) {
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+  return `${seconds}s`;
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return 'today';
+  } else if (diffDays === 1) {
+    return '1d ago';
+  } else {
+    return `${diffDays}d ago`;
   }
 }
