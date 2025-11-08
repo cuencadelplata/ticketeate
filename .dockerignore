@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules
+pnpm-store
+.pnpm-store
+
+# Build outputs
+.next
+dist
+build
+.turbo
+.swc
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.jest
+coverage
+.nyc_output
+
+# Environment
+.env.local
+.env.*.local
+.env
+
+# Documentation
+README.md
+docs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Development files
+test-*.js
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx

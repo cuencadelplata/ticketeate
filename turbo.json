@@ -25,7 +25,7 @@
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json", "src/**/*.ts", "src/**/*.tsx"]
     },
     "dev": {
-      "cache": false,
+      "cache": true,
       "persistent": true
     },
     "cli#build": {

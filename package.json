@@ -4,8 +4,16 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=Ticketeate",
+    "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=ticketeate",
     "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=Ticketeate",
+    "dev:local": "powershell -File ./dev.ps1",
+    "dev:local:bash": "bash ./dev.sh",
+    "dev:stop": "powershell -File ./dev.ps1 -StopOnly",
+    "dev:clean": "powershell -File ./dev.ps1 -Clean",
+    "redis:start": "docker compose -f docker-compose.dev.yml up -d redis",
+    "redis:stop": "docker compose -f docker-compose.dev.yml down",
+    "redis:logs": "docker logs ticketeate-redis-dev -f",
+    "redis:cli": "docker exec -it ticketeate-redis-dev redis-cli -a ticketeate123",
     "lint": "turbo run lint --filter=./apps/* --output-logs=full",
     "lint:ci": "set CI=1 && turbo run lint --filter=./apps/* --no-cache --output-logs=full",
     "lint:apps": "turbo run lint --filter=apps/*",
@@ -21,10 +29,10 @@
     "packages/*"
   ],
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",
-    "typescript": "5.9.2",
-    "cross-env": "^7.0.3"
+    "typescript": "5.9.2"
   },
   "engines": {
     "node": ">=18"

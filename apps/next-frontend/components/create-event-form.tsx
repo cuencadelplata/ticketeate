@@ -1,6 +1,6 @@
 'use client';
 
-// Elimina imports duplicados y mantén solo uno de cada
+import React from 'react';
 import { useState, useMemo } from 'react';
 import {
   Globe,
@@ -14,6 +14,7 @@ import {
   Tag,
   X,
   Lock,
+  Clock,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/dialog';
 import { Navbar } from './navbar';
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
-import React from 'react';
 import UploadImageModal from './UploadImageModal';
 import { DateSelect } from './date-select';
 import { TimeSelect } from './time-select';
@@ -38,7 +38,7 @@ import { useWalletStatus } from '@/hooks/use-wallet';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useCreateEvent } from '@/hooks/use-events';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 import type { CreateEventData } from '@/types/events';
 import { categories } from '@/data/categories';
 import {
@@ -148,6 +148,15 @@ export default function CreateEventForm() {
   const [eventName, setEventName] = useState('');
   const [selected, setSelected] = useState<'public' | 'private'>('public');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [schedulePublication, setSchedulePublication] = useState<{
+    enabled: boolean;
+    date: Date;
+    time: string;
+  }>({
+    enabled: false,
+    date: new Date(),
+    time: '00:00',
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -257,11 +266,18 @@ export default function CreateEventForm() {
   };
 
   const createEventMutation = useCreateEvent();
-  const { isSignedIn } = useAuth();
+  const { data: session } = useSession();
 
   const handleCreateEvent = async () => {
-    if (!isSignedIn) {
+    if (!session) {
       toast.error('Debes iniciar sesión para crear eventos');
+      return;
+    }
+
+    // Verificar que el usuario tenga rol de ORGANIZADOR
+    const userRole = (session as any).user?.role;
+    if (userRole !== 'ORGANIZADOR') {
+      toast.error('Solo los organizadores pueden crear eventos');
       return;
     }
 
@@ -295,30 +311,50 @@ export default function CreateEventForm() {
     const [endHour, endMinute] = mainDate.endTime.split(':');
     endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
 
+    // Determinar el estado inicial basado en la programación
+    let estadoInicial: 'ACTIVO' | 'OCULTO';
+    let fechaPublicacion: string | undefined;
+
+    if (schedulePublication.enabled) {
+      // Si está programado, crear con fecha de publicación futura
+      const scheduledDateTime = new Date(schedulePublication.date);
+      const [hour, minute] = schedulePublication.time.split(':');
+      scheduledDateTime.setHours(parseInt(hour), parseInt(minute));
+
+      // Si la fecha programada es en el futuro, crear como OCULTO
+      if (scheduledDateTime > new Date()) {
+        estadoInicial = 'OCULTO';
+        fechaPublicacion = scheduledDateTime.toISOString();
+      } else {
+        // Si la fecha programada es en el pasado o ahora, crear como ACTIVO
+        estadoInicial = selected === 'public' ? 'ACTIVO' : 'OCULTO';
+      }
+    } else {
+      // Si no está programado, usar la lógica original
+      estadoInicial = selected === 'public' ? 'ACTIVO' : 'OCULTO';
+    }
+
     const eventData: CreateEventData = {
       titulo: eventName,
-      fecha_inicio_venta: startDateTime.toISOString(),
-      fecha_fin_venta: endDateTime.toISOString(),
-      estado: selected === 'public' ? 'ACTIVO' : 'OCULTO',
+      estado: estadoInicial,
       ubicacion: location.address,
       descripcion: description,
       imageUrl: eventImages.length > 0 ? eventImages[0] : undefined,
       galeria_imagenes: eventImages.length > 1 ? eventImages.slice(1) : undefined,
-      fechas_adicionales: eventDates
-        .filter((date) => !date.isMain)
-        .map((date) => ({
-          fecha_inicio: new Date(
-            date.startDate.getTime() +
-              (parseInt(date.startTime.split(':')[0]) * 60 +
-                parseInt(date.startTime.split(':')[1])) *
-                60000,
-          ).toISOString(),
-          fecha_fin: new Date(
-            date.endDate.getTime() +
-              (parseInt(date.endTime.split(':')[0]) * 60 + parseInt(date.endTime.split(':')[1])) *
-                60000,
-          ).toISOString(),
-        })),
+      fechas_evento: eventDates.map((date) => {
+        const startDateTime = new Date(date.startDate);
+        const [startHour, startMinute] = date.startTime.split(':');
+        startDateTime.setHours(parseInt(startHour), parseInt(startMinute));
+
+        const endDateTime = new Date(date.endDate);
+        const [endHour, endMinute] = date.endTime.split(':');
+        endDateTime.setHours(parseInt(endHour), parseInt(endMinute));
+
+        return {
+          fecha_hora: startDateTime.toISOString(),
+          fecha_fin: endDateTime.toISOString(),
+        };
+      }),
       eventMap: location.eventMap,
       ticket_types:
         ticketInfo.type === 'paid' && ticketTypesState.length > 0
@@ -339,6 +375,7 @@ export default function CreateEventForm() {
               };
             })
           : undefined,
+      fecha_publicacion: fechaPublicacion,
     };
 
     createEventMutation.mutate(eventData, {
@@ -347,6 +384,7 @@ export default function CreateEventForm() {
           description: `${event.titulo} ha sido creado y está listo para compartir.`,
         });
 
+        // Limpiar el formulario
         setEventName('');
         setDescription('');
         setEventImages([]);
@@ -362,6 +400,11 @@ export default function CreateEventForm() {
           },
         ]);
         setSelectedCategories([]);
+
+        // Navegar a la página de eventos después de un breve delay para que el usuario vea el toast
+        setTimeout(() => {
+          router.push('/eventos');
+        }, 1500);
       },
       onError: (error) => {
         toast.error(error.message || 'Error al crear el evento');
@@ -659,7 +702,7 @@ export default function CreateEventForm() {
                   <div className="flex items-center justify-between">
                     <EventTicket
                       onTicketChange={setTicketInfo}
-                      onConnectWallet={() => router.push('/settings')}
+                      onConnectWallet={() => router.push('/configuracion')}
                       currentTicketInfo={ticketInfo}
                     />
                   </div>
@@ -708,13 +751,87 @@ export default function CreateEventForm() {
                 )}
               </div>
 
+              {/* Programación de publicación */}
+              <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
+                <div className="flex items-center gap-2 pb-1">
+                  <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                  <h3 className="text-sm font-semibold text-stone-200">Programar publicación</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="schedule-publication"
+                      checked={schedulePublication.enabled}
+                      onChange={(e) => {
+                        setSchedulePublication((prev) => ({
+                          ...prev,
+                          enabled: e.target.checked,
+                        }));
+                      }}
+                      className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+                    />
+                    <label htmlFor="schedule-publication" className="text-sm text-stone-300">
+                      Programar cuándo se publicará el evento
+                    </label>
+                  </div>
+
+                  {schedulePublication.enabled && (
+                    <div className="space-y-2 pl-6">
+                      <div className="flex items-center gap-2">
+                        <DateSelect
+                          value={schedulePublication.date}
+                          onChange={(date) => {
+                            if (date) {
+                              setSchedulePublication((prev) => ({
+                                ...prev,
+                                date,
+                              }));
+                            }
+                          }}
+                        />
+                        <TimeSelect
+                          value={schedulePublication.time}
+                          onChange={(time) => {
+                            setSchedulePublication((prev) => ({
+                              ...prev,
+                              time,
+                            }));
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-stone-400">
+                        💡 El evento se mantendrá oculto hasta la fecha programada.
+                        {schedulePublication.enabled && (
+                          <span className="block mt-1">
+                            Se publicará el {schedulePublication.date.toLocaleDateString('es-ES')} a
+                            las {schedulePublication.time}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  {!schedulePublication.enabled && (
+                    <p className="text-xs text-stone-400 pl-6">
+                      El evento se publicará inmediatamente después de crearlo.
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <Button
                 onClick={handleCreateEvent}
                 size="md"
                 className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={createEventMutation.isPending}
+                disabled={createEventMutation.isPending || !session}
               >
-                {createEventMutation.isPending ? 'Creando evento...' : 'Crear evento'}
+                {!session
+                  ? 'Inicia sesión para crear eventos'
+                  : createEventMutation.isPending
+                    ? 'Creando evento...'
+                    : 'Crear evento'}
               </Button>
             </div>
           </div>

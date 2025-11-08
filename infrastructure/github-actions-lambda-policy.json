@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:UpdateFunctionCode",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:lambda:us-east-2:665352994810:function:ticketeate-svc-users-production",
+        "arn:aws:lambda:us-east-2:665352994810:function:ticketeate-svc-events-production",
+        "arn:aws:lambda:us-east-2:665352994810:function:ticketeate-svc-producers-production",
+        "arn:aws:lambda:us-east-2:665352994810:function:ticketeate-svc-checkout-production"
+      ]
+    }
+  ]
+}

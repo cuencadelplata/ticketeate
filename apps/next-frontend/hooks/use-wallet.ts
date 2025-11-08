@@ -1,59 +1,99 @@
 'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 
 export function useWalletStatus() {
-  const { getToken } = useAuth();
+  const { data: session } = useSession();
   return useQuery({
     queryKey: ['wallet-status'],
     queryFn: async () => {
-      const token = await getToken();
+      const token = session?.session?.token ?? '';
       const res = await fetch(API_ENDPOINTS.wallet, {
-        headers: { Authorization: `Bearer ${token ?? ''}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Error al obtener estado de billetera');
-      return res.json() as Promise<{ wallet_linked: boolean; wallet_provider: string | null }>;
+      return res.json();
     },
-    staleTime: 60 * 1000,
+    enabled: !!session?.session?.token,
   });
 }
 
 export function useLinkWallet() {
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+
   return useMutation({
     mutationFn: async (provider: string = 'mercado_pago') => {
-      const token = await getToken();
-      const res = await fetch(API_ENDPOINTS.walletLink, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token ?? ''}`,
-        },
-        body: JSON.stringify({ provider }),
-      });
-      if (!res.ok) throw new Error('Error al vincular billetera');
-      return res.json();
+      if (provider === 'mock') {
+        // Para simulación, hacer llamada directa a la API
+        const token = session?.session?.token ?? '';
+        const res = await fetch(API_ENDPOINTS.walletLink, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ provider: 'mock' }),
+        });
+        if (!res.ok) throw new Error('Error al vincular billetera simulada');
+        return res.json();
+      } else {
+        // Para Mercado Pago real, redirigir al endpoint de OAuth
+        window.location.href = '/api/mercadopago/auth';
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet-status'] }),
+    onSuccess: () => {
+      // Invalidar la query para refrescar el estado
+      queryClient.invalidateQueries({ queryKey: ['wallet-status'] });
+    },
   });
 }
 
 export function useUnlinkWallet() {
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
-  const { getToken } = useAuth();
+
   return useMutation({
     mutationFn: async () => {
-      const token = await getToken();
+      const token = session?.session?.token ?? '';
       const res = await fetch(API_ENDPOINTS.walletUnlink, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token ?? ''}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (!res.ok) throw new Error('Error al desvincular billetera');
       return res.json();
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet-status'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet-status'] });
+    },
+  });
+}
+
+export function useSimulatePayment() {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (paymentData: { amount: number; eventId: string; ticketCount: number }) => {
+      const token = session?.session?.token ?? '';
+      const res = await fetch(`${API_ENDPOINTS.wallet}/simulate-payment`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+      if (!res.ok) throw new Error('Error al simular pago');
+      return res.json();
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas con pagos si las hay
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
   });
 }

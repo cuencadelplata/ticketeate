@@ -1,18 +1,25 @@
 const { config } = require("@repo/eslint-config");
+const tseslint = require("typescript-eslint");
 
 module.exports = [
   ...config,
+  ...tseslint.configs.recommended,
   {
     files: ["src/**/*.ts", "dev.ts"],
+    ignores: ["**/*.config.js", "**/*.config.ts"],
     languageOptions: {
-      parser: require("@typescript-eslint/parser"),
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: "module",
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
       },
-    },
-    plugins: {
-      "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
+      globals: {
+        fetch: "readonly",
+        Response: "readonly",
+        Request: "readonly",
+        Headers: "readonly",
+      },
     },
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",

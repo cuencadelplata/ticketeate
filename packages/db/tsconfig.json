@@ -13,9 +13,15 @@
     "declarationMap": true,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "composite": true
+    "composite": true,
+    "moduleResolution": "node",
+    "emitDeclarationOnly": false
   },
-  "include": ["src/**/*"],
+  "files": [
+    "src/index.ts",
+    "src/auth.ts",
+    "src/categories-sync.ts",
+  ],
   "exclude": ["node_modules", "dist"]
 }
 

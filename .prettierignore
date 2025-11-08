@@ -17,6 +17,9 @@
 # tipos/archivos generados
 **/*.d.ts
 
+# CHANGELOGs generados por semantic-release
+**/CHANGELOG.md
+
 # (opcional) locks (no los toca el check, pero por las dudas)
 pnpm-lock.yaml
 

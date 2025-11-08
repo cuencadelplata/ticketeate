@@ -8,7 +8,7 @@
   "sideEffects": false,
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck",
     "dev": "tsup --watch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "db:generate": "prisma generate",
@@ -16,11 +16,17 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
+    "db:seed-categories": "tsx src/seed-categories.ts",
+    "db:seed-events": "tsx src/seed-events.ts",
+    "db:seed-all": "tsx src/seed-categories.ts && tsx src/seed-events.ts",
+    "categories:sync": "tsx src/categories-sync.ts",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"
   },
   "dependencies": {
-    "@prisma/client": "^6.15.0"
+    "@prisma/client": "^6.15.0",
+    "better-auth": "^1.0.0",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

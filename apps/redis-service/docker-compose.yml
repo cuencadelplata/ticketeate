@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  redis:
+    build:
+      context: ../..
+      dockerfile: apps/redis-service/Dockerfile
+    container_name: ticketeate-redis-local
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ../../redis.conf:/usr/local/etc/redis/redis.conf:ro
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-ticketeate123}
+      - TZ=America/Argentina/Buenos_Aires
+    networks:
+      - redis-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-ticketeate123}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: ticketeate-redis-insight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight-data:/data
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
+    networks:
+      - redis-network
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis-data:
+    driver: local
+    name: ticketeate-redis-data
+  redis-insight-data:
+    driver: local
+    name: ticketeate-redis-insight-data
+
+networks:
+  redis-network:
+    driver: bridge
+    name: ticketeate-redis-network

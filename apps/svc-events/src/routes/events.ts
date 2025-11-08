@@ -1,13 +1,41 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { cors } from 'hono/cors';
-import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
+import { prisma } from '@repo/db';
 import { config } from 'dotenv';
+import jwt from 'jsonwebtoken';
 
 // Cargar variables de entorno
 config();
+
 const events = new Hono();
+
+// Helper function to validate JWT token using traditional JWT
+function validateJWT(c: Context) {
+  try {
+    const authHeader = c.req.header('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify JWT token using shared secret
+    const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
+      issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
+      audience: process.env.FRONTEND_URL || 'http://localhost:3000',
+      algorithms: ['HS256'], // Specify algorithm
+    });
+
+    return payload as jwt.JwtPayload;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('JWT validation failed:', error);
+    return null;
+  }
+}
 
 // CORS para permitir Authorization y cookies (credenciales)
 events.use(
@@ -22,29 +50,10 @@ events.use(
   }),
 );
 
-events.use(
-  '*',
-  clerkMiddleware({
-    secretKey: process.env.CLERK_SECRET_KEY,
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-  }),
-);
-
 // GET /api/events/all - Público: Obtener todos los eventos (activos y pasados)
 events.get('/all', async (c) => {
   try {
     const events = await EventService.getAllPublicEvents();
-
-    // Debug: verificar categorías en el backend
-    console.log('🔍 Backend - Total events:', events.length);
-    events.forEach((event, index) => {
-      console.log(`🎯 Backend Event ${index}:`, {
-        titulo: event.titulo,
-        catevento: event.catevento,
-        hasCategories: event.catevento && event.catevento.length > 0,
-        categoriaCount: event.catevento?.length || 0,
-      });
-    });
 
     return c.json({
       events,
@@ -86,18 +95,20 @@ events.get('/public/:id', async (c) => {
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    // Validate JWT token directly
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const body = await c.req.json();
 
     // Validar datos requeridos
-    if (!body.titulo || !body.fecha_inicio_venta || !body.fecha_fin_venta) {
+    if (!body.titulo || !body.fechas_evento || body.fechas_evento.length === 0) {
       return c.json(
         {
-          error: 'Faltan campos requeridos: titulo, fecha_inicio_venta, fecha_fin_venta',
+          error: 'Faltan campos requeridos: titulo, fechas_evento',
         },
         400,
       );
@@ -108,19 +119,19 @@ events.post('/', async (c) => {
       titulo: body.titulo,
       descripcion: body.descripcion,
       ubicacion: body.ubicacion,
-      fecha_inicio_venta: new Date(body.fecha_inicio_venta),
-      fecha_fin_venta: new Date(body.fecha_fin_venta),
       estado: body.estado || 'OCULTO',
       imageUrl: body.imageUrl, // URL de imagen de portada ya subida a Cloudinary
       galeria_imagenes: body.galeria_imagenes, // Array de URLs de galería
-      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
-        fecha_inicio: new Date(fecha.fecha_inicio),
-        fecha_fin: new Date(fecha.fecha_fin),
-      })),
+      fechas_evento: body.fechas_evento.map(
+        (fecha: { fecha_hora: string; fecha_fin?: string }) => ({
+          fecha_hora: new Date(fecha.fecha_hora),
+          fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
+        }),
+      ),
       eventMap: body.eventMap, // Mapa del canvas con sectores y elementos
-      clerkUserId: auth.userId,
+      userId: jwtPayload.id,
       ticket_types: body.ticket_types,
-      categorias: body.categorias,
+      fecha_publicacion: body.fecha_publicacion, // Fecha programada para publicar el evento
     };
 
     // Crear el evento
@@ -148,8 +159,8 @@ events.post('/', async (c) => {
 // POST /api/events/upload-image - Subir imagen para un evento
 events.post('/upload-image', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -176,7 +187,7 @@ events.post('/upload-image', async (c) => {
         format: uploadResult.format,
         size: uploadResult.size,
       },
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -190,20 +201,48 @@ events.post('/upload-image', async (c) => {
   }
 });
 
+// GET /api/events/categories - Obtener todas las categorías disponibles
+events.get('/categories', async (c) => {
+  try {
+    const categories = await prisma.categoriaevento.findMany({
+      orderBy: { nombre: 'asc' },
+    });
+
+    return c.json({
+      categories: categories.map((cat) => ({
+        id: cat.categoriaeventoid, // Now it's a number, no conversion needed
+        name: cat.nombre,
+        description: cat.descripcion,
+      })),
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error getting categories:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
+      500,
+    );
+  }
+});
+
 // GET /api/events - Obtener eventos del usuario
 events.get('/', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    // Use direct JWT validation like POST route
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
-    const events = await EventService.getUserEvents(auth.userId);
+    const events = await EventService.getUserEvents(jwtPayload.id);
 
     return c.json({
       events,
       total: events.length,
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -220,8 +259,8 @@ events.get('/', async (c) => {
 // GET /api/events/:id - Obtener evento específico
 events.get('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
@@ -235,7 +274,7 @@ events.get('/:id', async (c) => {
 
     return c.json({
       event,
-      userId: auth.userId,
+      userId: jwtPayload.id,
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -252,33 +291,33 @@ events.get('/:id', async (c) => {
 // PUT /api/events/:id - Actualizar un evento
 events.put('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const id = c.req.param('id');
     const body = await c.req.json();
 
-    const updated = await EventService.updateEvent(id, auth.userId, {
+    const updated = await EventService.updateEvent(id, jwtPayload.id, {
       titulo: body.titulo,
       descripcion: body.descripcion,
       ubicacion: body.ubicacion,
-      fecha_inicio_venta: body.fecha_inicio_venta ? new Date(body.fecha_inicio_venta) : undefined,
-      fecha_fin_venta: body.fecha_fin_venta ? new Date(body.fecha_fin_venta) : undefined,
       estado: body.estado,
       imageUrl: body.imageUrl,
       galeria_imagenes: body.galeria_imagenes,
-      fechas_adicionales: body.fechas_adicionales?.map((fecha: any) => ({
-        fecha_inicio: new Date(fecha.fecha_inicio),
-        fecha_fin: new Date(fecha.fecha_fin),
-      })),
+      fechas_evento: body.fechas_evento?.map(
+        (fecha: { fecha_hora: string; fecha_fin?: string }) => ({
+          fecha_hora: new Date(fecha.fecha_hora),
+          fecha_fin: fecha.fecha_fin ? new Date(fecha.fecha_fin) : undefined,
+        }),
+      ),
       eventMap: body.eventMap,
       ticket_types: body.ticket_types,
     });
 
     return c.json({
-      message: 'Evento actualizado exitosamente',
+      message: 'Evento actualizado exitosamente (soft update)',
       event: updated,
     });
   } catch (error) {
@@ -294,14 +333,14 @@ events.put('/:id', async (c) => {
 // DELETE /api/events/:id - Borrado lógico
 events.delete('/:id', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const id = c.req.param('id');
-    await EventService.softDeleteEvent(id, auth.userId);
-    return c.json({ message: 'Evento cancelado (borrado lógico) correctamente' });
+    await EventService.softDeleteEvent(id, jwtPayload.id);
+    return c.json({ message: 'Evento ocultado (borrado lógico) correctamente' });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error deleting event:', error);
@@ -315,22 +354,21 @@ events.delete('/:id', async (c) => {
 // POST /api/events/:id/categories - agregar categorías a un evento
 events.post('/:id/categories', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const id = c.req.param('id');
-    const body = await c.req.json();
-    const categories = Array.isArray(body?.categories) ? body.categories : [];
 
     // Verificar owner
     const event = await EventService.getEventById(id);
     if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
-    if (event.creadorid !== auth.userId) return c.json({ error: 'No autorizado' }, 403);
+    if (event.creadorid !== jwtPayload.id) return c.json({ error: 'No autorizado' }, 403);
 
-    const linked = await EventService.addCategoriesToEvent(id, categories);
-    return c.json({ message: 'Categorías actualizadas', categories: linked });
+    // TODO: Implementar métodos en EventService
+    // const linked = await EventService.addCategoriesToEvent(id, categories);
+    return c.json({ message: 'Categorías actualizadas', categories: [] });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error adding categories:', error);
@@ -344,25 +382,47 @@ events.post('/:id/categories', async (c) => {
 // DELETE /api/events/:id/categories/:categoryId - quitar categoría de un evento
 events.delete('/:id/categories/:categoryId', async (c) => {
   try {
-    const auth = getAuth(c);
-    if (!auth?.userId) {
+    const jwtPayload = validateJWT(c);
+    if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
 
     const id = c.req.param('id');
-    const categoryId = Number(c.req.param('categoryId'));
 
     const event = await EventService.getEventById(id);
     if (!event) return c.json({ error: 'Evento no encontrado' }, 404);
-    if (event.creadorid !== auth.userId) return c.json({ error: 'No autorizado' }, 403);
+    if (event.creadorid !== jwtPayload.id) return c.json({ error: 'No autorizado' }, 403);
 
-    const remaining = await EventService.removeCategoryFromEvent(id, categoryId);
-    return c.json({ message: 'Categoría removida', categories: remaining });
+    // TODO: Implementar métodos en EventService
+    // const remaining = await EventService.removeCategoryFromEvent(id, categoryId);
+    return c.json({ message: 'Categoría removida', categories: [] });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error removing category:', error);
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// POST /api/events/publish-scheduled - Publicar eventos programados (para uso interno/cron)
+events.post('/publish-scheduled', async (c) => {
+  try {
+    const result = await EventService.publishScheduledEvents();
+
+    return c.json({
+      message: 'Eventos programados procesados',
+      published: result.published,
+      errors: result.errors,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error publishing scheduled events:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
+      },
       500,
     );
   }

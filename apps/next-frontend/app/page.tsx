@@ -1,11 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event-card';
-import { Footer } from '@/components/footer';
 import { Hero } from '@/components/hero';
+import { CategorySelector } from '@/components/category-selector';
+import { EventFiltersBar, EventFilter } from '@/components/event-filters-bar';
 import { useAllEvents } from '@/hooks/use-events';
+import { MapPin } from 'lucide-react';
+import { useSearch } from '@/contexts/search-context';
+
 const estadoEvents: Record<string, string> = {
   ACTIVO: 'Disponibles',
   COMPLETADO: 'Completado',
@@ -14,12 +18,13 @@ const estadoEvents: Record<string, string> = {
 };
 
 function mapEstados(estado?: string) {
-  //mapeo disponibilidad events
   return estadoEvents[estado ?? ''] ?? 'Oculto';
 }
 
 export default function Home() {
   const { data: allEvents = [], isLoading } = useAllEvents(); //tanstack query
+  const [activeFilters, setActiveFilters] = useState<EventFilter[]>([]);
+  const { searchQuery } = useSearch();
 
   const uiEvents = useMemo(() => {
     return (allEvents || []).map((evt) => {
@@ -31,7 +36,7 @@ export default function Home() {
       // Obtener fecha del evento
       const eventDate = evt.fechas_evento?.[0]?.fecha_hora
         ? new Date(evt.fechas_evento[0].fecha_hora)
-        : new Date(evt.fecha_creacion);
+        : new Date(evt.fecha_creacion || Date.now());
       const date = eventDate.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
@@ -41,14 +46,8 @@ export default function Home() {
       // Obtener estado actual del evento
       const estadoActual = evt.evento_estado?.[0]?.Estado || 'OCULTO';
 
-      // Obtener categorías
-      const categorias = evt.catevento?.map((cat) => cat.categoriaevento.nombre) || [];
-      const categoriaPrincipal = categorias[0] || 'Evento';
-
-      // Debug temporal - solo mostrar si hay categorías
-      if (evt.catevento && evt.catevento.length > 0) {
-        console.log('Evento con categorías:', evt.titulo, 'Categorías:', categorias);
-      }
+      // Obtener categoría principal del evento
+      const categoriaPrincipal = evt.evento_categorias?.[0]?.categoriaevento?.nombre || 'Evento';
 
       // Determinar si es gratis o pago
       const isFree =
@@ -83,128 +82,238 @@ export default function Home() {
         href: `/evento/${evt.eventoid}`,
         // Nuevos campos
         isFree,
-        categorias: categorias,
+        categorias: [categoriaPrincipal],
         fechasAdicionales: fechasAdicionales,
-        totalDates: (evt.fechas_evento?.length || 0) + 1, // +1 por la fecha principal
+        totalDates: evt.fechas_evento?.length || 1, // Total de fechas del evento
       };
     });
   }, [allEvents]);
 
   // Filtrar eventos por fecha
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
-    return uiEvents.filter((event) => event.eventDate > now);
-  }, [uiEvents]);
-
   const pastEvents = useMemo(() => {
     const now = new Date();
     return uiEvents.filter((event) => event.eventDate <= now);
   }, [uiEvents]);
 
+  // Filtrar eventos según los filtros activos y búsqueda
+  const filteredEvents = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Obtener día de la semana (0 = domingo, 6 = sábado)
+    const dayOfWeek = now.getDay();
+    const daysUntilSaturday = dayOfWeek === 0 ? 6 : 6 - dayOfWeek;
+    const nextSaturday = new Date(today);
+    nextSaturday.setDate(nextSaturday.getDate() + daysUntilSaturday);
+    const nextSunday = new Date(nextSaturday);
+    nextSunday.setDate(nextSunday.getDate() + 1);
+    const mondayAfter = new Date(nextSunday);
+    mondayAfter.setDate(mondayAfter.getDate() + 1);
+
+    let filtered = [...uiEvents];
+
+    // Aplicar búsqueda en tiempo real
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (event) =>
+          event.title.toLowerCase().includes(query) ||
+          event.description.toLowerCase().includes(query) ||
+          event.category.toLowerCase().includes(query) ||
+          event.category2.toLowerCase().includes(query),
+      );
+    }
+
+    // Si "Todos" está activo o no hay filtros, mostrar todos los eventos próximos
+    const allFilterActive = activeFilters.find((f) => f.id === 'all')?.active;
+    if (allFilterActive || activeFilters.length === 0) {
+      return filtered.filter((event) => event.eventDate > now);
+    }
+
+    // Aplicar filtros activos
+    activeFilters.forEach((filter) => {
+      if (!filter.active || filter.id === 'all') return;
+
+      switch (filter.id) {
+        case 'online':
+          filtered = filtered.filter((event) => event.category2?.toLowerCase().includes('online'));
+          break;
+        case 'today':
+          filtered = filtered.filter((event) => {
+            const eventDate = new Date(event.eventDate);
+            return eventDate >= today && eventDate < tomorrow;
+          });
+          break;
+        case 'weekend':
+          filtered = filtered.filter((event) => {
+            const eventDate = new Date(event.eventDate);
+            return eventDate >= nextSaturday && eventDate < mondayAfter;
+          });
+          break;
+        case 'free':
+          filtered = filtered.filter((event) => event.isFree);
+          break;
+        case 'music':
+          filtered = filtered.filter((event) => event.category?.toLowerCase().includes('música'));
+          break;
+      }
+    });
+
+    return filtered.filter((event) => event.eventDate > now);
+  }, [uiEvents, activeFilters, searchQuery]);
+
+  // Eventos destacados (primeros 10 eventos próximos para llenar 2 filas de 5)
+  const featuredEvents = useMemo(() => {
+    return filteredEvents.slice(0, 10);
+  }, [filteredEvents]);
+
   return (
     <main className="min-h-screen">
       <Hero />
 
+      <CategorySelector />
+
+      {/* Barra de filtros sticky */}
+      <EventFiltersBar onFilterChange={setActiveFilters} />
+
       <>
-        {/* Sección principal de eventos */}
-        <section className="pt-16 pb-16 bg-white">
-          <div className="max-w-full mx-auto px-2">
+        {/* Sección de Tendencias Principales - Similar a Eventbrite */}
+        {featuredEvents.length > 0 && (
+          <section className="pt-12 pb-8 bg-white dark:bg-stone-950">
+            <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="mb-8"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-instrument-serif text-3xl sm:text-4xl lg:text-5xl bg-gradient-to-b from-black to-stone-900 dark:from-white dark:to-stone-300 bg-clip-text text-transparent">
+                    Tendencias principales en Buenos Aires
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
+                  <MapPin className="h-4 w-4" />
+                  <span>Buenos Aires, Argentina</span>
+                </div>
+              </motion.div>
+
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {isLoading
+                  ? Array.from({ length: 10 }).map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="bg-stone-200 dark:bg-stone-800 rounded-xl h-48 mb-3"></div>
+                        <div className="space-y-2 px-2">
+                          <div className="bg-stone-200 dark:bg-stone-800 h-4 rounded w-3/4"></div>
+                          <div className="bg-stone-200 dark:bg-stone-800 h-3 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))
+                  : featuredEvents.map((event, i) => (
+                      <motion.div
+                        key={`featured-${i}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: i * 0.05 }}
+                        viewport={{ once: true }}
+                      >
+                        <EventCard {...event} />
+                      </motion.div>
+                    ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Sección principal de eventos filtrados */}
+        <section className="py-12 bg-gray-50 dark:bg-stone-900">
+          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="mb-8"
             >
-              <h2 className="font-instrument-serif text-6xl bg-gradient-to-b from-black to-stone-900 bg-clip-text text-transparent mb-2 pb-2 font-instrument-serif">
-                Descubrí los mejores eventos
+              <h2 className="font-instrument-serif text-3xl sm:text-4xl lg:text-5xl text-gray-900 dark:text-white mb-2">
+                {activeFilters.find((f) => f.id !== 'all' && f.active)
+                  ? `Eventos ${activeFilters.find((f) => f.id !== 'all' && f.active)?.label}`
+                  : 'Todos los eventos'}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-stone-500 max-w-2xl mx-auto">
-                Encontrá eventos increíbles cerca de vos y reservá tu lugar
+              <p className="text-sm text-stone-600 dark:text-stone-400">
+                {filteredEvents.length} eventos disponibles
               </p>
             </motion.div>
 
-            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
+            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
+                ? Array.from({ length: 15 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-stone-200 dark:bg-stone-700 rounded-2xl h-64 mb-4"></div>
-                      <div className="space-y-2">
-                        <div className="bg-stone-200 dark:bg-stone-700 h-4 rounded w-3/4"></div>
-                        <div className="bg-stone-200 dark:bg-stone-700 h-3 rounded w-1/2"></div>
+                      <div className="bg-stone-200 dark:bg-stone-800 rounded-xl h-48 mb-3"></div>
+                      <div className="space-y-2 px-2">
+                        <div className="bg-stone-200 dark:bg-stone-800 h-4 rounded w-3/4"></div>
+                        <div className="bg-stone-200 dark:bg-stone-800 h-3 rounded w-1/2"></div>
                       </div>
                     </div>
                   ))
-                : uiEvents.map((event, i) => (
+                : filteredEvents.map((event, i) => (
                     <motion.div
-                      key={i}
+                      key={`filtered-${i}`}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: i * 0.1 }}
+                      transition={{ duration: 0.4, delay: Math.min(i * 0.03, 0.3) }}
                       viewport={{ once: true }}
                     >
                       <EventCard {...event} />
                     </motion.div>
                   ))}
             </div>
+
+            {filteredEvents.length === 0 && !isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <p className="text-xl text-stone-600 dark:text-stone-400">
+                  No se encontraron eventos con los filtros seleccionados
+                </p>
+                <p className="text-sm text-stone-500 dark:text-stone-500 mt-2">
+                  Intenta ajustar los filtros para ver más resultados
+                </p>
+              </motion.div>
+            )}
           </div>
         </section>
 
-        {/* Sección de Próximos Eventos */}
-        {upcomingEvents.length > 0 && (
-          <section className="py-16 bg-gray-50 dark:bg-stone-900">
-            <div className="max-w-full mx-auto px-2">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-4 font-instrument-serif">
-                  Próximos Eventos
-                </h2>
-                <p className="text-lg text-gray-600 dark:text-stone-400">
-                  No te pierdas estos eventos que están por venir
-                </p>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4">
-                {upcomingEvents.map((event, i) => (
-                  <motion.div
-                    key={`upcoming-${i}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <EventCard {...event} />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
         {/* Sección de Eventos Pasados */}
-        {pastEvents.length > 0 && (
-          <section className="py-16 bg-white dark:bg-stone-800">
-            <div className="max-w-full mx-auto px-2">
+        {pastEvents.length > 0 && !activeFilters.some((f) => f.id !== 'all' && f.active) && (
+          <section className="py-12 bg-white dark:bg-stone-950">
+            <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="text-center mb-12"
+                className="mb-8"
               >
-                <h2 className="text-3xl font-bold text-stone-900 dark:text-white mb-4">
+                <h2 className="font-instrument-serif text-3xl sm:text-4xl text-stone-900 dark:text-white mb-2">
                   Eventos Pasados
                 </h2>
-                <p className="text-lg text-gray-600 dark:text-stone-400">
-                  Reviví los mejores momentos de eventos anteriores
+                <p className="text-sm text-stone-600 dark:text-stone-400">
+                  Reviví los mejores momentos
                 </p>
               </motion.div>
-              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                {pastEvents.map((event, i) => (
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {pastEvents.slice(0, 15).map((event, i) => (
                   <motion.div
                     key={`past-${i}`}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    transition={{ duration: 0.4, delay: Math.min(i * 0.02, 0.2) }}
                     viewport={{ once: true }}
                   >
                     <EventCard {...event} />
@@ -215,7 +324,6 @@ export default function Home() {
           </section>
         )}
       </>
-      <Footer />
     </main>
   );
 }

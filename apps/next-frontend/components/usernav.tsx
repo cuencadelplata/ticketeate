@@ -10,9 +10,7 @@ import {
 } from '@heroui/react';
 import { toast } from 'sonner';
 import Image from 'next/image';
-
-import { useAuth } from '@/hooks/use-auth';
-import { useClerk } from '@clerk/nextjs';
+import { useSession, signOut } from '@/lib/auth-client';
 // server-only currentUser import intentionally omitted in client component
 
 export const PlusIcon = (props: any) => {
@@ -42,8 +40,9 @@ export const PlusIcon = (props: any) => {
 };
 
 export default function UserNav() {
-  const { user, isSignedIn, isLoading } = useAuth();
-  const { signOut } = useClerk();
+  const { data: session, isPending } = useSession();
+  const isAuthenticated = !!session;
+  const isLoading = isPending;
 
   const handleSignOut = async () => {
     try {
@@ -62,7 +61,7 @@ export default function UserNav() {
     );
   }
 
-  if (!isSignedIn || !user) {
+  if (!isAuthenticated || !session?.user) {
     return null;
   }
 
@@ -71,9 +70,9 @@ export default function UserNav() {
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
           <div className="relative cursor-pointer">
-            {user.imageUrl ? (
+            {session?.user.image ? (
               <Image
-                src={user.imageUrl}
+                src={session?.user.image}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -82,9 +81,9 @@ export default function UserNav() {
               />
             ) : null}
             <div
-              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${user.imageUrl ? 'hidden' : ''}`}
+              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.image ? 'hidden' : ''}`}
             >
-              {user.firstName?.[0] || user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+              {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
             </div>
           </div>
         </DropdownTrigger>
@@ -110,9 +109,9 @@ export default function UserNav() {
             <DropdownItem key="profile" isReadOnly className="h-14 gap-2 opacity-100">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  {user.imageUrl ? (
+                  {session?.user.image ? (
                     <Image
-                      src={user.imageUrl}
+                      src={session?.user.image}
                       alt="Profile"
                       width={32}
                       height={32}
@@ -121,17 +120,17 @@ export default function UserNav() {
                     />
                   ) : null}
                   <div
-                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${user.imageUrl ? 'hidden' : ''}`}
+                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.image ? 'hidden' : ''}`}
                   >
-                    {user.firstName?.[0] || user.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+                    {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
                   </div>
                 </div>
                 <div className="flex flex-col">
                   <p className="text-sm font-medium leading-none text-default-600">
-                    {user.fullName || user.firstName || user.emailAddresses[0]?.emailAddress}
+                    {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                    {(session as any)?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
                   </p>
                 </div>
               </div>
@@ -139,7 +138,9 @@ export default function UserNav() {
             <DropdownItem key="dashboard" href="/eventos">
               Mis Eventos
             </DropdownItem>
-            <DropdownItem key="settings">Configuración</DropdownItem>
+            <DropdownItem key="settings" href="/configuracion">
+              Configuración
+            </DropdownItem>
             <DropdownItem
               key="new_project"
               href="/crear"
@@ -150,7 +151,9 @@ export default function UserNav() {
           </DropdownSection>
 
           <DropdownSection showDivider aria-label="Preferences">
-            <DropdownItem key="profile_settings">Perfil</DropdownItem>
+            <DropdownItem key="profile_settings" href="/configuracion/perfil">
+              Perfil
+            </DropdownItem>
             <DropdownItem key="help_and_feedback">Ayuda y Soporte</DropdownItem>
           </DropdownSection>
 

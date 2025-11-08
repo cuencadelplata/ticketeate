@@ -3,15 +3,17 @@ export interface Event {
   eventoid: string;
   titulo: string;
   descripcion?: string;
-  ubicacion: string;
-  fecha_creacion: string | Date;
+  ubicacion?: string;
+  fecha_creacion?: string | Date;
+  fecha_publicacion?: string | Date;
   creadorid: string;
-  mapa_evento: any;
-  fecha_cambio: string | Date;
+  mapa_evento?: Record<string, unknown>;
+  fecha_cambio?: string | Date;
+  views?: number;
   imagenes_evento: Array<{
     imagenid: string;
     url: string;
-    tipo: string;
+    tipo?: string;
   }>;
   fechas_evento?: Array<{
     fechaid: string;
@@ -23,15 +25,27 @@ export interface Event {
     nombre: string;
     precio: bigint;
     cant_max: number;
+    fecha_creacion?: string | Date;
+    fecha_limite?: string | Date;
   }>;
   evento_estado?: Array<{
     stateventid: string;
     Estado: string;
     fecha_de_cambio: string | Date;
+    usuarioid?: string;
   }>;
-  catevento?: Array<{
-    categoriaeventoid: bigint;
+  evento_modificaciones?: Array<{
+    modificacionid: string;
+    campo_modificado: string;
+    valor_anterior?: string;
+    valor_nuevo?: string;
+    fecha_modificacion: string | Date;
+    usuarioid?: string;
+  }>;
+  evento_categorias?: Array<{
+    categoriaeventoid: number;
     categoriaevento: {
+      categoriaeventoid: number;
       nombre: string;
       descripcion?: string;
     };
@@ -42,14 +56,12 @@ export interface CreateEventData {
   titulo: string;
   descripcion?: string;
   ubicacion?: string;
-  fecha_inicio_venta: string;
-  fecha_fin_venta: string;
   estado?: 'ACTIVO' | 'CANCELADO' | 'COMPLETADO' | 'OCULTO';
   imageUrl?: string;
   galeria_imagenes?: string[];
-  fechas_adicionales?: Array<{
-    fecha_inicio: string;
-    fecha_fin: string;
+  fechas_evento: Array<{
+    fecha_hora: string;
+    fecha_fin?: string;
   }>;
   eventMap?: {
     sectors: Array<{
@@ -90,6 +102,7 @@ export interface CreateEventData {
     id?: number;
     nombre: string;
   }>;
+  fecha_publicacion?: string; // Fecha programada para publicar el evento
 }
 
 export interface EventImage {
