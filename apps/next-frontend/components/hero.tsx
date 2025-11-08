@@ -5,7 +5,7 @@ import PixelBlast from './pixel-blast';
 
 export function Hero() {
   return (
-    <section className="relative h-[400px] sm:h-[600px] lg:h-[700px] flex items-center">
+    <section className="relative h-[450px] sm:h-[600px] lg:h-[700px] flex items-center pt-20 sm:pt-0">
       <div className="absolute inset-0 z-0 bg-black overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
@@ -127,8 +127,8 @@ export function Hero() {
                         y2="13.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#575757"></stop>
-                        <stop offset="1" stop-color="#fff"></stop>
+                        <stop stopColor="#575757"></stop>
+                        <stop offset="1" stopColor="#fff"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502803-7613136_sparkle_existing_1_itr2rlc6a"
@@ -138,8 +138,8 @@ export function Hero() {
                         y2="26"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
-                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                        <stop stopColor="#E3E3E5" stopOpacity=".6"></stop>
+                        <stop offset="1" stopColor="#BBBBC0" stopOpacity=".6"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502803-7613136_sparkle_existing_2_7lj7nb2b2"
@@ -149,8 +149,8 @@ export function Hero() {
                         y2="13.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#fff"></stop>
-                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                        <stop stopColor="#fff"></stop>
+                        <stop offset="1" stopColor="#fff" stopOpacity="0"></stop>
                       </linearGradient>
                       <filter
                         id="1752500502803-7613136_sparkle_filter_alhgtlde0"
@@ -229,8 +229,8 @@ export function Hero() {
                         y2="22.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#575757"></stop>
-                        <stop offset="1" stop-color="#fff"></stop>
+                        <stop stopColor="#575757"></stop>
+                        <stop offset="1" stopColor="#fff"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502796-6054278_magnifier_existing_1_82nwa6xrf"
@@ -240,8 +240,8 @@ export function Hero() {
                         y2="18.5"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
-                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                        <stop stopColor="#E3E3E5" stopOpacity=".6"></stop>
+                        <stop offset="1" stopColor="#BBBBC0" stopOpacity=".6"></stop>
                       </linearGradient>
                       <linearGradient
                         id="1752500502796-6054278_magnifier_existing_2_8ve8k2etb"
@@ -251,8 +251,8 @@ export function Hero() {
                         y2="11.345"
                         gradientUnits="userSpaceOnUse"
                       >
-                        <stop stop-color="#fff"></stop>
-                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                        <stop stopColor="#fff"></stop>
+                        <stop offset="1" stopColor="#fff" stopOpacity="0"></stop>
                       </linearGradient>
                       <filter
                         id="1752500502796-6054278_magnifier_filter_u6qjvmab1"
