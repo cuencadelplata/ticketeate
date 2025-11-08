@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   Edit3,
+  Ticket,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/navbar';
@@ -21,8 +23,11 @@ import { DeleteEventModal } from '@/components/delete-event-modal';
 import { EditEventModal } from '@/components/edit-event-modal';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
+import Image from 'next/image';
 
 import { useEvents, useDeleteEvent, useUpdateEvent } from '@/hooks/use-events';
+import { useUserReservas, type Reserva } from '@/hooks/use-reservas';
 import type { Event } from '@/types/events';
 
 // Componente Skeleton personalizado con animación de barrido
@@ -223,6 +228,11 @@ const isEventPast = (event: Event) => {
 };
 
 export default function EventosPage() {
+  const { data: session } = useSession();
+  const userRole = (session as any)?.user?.role || (session as any)?.role;
+  const isOrganizador = userRole === 'ORGANIZADOR' || userRole === 'COLABORADOR';
+  const isUsuario = userRole === 'USUARIO';
+
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const [deleteModal, setDeleteModal] = useState<{
@@ -241,16 +251,36 @@ export default function EventosPage() {
     isOpen: false,
     event: null,
   });
-  const { data: events = [], isLoading: loading } = useEvents();
+  
+  // Hooks para organizadores (eventos creados)
+  const { data: events = [], isLoading: loadingEvents } = useEvents();
   const deleteEventMutation = useDeleteEvent();
   const updateEventMutation = useUpdateEvent();
 
-  // filter events
+  // Hooks para usuarios (entradas compradas)
+  const { data: reservas = [], isLoading: loadingReservas } = useUserReservas();
+
+  // Filtrar eventos para organizadores
   const proximosEvents = events.filter((event) => !isEventPast(event));
   const pasadosEvents = events.filter((event) => isEventPast(event));
   const filteredEvents = activeTab === 'proximos' ? proximosEvents : pasadosEvents;
 
+  // Filtrar reservas para usuarios
+  const reservasProximas = reservas.filter((reserva) => {
+    if (!reserva.evento.fecha) return false;
+    const fechaEvento = new Date(reserva.evento.fecha);
+    return fechaEvento >= new Date();
+  });
+  const reservasPasadas = reservas.filter((reserva) => {
+    if (!reserva.evento.fecha) return false;
+    const fechaEvento = new Date(reserva.evento.fecha);
+    return fechaEvento < new Date();
+  });
+  const filteredReservas = activeTab === 'proximos' ? reservasProximas : reservasPasadas;
+
   const hasEvents = filteredEvents.length > 0;
+  const hasReservas = filteredReservas.length > 0;
+  const loading = isOrganizador ? loadingEvents : loadingReservas;
 
   // Función para abrir el modal de confirmación
   const handleDeleteClick = (eventId: string, eventTitle: string) => {
@@ -339,9 +369,13 @@ export default function EventosPage() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex-1">
                 <h1 className="text-6xl font-instrument-serif font-light bg-gradient-to-r from-white to-stone-300 bg-clip-text text-transparent mb-2">
-                  Mis Eventos
+                  {isOrganizador ? 'Mis Eventos' : 'Mis Entradas'}
                 </h1>
-                <p className="text-stone-400 text-md">Gestiona y organiza todos tus eventos</p>
+                <p className="text-stone-400 text-md">
+                  {isOrganizador
+                    ? 'Gestiona y organiza todos tus eventos'
+                    : 'Eventos a los que has comprado entradas'}
+                </p>
               </div>
 
               {/* Switch pequeño a la derecha */}
@@ -356,7 +390,7 @@ export default function EventosPage() {
                         : 'text-stone-400 hover:text-white hover:bg-[#2A2A2A]',
                     )}
                   >
-                    Próximos ({proximosEvents.length})
+                    Próximos ({isOrganizador ? proximosEvents.length : reservasProximas.length})
                   </button>
                   <button
                     onClick={() => setActiveTab('pasados')}
@@ -367,11 +401,12 @@ export default function EventosPage() {
                         : 'text-stone-400 hover:text-white hover:bg-[#2A2A2A]',
                     )}
                   >
-                    Pasados ({pasadosEvents.length})
+                    Pasados ({isOrganizador ? pasadosEvents.length : reservasPasadas.length})
                   </button>
                 </div>
               </div>
 
+              {isOrganizador && (
               <div className="flex items-center gap-4">
                 <Link href="/crear">
                   <button className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
@@ -380,9 +415,13 @@ export default function EventosPage() {
                   </button>
                 </Link>
               </div>
+              )}
             </div>
           </div>
 
+          {/* Contenido para Organizadores (Eventos creados) */}
+          {isOrganizador && (
+            <>
           {loading ? (
             <EventsCardsSkeleton />
           ) : !hasEvents ? (
@@ -751,10 +790,195 @@ export default function EventosPage() {
               })}
             </div>
           )}
+            </>
+          )}
+
+          {/* Contenido para Usuarios (Entradas compradas) */}
+          {isUsuario && (
+            <>
+              {loading ? (
+                <EventsCardsSkeleton />
+              ) : !hasReservas ? (
+                <div className="flex flex-col items-center justify-center py-12 pb-6">
+                  <div className="mb-8 rounded-2xl bg-gradient-to-br from-[#2A2A2A] to-[#3A3A3A] p-8 border border-[#4A4A4A]">
+                    <Ticket className="h-20 w-20 text-stone-400 mx-auto" />
+        </div>
+                  <h2 className="mb-4 text-3xl font-bold text-stone-200">
+                    Sin entradas {activeTab === 'proximos' ? 'próximas' : 'pasadas'}
+                  </h2>
+                  <p className="mb-8 text-stone-400 text-lg text-center max-w-md">
+                    {activeTab === 'proximos' ? (
+                      <>Aún no has comprado entradas para eventos próximos.</>
+                    ) : (
+                      'No tienes eventos pasados con entradas compradas.'
+                    )}
+                  </p>
+                  {activeTab === 'proximos' && (
+                    <Link href="/descubrir">
+                      <button className="flex items-center gap-3 rounded-md bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-md font-medium text-white transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:scale-105 shadow-xl">
+                        <Ticket className="h-4 w-4" />
+                        <span>Explorar Eventos</span>
+                      </button>
+                    </Link>
+                  )}
+      </div>
+              ) : (
+                <div className="space-y-6 pb-8">
+                  {filteredReservas.map((reserva) => {
+                    const fechaEvento = reserva.evento.fecha
+                      ? new Date(reserva.evento.fecha)
+                      : null;
+                    const dateInfo = fechaEvento ? formatEventDate(reserva.evento.fecha!) : null;
+                    const formattedDate = dateInfo
+                      ? `${dateInfo.date} a las ${dateInfo.time}`
+                      : 'Fecha no disponible';
+                    const imagenEvento =
+                      reserva.evento.imagen || '/icon-ticketeate.png';
+
+                    return (
+                      <div
+                        key={reserva.reservaid}
+                        className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1E1E] to-[#2A2A2A] border border-[#3A3A3A] hover:border-orange-500/50 transition-all duration-300"
+                      >
+                        <div className="relative p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 space-y-4">
+                              {/* Header con fecha y estado */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  {imagenEvento && (
+                                    <div className="h-16 w-20 overflow-hidden rounded-lg border border-[#3A3A3A]">
+                                      <Image
+                                        src={imagenEvento}
+                                        alt={reserva.evento.titulo}
+                                        width={80}
+                                        height={64}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                  <div
+                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                      reserva.estado === 'CONFIRMADA'
+                                        ? 'bg-green-900/30 text-green-400 border border-green-700/50'
+                                        : reserva.estado === 'PENDIENTE'
+                                          ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-700/50'
+                                          : 'bg-gray-900/30 text-gray-400 border border-gray-700/50'
+                                    }`}
+                                  >
+                                    {reserva.estado}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Título y descripción */}
+                              <div>
+                                <h3 className="mb-2 text-2xl font-bold text-white group-hover:text-orange-400 transition-colors">
+                                  {reserva.evento.titulo}
+                                </h3>
+                                {reserva.evento.descripcion && (
+                                  <p className="text-stone-400 text-sm line-clamp-2">
+                                    {reserva.evento.descripcion}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Información del evento */}
+                              <div className="space-y-2">
+                                {reserva.evento.ubicacion && (
+                                  <div className="flex items-center gap-2 text-sm text-stone-300">
+                                    <MapPin className="h-4 w-4 text-stone-500" />
+                                    <span>{reserva.evento.ubicacion}</span>
+                                  </div>
+                                )}
+
+                                {fechaEvento && (
+                                  <div className="flex items-center gap-2 text-sm text-stone-300">
+                                    <Calendar className="h-4 w-4 text-stone-500" />
+                                    <span>{formattedDate}</span>
+                                  </div>
+                                )}
+
+                                {reserva.evento.categoria && (
+                                  <div className="flex items-center gap-2">
+                                    <Tag className="h-4 w-4 text-stone-500" />
+                                    <span className="rounded-full bg-stone-800 px-3 py-1 text-xs text-stone-300">
+                                      {reserva.evento.categoria}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Información de la entrada */}
+                                <div className="flex items-center gap-4 pt-2">
+                                  <div className="flex items-center gap-2 text-sm text-stone-300">
+                                    <Ticket className="h-4 w-4 text-stone-500" />
+                                    <span>
+                                      {reserva.cantidad} entrada(s) - {reserva.entrada.nombre}
+                                    </span>
+                                  </div>
+                                  {reserva.pago && (
+                                    <div className="text-sm text-stone-400">
+                                      {new Intl.NumberFormat('es-AR', {
+                                        style: 'currency',
+                                        currency: reserva.pago.moneda,
+                                      }).format(Number(reserva.pago.monto_total))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Acciones */}
+                              <div className="flex items-center gap-3 pt-2">
+                                <Link href={`/evento/${reserva.eventoid}`}>
+                                  <button className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                    Ver Evento
+                                    <ArrowRight className="h-4 w-4" />
+                                  </button>
+                                </Link>
+                                {reserva.entradas.length > 0 && (
+                                  <Link href={`/historial`}>
+                                    <button className="flex items-center gap-2 rounded-lg bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/30">
+                                      <Download className="h-4 w-4" />
+                                      Ver Entradas
+                                    </button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Imagen del evento */}
+                            <div className="ml-6">
+                              <div className="h-32 w-32 overflow-hidden rounded-lg border border-[#3A3A3A]">
+                                {imagenEvento ? (
+                                  <Image
+                                    src={imagenEvento}
+                                    alt={reserva.evento.titulo}
+                                    width={128}
+                                    height={128}
+                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full flex-col items-center justify-center bg-[#2A2A2A] text-stone-400">
+                                    <Calendar className="h-8 w-8" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      {/* Modal de confirmación para eliminar evento */}
+      {/* Modales solo para organizadores */}
+      {isOrganizador && (
+        <>
       <DeleteEventModal
         isOpen={deleteModal.isOpen}
         onClose={handleCloseModal}
@@ -763,7 +987,6 @@ export default function EventosPage() {
         isLoading={deleteEventMutation.isPending}
       />
 
-      {/* Modal de edición de evento */}
       <EditEventModal
         isOpen={editModal.isOpen}
         onClose={handleCloseEditModal}
@@ -771,6 +994,8 @@ export default function EventosPage() {
         event={editModal.event}
         isLoading={updateEventMutation.isPending}
       />
+        </>
+      )}
     </div>
   );
 }

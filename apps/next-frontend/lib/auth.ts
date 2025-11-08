@@ -8,7 +8,30 @@ if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error('BETTER_AUTH_SECRET is not set');
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend es opcional - solo se inicializa si la API key está configurada
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// Función helper para enviar emails con Resend
+const sendEmail = async (options: {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}) => {
+  if (!resend) {
+    const errorMsg = 'RESEND_API_KEY is not set. Email functionality is disabled.';
+    console.error('[Email]', errorMsg);
+    console.error('[Email] To enable email functionality, set RESEND_API_KEY in your .env.local file');
+    console.error('[Email] Get your API key from: https://resend.com/api-keys');
+    throw new Error(errorMsg);
+  }
+
+  const { error } = await resend.emails.send(options);
+  if (error) {
+    console.error('[Email] Resend error:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+};
 
 export const auth = betterAuth({
   url: process.env.BETTER_AUTH_URL,
@@ -19,7 +42,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false, // Permitir registro pero verificar después
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
-      await resend.emails.send({
+      await sendEmail({
         from: 'Ticketeate <noreply@ticketeate.page>',
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
@@ -36,7 +59,7 @@ export const auth = betterAuth({
       });
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
-      await resend.emails.send({
+      await sendEmail({
         from: 'Ticketeate <noreply@ticketeate.page>',
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
@@ -54,12 +77,17 @@ export const auth = betterAuth({
     },
   },
 
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-  },
+  // Configuración de Google OAuth (opcional)
+  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        socialProviders: {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          },
+        },
+      }
+    : {}),
 
   plugins: [
     emailOTP({
@@ -79,7 +107,7 @@ export const auth = betterAuth({
         };
 
         try {
-          const { error } = await resend.emails.send({
+          await sendEmail({
             from: 'Ticketeate <onboarding@ticketeate.page>',
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
@@ -95,11 +123,6 @@ export const auth = betterAuth({
               </div>
             `,
           });
-
-          if (error) {
-            console.error('[OTP] Resend error:', error);
-            throw new Error(`Failed to send OTP: ${error.message}`);
-          }
         } catch (error) {
           console.error('[OTP] Failed to send email:', error);
           throw error;
