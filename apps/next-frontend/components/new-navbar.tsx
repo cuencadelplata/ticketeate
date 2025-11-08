@@ -211,11 +211,7 @@ function Navbar() {
               animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <MenuIcon className="h-6 w-6" />
-              )}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
             </motion.div>
           </button>
         </div>

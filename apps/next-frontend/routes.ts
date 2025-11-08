@@ -25,6 +25,7 @@ export const protectedRoutes: string[] = [
   '/configuracion',
   '/configuracion/*',
   '/profile', // Perfil de usuario
+  '/deploys',
 ];
 
 export const apiAuthPrefix: string = '/api/auth';
