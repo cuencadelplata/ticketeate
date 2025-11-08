@@ -126,15 +126,12 @@ export function SimpleDeploysList() {
     <div className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Deployments
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Deployments</h1>
           <Image src="/icon-ucp.png" alt="UCP Logo" width={64} height={64} />
         </div>
         <p className="text-sm text-muted-foreground flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
-          Automatically created for pushes to{' '}
-          {process.env.NEXT_PUBLIC_GITHUB_OWNER}/
+          Automatically created for pushes to {process.env.NEXT_PUBLIC_GITHUB_OWNER}/
           {process.env.NEXT_PUBLIC_GITHUB_REPO}
           <Github className="h-4 w-4" />
         </p>
@@ -163,11 +160,7 @@ export function SimpleDeploysList() {
             </svg>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-border bg-transparent"
-          >
+          <Button variant="outline" size="sm" className="border-border bg-transparent">
             <Calendar className="h-4 w-4 mr-2" />
             Select Date Range
           </Button>
@@ -179,12 +172,7 @@ export function SimpleDeploysList() {
             className="border-border bg-transparent"
           >
             <div className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}>
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -212,7 +200,7 @@ export function SimpleDeploysList() {
           <Badge variant="secondary" className="bg-muted">
             {loading
               ? '...'
-              : `${deploys.filter(d => d.status === 'ready').length}/${deploys.length}`}
+              : `${deploys.filter((d) => d.status === 'ready').length}/${deploys.length}`}
           </Badge>
           {loading && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -273,17 +261,13 @@ export function SimpleDeploysList() {
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      Production
-                    </span>
+                    <span className="text-xs text-muted-foreground">Production</span>
                   </div>
 
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(deploy.status)}
-                      <span className="text-sm capitalize text-foreground">
-                        {deploy.status}
-                      </span>
+                      <span className="text-sm capitalize text-foreground">{deploy.status}</span>
                     </div>
                     <span className="text-sm text-muted-foreground">
                       {deploy.duration} ({deploy.timeAgo})
@@ -297,9 +281,7 @@ export function SimpleDeploysList() {
                     </div>
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-white">
-                        {deploy.message}
-                      </span>
+                      <span className="text-xs text-white">{deploy.message}</span>
                     </div>
                   </div>
 
@@ -326,7 +308,7 @@ export function SimpleDeploysList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="border-border"
           >
@@ -338,9 +320,7 @@ export function SimpleDeploysList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))
-            }
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
             disabled={currentPage === pagination.totalPages}
             className="border-border"
           >

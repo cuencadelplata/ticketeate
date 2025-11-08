@@ -31,10 +31,7 @@ export async function GET(request: NextRequest) {
   const token = process.env.GITHUB_TOKEN;
 
   if (!token) {
-    return NextResponse.json(
-      { error: 'GitHub token not configured' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'GitHub token not configured' }, { status: 500 });
   }
 
   try {
@@ -47,7 +44,7 @@ export async function GET(request: NextRequest) {
           Accept: 'application/vnd.github.v3+json',
           'User-Agent': 'Admin-Panel-App',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -66,7 +63,7 @@ export async function GET(request: NextRequest) {
           Accept: 'application/vnd.github.v3+json',
           'User-Agent': 'Admin-Panel-App',
         },
-      }
+      },
     );
 
     let currentDeploymentId = null;
@@ -113,8 +110,7 @@ export async function GET(request: NextRequest) {
       environment === 'all'
         ? deploys
         : deploys.filter(
-            (deploy: Deploy) =>
-              deploy.environment.toLowerCase() === environment.toLowerCase()
+            (deploy: Deploy) => deploy.environment.toLowerCase() === environment.toLowerCase(),
           );
 
     return NextResponse.json({
@@ -128,17 +124,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching GitHub deploys:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch deploys' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch deploys' }, { status: 500 });
   }
 }
 
-function mapGitHubStatus(
-  status: string,
-  conclusion: string
-): 'ready' | 'error' | 'building' {
+function mapGitHubStatus(status: string, conclusion: string): 'ready' | 'error' | 'building' {
   if (status === 'completed') {
     return conclusion === 'success' ? 'ready' : 'error';
   } else if (status === 'in_progress') {

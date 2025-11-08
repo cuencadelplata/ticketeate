@@ -12,7 +12,7 @@ export function Hero() {
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            backgroundImage: 'url(/party-back.jpg)',
+            backgroundImage: 'url(/ticketeate-hero.webp)',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
           }}

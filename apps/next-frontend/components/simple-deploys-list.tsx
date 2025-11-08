@@ -280,7 +280,10 @@ export function SimpleDeploysList() {
                     </div>
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-xs text-white">{deploy.message.split(' ').slice(0, 8).join(' ')}{deploy.message.split(' ').length > 8 ? '...' : ''}</span>
+                      <span className="text-xs text-white">
+                        {deploy.message.split(' ').slice(0, 8).join(' ')}
+                        {deploy.message.split(' ').length > 8 ? '...' : ''}
+                      </span>
                     </div>
                   </div>
 

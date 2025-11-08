@@ -9,10 +9,7 @@ export async function GET(request: NextRequest) {
   const token = process.env.GITHUB_TOKEN;
 
   if (!token) {
-    return NextResponse.json(
-      { error: 'GitHub token not configured' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'GitHub token not configured' }, { status: 500 });
   }
 
   try {
@@ -24,7 +21,7 @@ export async function GET(request: NextRequest) {
           Accept: 'application/vnd.github.v3+json',
           'User-Agent': 'Admin-Panel-App',
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -52,9 +49,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching GitHub workflows:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch workflows' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
   }
 }
