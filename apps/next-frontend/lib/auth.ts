@@ -11,6 +11,9 @@ if (!process.env.BETTER_AUTH_SECRET) {
 // Resend es opcional - solo se inicializa si la API key está configurada
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// Remitente configurable. Usa el dominio de prueba de Resend por defecto para desarrollo.
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+
 // Función helper para enviar emails con Resend
 const sendEmail = async (options: {
   from: string;
@@ -43,7 +46,7 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Permitir registro pero verificar después
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+        from: `Ticketeate <${FROM_EMAIL}>`,
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
         html: `
@@ -60,7 +63,7 @@ export const auth = betterAuth({
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+        from: `Ticketeate <${FROM_EMAIL}>`,
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
         html: `
@@ -108,7 +111,7 @@ export const auth = betterAuth({
 
         try {
           await sendEmail({
-            from: 'Ticketeate <onboarding@ticketeate.page>',
+          from: `Ticketeate <${FROM_EMAIL}>`,
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `

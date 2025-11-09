@@ -124,10 +124,15 @@ export default function AuthModal({
     setErr(null);
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email: formData.email,
         password: formData.password,
       });
+
+      // Manejar el caso donde no se lanza excepción pero viene { error }
+      if ((result as any)?.error) {
+        throw new Error((result as any).error?.message || 'Email o contraseña incorrectos');
+      }
 
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
@@ -154,7 +159,17 @@ export default function AuthModal({
           error.message.includes('Invalid email') ||
           error.message.includes('invalid email')
         ) {
-          errorMessage = 'Email inválido';
+          errorMessage = 'Email y contraseña inválidos';
+        }
+      }
+
+
+      if (errorMessage === 'Email o contraseña incorrectos') {
+        try {
+          const exists = await checkUserExists(formData.email);
+          errorMessage = exists ? 'Contraseña incorrecta' : 'Usuario no encontrado';
+        } catch {
+          
         }
       }
 
@@ -409,7 +424,7 @@ export default function AuthModal({
               <button
                 type="button"
                 className="block w-full text-center text-xs text-stone-400 hover:text-stone-200"
-                onClick={() => alert('Manda un correo a soporte para recuperar tu contraseña.')}
+                onClick={() => (window.location.href = '/forgot-password')}
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -460,7 +475,7 @@ export default function AuthModal({
               <button
                 type="button"
                 className="block w-full text-center text-xs text-stone-400 hover:text-stone-200"
-                onClick={() => alert('Manda un correo a soporte para recuperar tu contraseña.')}
+                onClick={() => (window.location.href = '/forgot-password')}
               >
                 ¿Olvidaste tu contraseña?
               </button>

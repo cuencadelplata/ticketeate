@@ -133,10 +133,15 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     setErr(null);
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email: formData.email,
         password: formData.password,
       });
+
+      // Algunos clientes no lanzan excepción y retornan { error }
+      if ((result as any)?.error) {
+        throw new Error((result as any).error?.message || 'Email o contraseña incorrectos');
+      }
 
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
@@ -163,7 +168,17 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
           error.message.includes('Invalid email') ||
           error.message.includes('invalid email')
         ) {
-          errorMessage = 'Email inválido';
+          errorMessage = 'Email y contraseña inválidos';
+        }
+      }
+
+      // Si no pudimos inferir, verificamos si el usuario existe para personalizar el mensaje
+      if (errorMessage === 'Email o contraseña incorrectos') {
+        try {
+          const exists = await checkUserExists(formData.email);
+          errorMessage = exists ? 'Contraseña incorrecta' : 'Usuario no encontrado';
+        } catch {
+          // Ignorar y mantener el mensaje por defecto
         }
       }
 
