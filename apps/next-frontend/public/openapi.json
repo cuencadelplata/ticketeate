@@ -3,7 +3,7 @@
   "info": {
     "title": "Ticketeate API",
     "version": "1.0.0",
-    "description": "Documentación de la API de Ticketeate (OAS 3.0). Actualiza los schemas de request/response cuando cierres cada endpoint."
+    "description": "Documentación de la API de Ticketeate (OAS 3.0)."
   },
   "servers": [
     { "url": "http://localhost:3000", "description": "Desarrollo local" }
@@ -107,29 +107,216 @@
     "/api/cupones": {
       "get": {
         "tags": ["Cupones"],
-        "summary": "Listar cupones",
+        "summary": "Obtener cupones (última versión por cupón) de un evento",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "OK" } }
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del evento (creado por el usuario autenticado)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CouponsListResponse" },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "cupones": [
+                        {
+                          "cuponid": "cup_123",
+                          "eventoid": "evt_001",
+                          "codigo": "EARLYBIRD",
+                          "porcentaje_descuento": 20,
+                          "fecha_creacion": "2025-10-01T10:00:00.000Z",
+                          "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                          "limite_usos": 100,
+                          "usos_actuales": 5,
+                          "estado": "ACTIVO",
+                          "version": 3,
+                          "changed_at": "2025-11-08T13:00:00.000Z",
+                          "changed_by": "usr_abc",
+                          "change_type": "UPDATE"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "eventId es requerido", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "eventId es requerido" } } } },
+          "401": { "description": "No autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "No autorizado" } } } },
+          "403": { "description": "Sin permisos para ver los cupones del evento", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "No tienes permiso para ver los cupones de este evento" } } } },
+          "500": { "description": "Error al obtener cupones", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "Error al obtener cupones" } } } }
+        }
       },
       "post": {
         "tags": ["Cupones"],
-        "summary": "Crear cupón",
+        "summary": "Crear un nuevo cupón para un evento",
         "security": [{ "bearerAuth": [] }],
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "responses": { "201": { "description": "Creado" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CouponCreateInput" },
+              "examples": {
+                "crear": {
+                  "value": {
+                    "eventId": "evt_001",
+                    "codigo": "EARLY2025",
+                    "porcentaje_descuento": 15,
+                    "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                    "limite_usos": 200
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CouponResponse" },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "cupon": {
+                        "cuponid": "cup_456",
+                        "eventoid": "evt_001",
+                        "codigo": "EARLY2025",
+                        "porcentaje_descuento": 15,
+                        "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                        "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                        "limite_usos": 200,
+                        "usos_actuales": 0,
+                        "estado": "ACTIVO",
+                        "version": 1,
+                        "updated_by": "usr_abc"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Faltan campos requeridos o cupón duplicado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "examples": { "faltan": { "value": { "error": "Faltan campos requeridos" } }, "duplicado": { "value": { "error": "Ya existe un cupón con este código para este evento" } } } } } },
+          "401": { "description": "No autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "No autorizado" } } } },
+          "403": { "description": "Sin permisos para crear en el evento", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "No tienes permiso para crear cupones en este evento" } } } },
+          "500": { "description": "Error al crear cupón", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "Error al crear cupón" } } } }
+        }
       },
       "patch": {
         "tags": ["Cupones"],
-        "summary": "Actualizar cupón",
+        "summary": "Actualizar un cupón (append-only history)",
         "security": [{ "bearerAuth": [] }],
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "responses": { "200": { "description": "Actualizado" }, "404": { "description": "No encontrado" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CouponUpdateInput" },
+              "examples": {
+                "actualizar": {
+                  "value": {
+                    "cuponId": "cup_456",
+                    "eventId": "evt_001",
+                    "codigo": "EARLY2025-2",
+                    "porcentaje_descuento": 18,
+                    "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                    "limite_usos": 250,
+                    "estado": "ACTIVO"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Actualizado (se crea una nueva versión en el historial)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CouponHistoryResponse" },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "cupon": {
+                        "cuponid": "cup_456",
+                        "eventoid": "evt_001",
+                        "codigo": "EARLY2025-2",
+                        "porcentaje_descuento": 18,
+                        "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                        "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                        "limite_usos": 250,
+                        "usos_actuales": 0,
+                        "estado": "ACTIVO",
+                        "version": 2,
+                        "changed_by": "usr_abc",
+                        "change_type": "UPDATE"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "cuponId y eventId son requeridos / conflicto de código duplicado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "No autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Sin permisos para actualizar en el evento", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Cupón no encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": "Cupón no encontrado" } } } },
+          "500": { "description": "Error al actualizar cupón", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
       },
       "delete": {
         "tags": ["Cupones"],
-        "summary": "Eliminar cupón",
+        "summary": "Eliminar (soft delete) un cupón",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "204": { "description": "Eliminado" }, "404": { "description": "No encontrado" } }
+        "parameters": [
+          { "name": "cuponId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "eventId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eliminado (se agrega versión en historial con estado INACTIVO)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CouponHistoryResponse" },
+                "examples": {
+                  "ok": {
+                    "value": {
+                      "cupon": {
+                        "cuponid": "cup_456",
+                        "eventoid": "evt_001",
+                        "codigo": "EARLY2025-2",
+                        "porcentaje_descuento": 18,
+                        "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                        "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                        "limite_usos": 250,
+                        "usos_actuales": 0,
+                        "estado": "INACTIVO",
+                        "version": 3,
+                        "changed_by": "usr_abc",
+                        "change_type": "DELETE"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "cuponId y eventId son requeridos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "No autorizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Sin permisos para eliminar en el evento", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Cupón no encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "500": { "description": "Error al eliminar cupón", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
       }
     },
     "/api/cupones/validate": {
@@ -349,7 +536,7 @@
       },
       "post": {
         "tags": ["Cola de Tickets (Queue)"],
-        "summary": "Control del worker (start/stop/…) ",
+        "summary": "Control del worker (start/stop/…)",
         "security": [{ "bearerAuth": [] }],
         "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
         "responses": { "200": { "description": "OK" } }
@@ -492,7 +679,82 @@
     }
   },
   "components": {
-    "schemas": {},
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": { "error": { "type": "string" } }
+      },
+      "Coupon": {
+        "type": "object",
+        "properties": {
+          "cuponid": { "type": "string" },
+          "eventoid": { "type": "string" },
+          "codigo": { "type": "string" },
+          "porcentaje_descuento": { "type": "number" },
+          "fecha_creacion": { "type": "string", "format": "date-time" },
+          "fecha_expiracion": { "type": "string", "format": "date-time" },
+          "limite_usos": { "type": "integer" },
+          "usos_actuales": { "type": "integer" },
+          "estado": { "type": "string", "enum": ["ACTIVO","INACTIVO"] },
+          "version": { "type": "integer" },
+          "updated_by": { "type": "string" }
+        }
+      },
+      "CouponHistory": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Coupon" },
+          {
+            "type": "object",
+            "properties": {
+              "changed_at": { "type": "string", "format": "date-time" },
+              "changed_by": { "type": "string" },
+              "change_type": { "type": "string", "enum": ["UPDATE","DELETE","CREATE"] }
+            }
+          }
+        ]
+      },
+      "CouponCreateInput": {
+        "type": "object",
+        "required": ["eventId","codigo","porcentaje_descuento","fecha_expiracion","limite_usos"],
+        "properties": {
+          "eventId": { "type": "string" },
+          "codigo": { "type": "string" },
+          "porcentaje_descuento": { "type": "number" },
+          "fecha_expiracion": { "type": "string", "format": "date-time" },
+          "limite_usos": { "type": "integer" }
+        }
+      },
+      "CouponUpdateInput": {
+        "type": "object",
+        "required": ["cuponId","eventId"],
+        "properties": {
+          "cuponId": { "type": "string" },
+          "eventId": { "type": "string" },
+          "codigo": { "type": "string" },
+          "porcentaje_descuento": { "type": "number" },
+          "fecha_expiracion": { "type": "string", "format": "date-time" },
+          "limite_usos": { "type": "integer" },
+          "estado": { "type": "string", "enum": ["ACTIVO","INACTIVO"] }
+        }
+      },
+      "CouponsListResponse": {
+        "type": "object",
+        "properties": {
+          "cupones": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CouponHistory" }
+          }
+        }
+      },
+      "CouponResponse": {
+        "type": "object",
+        "properties": { "cupon": { "$ref": "#/components/schemas/Coupon" } }
+      },
+      "CouponHistoryResponse": {
+        "type": "object",
+        "properties": { "cupon": { "$ref": "#/components/schemas/CouponHistory" } }
+      }
+    },
     "securitySchemes": {
       "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
     }
