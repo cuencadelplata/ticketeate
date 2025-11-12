@@ -26,23 +26,144 @@
   ],
   "paths": {
     "/api/admin/views": {
-      "get": {
-        "tags": ["Admin"],
-        "summary": "Listar/consultar vistas admin",
-        "security": [{ "bearerAuth": [] }],
-        "responses": {
-          "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object" } } } }
+     "get": {
+    "tags": ["Admin"],
+    "summary": "Resumen de contadores de vistas pendientes en Redis",
+    "description": "Lee claves `event:*:views` en Redis (Upstash) y devuelve métricas globales (pendientes) por evento.",
+    "responses": {
+      "200": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pendingSync": { "type": "integer", "description": "Cantidad de claves event:*:views en Redis" },
+                "totalPendingViews": { "type": "integer", "description": "Suma de todas las vistas pendientes" },
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "eventId": { "type": "string" },
+                      "pendingViews": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            },
+            "example": {
+              "pendingSync": 2,
+              "totalPendingViews": 57,
+              "events": [
+                { "eventId": "evt_001", "pendingViews": 42 },
+                { "eventId": "evt_002", "pendingViews": 15 }
+              ]
+            }
+          }
         }
       },
-      "post": {
-        "tags": ["Admin"],
-        "summary": "Crear/actualizar vistas admin",
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
-        "responses": {
-          "200": { "description": "OK" }
+      "500": {
+        "description": "Error al leer Redis o Redis no configurado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            },
+            "examples": {
+              "no_redis": { "value": { "error": "Redis not configured" } },
+              "runtime": { "value": { "error": "Failed to fetch views stats", "message": "Unknown error" } }
+            }
+          }
         }
       }
+    }
+  },
+  "post": {
+    "tags": ["Admin"],
+    "summary": "Sincronizar vistas desde Redis a Postgres",
+    "description": "Para cada clave `event:*:views`, incrementa `eventos.views`, sincroniza vistas diarias (`evento_views_history`) y elimina la clave en Redis.",
+    "requestBody": { "description": "No requiere body", "content": {} },
+    "responses": {
+      "200": {
+        "description": "Sincronización ejecutada (puede no haber claves para sincronizar)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "synced": { "type": "integer", "description": "Total de vistas aplicadas a DB" },
+                "processed": { "type": "integer", "description": "Cantidad de claves procesadas" },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "eventId": { "type": "string" },
+                      "count": { "type": "integer" },
+                      "synced": { "type": "boolean" },
+                      "error": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "con_sync": {
+                "value": {
+                  "message": "View sync completed",
+                  "synced": 57,
+                  "processed": 2,
+                  "results": [
+                    { "eventId": "evt_001", "count": 42, "synced": true },
+                    { "eventId": "evt_002", "count": 15, "synced": true }
+                  ]
+                }
+              },
+              "sin_claves": {
+                "value": { "message": "No view counters to sync", "synced": 0 }
+              },
+              "con_error_parcial": {
+                "value": {
+                  "message": "View sync completed",
+                  "synced": 42,
+                  "processed": 2,
+                  "results": [
+                    { "eventId": "evt_001", "count": 42, "synced": true },
+                    { "eventId": "evt_XXX", "count": 0, "synced": false, "error": "Record to update not found." }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Error al sincronizar o Redis no configurado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            },
+            "examples": {
+              "no_redis": { "value": { "error": "Redis not configured" } },
+              "runtime": { "value": { "error": "Failed to sync views", "message": "Unknown error" } }
+            }
+          }
+        }
+      }
+    }
+  }
+      
     },
 
     "/api/auth/assign-role": {
@@ -88,12 +209,252 @@
 
     "/api/comprar": {
       "post": {
-        "tags": ["Compras"],
-        "summary": "Realizar compra de entradas",
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" } } } },
-        "responses": { "201": { "description": "Compra creada" }, "400": { "description": "Solicitud inválida" } }
+    "tags": ["Compras"],
+    "summary": "Realizar compra de entradas",
+    "description": "Crea reserva, entradas, pago, movimiento de stock y registro en historial. Valida campos requeridos y método de pago. Para tarjetas hace validaciones básicas de formato.",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": ["id_usuario", "id_evento", "cantidad", "metodo_pago"],
+            "properties": {
+              "id_usuario": { "type": "integer", "example": 123 },
+              "id_evento": { "type": "string", "description": "UUID del evento", "example": "evt_001" },
+              "cantidad": { "type": "integer", "minimum": 1, "maximum": 5, "example": 2 },
+              "metodo_pago": {
+                "type": "string",
+                "enum": ["tarjeta_credito", "tarjeta_debito", "stripe", "mercado_pago"],
+                "example": "tarjeta_credito"
+              },
+              "moneda": { "type": "string", "description": "Código ISO interno (ARS|USD|EUR)", "example": "ARS" },
+              "datos_tarjeta": {
+                "type": "object",
+                "description": "Obligatorio si metodo_pago es tarjeta_*",
+                "properties": {
+                  "numero": { "type": "string", "description": "13-19 dígitos", "example": "4111111111111111" },
+                  "vencimiento": { "type": "string", "description": "MM/AA", "example": "12/27" },
+                  "cvv": { "type": "string", "description": "3-4 dígitos", "example": "123" },
+                  "dni": { "type": "string", "description": "7-10 dígitos", "example": "30123456" }
+                }
+              }
+            }
+          },
+          "examples": {
+            "tarjeta_credito": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 2,
+                "metodo_pago": "tarjeta_credito",
+                "moneda": "ARS",
+                "datos_tarjeta": {
+                  "numero": "4111111111111111",
+                  "vencimiento": "12/27",
+                  "cvv": "123",
+                  "dni": "30123456"
+                }
+              }
+            },
+            "stripe": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 1,
+                "metodo_pago": "stripe",
+                "moneda": "USD"
+              }
+            },
+            "mercado_pago": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 3,
+                "metodo_pago": "mercado_pago",
+                "moneda": "ARS"
+              }
+            }
+          }
+        }
       }
+    },
+    "responses": {
+      "201": {
+        "description": "Compra creada correctamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reserva": {
+                  "type": "object",
+                  "properties": {
+                    "reservaid": { "type": "string" },
+                    "usuarioid": { "type": "string" },
+                    "eventoid": { "type": "string" },
+                    "fechaid": { "type": "string" },
+                    "categoriaid": { "type": "string" },
+                    "cantidad": { "type": "integer" },
+                    "estado": { "type": "string", "example": "CONFIRMADA" }
+                  }
+                },
+                "pago": {
+                  "type": "object",
+                  "properties": {
+                    "pagoid": { "type": "string" },
+                    "reservaid": { "type": "string" },
+                    "metodo_pago": { "type": "string" },
+                    "monto_total": { "type": "string", "description": "Decimal como string" },
+                    "estado": { "type": "string", "example": "COMPLETADO" }
+                  }
+                },
+                "entradas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "entradaid": { "type": "string" },
+                      "reservaid": { "type": "string" },
+                      "codigo_qr": { "type": "string" },
+                      "estado": { "type": "string", "example": "VALIDA" }
+                    }
+                  }
+                },
+                "historialId": { "type": "string" },
+                "resumen": {
+                  "type": "object",
+                  "properties": {
+                    "total_entradas": { "type": "integer" },
+                    "precio_unitario": { "type": "string" },
+                    "monto_total": { "type": "string" },
+                    "metodo_pago": { "type": "string" },
+                    "estado": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "example": {
+              "reserva": {
+                "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                "usuarioid": "123",
+                "eventoid": "evt_001",
+                "fechaid": "fec_001",
+                "categoriaid": "stk_001",
+                "cantidad": 2,
+                "estado": "CONFIRMADA"
+              },
+              "pago": {
+                "pagoid": "e3a6b5a8-2f61-4f1b-9d9f-7d3f0b2f9876",
+                "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                "metodo_pago": "tarjeta_credito",
+                "monto_total": "24000.00",
+                "estado": "COMPLETADO"
+              },
+              "entradas": [
+                {
+                  "entradaid": "e1",
+                  "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                  "codigo_qr": "c0a801b5-...-0",
+                  "estado": "VALIDA"
+                },
+                {
+                  "entradaid": "e2",
+                  "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                  "codigo_qr": "c0a801b5-...-1",
+                  "estado": "VALIDA"
+                }
+              ],
+              "historialId": "h_abc123",
+              "resumen": {
+                "total_entradas": 2,
+                "precio_unitario": "12000.00",
+                "monto_total": "24000.00",
+                "metodo_pago": "tarjeta_credito",
+                "estado": "Compra procesada exitosamente"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Solicitud inválida (faltan campos / cantidad fuera de rango / método inválido / datos de tarjeta inválidos / evento sin fechas o stock)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "campos_requeridos": { "type": "array", "items": { "type": "string" } },
+                "debug": {
+                  "type": "object",
+                  "properties": {
+                    "tiene_fechas": { "type": "boolean" },
+                    "tiene_stock": { "type": "boolean" },
+                    "fechas_count": { "type": "integer" },
+                    "stock_count": { "type": "integer" }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "faltan_campos": {
+                "value": {
+                  "error": "Faltan campos requeridos",
+                  "campos_requeridos": ["id_usuario", "id_evento", "cantidad", "metodo_pago"]
+                }
+              },
+              "cantidad_invalida": { "value": { "error": "Cantidad debe estar entre 1 y 5" } },
+              "metodo_invalido": {
+                "value": { "error": "Método de pago no válido. Use: tarjeta_credito, tarjeta_debito, stripe o mercado_pago" }
+              },
+              "tarjeta_invalida": {
+                "value": {
+                  "error": "Datos de tarjeta inválidos",
+                  "campos_requeridos": [
+                    "datos_tarjeta.numero (13-19 dígitos)",
+                    "datos_tarjeta.vencimiento (MM/AA)",
+                    "datos_tarjeta.cvv (3-4 dígitos)",
+                    "datos_tarjeta.dni (7-10 dígitos)"
+                  ]
+                }
+              },
+              "evento_sin_config": {
+                "value": {
+                  "error": "Evento no tiene fechas o stock de entradas configurado",
+                  "debug": { "tiene_fechas": false, "tiene_stock": true, "fechas_count": 0, "stock_count": 1 }
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Evento no encontrado",
+        "content": {
+          "application/json": {
+            "schema": { "type": "object", "properties": { "error": { "type": "string" } } },
+            "example": { "error": "Evento no encontrado o no disponible" }
+          }
+        }
+      },
+      "500": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "detalles": { "type": "string" }
+              }
+            },
+            "example": { "error": "Error interno del servidor", "detalles": "Unknown error" }
+          }
+        }
+      }
+    }
+  }
     },
     "/api/compras/historial": {
       "get": {

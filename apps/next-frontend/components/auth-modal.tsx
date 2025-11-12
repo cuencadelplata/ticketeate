@@ -163,14 +163,11 @@ export default function AuthModal({
         }
       }
 
-
       if (errorMessage === 'Email o contraseña incorrectos') {
         try {
           const exists = await checkUserExists(formData.email);
           errorMessage = exists ? 'Contraseña incorrecta' : 'Usuario no encontrado';
-        } catch {
-          
-        }
+        } catch {}
       }
 
       showError(errorMessage);

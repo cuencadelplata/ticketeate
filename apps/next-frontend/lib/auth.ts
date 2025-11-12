@@ -24,7 +24,9 @@ const sendEmail = async (options: {
   if (!resend) {
     const errorMsg = 'RESEND_API_KEY is not set. Email functionality is disabled.';
     console.error('[Email]', errorMsg);
-    console.error('[Email] To enable email functionality, set RESEND_API_KEY in your .env.local file');
+    console.error(
+      '[Email] To enable email functionality, set RESEND_API_KEY in your .env.local file',
+    );
     console.error('[Email] Get your API key from: https://resend.com/api-keys');
     throw new Error(errorMsg);
   }
@@ -111,7 +113,7 @@ export const auth = betterAuth({
 
         try {
           await sendEmail({
-          from: `Ticketeate <${FROM_EMAIL}>`,
+            from: `Ticketeate <${FROM_EMAIL}>`,
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `
