@@ -11,8 +11,22 @@ if (!process.env.BETTER_AUTH_SECRET) {
 // Resend es opcional - solo se inicializa si la API key está configurada
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// Función para formatear el email "from" correctamente
+// Acepta:
+// - Solo email: "noreply@ticketeate.com.ar" → "Ticketeate <noreply@ticketeate.com.ar>"
+// - Formato completo: "Ticketeate <noreply@ticketeate.com.ar>" → se usa tal cual
+const formatFromEmail = (email: string): string => {
+  // Si ya viene con formato completo (contiene < y >)
+  if (email.includes('<') && email.includes('>')) {
+    return email;
+  }
+  // Si solo es un email, agregar el nombre
+  return `Ticketeate <${email}>`;
+};
+
 // Remitente configurable. Usa el dominio de prueba de Resend por defecto para desarrollo.
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const RAW_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const FROM_EMAIL = formatFromEmail(RAW_FROM_EMAIL);
 
 // Función helper para enviar emails con Resend
 const sendEmail = async (options: {
@@ -48,7 +62,7 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Permitir registro pero verificar después
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
-        from: `Ticketeate <${FROM_EMAIL}>`,
+        from: FROM_EMAIL,
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
         html: `
@@ -65,7 +79,7 @@ export const auth = betterAuth({
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
-        from: `Ticketeate <${FROM_EMAIL}>`,
+        from: FROM_EMAIL,
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
         html: `
@@ -113,7 +127,7 @@ export const auth = betterAuth({
 
         try {
           await sendEmail({
-            from: `Ticketeate <${FROM_EMAIL}>`,
+            from: FROM_EMAIL,
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `
