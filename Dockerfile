@@ -29,11 +29,23 @@ RUN pnpm install --frozen-lockfile
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate
 
-# Set dummy environment variables for build (not used at runtime)
-ENV BETTER_AUTH_SECRET="dummy-secret-for-build" \
-    BETTER_AUTH_URL="http://localhost:3000" \
-    DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
-    RESEND_API_KEY="re_dummy_key_for_build"
+# Build arguments for required environment variables
+ARG BETTER_AUTH_SECRET
+ARG BETTER_AUTH_URL
+ARG DATABASE_URL
+ARG RESEND_API_KEY
+
+# Validate that required build arguments are provided
+RUN test -n "$BETTER_AUTH_SECRET" || (echo "Error: BETTER_AUTH_SECRET is required" && exit 1) && \
+    test -n "$BETTER_AUTH_URL" || (echo "Error: BETTER_AUTH_URL is required" && exit 1) && \
+    test -n "$DATABASE_URL" || (echo "Error: DATABASE_URL is required" && exit 1) && \
+    test -n "$RESEND_API_KEY" || (echo "Error: RESEND_API_KEY is required" && exit 1)
+
+# Set environment variables from build arguments
+ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
+    BETTER_AUTH_URL=$BETTER_AUTH_URL \
+    DATABASE_URL=$DATABASE_URL \
+    RESEND_API_KEY=$RESEND_API_KEY
 
 # Build only the db package and next-frontend
 RUN pnpm --filter=@repo/db run build

@@ -1,0 +1,3 @@
+# Middleware.ts ha sido migrado a proxy.ts
+# Este archivo se mantiene para referencia pero no se usa en Next.js 16
+# Los security headers ahora están en la función addSecurityHeaders de proxy.ts
