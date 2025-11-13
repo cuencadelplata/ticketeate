@@ -153,7 +153,7 @@ export async function GET() {
     const stats = {
       pendingSync: viewKeys.length,
       totalPendingViews: 0,
-      events: [],
+      events: [] as Array<{ eventId: string; pendingViews: number }>,
     };
 
     for (const key of viewKeys) {
