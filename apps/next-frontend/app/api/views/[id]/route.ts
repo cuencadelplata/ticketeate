@@ -152,7 +152,7 @@ function getVisitorId(request: NextRequest): string {
   return Buffer.from(`${ip}-${userAgent}`).toString('base64').slice(0, 32);
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: eventId } = await params;
 
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // Endpoint para obtener el conteo actual de views
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: eventId } = await params;
 
