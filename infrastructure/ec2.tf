@@ -98,6 +98,12 @@ resource "aws_iam_role_policy" "ec2_ecr_policy" {
   })
 }
 
+# Attach SSM Managed Instance Core policy for Systems Manager
+resource "aws_iam_role_policy_attachment" "ec2_ssm_managed" {
+  role       = aws_iam_role.ec2_ecr_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 # IAM Instance Profile
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.project_name}-ec2-profile-${var.environment}"
