@@ -1,5 +1,10 @@
 # Outputs - Información útil después del apply
 
+output "nginx_instance_id" {
+  description = "Instance ID of Nginx EC2"
+  value       = aws_instance.nginx.id
+}
+
 output "nginx_public_ip" {
   description = "Public IP of Nginx instance"
   value       = aws_instance.nginx.public_ip
