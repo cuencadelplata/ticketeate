@@ -5,6 +5,59 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.3](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.1.2...svc-events-v1.1.3) (2025-11-05)
+
+
+### Bug Fixes
+
+* **docker:** correct next-frontend package name filter in build ([#106](https://github.com/cuencadelplata/ticketeate/issues/106)) ([3f00d83](https://github.com/cuencadelplata/ticketeate/commit/3f00d8330e183ccdcbd5fceb1b3dce445043e7ef))
+* **docker:** correct next-frontend package name filter in build ([ee4cfda](https://github.com/cuencadelplata/ticketeate/commit/ee4cfda8c0ab0ea55bd515fbb8e0ff862bb7dd4d))
+
+## [1.1.2](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.1.1...svc-events-v1.1.2) (2025-11-03)
+
+
+### Bug Fixes
+
+* deploy ecr ([be99448](https://github.com/cuencadelplata/ticketeate/commit/be99448f1ce03789de5f3538a0fb4a2f01e2fca2))
+* deploy ecr ([ef8c15b](https://github.com/cuencadelplata/ticketeate/commit/ef8c15bb0e156e7b3c4748eed562a224e3f582f6))
+* deploy ecr ([#102](https://github.com/cuencadelplata/ticketeate/issues/102)) ([154d8a0](https://github.com/cuencadelplata/ticketeate/commit/154d8a0e5002743e1d12c84b16723d1242bdef18))
+* deploy ecr ([#103](https://github.com/cuencadelplata/ticketeate/issues/103)) ([0c2d93a](https://github.com/cuencadelplata/ticketeate/commit/0c2d93a327cd9dc9ea1588391203711e28335050))
+* **tsconfig:** enable emit for all services to produce dist in Docker builds ([ceb598d](https://github.com/cuencadelplata/ticketeate/commit/ceb598da68e9d1345f45bc8b62cde35295ccdfcd))
+* **tsconfig:** enable emit for svc-users build ([#104](https://github.com/cuencadelplata/ticketeate/issues/104)) ([9bbe842](https://github.com/cuencadelplata/ticketeate/commit/9bbe8425b71905dd8665c090e77608bf8d5e8031))
+* **tsconfig:** enable emit for svc-users build to produce dist in Docker builds ([5e08686](https://github.com/cuencadelplata/ticketeate/commit/5e086867404f97cf148b2452301bd58308f76e40))
+* **docker:** include eslint-config and typescript-config packages in … ([#101](https://github.com/cuencadelplata/ticketeate/issues/101)) ([fe3b3b4](https://github.com/cuencadelplata/ticketeate/commit/fe3b3b41671e6e6255879c7712d1768164278b59))
+* **docker:** include eslint-config and typescript-config packages in Docker builds ([d1ac621](https://github.com/cuencadelplata/ticketeate/commit/d1ac62120fe9e43f0e951fc4b8c6d3b21ba76b80))
+
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.1.0...svc-events-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to preve… ([#100](https://github.com/cuencadelplata/ticketeate/issues/100)) ([27c3058](https://github.com/cuencadelplata/ticketeate/commit/27c3058542e8348f25378a781df4d7ae944e3439))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to prevent CI conflicts ([01be6c2](https://github.com/cuencadelplata/ticketeate/commit/01be6c2d5d1745c3d5f5417f51fd0d4c47e15b62))
+
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.1...svc-events-v1.1.0) (2025-11-03)
+
+
+### Features
+
+* **svc-events:** test release workflow with version bump ([#98](https://github.com/cuencadelplata/ticketeate/issues/98)) ([bab7624](https://github.com/cuencadelplata/ticketeate/commit/bab76244920468490e2325016bb42b7e9d6b1cab))
+* **svc-events:** test release workflow with version bump ([4112dcb](https://github.com/cuencadelplata/ticketeate/commit/4112dcb64b164a195ee7704a25d8fd634645ae97))
+
+## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.0.0...svc-events-v1.0.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* add semantic-release dependencies to svc-users to sync lockfile ([7d4a250](https://github.com/cuencadelplata/ticketeate/commit/7d4a2503516333aac0b09722476df01b03fd9172))
+* **next-frontend:** auth - middleware - otp email ([#94](https://github.com/cuencadelplata/ticketeate/issues/94)) ([e6f6ea7](https://github.com/cuencadelplata/ticketeate/commit/e6f6ea72b378ff0c54a5bf24e012951846f6a7ad))
+* **next-frontend:** auth - middleware - otp email ([f360028](https://github.com/cuencadelplata/ticketeate/commit/f3600289958a49d08767ceb6c4a716f6b29b85c9))
+* **next-frontend:** auth - middleware - otp email ([925534a](https://github.com/cuencadelplata/ticketeate/commit/925534ae8a1e0250d778d00abf70fbc8b0a808aa))
+* queues - rsc - profile config ([#96](https://github.com/cuencadelplata/ticketeate/issues/96)) ([dc0d3ed](https://github.com/cuencadelplata/ticketeate/commit/dc0d3edb9a306d8428ecad7d009315e262b98172))
+* reset password ([0c0a262](https://github.com/cuencadelplata/ticketeate/commit/0c0a262907ed803560e917ded3a68196a21e5a57))
+* tsconfig - import google fonts ([0572c6f](https://github.com/cuencadelplata/ticketeate/commit/0572c6f681bf28bc558c451ccea3edda1723a5dd))
+* workflows aws ecr ([f8885c0](https://github.com/cuencadelplata/ticketeate/commit/f8885c083e5bfcd45bc81fd11858dd4d1cb82dd9))
+
 # 1.0.0 (2025-11-01)
 
 

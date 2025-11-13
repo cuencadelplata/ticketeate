@@ -10,32 +10,24 @@ const nextMDX = withMDX({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.NODE_ENV === 'development',
   },
   images: {
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
       },
     ],
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
-  turbo: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
-  },
   webpack: (config) => {
-    // Ignorar warnings específicos
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       /UPDATE_ACTIVEDESCENDANT/,
@@ -44,6 +36,9 @@ const nextConfig = {
     ];
 
     return config;
+  },
+  experimental: {
+    optimizePackageImports: ['@repo/ui'],
   },
 };
 
