@@ -5,6 +5,20 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.3...next-frontend-v1.2.0) (2025-11-13)
+
+
+### Bug Fixes
+
+* mejorar debugging en workflow de nginx deployment ([1ddbc15](https://github.com/cuencadelplata/ticketeate/commit/1ddbc15c3b8f26940ee5436fdb09b309a43ed13f))
+* mejorar debugging en workflow de nginx deployment ([#126](https://github.com/cuencadelplata/ticketeate/issues/126)) ([9159f87](https://github.com/cuencadelplata/ticketeate/commit/9159f877853fad33f7b35807ef93c02be6f82930))
+
+
+### Features
+
+* deploy nginx con hybrid.conf ([97d2fdb](https://github.com/cuencadelplata/ticketeate/commit/97d2fdbd446936a3e5af357c5ab3903623abab6c))
+* deploy nginx con hybrid.conf ([#125](https://github.com/cuencadelplata/ticketeate/issues/125)) ([09fc126](https://github.com/cuencadelplata/ticketeate/commit/09fc12610c6628f50e2d9e5b1e9e1f0dd2c6884d))
+
 ## [1.1.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.2...next-frontend-v1.1.3) (2025-11-08)
 
 
