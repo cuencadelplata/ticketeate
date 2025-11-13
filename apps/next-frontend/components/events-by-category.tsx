@@ -31,7 +31,6 @@ export function EventsByCategory({
       eventTitle: event.titulo,
       selectedCategoryId,
       evento_categorias: event.evento_categorias,
-      categoriaevento: event.categoriaevento,
     });
 
     // Buscar en evento_categorias (array) en lugar de categoriaevento (objeto único)
@@ -128,7 +127,7 @@ export function EventsByCategory({
               // Obtener fecha del evento
               const eventDate = event.fechas_evento?.[0]?.fecha_hora
                 ? new Date(event.fechas_evento[0].fecha_hora)
-                : new Date(event.fecha_creacion);
+                : new Date(event.fecha_creacion || new Date());
               const date = eventDate.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
@@ -167,7 +166,6 @@ export function EventsByCategory({
                     description={event.descripcion || ''}
                     price={isFree ? 'Gratis' : `Desde $${precioMinimo}`}
                     date={date}
-                    eventDate={eventDate}
                     image={image}
                     category={categoriaPrincipal}
                     category2={event.ubicacion || ''}

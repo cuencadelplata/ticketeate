@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
     }
 
-    let userId = userIdParam;
+    let userId: string | null | undefined = userIdParam;
 
     // Si no se proporciona userId como param, intentar obtenerlo de la sesión
     if (!userId) {

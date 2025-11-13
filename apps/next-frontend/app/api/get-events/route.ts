@@ -1,23 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Tipos TypeScript para la API de eventos
-export interface Evento {
-  id: string;
-  titulo: string;
-  descripcion: string;
-  fechaInicio: string; // ISO
-  fechaFin: string; // ISO
-  ubicacion: string;
-  precio: number;
-  capacidad: number;
-  disponibles: number;
-  categoria: Categoria;
-  imagenes: ImagenEvento[];
-  estado: 'activo' | 'cancelado' | 'completado';
-  createdAt: string; // ISO
-  updatedAt: string; // ISO
-}
+import { Event } from '@/types/events';
 
 export interface Categoria {
   id: string;
@@ -60,14 +44,14 @@ export interface RespuestaPaginada<T> {
 export async function listarEventos(
   paginacion: PaginacionParams,
   filtros?: FiltrosEventos,
-): Promise<RespuestaPaginada<Evento>> {
+): Promise<RespuestaPaginada<Event>> {
   try {
     const { pagina, limite } = paginacion;
     const skip = (pagina - 1) * limite;
 
     // Construir filtros de consulta
     const where: any = {
-      estado: 'activo', // Solo eventos activos
+      // estado: 'activo', // Solo eventos activos - TODO: revisar lógica de estados
     };
 
     if (filtros?.fechaInicio) {
@@ -108,13 +92,17 @@ export async function listarEventos(
       prisma.eventos.findMany({
         where,
         include: {
-          categoria: true,
-          imagenes: true,
+          evento_categorias: {
+            include: {
+              categoriaevento: true,
+            },
+          },
+          imagenes_evento: true,
         },
         skip,
         take: limite,
         orderBy: {
-          fechaInicio: 'asc',
+          fecha_creacion: 'desc',
         },
       }),
       prisma.eventos.count({ where }),
@@ -123,25 +111,21 @@ export async function listarEventos(
     // Calcular disponibilidad para cada evento en paralelo
     const eventosTyped: any[] = eventos as any[];
     const disponiblesArr = await Promise.all(
-      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.id)),
+      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.eventoid)),
     );
 
-    const datos: Evento[] = eventosTyped.map((ev: any, idx: number) => ({
-      id: ev.id,
+    const datos: Event[] = eventosTyped.map((ev: any, idx: number) => ({
+      eventoid: ev.eventoid,
       titulo: ev.titulo,
-      descripcion: ev.descripcion,
-      fechaInicio:
-        ev.fechaInicio instanceof Date ? ev.fechaInicio.toISOString() : String(ev.fechaInicio),
-      fechaFin: ev.fechaFin instanceof Date ? ev.fechaFin.toISOString() : String(ev.fechaFin),
+      descripcion: ev.descripcion || undefined,
       ubicacion: ev.ubicacion,
-      precio: ev.precio,
-      capacidad: ev.capacidad,
-      disponibles: disponiblesArr[idx] ?? 0,
-      categoria: ev.categoria,
-      imagenes: ev.imagenes || [],
-      estado: ev.estado,
-      createdAt: ev.createdAt instanceof Date ? ev.createdAt.toISOString() : String(ev.createdAt),
-      updatedAt: ev.updatedAt instanceof Date ? ev.updatedAt.toISOString() : String(ev.updatedAt),
+      fecha_creacion: ev.fecha_creacion,
+      fecha_publicacion: ev.fecha_publicacion || undefined,
+      creadorid: ev.creadorid,
+      mapa_evento: ev.mapa_evento || {},
+      fecha_cambio: ev.fecha_cambio,
+      views: ev.views || 0,
+      imagenes_evento: ev.imagenes_evento || [],
     }));
 
     const totalPaginas = Math.ceil(total / limite);
@@ -162,19 +146,22 @@ export async function listarEventos(
 }
 
 // Función para obtener detalle de un evento específico
-export async function obtenerDetalleEvento(id: string): Promise<Evento> {
+export async function obtenerDetalleEvento(id: string): Promise<Event> {
   try {
     // Usar findFirst para poder filtrar por estado además del id
     const evento = await prisma.eventos.findFirst({
       where: {
-        id,
-        estado: 'activo', // Solo eventos activos
+        eventoid: id,
       },
       include: {
-        categoria: true,
-        imagenes: {
+        evento_categorias: {
+          include: {
+            categoriaevento: true,
+          },
+        },
+        imagenes_evento: {
           orderBy: {
-            esPrincipal: 'desc', // Imagen principal primero
+            tipo: 'asc', // Ordenar por tipo
           },
         },
       },
@@ -185,33 +172,20 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
     }
 
     // Calcular disponibilidad en tiempo real
-    const disponibles = await calcularDisponibilidad(evento.id);
+    const disponibles = await calcularDisponibilidad(evento.eventoid);
 
-    const mapped: Evento = {
-      id: evento.id,
+    const mapped: Event = {
+      eventoid: evento.eventoid,
       titulo: evento.titulo,
-      descripcion: evento.descripcion,
-      fechaInicio:
-        evento.fechaInicio instanceof Date
-          ? evento.fechaInicio.toISOString()
-          : String(evento.fechaInicio),
-      fechaFin:
-        evento.fechaFin instanceof Date ? evento.fechaFin.toISOString() : String(evento.fechaFin),
+      descripcion: evento.descripcion || undefined,
       ubicacion: evento.ubicacion,
-      precio: evento.precio,
-      capacidad: evento.capacidad,
-      disponibles,
-      categoria: evento.categoria,
-      imagenes: evento.imagenes || [],
-      estado: evento.estado,
-      createdAt:
-        evento.createdAt instanceof Date
-          ? evento.createdAt.toISOString()
-          : String(evento.createdAt),
-      updatedAt:
-        evento.updatedAt instanceof Date
-          ? evento.updatedAt.toISOString()
-          : String(evento.updatedAt),
+      fecha_creacion: evento.fecha_creacion,
+      fecha_publicacion: evento.fecha_publicacion || undefined,
+      creadorid: evento.creadorid,
+      mapa_evento: (evento.mapa_evento as Record<string, unknown>) || {},
+      fecha_cambio: evento.fecha_cambio,
+      views: evento.views || 0,
+      imagenes_evento: evento.imagenes_evento || [],
     };
 
     return mapped;
@@ -227,23 +201,22 @@ export async function obtenerDetalleEvento(id: string): Promise<Evento> {
 // Función auxiliar para calcular disponibilidad en tiempo real
 export async function calcularDisponibilidad(eventoId: string): Promise<number> {
   try {
-    const evento = await prisma.eventos.findUnique({
-      where: { id: eventoId },
-      select: { capacidad: true },
+    // Obtener la capacidad total del evento desde stock_entrada
+    const stockTotal = await prisma.stock_entrada.aggregate({
+      where: { eventoid: eventoId },
+      _sum: { cant_max: true },
     });
 
-    if (!evento) {
-      return 0;
-    }
+    const capacidadTotal = stockTotal._sum.cant_max || 0;
 
-    const reservasConfirmadas = await prisma.reserva.count({
+    const reservasConfirmadas = await prisma.reservas.count({
       where: {
-        eventoId: eventoId,
+        eventoid: eventoId,
         estado: 'confirmada',
       },
     });
 
-    return Math.max(0, evento.capacidad - reservasConfirmadas);
+    return Math.max(0, capacidadTotal - reservasConfirmadas);
   } catch (error) {
     console.error('Error al calcular disponibilidad:', error);
     return 0;

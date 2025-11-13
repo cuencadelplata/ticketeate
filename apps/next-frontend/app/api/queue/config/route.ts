@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // Verificar que el evento existe
     const event = await prisma.eventos.findUnique({
       where: { eventoid: eventId },
-      select: { titulo: true, estado: true },
+      select: { titulo: true },
     });
 
     if (!event) {
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       where: { eventoid: eventId },
       include: {
         eventos: {
-          select: { titulo: true, estado: true },
+          select: { titulo: true },
         },
         _count: {
           select: { cola_turnos: true },

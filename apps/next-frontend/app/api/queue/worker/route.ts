@@ -14,14 +14,13 @@ export async function GET() {
         eventos: {
           select: {
             titulo: true,
-            estado: true,
           },
         },
       },
       where: {
-        eventos: {
-          estado: 'ACTIVO', // Solo procesar eventos activos
-        },
+        // eventos: {
+        //   estado: 'ACTIVO', // Solo procesar eventos activos - TODO: revisar lógica de estados
+        // },
       },
     });
 
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
       where: { eventoid: eventId },
       include: {
         eventos: {
-          select: { titulo: true, estado: true },
+          select: { titulo: true },
         },
       },
     });
