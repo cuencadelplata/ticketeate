@@ -5,23 +5,19 @@ import PixelBlast from './pixel-blast';
 
 export function Hero() {
   return (
-    <section className="relative min-h-[70vh] sm:min-h-[75vh] lg:min-h-[80vh] flex items-center pt-10">
-      {/* Capas de fondo */}
+    <section className="relative h-[450px] sm:h-[600px] lg:h-[700px] flex items-center pt-20 sm:pt-0">
       <div className="absolute inset-0 z-0 bg-black overflow-hidden">
-        {/* Imagen de fondo con baja opacidad */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            backgroundImage: 'url(/party-back.jpg)',
+            backgroundImage: 'url(/ticketeate-hero.webp)',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
           }}
         />
 
-        {/* Gradiente oscuro para fusionar */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
 
-        {/* PixelBlast encima */}
         <PixelBlast
           variant="circle"
           pixelSize={6}
@@ -40,29 +36,18 @@ export function Hero() {
           speed={0.6}
           edgeFade={0.25}
           transparent={false}
-          className="!w-full !h-full mix-blend-screen"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'block',
-            opacity: 0.85,
-          }}
+          className="absolute inset-0 opacity-85"
         />
       </div>
 
-      <div className="max-w-6xl mx-auto px-16 w-full relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-16 w-full relative z-10">
         <div className="flex flex-col items-center justify-center text-center">
-          {/* Contenido de texto y botones centrado */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="space-y-8 max-w-4xl"
           >
-            {/* Título principal */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -86,18 +71,16 @@ export function Hero() {
               .
             </motion.h1>
 
-            {/* Subtítulo */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-md text-gray-200 sm:text-lg max-w-2xl mx-auto"
+              className="text-base text-gray-200 sm:text-lg max-w-2xl mx-auto"
             >
               Crea, gestiona y vende entradas en minutos con{' '}
               <span className="text-white">Ticketeate</span>.
             </motion.p>
 
-            {/* Botones de acción */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

@@ -21,9 +21,11 @@ export const authRoutes: string[] = [
 export const protectedRoutes: string[] = [
   '/evento/manage/*', // Gestión de eventos
   '/eventos', // Mis eventos (como organizador)
+  '/eventos/*', // Todas las subrutas de eventos
   '/configuracion',
   '/configuracion/*',
   '/profile', // Perfil de usuario
+  '/deploys',
 ];
 
 export const apiAuthPrefix: string = '/api/auth';
