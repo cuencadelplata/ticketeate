@@ -4,49 +4,53 @@ import { Prisma } from '@repo/db';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock Prisma
-vi.mock('@repo/db', () => ({
-  prisma: {
-    user: {
-      upsert: vi.fn(),
+vi.mock('@repo/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@repo/db')>();
+  return {
+    ...actual,
+    prisma: {
+      user: {
+        upsert: vi.fn(),
+      },
+      categoriaevento: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        findUnique: vi.fn(),
+      },
+      eventos: {
+        create: vi.fn(),
+        findUnique: vi.fn(),
+        findMany: vi.fn(),
+        findFirst: vi.fn(),
+        update: vi.fn(),
+      },
+      imagenes_evento: {
+        createMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      fechas_evento: {
+        createMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      stock_entrada: {
+        createMany: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      estadisticas: {
+        create: vi.fn(),
+      },
+      colas_evento: {
+        create: vi.fn(),
+      },
+      evento_estado: {
+        create: vi.fn(),
+      },
+      evento_modificaciones: {
+        create: vi.fn(),
+      },
     },
-    categoriaevento: {
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      findUnique: vi.fn(),
-    },
-    eventos: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-      update: vi.fn(),
-    },
-    imagenes_evento: {
-      createMany: vi.fn(),
-      deleteMany: vi.fn(),
-    },
-    fechas_evento: {
-      createMany: vi.fn(),
-      deleteMany: vi.fn(),
-    },
-    stock_entrada: {
-      createMany: vi.fn(),
-      deleteMany: vi.fn(),
-    },
-    estadisticas: {
-      create: vi.fn(),
-    },
-    colas_evento: {
-      create: vi.fn(),
-    },
-    evento_estado: {
-      create: vi.fn(),
-    },
-    evento_modificaciones: {
-      create: vi.fn(),
-    },
-  },
-}));
+  };
+});
 
 // Mock crypto
 vi.mock('node:crypto', () => ({
