@@ -78,10 +78,29 @@ export async function servicePost<T = any>(
   return response.json();
 }
 
+// Helper para obtener la URL base según el entorno
+function getServiceUrl(envVar: string | undefined, defaultPort: number): string {
+  // Si hay variable de entorno, usarla
+  if (envVar) {
+    return envVar;
+  }
+
+  // En desarrollo, usar localhost
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `http://localhost:${defaultPort}`;
+    }
+  }
+
+  // Fallback a localhost para SSR en desarrollo
+  return `http://localhost:${defaultPort}`;
+}
+
 // Exportar servicios conocidos
 export const SERVICES = {
-  EVENTS: process.env.NEXT_PUBLIC_EVENTS_SERVICE_URL || 'http://localhost:3001',
-  USERS: process.env.NEXT_PUBLIC_USERS_SERVICE_URL || 'http://localhost:3002',
-  CHECKOUT: process.env.NEXT_PUBLIC_CHECKOUT_SERVICE_URL || 'http://localhost:3003',
-  PRODUCERS: process.env.NEXT_PUBLIC_PRODUCERS_SERVICE_URL || 'http://localhost:3004',
+  EVENTS: getServiceUrl(process.env.NEXT_PUBLIC_EVENTS_SERVICE_URL, 3001),
+  USERS: getServiceUrl(process.env.NEXT_PUBLIC_USERS_SERVICE_URL, 3002),
+  CHECKOUT: getServiceUrl(process.env.NEXT_PUBLIC_CHECKOUT_SERVICE_URL, 3003),
+  PRODUCERS: getServiceUrl(process.env.NEXT_PUBLIC_PRODUCERS_SERVICE_URL, 3004),
 };
