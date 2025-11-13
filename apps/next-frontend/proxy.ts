@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { NextConfig } from 'next';
-import { publicRoutes, authRoutes, protectedRoutes, apiAuthPrefix, DEFAULT_LOGIN_REDIRECT } from './routes';
+import {
+  publicRoutes,
+  authRoutes,
+  protectedRoutes,
+  apiAuthPrefix,
+  DEFAULT_LOGIN_REDIRECT,
+} from './routes';
 
 function isRouteMatch(pathname: string, routes: string[]): boolean {
-  return routes.some(route => {
+  return routes.some((route) => {
     if (route.endsWith('/*')) {
       const basePath = route.slice(0, -2);
       return pathname.startsWith(basePath);
@@ -14,7 +20,7 @@ function isRouteMatch(pathname: string, routes: string[]): boolean {
 
 export default function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
+
   // Permitir rutas de API de auth
   if (pathname.startsWith(apiAuthPrefix)) {
     return NextResponse.next();
