@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
+type Role = 'USUARIO' | 'ORGANIZADOR';
 
 type Props = {
   defaultTab?: 'login' | 'register';
@@ -115,11 +115,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-    if (tab === 'register' && role === 'COLABORADOR' && !formData.inviteCode.trim()) {
-      showError('El código de invitación es requerido para COLABORADOR');
-      return false;
-    }
-    return true;
   };
 
   async function doLogin(e: React.FormEvent) {
@@ -211,18 +206,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       }
 
       // Asignar rol según el tipo seleccionado
-      if (role === 'COLABORADOR') {
-        // COLABORADOR requiere código de invitación
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
-      } else if (role === 'ORGANIZADOR') {
+     if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
@@ -379,14 +363,11 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-  const inviteRequired = role === 'COLABORADOR';
   const isFormValid =
     formData.email.trim() &&
     formData.password.trim() &&
-    formData.password.length >= 6 &&
-    (!inviteRequired || formData.inviteCode.trim());
+    formData.password.length >= 6 
 
-  const disableSubmit = loading || !isFormValid;
 
   const getRoleDescription = (role: Role) => {
     switch (role) {
@@ -394,8 +375,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         return 'Compra entradas y participa en eventos';
       case 'ORGANIZADOR':
         return 'Crea y gestiona eventos (sin código requerido)';
-      case 'COLABORADOR':
-        return 'Escanea entradas y valida tickets (requiere código)';
       default:
         return '';
     }
@@ -407,8 +386,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         return 'Usuario';
       case 'ORGANIZADOR':
         return 'Organizador';
-      case 'COLABORADOR':
-        return 'Colaborador';
       default:
         return role;
     }
@@ -582,7 +559,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
               <form onSubmit={doRegister} className="space-y-3">
                 {/* Role selector */}
                 <div className="grid grid-cols-1 gap-2">
-                  {(['USUARIO', 'ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
+                  {(['USUARIO', 'ORGANIZADOR'] as Role[]).map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -597,19 +574,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   ))}
                 </div>
 
-                {/* Invite code */}
-                {inviteRequired && (
-                  <div className="space-y-1">
-                    <label className="text-xs text-stone-400">Código de invitación</label>
-                    <input
-                      value={formData.inviteCode}
-                      onChange={(e) => updateFormData('inviteCode', e.target.value)}
-                      placeholder="Ingresa tu código"
-                      className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
-                    />
-                    <p className="text-xs text-stone-500">Requerido solo para COLABORADOR.</p>
-                  </div>
-                )}
+            
 
                 <div className="space-y-2">
                   <div className="relative">
@@ -667,7 +632,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 )}
 
                 <button
-                  disabled={disableSubmit}
+
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -710,7 +675,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 </div>
 
                 <button
-                  disabled={disableSubmit}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}

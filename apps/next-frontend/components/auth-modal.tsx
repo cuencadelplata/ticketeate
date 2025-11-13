@@ -7,7 +7,7 @@ import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-type Role = 'ORGANIZADOR' | 'COLABORADOR';
+type Role = 'ORGANIZADOR';
 
 type Props = {
   open: boolean;
@@ -33,7 +33,6 @@ export default function AuthModal({
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    inviteCode: '',
   });
 
   // Función para mostrar errores
@@ -104,10 +103,6 @@ export default function AuthModal({
     }
     if (formData.password.length < 6) {
       showError('La contraseña debe tener al menos 6 caracteres');
-      return false;
-    }
-    if (tab === 'register' && role === 'COLABORADOR' && !formData.inviteCode.trim()) {
-      showError('El código de invitación es requerido para COLABORADOR');
       return false;
     }
     return true;
@@ -193,19 +188,8 @@ export default function AuthModal({
         name: formData.email,
       });
 
-      // Solo asignar rol si es COLABORADOR (requiere código) o ORGANIZADOR (no requiere código)
-      if (role === 'COLABORADOR') {
-        // COLABORADOR requiere código de invitación
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
-      } else if (role === 'ORGANIZADOR') {
+
+    if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
@@ -258,12 +242,10 @@ export default function AuthModal({
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-  const inviteRequired = role === 'COLABORADOR';
   const isFormValid =
     formData.email.trim() &&
     formData.password.trim() &&
-    formData.password.length >= 6 &&
-    (!inviteRequired || formData.inviteCode.trim());
+    formData.password.length >= 6 
 
   const disableSubmit = loading || !isFormValid;
 
@@ -320,7 +302,7 @@ export default function AuthModal({
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
               <div className="grid grid-cols-2 gap-2">
-                {(['ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
+                {(['ORGANIZADOR'] as Role[]).map((r) => (
                   <button
                     key={r}
                     type="button"
@@ -330,7 +312,7 @@ export default function AuthModal({
                     }`}
                   >
                     <div className="font-semibold">
-                      {r === 'ORGANIZADOR' ? 'Organizador' : 'Colaborador'}
+                      {r === 'ORGANIZADOR' ? 'Organizador' : ''}
                     </div>
                     <div className="text-xs text-stone-400">
                       {r === 'ORGANIZADOR'
@@ -340,20 +322,6 @@ export default function AuthModal({
                   </button>
                 ))}
               </div>
-
-              {/* Invite code */}
-              {inviteRequired && (
-                <div className="space-y-1">
-                  <label className="text-xs text-stone-400">Código de invitación</label>
-                  <input
-                    value={formData.inviteCode}
-                    onChange={(e) => updateFormData('inviteCode', e.target.value)}
-                    placeholder="Ingresa tu código"
-                    className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
-                  />
-                  <p className="text-xs text-stone-500">Requerido solo para COLABORADOR.</p>
-                </div>
-              )}
 
               <div className="space-y-2">
                 <div className="relative">
