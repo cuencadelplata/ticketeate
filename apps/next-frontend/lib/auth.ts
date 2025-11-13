@@ -11,24 +11,21 @@ if (!process.env.BETTER_AUTH_SECRET) {
 // Resend es opcional - solo se inicializa si la API key está configurada
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-// Función para formatear el email "from" correctamente
-// Acepta:
-// - Solo email: "noreply@ticketeate.com.ar" → "Ticketeate <noreply@ticketeate.com.ar>"
-// - Formato completo: "Ticketeate <noreply@ticketeate.com.ar>" → se usa tal cual
+
 const formatFromEmail = (email: string): string => {
-  // Si ya viene con formato completo (contiene < y >)
+
   if (email.includes('<') && email.includes('>')) {
     return email;
   }
-  // Si solo es un email, agregar el nombre
+ 
   return `Ticketeate <${email}>`;
 };
 
-// Remitente configurable. Usa el dominio de prueba de Resend por defecto para desarrollo.
+
 const RAW_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_EMAIL = formatFromEmail(RAW_FROM_EMAIL);
 
-// Función helper para enviar emails con Resend
+
 const sendEmail = async (options: {
   from: string;
   to: string[];
@@ -59,7 +56,7 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Permitir registro pero verificar después
+    requireEmailVerification: false, 
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
         from: FROM_EMAIL,
