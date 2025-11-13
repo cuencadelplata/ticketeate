@@ -5,6 +5,16 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.0.0...svc-checkout-v1.0.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* **web:** main container - responsive menu ([#116](https://github.com/cuencadelplata/ticketeate/issues/116)) ([b4f5e86](https://github.com/cuencadelplata/ticketeate/commit/b4f5e86897e4f11a9eb79215f0f29f238dba47cc))
+* **hero:** main container ([ddb594c](https://github.com/cuencadelplata/ticketeate/commit/ddb594c4989e4c7b83d9cc005fb672196537a876))
+* workflows ([3ff0ddf](https://github.com/cuencadelplata/ticketeate/commit/3ff0ddf8d9cddbcf832d0aab8f8c2856c9ac8fbc))
+* workflows ([#113](https://github.com/cuencadelplata/ticketeate/issues/113)) ([3d20386](https://github.com/cuencadelplata/ticketeate/commit/3d203866bcf4d90303ed212eb2bdb2740eb185ec))
+
 # 1.0.0 (2025-11-03)
 
 
