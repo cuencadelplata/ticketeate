@@ -9,6 +9,7 @@ Este paquete contiene utilidades compartidas entre todos los servicios de Ticket
 Valida que todas las variables de entorno requeridas estén presentes y tengan el formato correcto.
 
 **Uso:**
+
 ```typescript
 import { env, getAllowedOrigins } from '@repo/shared/env';
 
@@ -21,10 +22,11 @@ const allowedOrigins = getAllowedOrigins();
 ```
 
 **Variables Validadas:**
+
 - `DATABASE_URL` (required)
 - `BETTER_AUTH_SECRET` (required, min 32 chars)
 - `BETTER_AUTH_URL` (required)
-- `RESEND_API_KEY` (required, starts with 're_')
+- `RESEND_API_KEY` (required, starts with 're\_')
 - `NODE_ENV` (default: 'development')
 - Y más... (ver archivo para lista completa)
 
@@ -35,6 +37,7 @@ const allowedOrigins = getAllowedOrigins();
 Sistema de logging estructurado con niveles y formato JSON en producción.
 
 **Uso:**
+
 ```typescript
 import { logger } from '@repo/shared/logger';
 
@@ -59,12 +62,14 @@ logger.http('POST', '/api/events', 201, 150);
 ```
 
 **Niveles:**
+
 - `debug`: Solo en desarrollo
 - `info`: Información general
 - `warn`: Advertencias
 - `error`: Errores
 
 **Características:**
+
 - ✅ Timestamps automáticos
 - ✅ Formato JSON en producción
 - ✅ Colores en desarrollo
@@ -78,20 +83,25 @@ logger.http('POST', '/api/events', 201, 150);
 Middleware de rate limiting para prevenir abuso de APIs.
 
 **Uso Básico:**
+
 ```typescript
 import { rateLimiter } from '@repo/shared/rate-limit';
 
 // Rate limiting general
-app.use('*', rateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  limit: 100, // máximo 100 requests
-  message: 'Too many requests, please try again later.',
-}));
+app.use(
+  '*',
+  rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    limit: 100, // máximo 100 requests
+    message: 'Too many requests, please try again later.',
+  }),
+);
 ```
 
 **Variantes Predefinidas:**
 
 #### API Pública (60 req/min)
+
 ```typescript
 import { apiRateLimiter } from '@repo/shared/rate-limit';
 
@@ -99,6 +109,7 @@ app.use('/api/*', apiRateLimiter());
 ```
 
 #### Endpoints Sensibles (5 req/15min)
+
 ```typescript
 import { strictRateLimiter } from '@repo/shared/rate-limit';
 
@@ -108,26 +119,32 @@ app.post('/api/auth/login', strictRateLimiter(), async (c) => {
 ```
 
 #### Personalizado
+
 ```typescript
 import { rateLimiter } from '@repo/shared/rate-limit';
 
-app.use('/api/checkout/*', rateLimiter({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  limit: 10, // máximo 10 checkouts por hora
-  keyGenerator: (c) => {
-    // Usar user ID en lugar de IP
-    return c.get('userId') || c.req.header('x-forwarded-for') || 'unknown';
-  },
-}));
+app.use(
+  '/api/checkout/*',
+  rateLimiter({
+    windowMs: 60 * 60 * 1000, // 1 hora
+    limit: 10, // máximo 10 checkouts por hora
+    keyGenerator: (c) => {
+      // Usar user ID en lugar de IP
+      return c.get('userId') || c.req.header('x-forwarded-for') || 'unknown';
+    },
+  }),
+);
 ```
 
 **Headers de Respuesta:**
+
 - `X-RateLimit-Limit`: Límite total
 - `X-RateLimit-Remaining`: Requests restantes
 - `X-RateLimit-Reset`: Timestamp de reseteo
 - `Retry-After`: Segundos hasta el próximo intento (si excedido)
 
 **Notas:**
+
 - ⚠️ Store en memoria (considerar Redis para producción)
 - ⚠️ Limpieza automática cada 60 segundos
 - ⚠️ No compartido entre instancias sin Redis
@@ -139,6 +156,7 @@ app.use('/api/checkout/*', rateLimiter({
 Cliente de Redis configurado para el proyecto.
 
 **Uso:**
+
 ```typescript
 import { getRedisClient } from '@repo/shared/redis';
 
@@ -163,6 +181,7 @@ Los tipos están incluidos en cada archivo. No se requiere configuración adicio
 ### Variables de Entorno
 
 Configurar en `.env`:
+
 ```env
 DATABASE_URL="postgresql://..."
 BETTER_AUTH_SECRET="..."
@@ -194,14 +213,17 @@ app.use('*', honoLogger());
 app.use('*', apiRateLimiter());
 
 // CORS seguro
-app.use('*', cors({
-  origin: (origin) => {
-    const allowedOrigins = getAllowedOrigins();
-    if (!origin) return allowedOrigins[0];
-    return allowedOrigins.includes(origin) ? origin : null;
-  },
-  credentials: true,
-}));
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      const allowedOrigins = getAllowedOrigins();
+      if (!origin) return allowedOrigins[0];
+      return allowedOrigins.includes(origin) ? origin : null;
+    },
+    credentials: true,
+  }),
+);
 
 // Rutas
 app.get('/health', (c) => {
@@ -267,12 +289,14 @@ logger.info('Test message', { data: 'test' });
 ### Información Sensible
 
 El logger automáticamente:
+
 - ❌ No registra contraseñas
 - ❌ No registra tokens completos
 - ✅ Registra solo mensajes de error, no detalles de usuario
 - ✅ Stack traces solo en desarrollo
 
 Para datos sensibles:
+
 ```typescript
 // ❌ MAL
 logger.info('User login', { password: '123456' });

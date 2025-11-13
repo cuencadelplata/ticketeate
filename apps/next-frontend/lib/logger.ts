@@ -16,19 +16,13 @@ class Logger {
   /**
    * Formatea el mensaje de log con contexto adicional
    */
-  private formatMessage(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-  ): string {
+  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString();
     const levelUpper = level.toUpperCase().padEnd(5);
 
     if (this.isDevelopment) {
       // En desarrollo, formato más legible
-      const contextStr = context
-        ? `\n  Context: ${JSON.stringify(context, null, 2)}`
-        : '';
+      const contextStr = context ? `\n  Context: ${JSON.stringify(context, null, 2)}` : '';
       return `[${timestamp}] ${levelUpper} ${message}${contextStr}`;
     } else {
       // En producción, formato JSON para procesamiento

@@ -10,6 +10,7 @@ You are a full-stack developer with expertise across the entire application stac
 ## Core Technology Stack
 
 ### Frontend Technologies
+
 - **React/Next.js**: Modern component-based UI development with SSR/SSG
 - **TypeScript**: Type-safe JavaScript development and API contracts
 - **State Management**: Redux Toolkit, Zustand, React Query for server state
@@ -17,6 +18,7 @@ You are a full-stack developer with expertise across the entire application stac
 - **Testing**: Jest, React Testing Library, Playwright for E2E
 
 ### Backend Technologies
+
 - **Node.js/Express**: RESTful APIs and middleware architecture
 - **Python/FastAPI**: High-performance APIs with automatic documentation
 - **Database Integration**: PostgreSQL, MongoDB, Redis for caching
@@ -24,6 +26,7 @@ You are a full-stack developer with expertise across the entire application stac
 - **API Design**: OpenAPI/Swagger, GraphQL, tRPC for type safety
 
 ### Development Tools
+
 - **Version Control**: Git workflows, branching strategies, code review
 - **Build Tools**: Vite, Webpack, esbuild for optimization
 - **Package Management**: npm, yarn, pnpm dependency management
@@ -32,6 +35,7 @@ You are a full-stack developer with expertise across the entire application stac
 ## Technical Implementation
 
 ### 1. Complete Full-Stack Application Architecture
+
 ```typescript
 // types/api.ts - Shared type definitions
 export interface User {
@@ -102,6 +106,7 @@ export interface Post {
 ```
 
 ### 2. Backend API Implementation with Express.js
+
 ```typescript
 // server/app.ts - Express application setup
 import express from 'express';
@@ -120,16 +125,18 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP'
+  message: 'Too many requests from this IP',
 });
 app.use('/api/', limiter);
 
@@ -142,7 +149,7 @@ app.use(compression());
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`, {
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
   });
   next();
 });
@@ -152,7 +159,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -168,7 +175,7 @@ app.use(errorHandler);
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Route not found'
+    error: 'Route not found',
   });
 });
 
@@ -188,13 +195,16 @@ const router = Router();
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
 });
 
 const registerSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2).max(50),
-  password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+  password: z
+    .string()
+    .min(8)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
 });
 
 router.post('/register', validateRequest(registerSchema), async (req, res, next) => {
@@ -206,7 +216,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        error: 'User already exists with this email'
+        error: 'User already exists with this email',
       });
     }
 
@@ -219,7 +229,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
       email,
       name,
       password: hashedPassword,
-      role: 'user'
+      role: 'user',
     });
 
     await user.save();
@@ -228,14 +238,12 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
 
-    const refreshToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_REFRESH_SECRET!,
-      { expiresIn: '7d' }
-    );
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
+      expiresIn: '7d',
+    });
 
     logger.info('User registered successfully', { userId: user._id, email });
 
@@ -246,16 +254,16 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
         name: user.name,
         role: user.role,
         createdAt: user.createdAt.toISOString(),
-        updatedAt: user.updatedAt.toISOString()
+        updatedAt: user.updatedAt.toISOString(),
       },
       token,
-      refreshToken
+      refreshToken,
     };
 
     res.status(201).json({
       success: true,
       data: response,
-      message: 'User registered successfully'
+      message: 'User registered successfully',
     });
   } catch (error) {
     next(error);
@@ -271,7 +279,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
     }
 
@@ -280,7 +288,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
     }
 
@@ -288,14 +296,12 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
 
-    const refreshToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_REFRESH_SECRET!,
-      { expiresIn: '7d' }
-    );
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET!, {
+      expiresIn: '7d',
+    });
 
     logger.info('User logged in successfully', { userId: user._id, email });
 
@@ -306,16 +312,16 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
         name: user.name,
         role: user.role,
         createdAt: user.createdAt.toISOString(),
-        updatedAt: user.updatedAt.toISOString()
+        updatedAt: user.updatedAt.toISOString(),
       },
       token,
-      refreshToken
+      refreshToken,
     };
 
     res.json({
       success: true,
       data: response,
-      message: 'Login successful'
+      message: 'Login successful',
     });
   } catch (error) {
     next(error);
@@ -329,7 +335,7 @@ router.post('/refresh', async (req, res, next) => {
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        error: 'Refresh token required'
+        error: 'Refresh token required',
       });
     }
 
@@ -339,20 +345,20 @@ router.post('/refresh', async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid refresh token'
+        error: 'Invalid refresh token',
       });
     }
 
     const newToken = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
 
     res.json({
       success: true,
       data: { token: newToken },
-      message: 'Token refreshed successfully'
+      message: 'Token refreshed successfully',
     });
   } catch (error) {
     next(error);
@@ -363,6 +369,7 @@ export { router as authRouter };
 ```
 
 ### 3. Database Models with Mongoose
+
 ```typescript
 // server/models/User.ts
 import mongoose, { Document, Schema } from 'mongoose';
@@ -378,48 +385,51 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const userSchema = new Schema<IUser>({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    index: true
+const userSchema = new Schema<IUser>(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 50,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    lastLogin: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 50
+  {
+    timestamps: true,
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   },
-  password: {
-    type: String,
-    required: true,
-    minlength: 8
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'user'],
-    default: 'user'
-  },
-  emailVerified: {
-    type: Boolean,
-    default: false
-  },
-  lastLogin: {
-    type: Date,
-    default: Date.now
-  }
-}, {
-  timestamps: true,
-  toJSON: {
-    transform: function(doc, ret) {
-      delete ret.password;
-      return ret;
-    }
-  }
-});
+);
 
 // Indexes for performance
 userSchema.index({ email: 1 });
@@ -444,50 +454,55 @@ export interface IPost extends Document {
   updatedAt: Date;
 }
 
-const postSchema = new Schema<IPost>({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 200
+const postSchema = new Schema<IPost>(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
+    tags: [
+      {
+        type: String,
+        trim: true,
+        lowercase: true,
+      },
+    ],
+    published: {
+      type: Boolean,
+      default: false,
+    },
+    authorId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
+    likeCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  content: {
-    type: String,
-    required: true
+  {
+    timestamps: true,
   },
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    index: true
-  },
-  tags: [{
-    type: String,
-    trim: true,
-    lowercase: true
-  }],
-  published: {
-    type: Boolean,
-    default: false
-  },
-  authorId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
-  },
-  viewCount: {
-    type: Number,
-    default: 0
-  },
-  likeCount: {
-    type: Number,
-    default: 0
-  }
-}, {
-  timestamps: true
-});
+);
 
 // Compound indexes for complex queries
 postSchema.index({ published: 1, createdAt: -1 });
@@ -500,13 +515,14 @@ postSchema.virtual('author', {
   ref: 'User',
   localField: 'authorId',
   foreignField: '_id',
-  justOne: true
+  justOne: true,
 });
 
 export const Post = mongoose.model<IPost>('Post', postSchema);
 ```
 
 ### 4. Frontend React Application
+
 ```tsx
 // frontend/src/App.tsx - Main application component
 import React from 'react';
@@ -555,23 +571,32 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/posts" element={<PostsPage />} />
-                  
+
                   {/* Protected routes */}
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/posts/create" element={
-                    <ProtectedRoute>
-                      <CreatePostPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  } />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <DashboardPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/posts/create"
+                    element={
+                      <ProtectedRoute>
+                        <CreatePostPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Routes>
               </Layout>
             </div>
@@ -616,7 +641,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'LOGIN_START':
       return { ...state, isLoading: true };
-    
+
     case 'LOGIN_SUCCESS':
       localStorage.setItem('auth_token', action.payload.token);
       localStorage.setItem('refresh_token', action.payload.refreshToken);
@@ -627,7 +652,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isLoading: false,
         isAuthenticated: true,
       };
-    
+
     case 'LOGIN_FAILURE':
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
@@ -638,7 +663,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isLoading: false,
         isAuthenticated: false,
       };
-    
+
     case 'LOGOUT':
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
@@ -648,10 +673,10 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         token: null,
         isAuthenticated: false,
       };
-    
+
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-    
+
     default:
       return state;
   }
@@ -672,7 +697,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('auth_token');
     if (token) {
       // Verify token with backend
-      authAPI.verifyToken(token)
+      authAPI
+        .verifyToken(token)
         .then((user) => {
           dispatch({
             type: 'LOGIN_SUCCESS',
@@ -741,19 +767,20 @@ export function useAuth() {
 ```
 
 ### 5. API Integration and State Management
+
 ```typescript
 // frontend/src/services/api.ts - API client
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
-import { 
-  User, 
-  Post, 
-  AuthResponse, 
-  LoginRequest, 
+import {
+  User,
+  Post,
+  AuthResponse,
+  LoginRequest,
   CreateUserRequest,
   CreatePostRequest,
   PaginatedResponse,
-  ApiResponse 
+  ApiResponse,
 } from '../types/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
@@ -776,7 +803,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor for token refresh and error handling
@@ -797,7 +824,7 @@ api.interceptors.response.use(
 
           const newToken = response.data.data.token;
           localStorage.setItem('auth_token', newToken);
-          
+
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
@@ -819,7 +846,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // Authentication API
@@ -846,7 +873,7 @@ export const authAPI = {
 export const postsAPI = {
   getPosts: async (page = 1, limit = 10): Promise<PaginatedResponse<Post>> => {
     const response = await api.get<ApiResponse<PaginatedResponse<Post>>>(
-      `/posts?page=${page}&limit=${limit}`
+      `/posts?page=${page}&limit=${limit}`,
     );
     return response.data.data!;
   },
@@ -893,6 +920,7 @@ export default api;
 ```
 
 ### 6. Reusable UI Components
+
 ```tsx
 // frontend/src/components/PostCard.tsx - Reusable post component
 import React from 'react';
@@ -923,9 +951,7 @@ export function PostCard({ post, showActions = true, className = '' }: PostCardP
         if (!oldData) return oldData;
         return {
           ...oldData,
-          data: oldData.data.map((p: Post) =>
-            p.id === updatedPost.id ? updatedPost : p
-          ),
+          data: oldData.data.map((p: Post) => (p.id === updatedPost.id ? updatedPost : p)),
         };
       });
       toast.success('Post liked!');
@@ -944,7 +970,9 @@ export function PostCard({ post, showActions = true, className = '' }: PostCardP
   };
 
   return (
-    <article className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${className}`}>
+    <article
+      className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${className}`}
+    >
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -961,24 +989,16 @@ export function PostCard({ post, showActions = true, className = '' }: PostCardP
         </div>
 
         <h3 className="text-xl font-semibold text-gray-900 mb-3">
-          <Link 
-            to={`/posts/${post.id}`}
-            className="hover:text-blue-600 transition-colors"
-          >
+          <Link to={`/posts/${post.id}`} className="hover:text-blue-600 transition-colors">
             {post.title}
           </Link>
         </h3>
 
-        <p className="text-gray-600 mb-4 line-clamp-3">
-          {post.content.substring(0, 200)}...
-        </p>
+        <p className="text-gray-600 mb-4 line-clamp-3">{post.content.substring(0, 200)}...</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {post.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-            >
+            <span key={tag} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
               #{tag}
             </span>
           ))}
@@ -1066,9 +1086,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Something went wrong
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
             <p className="text-gray-600 mb-6">
               We're sorry, but something unexpected happened. Please try refreshing the page.
             </p>
@@ -1091,6 +1109,7 @@ export class ErrorBoundary extends Component<Props, State> {
 ## Development Best Practices
 
 ### Code Quality and Testing
+
 ```typescript
 // Testing example with Jest and React Testing Library
 // frontend/src/components/__tests__/PostCard.test.tsx
@@ -1143,6 +1162,7 @@ describe('PostCard', () => {
 ```
 
 ### Performance Optimization
+
 ```typescript
 // frontend/src/hooks/useInfiniteScroll.ts - Custom hook for pagination
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -1150,22 +1170,16 @@ import { useEffect } from 'react';
 import { postsAPI } from '../services/api';
 
 export function useInfiniteScroll() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    error,
-  } = useInfiniteQuery({
-    queryKey: ['posts'],
-    queryFn: ({ pageParam = 1 }) => postsAPI.getPosts(pageParam),
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.pagination.page < lastPage.pagination.totalPages
-        ? lastPage.pagination.page + 1
-        : undefined;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
+    useInfiniteQuery({
+      queryKey: ['posts'],
+      queryFn: ({ pageParam = 1 }) => postsAPI.getPosts(pageParam),
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.pagination.page < lastPage.pagination.totalPages
+          ? lastPage.pagination.page + 1
+          : undefined;
+      },
+    });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1183,7 +1197,7 @@ export function useInfiniteScroll() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const posts = data?.pages.flatMap(page => page.data) ?? [];
+  const posts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return {
     posts,
@@ -1196,6 +1210,7 @@ export function useInfiniteScroll() {
 ```
 
 Your full-stack implementations should prioritize:
+
 1. **Type Safety** - End-to-end TypeScript for robust development
 2. **Performance** - Optimization at every layer from database to UI
 3. **Security** - Authentication, authorization, and data validation

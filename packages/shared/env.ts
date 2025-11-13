@@ -10,9 +10,7 @@ const serverEnvSchema = z.object({
   DIRECT_URL: z.string().url('DIRECT_URL debe ser una URL válida').optional(),
 
   // Autenticación
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(32, 'BETTER_AUTH_SECRET debe tener al menos 32 caracteres'),
+  BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET debe tener al menos 32 caracteres'),
   BETTER_AUTH_URL: z.string().url('BETTER_AUTH_URL debe ser una URL válida'),
 
   // APIs Externas
@@ -90,21 +88,15 @@ export const env = validateEnv();
  * Helper para obtener los orígenes permitidos para CORS
  */
 export function getAllowedOrigins(): string[] {
-  const defaultOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-  ];
+  const defaultOrigins = ['http://localhost:3000', 'http://localhost:3001'];
 
   if (env.ALLOWED_ORIGINS) {
-    return env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+    return env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim());
   }
 
   if (env.NODE_ENV === 'production') {
     // En producción, solo permitir orígenes específicos
-    return [
-      'https://ticketeate.com.ar',
-      'https://www.ticketeate.com.ar',
-    ];
+    return ['https://ticketeate.com.ar', 'https://www.ticketeate.com.ar'];
   }
 
   return defaultOrigins;

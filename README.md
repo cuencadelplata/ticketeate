@@ -9,6 +9,7 @@
 ## 🚀 Comienza Aquí
 
 **¿Primera vez?** Lee la documentación de configuración:
+
 - 📖 [QUICK-START.md](./QUICK-START.md) - Comienza en 3 pasos
 - 📚 [INDICE-DOCUMENTACION.md](./INDICE-DOCUMENTACION.md) - Índice completo de documentos
 - 🔧 [GUIA-LEVANTAR-PROYECTO.md](./GUIA-LEVANTAR-PROYECTO.md) - Guía detallada paso a paso

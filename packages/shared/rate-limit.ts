@@ -11,18 +11,18 @@ interface RateLimitOptions {
    * @default 900000 (15 minutos)
    */
   windowMs?: number;
-  
+
   /**
    * Máximo número de requests permitidos en la ventana
    * @default 100
    */
   limit?: number;
-  
+
   /**
    * Mensaje de error personalizado
    */
   message?: string;
-  
+
   /**
    * Función para extraer la clave de identificación (normalmente IP)
    */
@@ -47,7 +47,7 @@ const store: RateLimitStore = {};
  */
 setInterval(() => {
   const now = Date.now();
-  Object.keys(store).forEach(key => {
+  Object.keys(store).forEach((key) => {
     if (store[key] && store[key].resetTime < now) {
       delete store[key];
     }
@@ -56,11 +56,11 @@ setInterval(() => {
 
 /**
  * Middleware de rate limiting para Hono
- * 
+ *
  * @example
  * ```typescript
  * import { rateLimiter } from '@repo/shared/rate-limit';
- * 
+ *
  * app.use('*', rateLimiter({
  *   windowMs: 15 * 60 * 1000, // 15 minutos
  *   limit: 100, // máximo 100 requests
@@ -106,13 +106,13 @@ export function rateLimiter(options: RateLimitOptions = {}) {
     if (store[key].count > limit) {
       const retryAfter = Math.ceil((store[key].resetTime - now) / 1000);
       c.header('Retry-After', retryAfter.toString());
-      
+
       return c.json(
         {
           error: message,
           retryAfter: retryAfter,
         },
-        429
+        429,
       );
     }
 
@@ -123,11 +123,11 @@ export function rateLimiter(options: RateLimitOptions = {}) {
 /**
  * Variante de rate limiter más estricta para endpoints sensibles
  * (login, registro, cambio de contraseña, etc.)
- * 
+ *
  * @example
  * ```typescript
  * import { strictRateLimiter } from '@repo/shared/rate-limit';
- * 
+ *
  * app.post('/api/auth/login', strictRateLimiter(), async (c) => {
  *   // ...
  * });
