@@ -45,4 +45,5 @@ export const CLOUDINARY_CONFIG = {
 // Configuración de Redis (local con ioredis)
 export const REDIS_CONFIG = {
   url: process.env.REDIS_URL || 'redis://default:localpassword@localhost:6379',
+  token: process.env.REDIS_PASSWORD || process.env.REDIS_TOKEN,
 } as const;
