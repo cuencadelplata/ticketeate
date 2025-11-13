@@ -53,3 +53,44 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "✅ Image pushed to ECR"
           echo "📦 Image: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+      - name: Deploy to EC2 Nginx Server
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          NGINX_HOST: ${{ secrets.NGINX_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        run: |
+          echo "Deploying to Nginx EC2 server..."
+          
+          # Configurar SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $NGINX_HOST >> ~/.ssh/known_hosts
+          
+          # Conectar y actualizar el contenedor
+          ssh -i ~/.ssh/id_rsa ubuntu@$NGINX_HOST << 'ENDSSH'
+            # Login a ECR
+            aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com
+            
+            # Pull nueva imagen
+            sudo docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
+            
+            # Detener y eliminar contenedor actual
+            sudo docker stop nginx || true
+            sudo docker rm nginx || true
+            
+            # Crear nuevo contenedor
+            sudo docker run -d \
+              --name nginx \
+              --restart unless-stopped \
+              -p 80:80 \
+              -p 443:443 \
+              665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
+            
+            # Verificar
+            sudo docker ps | grep nginx
+            echo "✅ Nginx container updated successfully"
+          ENDSSH
+          
+          echo "✅ Deployment completed"
