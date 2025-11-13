@@ -37,9 +37,10 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "Building nginx Docker image..."
+          echo "Building nginx Docker image for production..."
           docker build \
             -f apps/nginx/Dockerfile \
+            --build-arg CONFIG_FILE=hybrid.conf \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             apps/nginx
           echo "✅ Docker image built successfully"

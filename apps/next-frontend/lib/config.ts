@@ -1,21 +1,26 @@
 // Función para detectar la URL base de la API según el contexto
 function getApiBaseUrl(): string {
-  // En el servidor (SSR), usar la URL configurada o localhost
+  // Si hay una variable de entorno configurada, usarla (para producción)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // En el servidor (SSR), usar localhost para desarrollo
   if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    return 'http://localhost:3001';
   }
 
   // En el cliente, detectar si estamos usando una IP de red
   const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
 
   // Si estamos en localhost, usar localhost
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:3001';
   }
 
-  // Si estamos en una IP de red (192.168.x.x, 10.x.x.x, etc.), usar la misma IP
-  // pero con el puerto del microservicio
-  return `http://${hostname}:3001`;
+  // En producción, usar el mismo protocolo (HTTPS) y hostname del sitio
+  return `${protocol}//${hostname}`;
 }
 
 // url hono
