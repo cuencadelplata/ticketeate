@@ -60,27 +60,47 @@ jobs:
           NGINX_HOST: ${{ secrets.NGINX_HOST }}
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         run: |
-          echo "Deploying to Nginx EC2 server..."
+          set -e  # Salir si hay error
+          
+          echo "🚀 Deploying to Nginx EC2 server..."
+          echo "Host: $NGINX_HOST"
+          
+          # Verificar que los secrets existan
+          if [ -z "$NGINX_HOST" ]; then
+            echo "❌ Error: NGINX_HOST secret is not set"
+            exit 1
+          fi
+          
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "❌ Error: EC2_SSH_PRIVATE_KEY secret is not set"
+            exit 1
+          fi
           
           # Configurar SSH
+          echo "📝 Configuring SSH..."
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $NGINX_HOST >> ~/.ssh/known_hosts
           
-          # Conectar y actualizar el contenedor
-          ssh -i ~/.ssh/id_rsa ubuntu@$NGINX_HOST << 'ENDSSH'
-            # Login a ECR
+          echo "🔑 Adding host to known_hosts..."
+          ssh-keyscan -H $NGINX_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+          
+          echo "🔗 Connecting to EC2..."
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$NGINX_HOST << 'ENDSSH'
+            set -e
+            echo "✅ Connected to EC2 server"
+            
+            echo "🔐 Logging in to ECR..."
             aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com
             
-            # Pull nueva imagen
+            echo "📦 Pulling latest image..."
             sudo docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
             
-            # Detener y eliminar contenedor actual
-            sudo docker stop nginx || true
-            sudo docker rm nginx || true
+            echo "🛑 Stopping current container..."
+            sudo docker stop nginx 2>/dev/null || echo "Container not running"
+            sudo docker rm nginx 2>/dev/null || echo "Container not found"
             
-            # Crear nuevo contenedor
+            echo "🚀 Starting new container..."
             sudo docker run -d \
               --name nginx \
               --restart unless-stopped \
@@ -88,9 +108,18 @@ jobs:
               -p 443:443 \
               665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
             
-            # Verificar
-            sudo docker ps | grep nginx
+            echo "✅ Waiting for container to start..."
+            sleep 3
+            
+            echo "📊 Container status:"
+            sudo docker ps | grep nginx || (echo "❌ Container not running!" && exit 1)
+            
             echo "✅ Nginx container updated successfully"
           ENDSSH
           
-          echo "✅ Deployment completed"
+          if [ $? -eq 0 ]; then
+            echo "✅ Deployment completed successfully"
+          else
+            echo "❌ Deployment failed"
+            exit 1
+          fi
