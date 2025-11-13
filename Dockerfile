@@ -6,6 +6,25 @@ RUN npm install -g pnpm@10.10.0
 
 WORKDIR /app
 
+# Set build-time environment variables to prevent build failures
+# These are placeholder values for build-time only
+ENV BETTER_AUTH_SECRET=build-time-placeholder-secret-key-for-docker-build
+ENV BETTER_AUTH_URL=http://localhost:3000
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+ENV RESEND_API_KEY=build-time-placeholder-resend-key
+ENV GOOGLE_CLIENT_ID=build-time-placeholder-google-client-id
+ENV GOOGLE_CLIENT_SECRET=build-time-placeholder-google-client-secret
+ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+ENV DIRECT_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+ENV UPSTASH_REDIS_REST_URL=https://placeholder.upstash.io
+ENV UPSTASH_REDIS_REST_TOKEN=placeholder-token
+ENV NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
+ENV SERVICE_AUTH_SECRET=build-time-placeholder-service-secret
+ENV REVALIDATION_SECRET=build-time-placeholder-revalidation-secret
+ENV NEXT_PUBLIC_APP_URL=http://localhost:3000
+ENV INTERNAL_API_KEY=build-time-placeholder-internal-api-key
+
 # Copy workspace configuration files
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY tsconfig.json turbo.json ./

@@ -15,7 +15,7 @@ export default function ManageEventInfoPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-semibold">Información del evento</h1>
-      <div className="mt-2 text-sm opacity-80">ID: {event.id_evento}</div>
+      <div className="mt-2 text-sm opacity-80">ID: {event.eventoid}</div>
       <div className="mt-4 space-y-2">
         <div>
           <span className="font-medium">Título:</span> {event.titulo}

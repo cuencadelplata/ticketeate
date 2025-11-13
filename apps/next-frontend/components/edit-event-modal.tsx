@@ -48,7 +48,6 @@ export function EditEventModal({
         titulo: formData.titulo,
         descripcion: formData.descripcion,
         ubicacion: formData.ubicacion,
-        estado: formData.estado,
       });
     } catch (error) {
       console.error('Error saving event:', error);
