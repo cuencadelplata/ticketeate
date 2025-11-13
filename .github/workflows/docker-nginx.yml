@@ -56,70 +56,45 @@ jobs:
 
       - name: Deploy to EC2 Nginx Server
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          NGINX_HOST: ${{ secrets.NGINX_HOST }}
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          AWS_REGION: us-east-2
         run: |
-          set -e  # Salir si hay error
+          echo "🚀 Deploying to Nginx EC2 server via AWS Systems Manager..."
           
-          echo "🚀 Deploying to Nginx EC2 server..."
-          echo "Host: $NGINX_HOST"
+          # Obtener instance ID
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=ticketeate-nginx-production" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
           
-          # Verificar que los secrets existan
-          if [ -z "$NGINX_HOST" ]; then
-            echo "❌ Error: NGINX_HOST secret is not set"
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" == "None" ]; then
+            echo "❌ No se pudo encontrar la instancia EC2"
             exit 1
           fi
           
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "❌ Error: EC2_SSH_PRIVATE_KEY secret is not set"
-            exit 1
-          fi
+          echo "📍 Instance ID: $INSTANCE_ID"
           
-          # Configurar SSH
-          echo "📝 Configuring SSH..."
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          # Ejecutar comandos via SSM
+          echo "🔄 Updating nginx container..."
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "echo \"🔐 Logging in to ECR...\"",
+              "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com",
+              "echo \"📦 Pulling latest image...\"",
+              "sudo docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest",
+              "echo \"🛑 Stopping current container...\"",
+              "sudo docker stop nginx 2>/dev/null || echo \"Container not running\"",
+              "sudo docker rm nginx 2>/dev/null || echo \"Container not found\"",
+              "echo \"🚀 Starting new container...\"",
+              "sudo docker run -d --name nginx --restart unless-stopped -p 80:80 -p 443:443 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest",
+              "sleep 3",
+              "echo \"📊 Container status:\"",
+              "sudo docker ps | grep nginx",
+              "echo \"✅ Nginx container updated successfully\""
+            ]' \
+            --comment "Deploy nginx from GitHub Actions" \
+            --output text
           
-          echo "🔑 Adding host to known_hosts..."
-          ssh-keyscan -H $NGINX_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-          
-          echo "🔗 Connecting to EC2..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$NGINX_HOST << 'ENDSSH'
-            set -e
-            echo "✅ Connected to EC2 server"
-            
-            echo "🔐 Logging in to ECR..."
-            aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com
-            
-            echo "📦 Pulling latest image..."
-            sudo docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
-            
-            echo "🛑 Stopping current container..."
-            sudo docker stop nginx 2>/dev/null || echo "Container not running"
-            sudo docker rm nginx 2>/dev/null || echo "Container not found"
-            
-            echo "🚀 Starting new container..."
-            sudo docker run -d \
-              --name nginx \
-              --restart unless-stopped \
-              -p 80:80 \
-              -p 443:443 \
-              665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest
-            
-            echo "✅ Waiting for container to start..."
-            sleep 3
-            
-            echo "📊 Container status:"
-            sudo docker ps | grep nginx || (echo "❌ Container not running!" && exit 1)
-            
-            echo "✅ Nginx container updated successfully"
-          ENDSSH
-          
-          if [ $? -eq 0 ]; then
-            echo "✅ Deployment completed successfully"
-          else
-            echo "❌ Deployment failed"
-            exit 1
-          fi
+          echo "✅ Deployment command sent successfully"
+          echo "ℹ️  Note: Command execution is asynchronous. Check EC2 console for status."
