@@ -5,6 +5,14 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.2.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.0...next-frontend-v1.2.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([c094e52](https://github.com/cuencadelplata/ticketeate/commit/c094e52afea19c62bbbc023ce75f5e7256549ba6))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([#127](https://github.com/cuencadelplata/ticketeate/issues/127)) ([a681795](https://github.com/cuencadelplata/ticketeate/commit/a6817950e3e8a6455838a1da17459a85b6cf5ab5))
+
 # [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.3...next-frontend-v1.2.0) (2025-11-13)
 
 
