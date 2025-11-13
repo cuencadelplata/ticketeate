@@ -107,7 +107,7 @@ async function syncDailyViewsToDatabase(
         // Insertar o actualizar en la base de datos
         await prisma.evento_views_history.upsert({
           where: {
-            unique_evento_fecha: {
+            eventoid_fecha: {
               eventoid: eventId,
               fecha: date,
             },
