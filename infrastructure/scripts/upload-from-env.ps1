@@ -97,7 +97,8 @@ Write-Host ""
 # Better Auth
 Write-Host "Authentication" -ForegroundColor Yellow
 Set-SSMParameter -Name "better-auth-secret" -Value $envVars["BETTER_AUTH_SECRET"] -Description "Better Auth secret key"
-Set-SSMParameter -Name "better-auth-url" -Value "https://ticketeate.com.ar" -Type "String" -Description "Better Auth URL for production"
+Set-SSMParameter -Name "better-auth-url" -Value $envVars["BETTER_AUTH_URL"] -Type "String" -Description "Better Auth URL"
+Set-SSMParameter -Name "next-public-better-auth-url" -Value $envVars["NEXT_PUBLIC_BETTER_AUTH_URL"] -Type "String" -Description "Better Auth URL (public)"
 Write-Host ""
 
 # Cloudinary
@@ -105,6 +106,8 @@ Write-Host "Cloudinary" -ForegroundColor Yellow
 Set-SSMParameter -Name "cloudinary-cloud-name" -Value $envVars["CLOUDINARY_CLOUD_NAME"] -Type "String" -Description "Cloudinary cloud name"
 Set-SSMParameter -Name "cloudinary-api-key" -Value $envVars["CLOUDINARY_API_KEY"] -Description "Cloudinary API key"
 Set-SSMParameter -Name "cloudinary-api-secret" -Value $envVars["CLOUDINARY_API_SECRET"] -Description "Cloudinary API secret"
+Set-SSMParameter -Name "next-public-cloudinary-cloud-name" -Value $envVars["NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"] -Type "String" -Description "Cloudinary cloud name (public)"
+Set-SSMParameter -Name "next-public-cloudinary-upload-preset" -Value $envVars["NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET"] -Type "String" -Description "Cloudinary upload preset"
 Write-Host ""
 
 # Google OAuth
@@ -123,6 +126,8 @@ Write-Host ""
 Write-Host "Mercado Pago" -ForegroundColor Yellow
 Set-SSMParameter -Name "mercadopago-client-id" -Value $envVars["MERCADO_PAGO_CLIENT_ID"] -Type "String" -Description "Mercado Pago client ID"
 Set-SSMParameter -Name "mercadopago-client-secret" -Value $envVars["MERCADO_PAGO_CLIENT_SECRET"] -Description "Mercado Pago client secret"
+Set-SSMParameter -Name "mercadopago-redirect-uri" -Value $envVars["MERCADO_PAGO_REDIRECT_URI"] -Type "String" -Description "Mercado Pago redirect URI"
+Set-SSMParameter -Name "mercadopago-mock" -Value $envVars["MERCADO_PAGO_MOCK"] -Type "String" -Description "Mercado Pago mock mode (true/false)"
 Write-Host ""
 
 # Service Auth
@@ -146,6 +151,17 @@ Write-Host "Supabase" -ForegroundColor Yellow
 Set-SSMParameter -Name "supabase-url" -Value $envVars["NEXT_PUBLIC_SUPABASE_URL"] -Type "String" -Description "Supabase project URL"
 Set-SSMParameter -Name "supabase-anon-key" -Value $envVars["NEXT_PUBLIC_SUPABASE_ANON_KEY"] -Type "String" -Description "Supabase anonymous key"
 Set-SSMParameter -Name "supabase-service-role-key" -Value $envVars["SUPABASE_SERVICE_ROLE_KEY"] -Description "Supabase service role key (sensitive)"
+Write-Host ""
+
+# API Gateway URL
+Write-Host "API Gateway" -ForegroundColor Yellow
+Set-SSMParameter -Name "next-public-api-url" -Value $envVars["NEXT_PUBLIC_API_URL"] -Type "String" -Description "API Gateway URL for Lambda services"
+Write-Host ""
+
+# Redis (Upstash)
+Write-Host "Redis (Upstash)" -ForegroundColor Yellow
+Set-SSMParameter -Name "upstash-redis-rest-url" -Value $envVars["UPSTASH_REDIS_REST_URL"] -Type "String" -Description "Upstash Redis REST URL"
+Set-SSMParameter -Name "upstash-redis-rest-token" -Value $envVars["UPSTASH_REDIS_REST_TOKEN"] -Description "Upstash Redis REST token"
 Write-Host ""
 
 # Grok API (si lo usas)

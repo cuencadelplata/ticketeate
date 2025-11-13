@@ -1,11 +1,12 @@
 import { Hono, Context, Next } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
+import { logger as honoLogger } from 'hono/logger';
 import { timing } from 'hono/timing';
 import jwt from 'jsonwebtoken';
 import './types/hono';
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
+import { logger } from './logger';
 
 // Custom JWT middleware using shared secret (same as frontend)
 async function jwtMiddleware(c: Context, next: Next) {
@@ -30,8 +31,9 @@ async function jwtMiddleware(c: Context, next: Next) {
 
     await next();
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('JWT Middleware - JWT verification failed:', error);
+    logger.error('JWT Middleware - JWT verification failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json({ error: 'Invalid token' }, 401);
   }
 }
@@ -39,7 +41,7 @@ async function jwtMiddleware(c: Context, next: Next) {
 const app = new Hono();
 
 // Middleware
-app.use('*', logger());
+app.use('*', honoLogger());
 app.use('*', timing());
 app.use(
   '*',
@@ -58,7 +60,7 @@ app.use('/api/*', jwtMiddleware);
 app.route('/api', apiRoutes);
 app.route('/health', healthRoutes);
 
-// Root route|
+// Root route
 app.get('/', (c) => {
   return c.json({
     message: 'Hono Backend API',
@@ -74,8 +76,11 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  // eslint-disable-next-line no-console
-  console.error('Error:', err);
+  logger.error('Application error', {
+    path: c.req.path,
+    method: c.req.method,
+    error: err instanceof Error ? err.message : String(err),
+  });
   return c.json({ error: 'Internal Server Error' }, 500);
 });
 

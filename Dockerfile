@@ -29,12 +29,6 @@ RUN pnpm install --frozen-lockfile
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate
 
-# Set dummy environment variables for build (not used at runtime)
-ENV BETTER_AUTH_SECRET="dummy-secret-for-build" \
-    BETTER_AUTH_URL="http://localhost:3000" \
-    DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
-    RESEND_API_KEY="re_dummy_key_for_build"
-
 # Build only the db package and next-frontend
 RUN pnpm --filter=@repo/db run build
 RUN pnpm --filter=ticketeate run build
