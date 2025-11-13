@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EventService, CreateEventData } from '../services/event-service';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@repo/db';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock Prisma

@@ -1,53 +1,57 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import type { NextConfig } from 'next';
+import {
+  publicRoutes,
+  authRoutes,
+  protectedRoutes,
+  apiAuthPrefix,
+  DEFAULT_LOGIN_REDIRECT,
+} from './routes';
 
-import { apiAuthPrefix, authRoutes, publicRoutes, protectedRoutes } from './routes';
+function isRouteMatch(pathname: string, routes: string[]): boolean {
+  return routes.some((route) => {
+    if (route.endsWith('/*')) {
+      const basePath = route.slice(0, -2);
+      return pathname.startsWith(basePath);
+    }
+    return pathname === route;
+  });
+}
 
 export default function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const pathname = request.nextUrl.pathname;
 
-  // 1. Permitir siempre rutas de API de autenticación
+  // Permitir rutas de API de auth
   if (pathname.startsWith(apiAuthPrefix)) {
     return NextResponse.next();
   }
 
-  // Helper para verificar rutas con wildcards
-  const matchesRoute = (route: string, path: string): boolean => {
-    if (route.endsWith('/*')) {
-      const baseRoute = route.slice(0, -2);
-      return path.startsWith(baseRoute);
-    }
-    return path === route;
-  };
+  // Obtener la sesión del request (better-auth la establece en las cookies)
+  const sessionCookie = request.cookies.get('better-auth.session_token')?.value;
+  const isLoggedIn = !!sessionCookie;
 
-  // 2. Verificar si es ruta de autenticación (/sign-in, /sign-up, etc)
-  const isAuthRoute = authRoutes.some((route) => matchesRoute(route, pathname));
+  const isPublicRoute = isRouteMatch(pathname, publicRoutes);
+  const isAuthRoute = isRouteMatch(pathname, authRoutes);
+  const isProtectedRoute = isRouteMatch(pathname, protectedRoutes);
 
-  if (isAuthRoute) {
-    // Siempre permitir acceso a rutas de autenticación
-    return NextResponse.next();
+  // Si intenta acceder a ruta de auth pero ya está logueado, redirigir a home
+  if (isAuthRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
   }
 
-  // 3. Verificar si es ruta pública (siempre permitir)
-  const isPublicRoute = publicRoutes.some((route) => matchesRoute(route, pathname));
+  // Si intenta acceder a ruta protegida pero no está logueado, redirigir a login
+  if (isProtectedRoute && !isLoggedIn) {
+    const signInUrl = new URL('/sign-in', request.url);
+    signInUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(signInUrl);
+  }
 
+  // Permitir acceso a rutas públicas
   if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // 4. Para rutas protegidas, verificar la sesión
-  const isProtectedRoute = protectedRoutes.some((route) => matchesRoute(route, pathname));
-
-  if (isProtectedRoute) {
-    // Verificar si tiene cookie de sesión
-    const sessionToken = request.cookies.get('better-auth.session_token');
-
-    if (!sessionToken) {
-      const back = encodeURIComponent(pathname);
-      return NextResponse.redirect(new URL(`/sign-in?redirect_url=${back}`, request.url));
-    }
-  }
-
-  // 5. Para cualquier otra ruta, permitir acceso
+  // Por defecto, permitir acceso
   return NextResponse.next();
 }
 
@@ -58,8 +62,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)',
   ],
 };

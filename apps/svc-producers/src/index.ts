@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
+import { logger as honoLogger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
+import { logger } from './logger';
 
 const app = new Hono();
 
 // Middleware
-app.use('*', logger());
+app.use('*', honoLogger());
 app.use(
   '*',
   cors({
@@ -65,8 +66,11 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  // eslint-disable-next-line no-console
-  console.error('Error:', err);
+  logger.error('Application error', {
+    path: c.req.path,
+    method: c.req.method,
+    error: err instanceof Error ? err.message : String(err),
+  });
   return c.json({ error: 'Internal Server Error' }, 500);
 });
 
