@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
@@ -9,24 +8,12 @@ const app = new Hono();
 // Middleware
 app.use('*', honoLogger());
 
-// Hardcoded allowed origins to avoid undefined issues
-const allowedOrigins = [
-  'https://ticketeate.com.ar',
-  'https://www.ticketeate.com.ar',
-  'http://localhost:3000',
-  'http://localhost:3001',
-];
-
-app.use(
-  '*',
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 600,
-  }),
-);
+// Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
+// This is necessary because:
+// 1. Hono CORS middleware sets headers on the Hono Response object
+// 2. @hono/aws-lambda handler returns a plain object, losing those headers
+// 3. API Gateway v2 filters headers if it handles CORS itself
+// 4. Solution: Lambda wrapper sets CORS headers directly on the response object
 
 // Mount routes at both /api and /production/api paths
 // Routes
