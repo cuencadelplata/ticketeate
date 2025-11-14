@@ -37,9 +37,10 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          echo "Building nginx Docker image..."
+          echo "Building nginx Docker image for production..."
           docker build \
             -f apps/nginx/Dockerfile \
+            --build-arg CONFIG_FILE=hybrid.conf \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             apps/nginx
           echo "✅ Docker image built successfully"
@@ -52,3 +53,43 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "✅ Image pushed to ECR"
           echo "📦 Image: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+      - name: Deploy to EC2 Nginx Server
+        env:
+          AWS_REGION: us-east-2
+          NGINX_INSTANCE_ID: ${{ secrets.NGINX_INSTANCE_ID }}
+        run: |
+          echo "🚀 Deploying to Nginx EC2 server via AWS Systems Manager..."
+          
+          if [ -z "$NGINX_INSTANCE_ID" ]; then
+            echo "❌ Error: NGINX_INSTANCE_ID secret is not set"
+            exit 1
+          fi
+          
+          echo "📍 Instance ID: $NGINX_INSTANCE_ID"
+          
+          # Ejecutar comandos via SSM
+          echo "🔄 Updating nginx container..."
+          aws ssm send-command \
+            --instance-ids "$NGINX_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "echo \"🔐 Logging in to ECR...\"",
+              "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com",
+              "echo \"📦 Pulling latest image...\"",
+              "sudo docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest",
+              "echo \"🛑 Stopping current container...\"",
+              "sudo docker stop nginx 2>/dev/null || echo \"Container not running\"",
+              "sudo docker rm nginx 2>/dev/null || echo \"Container not found\"",
+              "echo \"🚀 Starting new container...\"",
+              "sudo docker run -d --name nginx --restart unless-stopped -p 80:80 -p 443:443 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-nginx:latest",
+              "sleep 3",
+              "echo \"📊 Container status:\"",
+              "sudo docker ps | grep nginx",
+              "echo \"✅ Nginx container updated successfully\""
+            ]' \
+            --comment "Deploy nginx from GitHub Actions" \
+            --output text
+          
+          echo "✅ Deployment command sent successfully"
+          echo "ℹ️  Note: Command execution is asynchronous. Check EC2 console for status."

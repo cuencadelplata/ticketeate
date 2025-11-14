@@ -19,12 +19,30 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'send':
         const sendData = sendOtpSchema.parse(data);
-        const sendResult = await auth.api.sendOtp({
-          body: { email: sendData.email },
-        });
 
-        if (sendResult.error) {
-          return NextResponse.json({ error: sendResult.error.message }, { status: 400 });
+        // Usar el endpoint estándar de Better Auth para enviar OTP
+        const sendResponse = await fetch(
+          `${process.env.BETTER_AUTH_URL}/api/auth/sign-in/email-otp`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: sendData.email,
+            }),
+          },
+        );
+
+        const sendResult = await sendResponse.json();
+
+        if (!sendResponse.ok || sendResult.error) {
+          return NextResponse.json(
+            {
+              error: sendResult.error?.message || 'Error al enviar el código OTP',
+            },
+            { status: 400 },
+          );
         }
 
         return NextResponse.json({
@@ -34,35 +52,62 @@ export async function POST(request: NextRequest) {
 
       case 'verify':
         const verifyData = verifyOtpSchema.parse(data);
-        const verifyResult = await auth.api.verifyOtp({
-          body: {
-            email: verifyData.email,
-            otp: verifyData.otp,
-          },
-        });
 
-        if (verifyResult.error) {
-          return NextResponse.json({ error: verifyResult.error.message }, { status: 400 });
+        // Usar el endpoint estándar de Better Auth para verificar OTP
+        const verifyResponse = await fetch(
+          `${process.env.BETTER_AUTH_URL}/api/auth/verify-email-otp`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: verifyData.email,
+              otp: verifyData.otp,
+            }),
+          },
+        );
+
+        const verifyResult = await verifyResponse.json();
+
+        if (!verifyResponse.ok || verifyResult.error) {
+          return NextResponse.json(
+            {
+              error: verifyResult.error?.message || 'Código OTP inválido',
+            },
+            { status: 400 },
+          );
         }
 
         return NextResponse.json({
           success: true,
           message: 'Código OTP verificado correctamente',
+          session: verifyResult.session,
+          user: verifyResult.user,
         });
 
       default:
         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error handling OTP:', error);
+    console.error('OTP API error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Datos inválidos', details: error.errors },
+        {
+          error: 'Datos inválidos',
+          details: error.errors,
+        },
         { status: 400 },
       );
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Error interno del servidor',
+        message: error instanceof Error ? error.message : 'Error desconocido',
+      },
+      { status: 500 },
+    );
   }
 }
