@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
+import { fetchWithApiKey } from '@/lib/fetch-api';
 import type {
   Event,
   CreateEventData,
@@ -42,7 +43,7 @@ export function useEvents() {
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(API_ENDPOINTS.events, {
+      const res = await fetchWithApiKey(API_ENDPOINTS.events, {
         headers,
       });
       if (!res.ok) throw new Error('Error al obtener eventos');
@@ -57,7 +58,7 @@ export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
     queryFn: async (): Promise<Event[]> => {
-      const res = await fetch(API_ENDPOINTS.allEvents, { credentials: 'include' });
+      const res = await fetchWithApiKey(API_ENDPOINTS.allEvents, { credentials: 'include' });
       if (!res.ok) throw new Error('Error al obtener todos los eventos');
       const data: GetAllEventsResponse = await res.json();
       return data.events || [];
@@ -74,7 +75,7 @@ export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
     queryFn: async (): Promise<Event> => {
-      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), {
+      const res = await fetchWithApiKey(API_ENDPOINTS.publicEventById(id as string), {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Error al obtener el evento');
@@ -92,7 +93,7 @@ export function useEvent(id: string) {
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { headers });
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, { headers });
       if (!res.ok) throw new Error('Error al obtener el evento');
       const data: GetEventResponse = await res.json();
       return data.event;
@@ -108,7 +109,7 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(API_ENDPOINTS.events, {
+      const res = await fetchWithApiKey(API_ENDPOINTS.events, {
         method: 'POST',
         headers,
         body: JSON.stringify(eventData),
@@ -155,7 +156,7 @@ export function useUpdateEvent() {
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(eventData),
@@ -205,7 +206,7 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
         headers,
       });
