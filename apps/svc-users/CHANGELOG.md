@@ -5,6 +5,37 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.4.0...svc-users-v1.4.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add explicit middleware to ensure Access-Control-Allow-Credentials header is always set ([b2272ff](https://github.com/cuencadelplata/ticketeate/commit/b2272ff59aa7bdf265d291908124cf2630013f87))
+* Convert newlines to spaces in jq parameter processing ([62f01a5](https://github.com/cuencadelplata/ticketeate/commit/62f01a54b9c383f02cec24963ccb5a1a4710f36e))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* Make middleware properly async and await next() ([b0acb3e](https://github.com/cuencadelplata/ticketeate/commit/b0acb3ebc1d5195240072b119c8598143e3344e5))
+* Mount routes at both /api and /production/api to handle API Gateway stage prefix ([8420575](https://github.com/cuencadelplata/ticketeate/commit/8420575eac42188b80f95c1b143d252d47bee3d4))
+* Move CORS middleware before stage prefix stripping ([df20879](https://github.com/cuencadelplata/ticketeate/commit/df208793cc8ab0c9c09ba965f276bf1b4d90305b))
+* Move credentials header logic to Lambda handler wrapper for better control ([4efd3b1](https://github.com/cuencadelplata/ticketeate/commit/4efd3b1e16676c4f6a86b0fb05a6a6cc89e83863))
+* Preserve hyphens in parameter values during env var transformation ([3010c32](https://github.com/cuencadelplata/ticketeate/commit/3010c32dbc9719d4eab540e801eff77c6e00314a))
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Simplify CORS with hardcoded origins to eliminate undefined values ([86b521e](https://github.com/cuencadelplata/ticketeate/commit/86b521eb9c553e12f65b94789f4a03161f0fe100))
+* Source .env.production before updating Lambda environment variables ([ba433de](https://github.com/cuencadelplata/ticketeate/commit/ba433de94218d76e1d0d33827da837965aa4e0b6))
+* Strip API Gateway stage prefix from request path ([6a864b4](https://github.com/cuencadelplata/ticketeate/commit/6a864b435fc420b5ea4bd3180873fa1dbdfa8b75))
+* Suppress Lambda update output to prevent key exposure ([5e773ed](https://github.com/cuencadelplata/ticketeate/commit/5e773ed3573d4978a21d02495e2df79c45fc97fc))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+* Use echo method instead of heredoc to avoid YAML parsing issues ([a8586ab](https://github.com/cuencadelplata/ticketeate/commit/a8586abe2880e99d4af0f5e0e012073819784ce0))
+* Use jq instead of awk to handle multiline Parameter Store values ([2c9c934](https://github.com/cuencadelplata/ticketeate/commit/2c9c934855d6d84ecd2faecc67ea74efda85e6df))
+* Use jq to build Lambda env vars directly from params JSON ([77319d3](https://github.com/cuencadelplata/ticketeate/commit/77319d379d6e0bd3f5e0b78afc9e7e14af8d9f07))
+* Use JSON file for Lambda env vars & mask sensitive values in logs ([5b9d353](https://github.com/cuencadelplata/ticketeate/commit/5b9d353dd697ece52ec77edbc1be61319f42c42a))
+* Use lambda.js handler in all Lambda Dockerfiles instead of index.js ([e0b0cf2](https://github.com/cuencadelplata/ticketeate/commit/e0b0cf2adabf1181930fbef62b8182a8ec0a3a4d))
+* Use proper bash quote concatenation for Parameters string ([9ffeae9](https://github.com/cuencadelplata/ticketeate/commit/9ffeae93e6c47bbf33609dd002832fff5e665ab7))
+* Use Python for robust parameter processing - handles multiline values correctly ([e3c5f8e](https://github.com/cuencadelplata/ticketeate/commit/e3c5f8e7258827bd998b628019a531cf89773d52))
+* Use Python one-liner to avoid bash source issues with special characters ([b0c74f3](https://github.com/cuencadelplata/ticketeate/commit/b0c74f34bd3f6e54505a7953f2a7050b398b70e1))
+
 # [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.3.0...svc-users-v1.4.0) (2025-11-14)
 
 
