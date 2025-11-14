@@ -5,6 +5,26 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.0.1...svc-checkout-v1.1.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* mejorar debugging en workflow de nginx deployment ([1ddbc15](https://github.com/cuencadelplata/ticketeate/commit/1ddbc15c3b8f26940ee5436fdb09b309a43ed13f))
+* mejorar debugging en workflow de nginx deployment ([#126](https://github.com/cuencadelplata/ticketeate/issues/126)) ([9159f87](https://github.com/cuencadelplata/ticketeate/commit/9159f877853fad33f7b35807ef93c02be6f82930))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* SSM ([a5b2b96](https://github.com/cuencadelplata/ticketeate/commit/a5b2b96f50616297c8068b81939da8f5392fc341))
+* SSM ([#128](https://github.com/cuencadelplata/ticketeate/issues/128)) ([926ad90](https://github.com/cuencadelplata/ticketeate/commit/926ad907b15f0a8a8459959f2b4f048f607db40d))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([c094e52](https://github.com/cuencadelplata/ticketeate/commit/c094e52afea19c62bbbc023ce75f5e7256549ba6))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([#127](https://github.com/cuencadelplata/ticketeate/issues/127)) ([a681795](https://github.com/cuencadelplata/ticketeate/commit/a6817950e3e8a6455838a1da17459a85b6cf5ab5))
+
+
+### Features
+
+* deploy nginx con hybrid.conf ([97d2fdb](https://github.com/cuencadelplata/ticketeate/commit/97d2fdbd446936a3e5af357c5ab3903623abab6c))
+* deploy nginx con hybrid.conf ([#125](https://github.com/cuencadelplata/ticketeate/issues/125)) ([09fc126](https://github.com/cuencadelplata/ticketeate/commit/09fc12610c6628f50e2d9e5b1e9e1f0dd2c6884d))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.0.0...svc-checkout-v1.0.1) (2025-11-13)
 
 
