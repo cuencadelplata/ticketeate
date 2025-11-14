@@ -8,6 +8,13 @@ const app = new Hono();
 // Middleware
 app.use('*', honoLogger());
 
+// Handle OPTIONS requests (preflight) for all routes
+// This is needed for tests and any direct calls to Hono
+// The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
+app.options('*', () => {
+  return new Response('', { status: 204 });
+});
+
 // Log environment for debugging
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('FRONTEND_URL:', process.env.FRONTEND_URL);

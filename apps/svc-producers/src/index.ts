@@ -8,6 +8,13 @@ const app = new Hono();
 // Middleware
 app.use('*', honoLogger());
 
+// Handle OPTIONS requests (preflight) for all routes
+// This is needed for tests and any direct calls to Hono
+// The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
+app.options('*', () => {
+  return new Response('', { status: 204 });
+});
+
 // Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
 // This is necessary because:
 // 1. Hono CORS middleware sets headers on the Hono Response object
