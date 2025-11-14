@@ -5,6 +5,18 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.2](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.1...svc-checkout-v1.3.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* Convert newlines to spaces in jq parameter processing ([62f01a5](https://github.com/cuencadelplata/ticketeate/commit/62f01a54b9c383f02cec24963ccb5a1a4710f36e))
+* Preserve hyphens in parameter values during env var transformation ([3010c32](https://github.com/cuencadelplata/ticketeate/commit/3010c32dbc9719d4eab540e801eff77c6e00314a))
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+* Use jq instead of awk to handle multiline Parameter Store values ([2c9c934](https://github.com/cuencadelplata/ticketeate/commit/2c9c934855d6d84ecd2faecc67ea74efda85e6df))
+* Use Python for robust parameter processing - handles multiline values correctly ([e3c5f8e](https://github.com/cuencadelplata/ticketeate/commit/e3c5f8e7258827bd998b628019a531cf89773d52))
+
 ## [1.3.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.0...svc-checkout-v1.3.1) (2025-11-14)
 
 
