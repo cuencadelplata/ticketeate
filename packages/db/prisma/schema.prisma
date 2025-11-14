@@ -55,6 +55,8 @@ model entradas {
   entradas_history entradas_history[]
 
   @@index([reservaid], map: "idx_entradas_reservaid")
+  @@index([codigo_qr], map: "idx_entradas_codigo_qr")
+  @@index([estado], map: "idx_entradas_estado")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -171,6 +173,9 @@ model logs_eventos {
   fecha     DateTime @default(now()) @db.Timestamptz(6)
   eventos   eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
   user      user?    @relation(fields: [usuarioid], references: [id])
+
+  @@index([eventoid, fecha(sort: Desc)], map: "idx_logs_eventos_eventoid_fecha")
+  @@index([accion], map: "idx_logs_eventos_accion")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -361,8 +366,9 @@ model historial_compras {
   reservas        reservas @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
   user            user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
 
-  @@index([eventoid, fecha_compra])
-  @@index([usuarioid, fecha_compra])
+  @@index([eventoid, fecha_compra(sort: Desc)], map: "idx_historial_compras_evento_fecha")
+  @@index([usuarioid, fecha_compra(sort: Desc)], map: "idx_historial_compras_usuario_fecha")
+  @@index([estado_compra], map: "idx_historial_compras_estado")
 }
 
 model monedas {

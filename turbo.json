@@ -26,7 +26,11 @@
     },
     "dev": {
       "cache": true,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": []
+    },
+    "redis-service#dev": {
+      "cache": false
     },
     "cli#build": {
       "dependsOn": ["^build"],

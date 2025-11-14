@@ -25,6 +25,7 @@ export const protectedRoutes: string[] = [
   '/configuracion',
   '/configuracion/*',
   '/profile', // Perfil de usuario
+  '/historial', // Historial de compras
   '/deploys',
 ];
 

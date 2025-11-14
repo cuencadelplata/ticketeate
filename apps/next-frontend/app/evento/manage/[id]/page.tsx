@@ -323,6 +323,34 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             </Link>
 
             <Link
+              href={`/evento/manage/${id}/mas?tab=scanner`}
+              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-blue-500/20 p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold group-hover:text-blue-400">Escanear Entradas</h3>
+                  <p className="text-sm text-stone-400">Validar asistentes</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
               href={`/evento/manage/${id}/mas`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >

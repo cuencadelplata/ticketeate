@@ -26,6 +26,21 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Proteger rutas del scanner (solo COLABORADOR y ORGANIZADOR)
+  if (pathname.includes('/evento/manage/') && pathname.includes('/scanner')) {
+    const sessionCookie = request.cookies.get('better-auth.session_token')?.value;
+    
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/sign-in', request.url));
+    }
+
+    // Verificar rol desde headers si está disponible
+    const userRole = request.headers.get('x-user-role');
+    if (userRole && userRole !== 'COLABORADOR' && userRole !== 'ORGANIZADOR') {
+      return NextResponse.redirect(new URL('/403', request.url));
+    }
+  }
+
   // Obtener la sesión del request (better-auth la establece en las cookies)
   const sessionCookie = request.cookies.get('better-auth.session_token')?.value;
   const isLoggedIn = !!sessionCookie;
