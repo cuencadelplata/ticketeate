@@ -5,6 +5,21 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.5](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.4...svc-events-v1.3.5) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add explicit middleware to ensure Access-Control-Allow-Credentials header is always set ([b2272ff](https://github.com/cuencadelplata/ticketeate/commit/b2272ff59aa7bdf265d291908124cf2630013f87))
+* Make middleware properly async and await next() ([b0acb3e](https://github.com/cuencadelplata/ticketeate/commit/b0acb3ebc1d5195240072b119c8598143e3344e5))
+* Mount routes at both /api and /production/api to handle API Gateway stage prefix ([8420575](https://github.com/cuencadelplata/ticketeate/commit/8420575eac42188b80f95c1b143d252d47bee3d4))
+* Move CORS middleware before stage prefix stripping ([df20879](https://github.com/cuencadelplata/ticketeate/commit/df208793cc8ab0c9c09ba965f276bf1b4d90305b))
+* Move credentials header logic to Lambda handler wrapper for better control ([4efd3b1](https://github.com/cuencadelplata/ticketeate/commit/4efd3b1e16676c4f6a86b0fb05a6a6cc89e83863))
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Simplify CORS with hardcoded origins to eliminate undefined values ([86b521e](https://github.com/cuencadelplata/ticketeate/commit/86b521eb9c553e12f65b94789f4a03161f0fe100))
+* Strip API Gateway stage prefix from request path ([6a864b4](https://github.com/cuencadelplata/ticketeate/commit/6a864b435fc420b5ea4bd3180873fa1dbdfa8b75))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+
 ## [1.3.4](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.3...svc-events-v1.3.4) (2025-11-14)
 
 
