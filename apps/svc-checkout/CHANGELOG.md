@@ -5,6 +5,17 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.6](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.5...svc-checkout-v1.3.6) (2025-11-14)
+
+
+### Bug Fixes
+
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+* Source .env.production before updating Lambda environment variables ([ba433de](https://github.com/cuencadelplata/ticketeate/commit/ba433de94218d76e1d0d33827da837965aa4e0b6))
+* Strip API Gateway stage prefix from request path ([6a864b4](https://github.com/cuencadelplata/ticketeate/commit/6a864b435fc420b5ea4bd3180873fa1dbdfa8b75))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+* Use jq to build Lambda env vars directly from params JSON ([77319d3](https://github.com/cuencadelplata/ticketeate/commit/77319d379d6e0bd3f5e0b78afc9e7e14af8d9f07))
+
 ## [1.3.5](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.4...svc-checkout-v1.3.5) (2025-11-14)
 
 
