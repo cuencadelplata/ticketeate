@@ -54,7 +54,6 @@ COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/packages/db ./packages/db
 COPY --from=builder /app/apps/svc-events/package.json ./apps/svc-events/
 COPY --from=builder /app/apps/svc-events/dist ./apps/svc-events/dist
-COPY --from=builder /app/apps/svc-events/node_modules ./apps/svc-events/node_modules
 
 # Install all dependencies first (including dev) to generate Prisma client
 RUN pnpm install --frozen-lockfile

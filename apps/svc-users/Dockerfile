@@ -54,7 +54,6 @@ COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/packages/db ./packages/db
 COPY --from=builder /app/apps/svc-users/package.json ./apps/svc-users/
 COPY --from=builder /app/apps/svc-users/dist ./apps/svc-users/dist
-COPY --from=builder /app/apps/svc-users/node_modules ./apps/svc-users/node_modules
 
 # Install all dependencies first (including dev) to generate Prisma client
 RUN pnpm install --frozen-lockfile
