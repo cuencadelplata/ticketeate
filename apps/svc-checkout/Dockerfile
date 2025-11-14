@@ -56,11 +56,14 @@ COPY --from=builder /app/apps/svc-checkout/package.json ./apps/svc-checkout/
 COPY --from=builder /app/apps/svc-checkout/dist ./apps/svc-checkout/dist
 COPY --from=builder /app/apps/svc-checkout/node_modules ./apps/svc-checkout/node_modules
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Install all dependencies first (including dev) to generate Prisma client
+RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client in production node_modules
+# Generate Prisma Client with dev dependencies available
 RUN pnpm --filter=@repo/db run db:generate
+
+# Remove dev dependencies and reinstall only production
+RUN pnpm install --prod --frozen-lockfile
 
 # Set NODE_ENV
 ENV NODE_ENV=production

@@ -89,11 +89,14 @@ COPY --from=builder /app/apps/next-frontend/public ./apps/next-frontend/public
 COPY --from=builder /app/apps/next-frontend/package.json ./apps/next-frontend/
 COPY --from=builder /app/apps/next-frontend/next.config.mjs ./apps/next-frontend/
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install all dependencies first (including dev) to generate Prisma client
+RUN pnpm install --frozen-lockfile
 
-# Generate Prisma Client in production node_modules
+# Generate Prisma Client with dev dependencies available
 RUN pnpm --filter=@repo/db run db:generate
+
+# Remove dev dependencies and reinstall only production
+RUN pnpm install --frozen-lockfile --prod
 
 WORKDIR /app/apps/next-frontend
 
