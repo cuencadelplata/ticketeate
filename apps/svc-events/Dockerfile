@@ -71,5 +71,5 @@ ENV NODE_ENV=production
 # Expose port
 EXPOSE 3002
 
-# Start the service
-CMD ["node", "apps/svc-events/dist/index.js"]
+# Start the Lambda handler (lambda.js wraps the Hono app for AWS Lambda)
+CMD ["node", "apps/svc-events/dist/lambda.js"]

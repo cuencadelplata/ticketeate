@@ -69,7 +69,7 @@ RUN pnpm install --prod --frozen-lockfile
 ENV NODE_ENV=production
 
 # Expose port
-EXPOSE 3004
+EXPOSE 3001
 
-# Start the service
-CMD ["node", "apps/svc-users/dist/index.js"]
+# Start the Lambda handler (lambda.js wraps the Hono app for AWS Lambda)
+CMD ["node", "apps/svc-users/dist/lambda.js"]
