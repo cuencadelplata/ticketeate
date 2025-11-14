@@ -627,7 +627,7 @@ jobs:
           echo '        value = p["Value"].replace("\r\n", " ").replace("\n", " ").replace("\r", " ").strip()' >> /tmp/fetch_env.py
           echo '        ghe.write(f"{name}={value}\n")' >> /tmp/fetch_env.py
           echo '        print(f"::add-mask::{value}")' >> /tmp/fetch_env.py
-          echo 'print(f"✅ {len(data[\"Parameters\"])} variables loaded")' >> /tmp/fetch_env.py
+          echo 'print(f"✅ {len(data['"'"'Parameters'"'"'])} variables loaded")' >> /tmp/fetch_env.py
           
           python3 /tmp/fetch_env.py
 
@@ -690,16 +690,26 @@ jobs:
         run: |
           echo "Fetching environment variables from Parameter Store..."
           
-          # Fetch parameters to JSON file
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
             --output json > /tmp/params.json
           
-          # Process with Python one-liner
-          python3 -c 'import json,os;data=json.load(open("/tmp/params.json"));env=open(".env.production","w");ghe=open(os.environ["GITHUB_ENV"],"a");[env.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") or ghe.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") or print(f"::add-mask::{p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}") for p in data["Parameters"]];print(f"✅ {len(data[\"Parameters\"])} variables loaded")'
+          # Create Python script without heredoc
+          echo 'import json, os' > /tmp/fetch_env.py
+          echo 'with open("/tmp/params.json") as f:' >> /tmp/fetch_env.py
+          echo '    data = json.load(f)' >> /tmp/fetch_env.py
+          echo 'with open(".env.production", "w") as env_file, open(os.environ["GITHUB_ENV"], "a") as ghe:' >> /tmp/fetch_env.py
+          echo '    for p in data["Parameters"]:' >> /tmp/fetch_env.py
+          echo '        name = p["Name"].split("/")[-1].replace("-", "_").upper()' >> /tmp/fetch_env.py
+          echo '        value = p["Value"].replace("\r\n", " ").replace("\n", " ").replace("\r", " ").strip()' >> /tmp/fetch_env.py
+          echo '        env_file.write(f"{name}={value}\n")' >> /tmp/fetch_env.py
+          echo '        ghe.write(f"{name}={value}\n")' >> /tmp/fetch_env.py
+          echo '        print(f"::add-mask::{value}")' >> /tmp/fetch_env.py
+          echo 'print(f"✅ {len(data['"'"'Parameters'"'"'])} variables loaded")' >> /tmp/fetch_env.py
           
+          python3 /tmp/fetch_env.py
           echo "Variables exported to GITHUB_ENV"
 
       - name: Update Lambda ${{ matrix.service.name }}
@@ -822,7 +832,7 @@ jobs:
             echo '        name = p["Name"].split("/")[-1].replace("-", "_").upper()' >> /tmp/make_env.py
             echo '        value = p["Value"].replace("\r\n", " ").replace("\n", " ").replace("\r", " ").strip()' >> /tmp/make_env.py
             echo '        env.write(f"{name}={value}\n")' >> /tmp/make_env.py
-            echo 'print(f"✅ {len(data[\"Parameters\"])} variables loaded")' >> /tmp/make_env.py
+            echo 'print(f"✅ {len(data['"'"'Parameters'"'"'])} variables loaded")' >> /tmp/make_env.py
             
             python3 /tmp/make_env.py
             
