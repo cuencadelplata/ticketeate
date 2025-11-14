@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.4](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.3...svc-events-v1.3.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+
 ## [1.3.3](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.2...svc-events-v1.3.3) (2025-11-14)
 
 
