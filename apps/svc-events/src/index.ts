@@ -12,9 +12,9 @@ app.use('*', honoLogger());
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
-  
+
   // Skip validation for public endpoints
-  if (PUBLIC_ENDPOINTS.some(endpoint => path === endpoint || path.startsWith(endpoint + '/'))) {
+  if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
     return next();
   }
 
@@ -24,7 +24,7 @@ app.use('*', async (c, next) => {
   if (path.startsWith('/production') && !path.startsWith('/production/health')) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
-    
+
     // Require either Authorization header or valid session cookie
     if (!authHeader && !hasCookie) {
       return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
