@@ -5,6 +5,17 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.2...next-frontend-v1.4.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* Move CORS middleware before stage prefix stripping ([df20879](https://github.com/cuencadelplata/ticketeate/commit/df208793cc8ab0c9c09ba965f276bf1b4d90305b))
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+* Strip API Gateway stage prefix from request path ([6a864b4](https://github.com/cuencadelplata/ticketeate/commit/6a864b435fc420b5ea4bd3180873fa1dbdfa8b75))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+* Use jq to build Lambda env vars directly from params JSON ([77319d3](https://github.com/cuencadelplata/ticketeate/commit/77319d379d6e0bd3f5e0b78afc9e7e14af8d9f07))
+
 ## [1.4.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.1...next-frontend-v1.4.2) (2025-11-14)
 
 
