@@ -5,6 +5,18 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.2.0...svc-users-v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+
+
+### Features
+
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
 # [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.1.3...svc-users-v1.2.0) (2025-11-14)
 
 
