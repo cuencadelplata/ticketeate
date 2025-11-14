@@ -5,6 +5,17 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.2](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.1...svc-events-v1.3.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* Convert newlines to spaces in jq parameter processing ([62f01a5](https://github.com/cuencadelplata/ticketeate/commit/62f01a54b9c383f02cec24963ccb5a1a4710f36e))
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+* Use Python for robust parameter processing - handles multiline values correctly ([e3c5f8e](https://github.com/cuencadelplata/ticketeate/commit/e3c5f8e7258827bd998b628019a531cf89773d52))
+* Use Python one-liner to avoid bash source issues with special characters ([b0c74f3](https://github.com/cuencadelplata/ticketeate/commit/b0c74f34bd3f6e54505a7953f2a7050b398b70e1))
+
 ## [1.3.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.0...svc-events-v1.3.1) (2025-11-14)
 
 
