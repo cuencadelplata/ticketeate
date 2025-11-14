@@ -5,7 +5,7 @@ import app from './index';
 const honoHandler = handle(app);
 
 export const handler = async (event: any, context: any) => {
-  const response = await honoHandler(event, context);
+  const response: any = await honoHandler(event, context);
 
   // CRITICAL: Ensure credentials header is ALWAYS present (lowercase for API Gateway v2)
   if (!response.headers) {
