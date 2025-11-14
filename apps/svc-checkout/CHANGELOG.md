@@ -5,6 +5,16 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.0...svc-checkout-v1.3.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* Generate Prisma client in all Docker production stages (Next.js and Lambdas) ([c54377d](https://github.com/cuencadelplata/ticketeate/commit/c54377dcff5abf0bfa9181aa5e4b76f50171106a))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* Suppress Lambda update output to prevent key exposure ([5e773ed](https://github.com/cuencadelplata/ticketeate/commit/5e773ed3573d4978a21d02495e2df79c45fc97fc))
+* Use JSON file for Lambda env vars & mask sensitive values in logs ([5b9d353](https://github.com/cuencadelplata/ticketeate/commit/5b9d353dd697ece52ec77edbc1be61319f42c42a))
+
 # [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.2.0...svc-checkout-v1.3.0) (2025-11-14)
 
 
