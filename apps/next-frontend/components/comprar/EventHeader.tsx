@@ -23,7 +23,7 @@ export function EventHeader({ event, onBack }: EventHeaderProps) {
               hour: '2-digit',
               minute: '2-digit',
             })
-          : new Date(event.fecha_inicio_venta).toLocaleDateString('es-AR')}
+          : 'Fecha por confirmar'}
       </p>
       <p className="text-gray-500 text-sm">Selecciona tu sector y completa tu compra</p>
     </div>

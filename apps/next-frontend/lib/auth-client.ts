@@ -15,7 +15,8 @@ export const {
   signUp, // signUp.email({ email, password })
   signOut, // cierra la sesion actual
   updateUser, // actualizar datos del usuario
-  forgetPassword, // forgetPassword.emailOtp({ email })
+  forgetPassword, // forgetPassword({ email, redirectTo })
+  resetPassword, // resetPassword({ newPassword })
 } = authClient;
 
 // Funciones del plugin emailOTP
@@ -24,5 +25,4 @@ export const emailOtp = authClient.emailOtp;
 // Alias para compatibilidad con código existente
 export const sendVerificationOTP = emailOtp.sendVerificationOtp;
 export const verifyEmail = emailOtp.verifyEmail;
-export const resetPassword = emailOtp.resetPassword;
 export const checkVerificationOtp = emailOtp.checkVerificationOtp;

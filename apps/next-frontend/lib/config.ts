@@ -1,21 +1,36 @@
 // Función para detectar la URL base de la API según el contexto
 function getApiBaseUrl(): string {
-  // En el servidor (SSR), usar la URL configurada o localhost
+  // Priorizar variable de entorno sin NEXT_PUBLIC para SSR/Server Actions
+  if (process.env.API_URL) {
+    return process.env.API_URL;
+  }
+
+  // Variable de entorno pública (disponible en cliente y servidor)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // En el servidor (SSR), intentar detectar el entorno
   if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // En producción, usar la URL de API Gateway
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://j5d9mwvxgh.execute-api.us-east-2.amazonaws.com/production';
+    }
+    // En desarrollo local, usar localhost
+    return 'http://localhost:3001';
   }
 
   // En el cliente, detectar si estamos usando una IP de red
   const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
 
   // Si estamos en localhost, usar localhost
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:3001';
   }
 
-  // Si estamos en una IP de red (192.168.x.x, 10.x.x.x, etc.), usar la misma IP
-  // pero con el puerto del microservicio
-  return `http://${hostname}:3001`;
+  // En producción, usar HTTPS con el dominio
+  return `${protocol}//${hostname}`;
 }
 
 // url hono
@@ -42,8 +57,8 @@ export const CLOUDINARY_CONFIG = {
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
 } as const;
 
-// Configuración de Redis (Upstash)
+// Configuración de Redis (local con ioredis)
 export const REDIS_CONFIG = {
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: process.env.REDIS_URL || 'redis://default:localpassword@localhost:6379',
+  token: process.env.REDIS_PASSWORD || process.env.REDIS_TOKEN,
 } as const;

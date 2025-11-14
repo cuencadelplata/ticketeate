@@ -5,6 +5,110 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.1...next-frontend-v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* SSM ([a5b2b96](https://github.com/cuencadelplata/ticketeate/commit/a5b2b96f50616297c8068b81939da8f5392fc341))
+* SSM ([#128](https://github.com/cuencadelplata/ticketeate/issues/128)) ([926ad90](https://github.com/cuencadelplata/ticketeate/commit/926ad907b15f0a8a8459959f2b4f048f607db40d))
+
+
+### Features
+
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
+## [1.2.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.0...next-frontend-v1.2.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([c094e52](https://github.com/cuencadelplata/ticketeate/commit/c094e52afea19c62bbbc023ce75f5e7256549ba6))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([#127](https://github.com/cuencadelplata/ticketeate/issues/127)) ([a681795](https://github.com/cuencadelplata/ticketeate/commit/a6817950e3e8a6455838a1da17459a85b6cf5ab5))
+
+# [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.3...next-frontend-v1.2.0) (2025-11-13)
+
+
+### Bug Fixes
+
+* mejorar debugging en workflow de nginx deployment ([1ddbc15](https://github.com/cuencadelplata/ticketeate/commit/1ddbc15c3b8f26940ee5436fdb09b309a43ed13f))
+* mejorar debugging en workflow de nginx deployment ([#126](https://github.com/cuencadelplata/ticketeate/issues/126)) ([9159f87](https://github.com/cuencadelplata/ticketeate/commit/9159f877853fad33f7b35807ef93c02be6f82930))
+
+
+### Features
+
+* deploy nginx con hybrid.conf ([97d2fdb](https://github.com/cuencadelplata/ticketeate/commit/97d2fdbd446936a3e5af357c5ab3903623abab6c))
+* deploy nginx con hybrid.conf ([#125](https://github.com/cuencadelplata/ticketeate/issues/125)) ([09fc126](https://github.com/cuencadelplata/ticketeate/commit/09fc12610c6628f50e2d9e5b1e9e1f0dd2c6884d))
+
+## [1.1.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.2...next-frontend-v1.1.3) (2025-11-08)
+
+
+### Bug Fixes
+
+* **web:** main container - responsive menu ([#116](https://github.com/cuencadelplata/ticketeate/issues/116)) ([b4f5e86](https://github.com/cuencadelplata/ticketeate/commit/b4f5e86897e4f11a9eb79215f0f29f238dba47cc))
+* **hero:** main container ([ddb594c](https://github.com/cuencadelplata/ticketeate/commit/ddb594c4989e4c7b83d9cc005fb672196537a876))
+
+## [1.1.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.1...next-frontend-v1.1.2) (2025-11-05)
+
+
+### Bug Fixes
+
+* workflows ([3ff0ddf](https://github.com/cuencadelplata/ticketeate/commit/3ff0ddf8d9cddbcf832d0aab8f8c2856c9ac8fbc))
+* workflows ([#113](https://github.com/cuencadelplata/ticketeate/issues/113)) ([3d20386](https://github.com/cuencadelplata/ticketeate/commit/3d203866bcf4d90303ed212eb2bdb2740eb185ec))
+
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.0...next-frontend-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** correct next-frontend package name filter in build ([#106](https://github.com/cuencadelplata/ticketeate/issues/106)) ([3f00d83](https://github.com/cuencadelplata/ticketeate/commit/3f00d8330e183ccdcbd5fceb1b3dce445043e7ef))
+* **docker:** correct next-frontend package name filter in build ([ee4cfda](https://github.com/cuencadelplata/ticketeate/commit/ee4cfda8c0ab0ea55bd515fbb8e0ff862bb7dd4d))
+
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.2...next-frontend-v1.1.0) (2025-11-03)
+
+
+### Bug Fixes
+
+* deploy ecr ([be99448](https://github.com/cuencadelplata/ticketeate/commit/be99448f1ce03789de5f3538a0fb4a2f01e2fca2))
+* deploy ecr ([ef8c15b](https://github.com/cuencadelplata/ticketeate/commit/ef8c15bb0e156e7b3c4748eed562a224e3f582f6))
+* deploy ecr ([#102](https://github.com/cuencadelplata/ticketeate/issues/102)) ([154d8a0](https://github.com/cuencadelplata/ticketeate/commit/154d8a0e5002743e1d12c84b16723d1242bdef18))
+* deploy ecr ([#103](https://github.com/cuencadelplata/ticketeate/issues/103)) ([0c2d93a](https://github.com/cuencadelplata/ticketeate/commit/0c2d93a327cd9dc9ea1588391203711e28335050))
+* **tsconfig:** enable emit for all services to produce dist in Docker builds ([ceb598d](https://github.com/cuencadelplata/ticketeate/commit/ceb598da68e9d1345f45bc8b62cde35295ccdfcd))
+* **tsconfig:** enable emit for svc-users build ([#104](https://github.com/cuencadelplata/ticketeate/issues/104)) ([9bbe842](https://github.com/cuencadelplata/ticketeate/commit/9bbe8425b71905dd8665c090e77608bf8d5e8031))
+* **tsconfig:** enable emit for svc-users build to produce dist in Docker builds ([5e08686](https://github.com/cuencadelplata/ticketeate/commit/5e086867404f97cf148b2452301bd58308f76e40))
+* **docker:** include eslint-config and typescript-config packages in … ([#101](https://github.com/cuencadelplata/ticketeate/issues/101)) ([fe3b3b4](https://github.com/cuencadelplata/ticketeate/commit/fe3b3b41671e6e6255879c7712d1768164278b59))
+* **docker:** include eslint-config and typescript-config packages in Docker builds ([d1ac621](https://github.com/cuencadelplata/ticketeate/commit/d1ac62120fe9e43f0e951fc4b8c6d3b21ba76b80))
+* queues - rsc - profile config ([#96](https://github.com/cuencadelplata/ticketeate/issues/96)) ([dc0d3ed](https://github.com/cuencadelplata/ticketeate/commit/dc0d3edb9a306d8428ecad7d009315e262b98172))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to preve… ([#100](https://github.com/cuencadelplata/ticketeate/issues/100)) ([27c3058](https://github.com/cuencadelplata/ticketeate/commit/27c3058542e8348f25378a781df4d7ae944e3439))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to prevent CI conflicts ([01be6c2](https://github.com/cuencadelplata/ticketeate/commit/01be6c2d5d1745c3d5f5417f51fd0d4c47e15b62))
+* workflows aws ecr ([f8885c0](https://github.com/cuencadelplata/ticketeate/commit/f8885c083e5bfcd45bc81fd11858dd4d1cb82dd9))
+
+
+### Features
+
+* **svc-events:** test release workflow with version bump ([#98](https://github.com/cuencadelplata/ticketeate/issues/98)) ([bab7624](https://github.com/cuencadelplata/ticketeate/commit/bab76244920468490e2325016bb42b7e9d6b1cab))
+* **svc-events:** test release workflow with version bump ([4112dcb](https://github.com/cuencadelplata/ticketeate/commit/4112dcb64b164a195ee7704a25d8fd634645ae97))
+
+## [1.0.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.1...next-frontend-v1.0.2) (2025-11-02)
+
+
+### Bug Fixes
+
+* add semantic-release dependencies to svc-users to sync lockfile ([7d4a250](https://github.com/cuencadelplata/ticketeate/commit/7d4a2503516333aac0b09722476df01b03fd9172))
+* auth - middleware - otp email ([1da6520](https://github.com/cuencadelplata/ticketeate/commit/1da6520e18a4311ca50f3748ffc3a1bca59360d6))
+* auth - middleware - otp email ([#93](https://github.com/cuencadelplata/ticketeate/issues/93)) ([91e52f2](https://github.com/cuencadelplata/ticketeate/commit/91e52f2d721ec1eeb0748279486bd06782531bd7))
+* **next-frontend:** auth - middleware - otp email ([#94](https://github.com/cuencadelplata/ticketeate/issues/94)) ([e6f6ea7](https://github.com/cuencadelplata/ticketeate/commit/e6f6ea72b378ff0c54a5bf24e012951846f6a7ad))
+* **next-frontend:** auth - middleware - otp email ([f360028](https://github.com/cuencadelplata/ticketeate/commit/f3600289958a49d08767ceb6c4a716f6b29b85c9))
+* **next-frontend:** auth - middleware - otp email ([925534a](https://github.com/cuencadelplata/ticketeate/commit/925534ae8a1e0250d778d00abf70fbc8b0a808aa))
+* cooldown resend email ([b61fa56](https://github.com/cuencadelplata/ticketeate/commit/b61fa5640c821efc9385ac0bc8a7a336b0c95e08))
+* format ([68b8006](https://github.com/cuencadelplata/ticketeate/commit/68b800688e9d54aa7f50b1c679f792571a502fe9))
+* reset password ([0c0a262](https://github.com/cuencadelplata/ticketeate/commit/0c0a262907ed803560e917ded3a68196a21e5a57))
+* tsconfig - import google fonts ([0572c6f](https://github.com/cuencadelplata/ticketeate/commit/0572c6f681bf28bc558c451ccea3edda1723a5dd))
+* unused vars ([4d1f2c9](https://github.com/cuencadelplata/ticketeate/commit/4d1f2c9f3aa61d6950e06c2d0e3b4c6755283314))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.0...next-frontend-v1.0.1) (2025-10-29)
 
 

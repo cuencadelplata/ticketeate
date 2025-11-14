@@ -1,4 +1,4 @@
-import { SimplifiedAdminDashboard } from '@/components/simplified-admin-dashboard';
+import { SimplifiedAdminDashboard } from '@/components/deploys/simplified-admin-dashboard';
 
 export default function DeploysPage() {
   return <SimplifiedAdminDashboard />;

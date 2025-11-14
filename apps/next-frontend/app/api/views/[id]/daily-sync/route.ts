@@ -107,7 +107,7 @@ async function syncDailyViewsToDatabase(
         // Insertar o actualizar en la base de datos
         await prisma.evento_views_history.upsert({
           where: {
-            unique_evento_fecha: {
+            eventoid_fecha: {
               eventoid: eventId,
               fecha: date,
             },
@@ -152,7 +152,7 @@ async function syncDailyViewsToDatabase(
 }
 
 // Endpoint para sincronizar contadores diarios de un evento específico
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: eventId } = await params;
 
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // Endpoint para obtener estadísticas de contadores diarios
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: eventId } = await params;
 

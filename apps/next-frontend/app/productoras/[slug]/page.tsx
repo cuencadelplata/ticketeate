@@ -8,8 +8,12 @@ const eventsByProducer: Record<string, { id: string; title: string; date: string
   'la-trastienda': [],
 };
 
-export default function ProducerDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function ProducerDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const events = eventsByProducer[slug] ?? [];
 
   return (

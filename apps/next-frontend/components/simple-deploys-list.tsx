@@ -126,13 +126,12 @@ export function SimpleDeploysList() {
     <div className="space-y-6">
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold text-foreground">Deployments</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Despliegues</h1>
           <Image src="/icon-ucp.png" alt="UCP Logo" width={64} height={64} />
         </div>
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <RefreshCw className="h-4 w-4" />
-          Automatically created for pushes to {process.env.NEXT_PUBLIC_GITHUB_OWNER}/
-          {process.env.NEXT_PUBLIC_GITHUB_REPO}
+          Creados automáticamente desde pushes a cuencadelplata/ticketeate
           <Github className="h-4 w-4" />
         </p>
       </div>
@@ -162,7 +161,7 @@ export function SimpleDeploysList() {
 
           <Button variant="outline" size="sm" className="border-border bg-transparent">
             <Calendar className="mr-2 h-4 w-4" />
-            Select Date Range
+            Seleccionar rango de fechas
           </Button>
           <Button
             variant="outline"
@@ -181,17 +180,17 @@ export function SimpleDeploysList() {
                 />
               </svg>
             </div>
-            Refresh
+            Refrescar
           </Button>
           <Select value={environment} onValueChange={setEnvironment}>
             <SelectTrigger className="w-40 border-border">
               <SelectValue placeholder="All Environments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Environments</SelectItem>
-              <SelectItem value="production">Production</SelectItem>
+              <SelectItem value="all">Todos los entornos</SelectItem>
+              <SelectItem value="production">Producción</SelectItem>
               <SelectItem value="staging">Staging</SelectItem>
-              <SelectItem value="development">Development</SelectItem>
+              <SelectItem value="development">Desarrollo</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -257,11 +256,11 @@ export function SimpleDeploysList() {
                           variant="secondary"
                           className="border-blue-500/20 bg-blue-500/10 text-xs text-blue-400"
                         >
-                          Current
+                          Actual
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground">Production</span>
+                    <span className="text-xs text-muted-foreground">Producción</span>
                   </div>
 
                   <div className="flex flex-col gap-1">
@@ -280,8 +279,11 @@ export function SimpleDeploysList() {
                       <span className="text-white">{deploy.branch}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-white">{deploy.message}</span>
+                      <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-xs text-white">
+                        {deploy.message.split(' ').slice(0, 8).join(' ')}
+                        {deploy.message.split(' ').length > 8 ? '...' : ''}
+                      </span>
                     </div>
                   </div>
 

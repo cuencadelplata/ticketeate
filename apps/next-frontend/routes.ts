@@ -19,11 +19,13 @@ export const authRoutes: string[] = [
 
 // Rutas protegidas - requieren autenticación
 export const protectedRoutes: string[] = [
+  '/eventos', // Mis eventos (como organizador) - PRIVADO
+  '/eventos/*',
   '/evento/manage/*', // Gestión de eventos
-  '/eventos', // Mis eventos (como organizador)
   '/configuracion',
   '/configuracion/*',
   '/profile', // Perfil de usuario
+  '/deploys',
 ];
 
 export const apiAuthPrefix: string = '/api/auth';

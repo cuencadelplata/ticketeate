@@ -1,0 +1,807 @@
+name: Ticketeate Monorepo Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  detect-changes:
+    name: Detect Changed Projects
+    runs-on: ubuntu-latest
+    outputs:
+      svc-users: ${{ steps.analyze.outputs.svc-users }}
+      svc-events: ${{ steps.analyze.outputs.svc-events }}
+      svc-producers: ${{ steps.analyze.outputs.svc-producers }}
+      svc-checkout: ${{ steps.analyze.outputs.svc-checkout }}
+      redis-service: ${{ steps.analyze.outputs.redis-service }}
+      next-frontend: ${{ steps.analyze.outputs.next-frontend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze commits for changes
+        id: analyze
+        run: |
+          echo "🔍 Analyzing commits for project changes..."
+          
+          # Obtener el último commit del push
+          LAST_COMMIT=$(git log -1 --format="%H")
+          PREV_COMMIT=$(git log -2 --format="%H" | tail -1)
+          
+          # Si es el primer commit, comparar con HEAD~1
+          if [ -z "$PREV_COMMIT" ] || [ "$LAST_COMMIT" = "$PREV_COMMIT" ]; then
+            PREV_COMMIT="HEAD~1"
+          fi
+          
+          echo "Comparing $PREV_COMMIT...$LAST_COMMIT"
+          
+          # Obtener archivos cambiados
+          CHANGED_FILES=$(git diff --name-only $PREV_COMMIT $LAST_COMMIT 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Obtener commits recientes para análisis de scope
+          COMMITS=$(git log --oneline -10 --format="%s")
+          echo ""
+          echo "Recent commits:"
+          echo "$COMMITS"
+          
+          # TEMPORARY: Force all projects to build (remove after first successful deploy)
+          echo "🚀 FORCING ALL BUILDS - Change detection temporarily disabled"
+          echo "svc-users=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-users: FORCED BUILD"
+          echo "svc-events=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-events: FORCED BUILD"
+          echo "svc-producers=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-producers: FORCED BUILD"
+          echo "svc-checkout=true" >> $GITHUB_OUTPUT
+          echo "✅ svc-checkout: FORCED BUILD"
+          echo "redis-service=true" >> $GITHUB_OUTPUT
+          echo "✅ redis-service: FORCED BUILD"
+          echo "next-frontend=true" >> $GITHUB_OUTPUT
+          echo "✅ next-frontend: FORCED BUILD"
+          
+          # TODO: Restore this code after first successful deployment to all services
+          # Detectar cambios por archivos O por scope en commits
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-users" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-users\)"; then
+          #   echo "svc-users=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-users: changes detected"
+          # else
+          #   echo "svc-users=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-users: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-events" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-events\)"; then
+          #   echo "svc-events=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-events: changes detected"
+          # else
+          #   echo "svc-events=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-events: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-producers" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-producers\)"; then
+          #   echo "svc-producers=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-producers: changes detected"
+          # else
+          #   echo "svc-producers=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-producers: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/svc-checkout" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(svc-checkout\)"; then
+          #   echo "svc-checkout=true" >> $GITHUB_OUTPUT
+          #   echo "✅ svc-checkout: changes detected"
+          # else
+          #   echo "svc-checkout=false" >> $GITHUB_OUTPUT
+          #   echo "❌ svc-checkout: no changes"
+          # fi
+          # 
+          # if echo "$CHANGED_FILES" | grep -q "apps/next-frontend" || echo "$COMMITS" | grep -qE "(feat|fix|perf|refactor)\(next-frontend\)"; then
+          #   echo "next-frontend=true" >> $GITHUB_OUTPUT
+          #   echo "✅ next-frontend: changes detected"
+          # else
+          #   echo "next-frontend=false" >> $GITHUB_OUTPUT
+          #   echo "❌ next-frontend: no changes"
+          # fi
+
+  release-svc-users:
+    name: Release svc-users
+    needs: detect-changes
+    if: needs.detect-changes.outputs.svc-users == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/svc-users
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "svc-users-v*" --sort=-v:refname | head -n 1 | sed 's/svc-users-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  release-svc-events:
+    name: Release svc-events
+    needs: detect-changes
+    if: needs.detect-changes.outputs.svc-events == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/svc-events
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "svc-events-v*" --sort=-v:refname | head -n 1 | sed 's/svc-events-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  release-svc-producers:
+    name: Release svc-producers
+    needs: detect-changes
+    if: needs.detect-changes.outputs.svc-producers == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/svc-producers
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "svc-producers-v*" --sort=-v:refname | head -n 1 | sed 's/svc-producers-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  release-svc-checkout:
+    name: Release svc-checkout
+    needs: detect-changes
+    if: needs.detect-changes.outputs.svc-checkout == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/svc-checkout
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "svc-checkout-v*" --sort=-v:refname | head -n 1 | sed 's/svc-checkout-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  release-next-frontend:
+    name: Release next-frontend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.next-frontend == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/next-frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "next-frontend-v*" --sort=-v:refname | head -n 1 | sed 's/next-frontend-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  release-redis-service:
+    name: Release redis-service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.redis-service == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.semantic.outputs.new-version }}
+      has-release: ${{ steps.semantic.outputs.has-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.10.0
+
+      - name: Install semantic-release globally
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec @semantic-release/git
+
+      - name: Run semantic-release
+        id: semantic
+        working-directory: apps/redis-service
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+          
+          if grep -q "Published release" release-output.txt || grep -q "Created tag" release-output.txt; then
+            echo "has-release=true" >> $GITHUB_OUTPUT
+            VERSION=$(git tag -l "redis-service-v*" --sort=-v:refname | head -n 1 | sed 's/redis-service-v//')
+            echo "new-version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ Release created: v$VERSION"
+          else
+            echo "has-release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No release created"
+          fi
+
+  # Docker build jobs
+  docker-svc-users:
+    name: Build & Push svc-users Docker
+    needs: [detect-changes, release-svc-users]
+    if: needs.detect-changes.outputs.svc-users == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-users.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-svc-users
+        run: |
+          echo "🐳 Building Docker image for svc-users"
+          docker build \
+            -f apps/svc-users/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-svc-events:
+    name: Build & Push svc-events Docker
+    needs: [detect-changes, release-svc-events]
+    if: needs.detect-changes.outputs.svc-events == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-events.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-svc-events
+        run: |
+          echo "🐳 Building Docker image for svc-events"
+          docker build \
+            -f apps/svc-events/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-svc-producers:
+    name: Build & Push svc-producers Docker
+    needs: [detect-changes, release-svc-producers]
+    if: needs.detect-changes.outputs.svc-producers == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-producers.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-svc-producers
+        run: |
+          echo "🐳 Building Docker image for svc-producers"
+          docker build \
+            -f apps/svc-producers/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-svc-checkout:
+    name: Build & Push svc-checkout Docker
+    needs: [detect-changes, release-svc-checkout]
+    if: needs.detect-changes.outputs.svc-checkout == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-svc-checkout.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-svc-checkout
+        run: |
+          echo "🐳 Building Docker image for svc-checkout"
+          docker build \
+            -f apps/svc-checkout/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-redis-service:
+    name: Build & Push redis-service Docker
+    needs: [detect-changes, release-redis-service]
+    if: needs.detect-changes.outputs.redis-service == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-redis-service.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-redis
+        run: |
+          echo "🐳 Building Docker image for redis-service"
+          docker build \
+            -f apps/redis-service/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  docker-next-frontend:
+    name: Build & Push next-frontend Docker
+    needs: [detect-changes, release-next-frontend]
+    if: needs.detect-changes.outputs.next-frontend == 'true'
+    # TEMPORARY: Removed has-release condition for initial deployment
+    # if: needs.release-next-frontend.outputs.has-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Fetch environment variables from Parameter Store
+        id: fetch-env
+        run: |
+          echo "📥 Fetching environment variables from AWS Parameter Store..."
+          
+          # Fetch all parameters and export them with correct naming
+          aws ssm get-parameters-by-path \
+            --path "/ticketeate/production/" \
+            --with-decryption \
+            --region us-east-2 \
+            --query "Parameters[*].[Name,Value]" \
+            --output text | \
+            sed 's|/ticketeate/production/||' | \
+            while IFS=$'\t' read -r key value; do
+              # Convert parameter name: lowercase-with-dashes to UPPERCASE_WITH_UNDERSCORES
+              env_key=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+              echo "$env_key=$value" >> $GITHUB_ENV
+              echo "::add-mask::$value"
+            done
+
+      - name: Build and Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ticketeate-web
+        run: |
+          echo "🐳 Building Docker image for next-frontend with production env vars"
+          
+          # Build with all NEXT_PUBLIC_* variables as build args
+          docker build \
+            -f Dockerfile \
+            --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
+            --build-arg NEXT_PUBLIC_BETTER_AUTH_URL="${NEXT_PUBLIC_BETTER_AUTH_URL}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}" \
+            --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}" \
+            --build-arg NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}" \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          
+          echo "📤 Pushing to ECR (latest only to save space)..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "✅ Successfully pushed: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  # Deployment jobs
+  deploy-lambdas:
+    name: Deploy Lambda Functions
+    needs: [docker-svc-users, docker-svc-events, docker-svc-producers, docker-svc-checkout]
+    if: always() && (needs.docker-svc-users.result == 'success' || needs.docker-svc-events.result == 'success' || needs.docker-svc-producers.result == 'success' || needs.docker-svc-checkout.result == 'success')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: svc-users
+            lambda_name: ticketeate-svc-users-production
+            ecr_repo: ticketeate-svc-users
+          - name: svc-events
+            lambda_name: ticketeate-svc-events-production
+            ecr_repo: ticketeate-svc-events
+          - name: svc-producers
+            lambda_name: ticketeate-svc-producers-production
+            ecr_repo: ticketeate-svc-producers
+          - name: svc-checkout
+            lambda_name: ticketeate-svc-checkout-production
+            ecr_repo: ticketeate-svc-checkout
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Update Lambda ${{ matrix.service.name }}
+        run: |
+          IMAGE_URI="665352994810.dkr.ecr.us-east-2.amazonaws.com/${{ matrix.service.ecr_repo }}:latest"
+          
+          echo "Updating Lambda: ${{ matrix.service.lambda_name }}"
+          aws lambda update-function-code \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --image-uri $IMAGE_URI \
+            --region us-east-2
+          
+          echo "Waiting for update to complete..."
+          aws lambda wait function-updated \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --region us-east-2
+          
+          echo "✅ Lambda ${{ matrix.service.lambda_name }} updated!"
+
+  deploy-nextjs:
+    name: Deploy Next.js to EC2
+    needs: [docker-next-frontend]
+    if: needs.docker-next-frontend.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance:
+          - name: nextjs-1
+            host: 3.145.87.228
+          - name: nextjs-2
+            host: 18.118.83.113
+    steps:
+      - name: Deploy to ${{ matrix.instance.name }}
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ matrix.instance.host }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            # Login to ECR
+            aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 665352994810.dkr.ecr.us-east-2.amazonaws.com
+            
+            # Pull latest image
+            docker pull 665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-web:latest
+            
+            # Stop and remove old container
+            docker stop nextjs-app || true
+            docker rm nextjs-app || true
+            
+            # Fetch environment variables from Parameter Store
+            echo "📥 Fetching environment variables from AWS Parameter Store..."
+            
+            # Create .env.production file with correct variable names
+            aws ssm get-parameters-by-path \
+              --path "/ticketeate/production/" \
+              --with-decryption \
+              --region us-east-2 \
+              --query "Parameters[*].[Name,Value]" \
+              --output text | \
+              sed 's|/ticketeate/production/||' | \
+              awk '{gsub(/-/, "_"); print toupper($1)"="$2}' > .env.production
+            
+            # Start new container with environment variables
+            docker run -d \
+              --name nextjs-app \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              --env-file .env.production \
+              665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-web:latest
+            
+            # Clean up
+            docker image prune -f
+            
+            echo "✅ Deployed to ${{ matrix.instance.name }}"
+
+  summary:
+    name: Release Summary
+    needs: [detect-changes, release-svc-users, release-svc-events, release-svc-producers, release-svc-checkout, release-redis-service, release-next-frontend, deploy-lambdas, deploy-nextjs]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# 📦 Monorepo Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Changed Projects" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.release-svc-users.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **svc-users** → v${{ needs.release-svc-users.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.svc-users }}" == "true" ]; then
+            echo "- ℹ️  **svc-users** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release-svc-events.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **svc-events** → v${{ needs.release-svc-events.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.svc-events }}" == "true" ]; then
+            echo "- ℹ️  **svc-events** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release-svc-producers.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **svc-producers** → v${{ needs.release-svc-producers.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.svc-producers }}" == "true" ]; then
+            echo "- ℹ️  **svc-producers** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release-svc-checkout.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **svc-checkout** → v${{ needs.release-svc-checkout.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.svc-checkout }}" == "true" ]; then
+            echo "- ℹ️  **svc-checkout** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release-redis-service.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **redis-service** → v${{ needs.release-redis-service.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.redis-service }}" == "true" ]; then
+            echo "- ℹ️  **redis-service** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release-next-frontend.outputs.has-release }}" == "true" ]; then
+            echo "- ✅ **next-frontend** → v${{ needs.release-next-frontend.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.detect-changes.outputs.next-frontend }}" == "true" ]; then
+            echo "- ℹ️  **next-frontend** → No release (no feat/fix commits)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Docker Images" >> $GITHUB_STEP_SUMMARY
+          echo "All images pushed to ECR with :latest tag only (to save space)" >> $GITHUB_STEP_SUMMARY

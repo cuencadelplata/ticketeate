@@ -12,6 +12,8 @@ COPY tsconfig.json turbo.json ./
 
 # Copy package.json files for workspace packages
 COPY packages/db/package.json ./packages/db/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY apps/svc-producers/package.json ./apps/svc-producers/
 
 # Copy essential source files for packages
@@ -19,12 +21,14 @@ COPY packages/db/prisma ./packages/db/prisma
 COPY packages/db/src ./packages/db/src
 COPY packages/db/tsconfig.json ./packages/db/
 COPY packages/db/tsup.config.ts ./packages/db/
+COPY packages/eslint-config ./packages/eslint-config
+COPY packages/typescript-config ./packages/typescript-config
 
 # Copy svc-producers source
 COPY apps/svc-producers ./apps/svc-producers
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate

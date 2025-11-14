@@ -78,10 +78,61 @@ export async function servicePost<T = any>(
   return response.json();
 }
 
+// Helper para obtener la URL base según el entorno
+function getServiceUrl(
+  publicEnvVar: string | undefined,
+  serverEnvVar: string | undefined,
+  defaultPort: number,
+): string {
+  // Priorizar variable de servidor (para SSR/Server Actions)
+  if (serverEnvVar) {
+    return serverEnvVar;
+  }
+
+  // Variable de entorno pública (disponible en cliente y servidor)
+  if (publicEnvVar) {
+    return publicEnvVar;
+  }
+
+  // En el cliente, detectar el entorno
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `http://localhost:${defaultPort}`;
+    }
+    // En producción en el cliente, usar el dominio actual
+    return `${window.location.protocol}//${hostname}`;
+  }
+
+  // En el servidor en producción, usar API Gateway
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://j5d9mwvxgh.execute-api.us-east-2.amazonaws.com/production';
+  }
+
+  // Fallback a localhost para desarrollo
+  return `http://localhost:${defaultPort}`;
+}
+
 // Exportar servicios conocidos
 export const SERVICES = {
-  EVENTS: process.env.NEXT_PUBLIC_EVENTS_SERVICE_URL || 'http://localhost:3001',
-  USERS: process.env.NEXT_PUBLIC_USERS_SERVICE_URL || 'http://localhost:3002',
-  CHECKOUT: process.env.NEXT_PUBLIC_CHECKOUT_SERVICE_URL || 'http://localhost:3003',
-  PRODUCERS: process.env.NEXT_PUBLIC_PRODUCERS_SERVICE_URL || 'http://localhost:3004',
+  EVENTS: getServiceUrl(
+    process.env.NEXT_PUBLIC_EVENTS_SERVICE_URL,
+    process.env.EVENTS_SERVICE_URL,
+    3001,
+  ),
+  USERS: getServiceUrl(
+    process.env.NEXT_PUBLIC_USERS_SERVICE_URL,
+    process.env.USERS_SERVICE_URL,
+    3002,
+  ),
+  CHECKOUT: getServiceUrl(
+    process.env.NEXT_PUBLIC_CHECKOUT_SERVICE_URL,
+    process.env.CHECKOUT_SERVICE_URL,
+    3003,
+  ),
+  PRODUCERS: getServiceUrl(
+    process.env.NEXT_PUBLIC_PRODUCERS_SERVICE_URL,
+    process.env.PRODUCERS_SERVICE_URL,
+    3004,
+  ),
 };
