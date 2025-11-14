@@ -611,27 +611,13 @@ jobs:
         run: |
           echo "📥 Fetching environment variables from AWS Parameter Store..."
           
-          # Fetch parameters to JSON file
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
             --output json > /tmp/params.json
           
-          # Use Python to safely process parameters
-          cat > /tmp/process_params.py << 'EOF'
-          import json, os
-          with open('/tmp/params.json') as f:
-              data = json.load(f)
-          with open(os.environ['GITHUB_ENV'], 'a') as github_env:
-              for param in data['Parameters']:
-                  name = param['Name'].split('/')[-1].replace('-', '_').upper()
-                  value = param['Value'].replace('\n', ' ').replace('\r', '')
-                  github_env.write(f"{name}={value}\n")
-                  print(f"::add-mask::{value}")
-          EOF
-          
-          python3 /tmp/process_params.py
+          python3 -c 'import json,os;data=json.load(open("/tmp/params.json"));ghe=open(os.environ["GITHUB_ENV"],"a");[ghe.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") or print(f"::add-mask::{p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}") for p in data["Parameters"]];print(f"✅ {len(data[\"Parameters\"])} variables loaded")'
 
       - name: Build and Push
         env:
@@ -699,27 +685,10 @@ jobs:
             --region us-east-2 \
             --output json > /tmp/params.json
           
-          # Use Python to safely process parameters
-          cat > /tmp/process_params.py << 'EOF'
-          import json, os
-          with open('/tmp/params.json') as f:
-              data = json.load(f)
-          with open('.env.production', 'w') as env_file, open(os.environ['GITHUB_ENV'], 'a') as github_env:
-              for param in data['Parameters']:
-                  name = param['Name'].split('/')[-1].replace('-', '_').upper()
-                  value = param['Value'].replace('\n', ' ').replace('\r', '')
-                  env_file.write(f"{name}={value}\n")
-                  github_env.write(f"{name}={value}\n")
-                  print(f"::add-mask::{value}")
-              print(f"✅ {len(data['Parameters'])} variables loaded")
-          EOF
+          # Process with Python one-liner
+          python3 -c 'import json,os;data=json.load(open("/tmp/params.json"));env=open(".env.production","w");ghe=open(os.environ["GITHUB_ENV"],"a");[env.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") or ghe.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") or print(f"::add-mask::{p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}") for p in data["Parameters"]];print(f"✅ {len(data[\"Parameters\"])} variables loaded")'
           
-          python3 /tmp/process_params.py
-          
-          # Source for current step
-          set -a
-          source .env.production
-          set +a
+          echo "Variables exported to GITHUB_ENV"
 
       - name: Update Lambda ${{ matrix.service.name }}
         run: |
@@ -826,26 +795,13 @@ jobs:
             # Fetch environment variables from Parameter Store
             echo "📥 Fetching environment variables from AWS Parameter Store..."
             
-            # Fetch parameters and create .env.production
             aws ssm get-parameters-by-path \
               --path "/ticketeate/production/" \
               --with-decryption \
               --region us-east-2 \
               --output json > /tmp/params.json
             
-            # Use Python for safe processing
-            cat > /tmp/make_env.py << 'EOF'
-            import json
-            with open('/tmp/params.json') as f:
-                data = json.load(f)
-            with open('.env.production', 'w') as env_file:
-                for param in data['Parameters']:
-                    name = param['Name'].split('/')[-1].replace('-', '_').upper()
-                    value = param['Value'].replace('\n', ' ').replace('\r', '')
-                    env_file.write(f"{name}={value}\n")
-            EOF
-            
-            python3 /tmp/make_env.py
+            python3 -c 'import json;data=json.load(open("/tmp/params.json"));env=open(".env.production","w");[env.write(f"{p[\"Name\"].split(\"/\")[-1].replace(\"-\",\"_\").upper()}={p[\"Value\"].replace(chr(13)+chr(10),\" \").replace(chr(10),\" \").replace(chr(13),\" \").strip()}\n") for p in data["Parameters"]];print(f"✅ {len(data[\"Parameters\"])} variables")'
             
             # Start new container with environment variables
             docker run -d \
