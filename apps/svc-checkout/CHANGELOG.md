@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.5](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.4...svc-checkout-v1.3.5) (2025-11-14)
+
+
+### Bug Fixes
+
+* Use lambda.js handler in all Lambda Dockerfiles instead of index.js ([e0b0cf2](https://github.com/cuencadelplata/ticketeate/commit/e0b0cf2adabf1181930fbef62b8182a8ec0a3a4d))
+
 ## [1.3.4](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.3...svc-checkout-v1.3.4) (2025-11-14)
 
 
