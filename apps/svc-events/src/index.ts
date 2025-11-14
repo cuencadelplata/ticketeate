@@ -33,16 +33,7 @@ app.use(
   }),
 );
 
-// Strip stage prefix from path if present (API Gateway passes /production/... but routes are /api/...)
-app.use('*', async (c, next) => {
-  let path = c.req.path;
-  if (path.startsWith('/production/')) {
-    path = path.replace(/^\/production/, '');
-    c.req.path = path;
-  }
-  await next();
-});
-
+// Mount routes at both /api and /production/api paths
 // Routes
 app.get('/', (c) => {
   return c.json({
@@ -52,7 +43,22 @@ app.get('/', (c) => {
   });
 });
 
+app.get('/production', (c) => {
+  return c.json({
+    message: 'Hono Backend API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/health', (c) => {
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/production/health', (c) => {
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -68,8 +74,18 @@ app.get('/api/users', (c) => {
   });
 });
 
-// Montar las rutas de la API (incluye /api/events/*)
+app.get('/production/api/users', (c) => {
+  return c.json({
+    users: [
+      { id: 1, name: 'John Doe', email: 'john@example.com' },
+      { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+    ],
+  });
+});
+
+// Montar las rutas de la API at both paths
 app.route('/api', apiRoutes);
+app.route('/production/api', apiRoutes);
 
 // 404 handler
 app.notFound((c) => {
