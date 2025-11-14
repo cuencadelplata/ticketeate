@@ -693,15 +693,22 @@ jobs:
             sed 's|/ticketeate/production/||' | \
             awk '{gsub(/-/, "_"); print toupper($1)"="$2}' > .env.production
           
+          # Mask sensitive values in logs
+          while IFS='=' read -r key value; do
+            if [[ ! -z "$value" ]]; then
+              echo "::add-mask::$value"
+            fi
+          done < .env.production
+          
           # Source the file to make variables available
           set -a
           source .env.production
           set +a
           
-          # Export for next steps
+          # Export for next steps (values already masked)
           cat .env.production >> $GITHUB_ENV
           
-          echo "✅ Environment variables loaded"
+          echo "✅ Environment variables loaded ($(wc -l < .env.production) variables)"
 
       - name: Update Lambda ${{ matrix.service.name }}
         run: |
@@ -719,23 +726,35 @@ jobs:
             --region us-east-2
           
           echo "Updating Lambda environment variables..."
+          # Create JSON file with environment variables (properly escaped)
+          cat > lambda-env.json <<EOF
+          {
+            "Variables": {
+              "CORS_ORIGINS": "${CORS_ORIGINS}",
+              "JWT_ISSUER": "${JWT_ISSUER}",
+              "JWT_AUDIENCE": "${JWT_AUDIENCE}",
+              "BETTER_AUTH_SECRET": "${BETTER_AUTH_SECRET}",
+              "FRONTEND_URL": "${FRONTEND_URL}",
+              "DATABASE_URL": "${DATABASE_URL}",
+              "DIRECT_URL": "${DIRECT_URL}",
+              "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
+              "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
+              "REDIS_HOST": "${REDIS_HOST:-10.0.1.226}",
+              "REDIS_PORT": "${REDIS_PORT:-6379}",
+              "ENVIRONMENT": "production"
+            }
+          }
+          EOF
+          
+          # Update configuration (suppress output to avoid exposing secrets)
           aws lambda update-function-configuration \
             --function-name ${{ matrix.service.lambda_name }} \
-            --environment "Variables={
-              CORS_ORIGINS=${CORS_ORIGINS},
-              JWT_ISSUER=${JWT_ISSUER},
-              JWT_AUDIENCE=${JWT_AUDIENCE},
-              BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET},
-              FRONTEND_URL=${FRONTEND_URL},
-              DATABASE_URL=${DATABASE_URL},
-              DIRECT_URL=${DIRECT_URL},
-              SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY},
-              NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY},
-              REDIS_HOST=${REDIS_HOST:-10.0.1.226},
-              REDIS_PORT=${REDIS_PORT:-6379},
-              ENVIRONMENT=production
-            }" \
-            --region us-east-2
+            --environment file://lambda-env.json \
+            --region us-east-2 \
+            --query 'FunctionArn' \
+            --output text > /dev/null
+          
+          echo "Environment variables updated"
           
           echo "Waiting for configuration update to complete..."
           aws lambda wait function-updated \
