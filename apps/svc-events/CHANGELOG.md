@@ -5,6 +5,17 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.3](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.2...svc-events-v1.3.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* Source .env.production before updating Lambda environment variables ([ba433de](https://github.com/cuencadelplata/ticketeate/commit/ba433de94218d76e1d0d33827da837965aa4e0b6))
+* Use echo method instead of heredoc to avoid YAML parsing issues ([a8586ab](https://github.com/cuencadelplata/ticketeate/commit/a8586abe2880e99d4af0f5e0e012073819784ce0))
+* Use jq to build Lambda env vars directly from params JSON ([77319d3](https://github.com/cuencadelplata/ticketeate/commit/77319d379d6e0bd3f5e0b78afc9e7e14af8d9f07))
+* Use lambda.js handler in all Lambda Dockerfiles instead of index.js ([e0b0cf2](https://github.com/cuencadelplata/ticketeate/commit/e0b0cf2adabf1181930fbef62b8182a8ec0a3a4d))
+* Use proper bash quote concatenation for Parameters string ([9ffeae9](https://github.com/cuencadelplata/ticketeate/commit/9ffeae93e6c47bbf33609dd002832fff5e665ab7))
+
 ## [1.3.2](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.1...svc-events-v1.3.2) (2025-11-14)
 
 
