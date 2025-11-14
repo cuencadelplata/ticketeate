@@ -619,7 +619,7 @@ jobs:
             --output json | \
             jq -r '.Parameters[] | 
               (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) as $key |
-              .Value as $value |
+              (.Value | gsub("\n"; " ")) as $value |
               "\($key)=\($value)"' | \
             while IFS='=' read -r key value; do
               echo "$key=$value" >> $GITHUB_ENV
@@ -691,7 +691,7 @@ jobs:
             --output json | \
             jq -r '.Parameters[] | 
               (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
-              (.Value | gsub("\n"; "\\n"))' > .env.production
+              (.Value | gsub("\n"; " "))' > .env.production
           
           # Mask sensitive values in logs
           while IFS='=' read -r key value; do
@@ -823,7 +823,7 @@ jobs:
               --output json | \
               jq -r '.Parameters[] | 
                 (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
-                .Value' > .env.production
+                (.Value | gsub("\n"; " "))' > .env.production
             
             # Start new container with environment variables
             docker run -d \
