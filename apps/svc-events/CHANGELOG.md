@@ -5,6 +5,21 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.2.0...svc-events-v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* Generate Prisma client in all Docker production stages (Next.js and Lambdas) ([c54377d](https://github.com/cuencadelplata/ticketeate/commit/c54377dcff5abf0bfa9181aa5e4b76f50171106a))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* Suppress Lambda update output to prevent key exposure ([5e773ed](https://github.com/cuencadelplata/ticketeate/commit/5e773ed3573d4978a21d02495e2df79c45fc97fc))
+* Use JSON file for Lambda env vars & mask sensitive values in logs ([5b9d353](https://github.com/cuencadelplata/ticketeate/commit/5b9d353dd697ece52ec77edbc1be61319f42c42a))
+
+
+### Features
+
+* Update Lambda environment variables during deployment ([8527bf9](https://github.com/cuencadelplata/ticketeate/commit/8527bf90ee84c07dcc53cac7042414f5b8798ae4))
+
 # [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.1.4...svc-events-v1.2.0) (2025-11-14)
 
 
