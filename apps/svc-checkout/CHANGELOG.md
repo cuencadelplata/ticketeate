@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.9](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.8...svc-checkout-v1.3.9) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add type casting to response object ([d33822d](https://github.com/cuencadelplata/ticketeate/commit/d33822de6aeb8bd141cc328d164cde4afbbb2532))
+* Use lowercase headers in lambda handler for API Gateway v2 compatibility ([e1070b9](https://github.com/cuencadelplata/ticketeate/commit/e1070b99324fa3408b979e52dba4e80a49dcc2aa))
+
 ## [1.3.8](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.7...svc-checkout-v1.3.8) (2025-11-14)
 
 
