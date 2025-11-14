@@ -83,6 +83,7 @@ COPY --from=builder /app/pnpm-workspace.yaml ./
 # Copy built packages
 COPY --from=builder /app/packages/db/dist ./packages/db/dist
 COPY --from=builder /app/packages/db/package.json ./packages/db/
+COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 COPY --from=builder /app/apps/next-frontend/.next ./apps/next-frontend/.next
 COPY --from=builder /app/apps/next-frontend/public ./apps/next-frontend/public
 COPY --from=builder /app/apps/next-frontend/package.json ./apps/next-frontend/
@@ -90,6 +91,9 @@ COPY --from=builder /app/apps/next-frontend/next.config.mjs ./apps/next-frontend
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
+
+# Generate Prisma Client in production node_modules
+RUN pnpm --filter=@repo/db run db:generate
 
 WORKDIR /app/apps/next-frontend
 
