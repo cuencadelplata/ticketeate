@@ -606,14 +606,42 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Fetch environment variables from Parameter Store
+        id: fetch-env
+        run: |
+          echo "📥 Fetching environment variables from AWS Parameter Store..."
+          
+          # Fetch all parameters and export them
+          aws ssm get-parameters-by-path \
+            --path "/ticketeate/production/" \
+            --with-decryption \
+            --region us-east-2 \
+            --query "Parameters[*].[Name,Value]" \
+            --output text | \
+            sed 's|/ticketeate/production/||' | \
+            while IFS=$'\t' read -r key value; do
+              echo "$key=$value" >> $GITHUB_ENV
+              echo "::add-mask::$value"
+            done
+
       - name: Build and Push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ticketeate-web
         run: |
-          echo "🐳 Building Docker image for next-frontend"
+          echo "🐳 Building Docker image for next-frontend with production env vars"
+          
+          # Build with all NEXT_PUBLIC_* variables as build args
           docker build \
             -f Dockerfile \
+            --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
+            --build-arg NEXT_PUBLIC_BETTER_AUTH_URL="${NEXT_PUBLIC_BETTER_AUTH_URL}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}" \
+            --build-arg NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}" \
+            --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}" \
+            --build-arg NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}" \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
@@ -698,11 +726,27 @@ jobs:
             docker stop nextjs-app || true
             docker rm nextjs-app || true
             
-            # Start new container
+            # Fetch environment variables from Parameter Store
+            echo "📥 Fetching environment variables from AWS Parameter Store..."
+            
+            # Create .env.production file
+            cat > .env.production << 'EOF'
+            $(aws ssm get-parameters-by-path \
+              --path "/ticketeate/production/" \
+              --with-decryption \
+              --region us-east-2 \
+              --query "Parameters[*].[Name,Value]" \
+              --output text | \
+              sed 's|/ticketeate/production/||' | \
+              awk '{print $1"="$2}')
+            EOF
+            
+            # Start new container with environment variables
             docker run -d \
               --name nextjs-app \
               --restart unless-stopped \
               -p 3000:3000 \
+              --env-file .env.production \
               665352994810.dkr.ecr.us-east-2.amazonaws.com/ticketeate-web:latest
             
             # Clean up
