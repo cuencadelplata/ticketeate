@@ -5,6 +5,13 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.4](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.3...next-frontend-v1.4.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* Mount routes at both /api and /production/api to handle API Gateway stage prefix ([8420575](https://github.com/cuencadelplata/ticketeate/commit/8420575eac42188b80f95c1b143d252d47bee3d4))
+
 ## [1.4.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.2...next-frontend-v1.4.3) (2025-11-14)
 
 
