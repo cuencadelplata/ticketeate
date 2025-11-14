@@ -681,17 +681,63 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      - name: Fetch environment variables
+        run: |
+          echo "Fetching environment variables from Parameter Store..."
+          aws ssm get-parameters-by-path \
+            --path "/ticketeate/production/" \
+            --with-decryption \
+            --region us-east-2 \
+            --query "Parameters[*].[Name,Value]" \
+            --output text | \
+            sed 's|/ticketeate/production/||' | \
+            awk '{gsub(/-/, "_"); print toupper($1)"="$2}' > .env.production
+          
+          # Source the file to make variables available
+          set -a
+          source .env.production
+          set +a
+          
+          # Export for next steps
+          cat .env.production >> $GITHUB_ENV
+          
+          echo "✅ Environment variables loaded"
+
       - name: Update Lambda ${{ matrix.service.name }}
         run: |
           IMAGE_URI="665352994810.dkr.ecr.us-east-2.amazonaws.com/${{ matrix.service.ecr_repo }}:latest"
           
-          echo "Updating Lambda: ${{ matrix.service.lambda_name }}"
+          echo "Updating Lambda code: ${{ matrix.service.lambda_name }}"
           aws lambda update-function-code \
             --function-name ${{ matrix.service.lambda_name }} \
             --image-uri $IMAGE_URI \
             --region us-east-2
           
-          echo "Waiting for update to complete..."
+          echo "Waiting for code update to complete..."
+          aws lambda wait function-updated \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --region us-east-2
+          
+          echo "Updating Lambda environment variables..."
+          aws lambda update-function-configuration \
+            --function-name ${{ matrix.service.lambda_name }} \
+            --environment "Variables={
+              CORS_ORIGINS=${CORS_ORIGINS},
+              JWT_ISSUER=${JWT_ISSUER},
+              JWT_AUDIENCE=${JWT_AUDIENCE},
+              BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET},
+              FRONTEND_URL=${FRONTEND_URL},
+              DATABASE_URL=${DATABASE_URL},
+              DIRECT_URL=${DIRECT_URL},
+              SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY},
+              NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY},
+              REDIS_HOST=${REDIS_HOST:-10.0.1.226},
+              REDIS_PORT=${REDIS_PORT:-6379},
+              ENVIRONMENT=production
+            }" \
+            --region us-east-2
+          
+          echo "Waiting for configuration update to complete..."
           aws lambda wait function-updated \
             --function-name ${{ matrix.service.lambda_name }} \
             --region us-east-2
