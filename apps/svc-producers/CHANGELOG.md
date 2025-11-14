@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.2](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.1...svc-producers-v1.1.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+
 ## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.0...svc-producers-v1.1.1) (2025-11-14)
 
 
