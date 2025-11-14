@@ -5,6 +5,22 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.1...next-frontend-v1.4.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* Convert newlines to spaces in jq parameter processing ([62f01a5](https://github.com/cuencadelplata/ticketeate/commit/62f01a54b9c383f02cec24963ccb5a1a4710f36e))
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Source .env.production before updating Lambda environment variables ([ba433de](https://github.com/cuencadelplata/ticketeate/commit/ba433de94218d76e1d0d33827da837965aa4e0b6))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+* Use echo method instead of heredoc to avoid YAML parsing issues ([a8586ab](https://github.com/cuencadelplata/ticketeate/commit/a8586abe2880e99d4af0f5e0e012073819784ce0))
+* Use jq instead of awk to handle multiline Parameter Store values ([2c9c934](https://github.com/cuencadelplata/ticketeate/commit/2c9c934855d6d84ecd2faecc67ea74efda85e6df))
+* Use lambda.js handler in all Lambda Dockerfiles instead of index.js ([e0b0cf2](https://github.com/cuencadelplata/ticketeate/commit/e0b0cf2adabf1181930fbef62b8182a8ec0a3a4d))
+* Use proper bash quote concatenation for Parameters string ([9ffeae9](https://github.com/cuencadelplata/ticketeate/commit/9ffeae93e6c47bbf33609dd002832fff5e665ab7))
+* Use Python for robust parameter processing - handles multiline values correctly ([e3c5f8e](https://github.com/cuencadelplata/ticketeate/commit/e3c5f8e7258827bd998b628019a531cf89773d52))
+* Use Python one-liner to avoid bash source issues with special characters ([b0c74f3](https://github.com/cuencadelplata/ticketeate/commit/b0c74f34bd3f6e54505a7953f2a7050b398b70e1))
+
 ## [1.4.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.0...next-frontend-v1.4.1) (2025-11-14)
 
 
