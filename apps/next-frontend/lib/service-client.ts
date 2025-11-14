@@ -79,12 +79,16 @@ export async function servicePost<T = any>(
 }
 
 // Helper para obtener la URL base según el entorno
-function getServiceUrl(publicEnvVar: string | undefined, serverEnvVar: string | undefined, defaultPort: number): string {
+function getServiceUrl(
+  publicEnvVar: string | undefined,
+  serverEnvVar: string | undefined,
+  defaultPort: number,
+): string {
   // Priorizar variable de servidor (para SSR/Server Actions)
   if (serverEnvVar) {
     return serverEnvVar;
   }
-  
+
   // Variable de entorno pública (disponible en cliente y servidor)
   if (publicEnvVar) {
     return publicEnvVar;
@@ -114,21 +118,21 @@ export const SERVICES = {
   EVENTS: getServiceUrl(
     process.env.NEXT_PUBLIC_EVENTS_SERVICE_URL,
     process.env.EVENTS_SERVICE_URL,
-    3001
+    3001,
   ),
   USERS: getServiceUrl(
     process.env.NEXT_PUBLIC_USERS_SERVICE_URL,
     process.env.USERS_SERVICE_URL,
-    3002
+    3002,
   ),
   CHECKOUT: getServiceUrl(
     process.env.NEXT_PUBLIC_CHECKOUT_SERVICE_URL,
     process.env.CHECKOUT_SERVICE_URL,
-    3003
+    3003,
   ),
   PRODUCERS: getServiceUrl(
     process.env.NEXT_PUBLIC_PRODUCERS_SERVICE_URL,
     process.env.PRODUCERS_SERVICE_URL,
-    3004
+    3004,
   ),
 };

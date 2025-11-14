@@ -19,8 +19,9 @@ async function jwtMiddleware(c: Context, next: Next) {
 
     // Verify JWT token using shared secret (same as frontend)
     const jwtIssuer = process.env.JWT_ISSUER || process.env.FRONTEND_URL || 'http://localhost:3000';
-    const jwtAudience = process.env.JWT_AUDIENCE || process.env.FRONTEND_URL || 'http://localhost:3000';
-    
+    const jwtAudience =
+      process.env.JWT_AUDIENCE || process.env.FRONTEND_URL || 'http://localhost:3000';
+
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: jwtIssuer,
       audience: jwtAudience,
@@ -45,7 +46,7 @@ app.use('*', logger());
 app.use('*', timing());
 // CORS configuration with environment-aware origins
 const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
   : [
       process.env.FRONTEND_URL || 'http://localhost:3000',
       'http://localhost:3000',

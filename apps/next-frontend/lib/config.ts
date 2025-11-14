@@ -4,7 +4,7 @@ function getApiBaseUrl(): string {
   if (process.env.API_URL) {
     return process.env.API_URL;
   }
-  
+
   // Variable de entorno pública (disponible en cliente y servidor)
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
