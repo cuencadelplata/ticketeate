@@ -12,9 +12,9 @@ function getApiBaseUrl(): string {
 
   // En el servidor (SSR), intentar detectar el entorno
   if (typeof window === 'undefined') {
-    // En producción, usar el custom domain
+    // En producción, usar el custom domain de la API
     if (process.env.NODE_ENV === 'production') {
-      return 'https://ticketeate.com.ar/production';
+      return 'https://api.ticketeate.com.ar/production';
     }
     // En desarrollo local, usar localhost
     return 'http://localhost:3001';
@@ -29,8 +29,13 @@ function getApiBaseUrl(): string {
     return 'http://localhost:3001';
   }
 
-  // En producción, usar HTTPS con el dominio personalizado
-  return `${protocol}//${hostname}/production`;
+  // En producción en ticketeate.com.ar, usar api.ticketeate.com.ar
+  if (hostname === 'ticketeate.com.ar' || hostname === 'www.ticketeate.com.ar') {
+    return 'https://api.ticketeate.com.ar/production';
+  }
+
+  // Para otros dominios, asumir que usan la API en el mismo dominio
+  return `${protocol}//api.${hostname}/production`;
 }
 
 // url hono
