@@ -611,7 +611,7 @@ jobs:
         run: |
           echo "📥 Fetching environment variables from AWS Parameter Store..."
           
-          # Fetch all parameters and export them
+          # Fetch all parameters and export them with correct naming
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
@@ -620,7 +620,9 @@ jobs:
             --output text | \
             sed 's|/ticketeate/production/||' | \
             while IFS=$'\t' read -r key value; do
-              echo "$key=$value" >> $GITHUB_ENV
+              # Convert parameter name: lowercase-with-dashes to UPPERCASE_WITH_UNDERSCORES
+              env_key=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+              echo "$env_key=$value" >> $GITHUB_ENV
               echo "::add-mask::$value"
             done
 
@@ -729,17 +731,15 @@ jobs:
             # Fetch environment variables from Parameter Store
             echo "📥 Fetching environment variables from AWS Parameter Store..."
             
-            # Create .env.production file
-            cat > .env.production << 'EOF'
-            $(aws ssm get-parameters-by-path \
+            # Create .env.production file with correct variable names
+            aws ssm get-parameters-by-path \
               --path "/ticketeate/production/" \
               --with-decryption \
               --region us-east-2 \
               --query "Parameters[*].[Name,Value]" \
               --output text | \
               sed 's|/ticketeate/production/||' | \
-              awk '{print $1"="$2}')
-            EOF
+              awk '{gsub(/-/, "_"); print toupper($1)"="$2}' > .env.production
             
             # Start new container with environment variables
             docker run -d \
