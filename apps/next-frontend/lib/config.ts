@@ -12,9 +12,9 @@ function getApiBaseUrl(): string {
 
   // En el servidor (SSR), intentar detectar el entorno
   if (typeof window === 'undefined') {
-    // En producción, usar la URL de API Gateway
+    // En producción, usar el custom domain
     if (process.env.NODE_ENV === 'production') {
-      return 'https://j5d9mwvxgh.execute-api.us-east-2.amazonaws.com/production';
+      return 'https://ticketeate.com.ar/production';
     }
     // En desarrollo local, usar localhost
     return 'http://localhost:3001';
@@ -29,8 +29,8 @@ function getApiBaseUrl(): string {
     return 'http://localhost:3001';
   }
 
-  // En producción, usar HTTPS con el dominio
-  return `${protocol}//${hostname}`;
+  // En producción, usar HTTPS con el dominio personalizado
+  return `${protocol}//${hostname}/production`;
 }
 
 // url hono
