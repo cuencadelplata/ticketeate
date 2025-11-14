@@ -18,11 +18,12 @@ app.use(
       }
       // En producción, lista blanca específica
       const allowedOrigins = [
+        process.env.FRONTEND_URL,
         'http://localhost:3000',
         'http://localhost:3001',
         'https://ticketeate.com.ar',
         'https://www.ticketeate.com.ar',
-      ];
+      ].filter(Boolean);
       return allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0];
     },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

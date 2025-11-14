@@ -1,12 +1,22 @@
 // Función para detectar la URL base de la API según el contexto
 function getApiBaseUrl(): string {
-  // Si hay una variable de entorno configurada, usarla (para producción)
+  // Priorizar variable de entorno sin NEXT_PUBLIC para SSR/Server Actions
+  if (process.env.API_URL) {
+    return process.env.API_URL;
+  }
+
+  // Variable de entorno pública (disponible en cliente y servidor)
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // En el servidor (SSR), usar localhost para desarrollo
+  // En el servidor (SSR), intentar detectar el entorno
   if (typeof window === 'undefined') {
+    // En producción, usar la URL de API Gateway
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://j5d9mwvxgh.execute-api.us-east-2.amazonaws.com/production';
+    }
+    // En desarrollo local, usar localhost
     return 'http://localhost:3001';
   }
 
@@ -19,7 +29,7 @@ function getApiBaseUrl(): string {
     return 'http://localhost:3001';
   }
 
-  // En producción, usar el mismo protocolo (HTTPS) y hostname del sitio
+  // En producción, usar HTTPS con el dominio
   return `${protocol}//${hostname}`;
 }
 
