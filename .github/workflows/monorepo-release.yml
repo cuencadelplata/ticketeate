@@ -617,11 +617,9 @@ jobs:
             --with-decryption \
             --region us-east-2 \
             --output json | \
-            jq -r '.Parameters[] | 
-              (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) as $key |
-              (.Value | gsub("\n"; " ")) as $value |
-              "\($key)=\($value)"' | \
-            while IFS='=' read -r key value; do
+            jq -r '.Parameters[] | @json' | while read -r param; do
+              key=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
+              value=$(echo "$param" | jq -r '.Value' | tr -d '\n\r')
               echo "$key=$value" >> $GITHUB_ENV
               echo "::add-mask::$value"
             done
@@ -684,21 +682,30 @@ jobs:
       - name: Fetch environment variables
         run: |
           echo "Fetching environment variables from Parameter Store..."
+          
+          # Create empty env file
+          > .env.production
+          
+          # Get parameters as JSON and process each one
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
             --output json | \
-            jq -r '.Parameters[] | 
-              (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
-              (.Value | gsub("\n"; " "))' > .env.production
-          
-          # Mask sensitive values in logs
-          while IFS='=' read -r key value; do
-            if [[ ! -z "$value" ]]; then
+            jq -r '.Parameters[] | @json' | while read -r param; do
+              # Extract name and value
+              name=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
+              value=$(echo "$param" | jq -r '.Value')
+              
+              # Remove any newlines and carriage returns from value
+              value=$(echo "$value" | tr -d '\n\r')
+              
+              # Write to env file using printf to avoid shell interpretation
+              printf '%s=%s\n' "$name" "$value" >> .env.production
+              
+              # Mask sensitive value
               echo "::add-mask::$value"
-            fi
-          done < .env.production
+            done
           
           # Source the file to make variables available
           set -a
@@ -816,14 +823,17 @@ jobs:
             echo "📥 Fetching environment variables from AWS Parameter Store..."
             
             # Create .env.production file with correct variable names
+            > .env.production
             aws ssm get-parameters-by-path \
               --path "/ticketeate/production/" \
               --with-decryption \
               --region us-east-2 \
               --output json | \
-              jq -r '.Parameters[] | 
-                (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
-                (.Value | gsub("\n"; " "))' > .env.production
+              jq -r '.Parameters[] | @json' | while read -r param; do
+                name=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
+                value=$(echo "$param" | jq -r '.Value' | tr -d '\n\r')
+                printf '%s=%s\n' "$name" "$value" >> .env.production
+              done
             
             # Start new container with environment variables
             docker run -d \
