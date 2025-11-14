@@ -8,6 +8,17 @@ const app = new Hono();
 
 // Middleware
 app.use('*', honoLogger());
+
+// Strip stage prefix from path if present (API Gateway passes /production/... but routes are /api/...)
+app.use('*', async (c, next) => {
+  let path = c.req.path;
+  if (path.startsWith('/production/')) {
+    path = path.replace(/^\/production/, '');
+    c.req.path = path;
+  }
+  await next();
+});
+
 app.use(
   '*',
   cors({
