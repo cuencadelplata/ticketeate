@@ -5,6 +5,15 @@ Todas las versiones notables de **redis-service** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.2.3](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.2.2...redis-service-v1.2.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Simplify CORS - remove post-middleware, rely on Hono CORS middleware credentials: true ([4ebfb9b](https://github.com/cuencadelplata/ticketeate/commit/4ebfb9bb6db0cbda029b835d03b6a6042bf95b47))
+* Use lowercase headers in lambda handler for API Gateway v2 compatibility ([e1070b9](https://github.com/cuencadelplata/ticketeate/commit/e1070b99324fa3408b979e52dba4e80a49dcc2aa))
+
 ## [1.2.2](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.2.1...redis-service-v1.2.2) (2025-11-14)
 
 
