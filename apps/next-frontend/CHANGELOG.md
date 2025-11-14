@@ -5,6 +5,13 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.5](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.4...next-frontend-v1.4.5) (2025-11-14)
+
+
+### Bug Fixes
+
+* Simplify CORS with hardcoded origins to eliminate undefined values ([86b521e](https://github.com/cuencadelplata/ticketeate/commit/86b521eb9c553e12f65b94789f4a03161f0fe100))
+
 ## [1.4.4](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.3...next-frontend-v1.4.4) (2025-11-14)
 
 
