@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.3](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.2...svc-checkout-v1.3.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* Use echo method instead of heredoc to avoid YAML parsing issues ([a8586ab](https://github.com/cuencadelplata/ticketeate/commit/a8586abe2880e99d4af0f5e0e012073819784ce0))
+* Use Python one-liner to avoid bash source issues with special characters ([b0c74f3](https://github.com/cuencadelplata/ticketeate/commit/b0c74f34bd3f6e54505a7953f2a7050b398b70e1))
+
 ## [1.3.2](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.1...svc-checkout-v1.3.2) (2025-11-14)
 
 
