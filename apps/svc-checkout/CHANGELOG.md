@@ -5,6 +5,16 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.8](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.7...svc-checkout-v1.3.8) (2025-11-14)
+
+
+### Bug Fixes
+
+* Make middleware properly async and await next() ([b0acb3e](https://github.com/cuencadelplata/ticketeate/commit/b0acb3ebc1d5195240072b119c8598143e3344e5))
+* Move credentials header logic to Lambda handler wrapper for better control ([4efd3b1](https://github.com/cuencadelplata/ticketeate/commit/4efd3b1e16676c4f6a86b0fb05a6a6cc89e83863))
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Simplify CORS - remove post-middleware, rely on Hono CORS middleware credentials: true ([4ebfb9b](https://github.com/cuencadelplata/ticketeate/commit/4ebfb9bb6db0cbda029b835d03b6a6042bf95b47))
+
 ## [1.3.7](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.6...svc-checkout-v1.3.7) (2025-11-14)
 
 
