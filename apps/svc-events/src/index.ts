@@ -21,16 +21,14 @@ const allowedOrigins = [
   'http://localhost:3001',
 ];
 
-app.use(
-  '*',
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 600,
-  }),
-);
+// CORS middleware - MUST be first middleware, before all routes
+app.use('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 600,
+}));
 
 // Mount routes at both /api and /production/api paths
 // Routes
