@@ -9,27 +9,26 @@ const app = new Hono();
 // Middleware
 app.use('*', honoLogger());
 
+// Log environment for debugging
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+
+// Hardcoded allowed origins to avoid undefined issues
+const allowedOrigins = [
+  'https://ticketeate.com.ar',
+  'https://www.ticketeate.com.ar',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
 app.use(
   '*',
   cors({
-    origin: (origin) => {
-      // En desarrollo, permitir cualquier origen
-      if (process.env.NODE_ENV === 'development') {
-        return origin || '*';
-      }
-      // En producción, lista blanca específica
-      const allowedOrigins = [
-        process.env.FRONTEND_URL,
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'https://ticketeate.com.ar',
-        'https://www.ticketeate.com.ar',
-      ].filter(Boolean);
-      return allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0];
-    },
+    origin: allowedOrigins,
+    credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    maxAge: 600,
   }),
 );
 
@@ -48,6 +47,31 @@ app.get('/production', (c) => {
     message: 'Hono Backend API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Debug endpoint to check CORS headers
+app.get('/cors-debug', (c) => {
+  return c.json({
+    origin: c.req.header('Origin'),
+    corsHeaders: {
+      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
+      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
+      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
+      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
+    },
+  });
+});
+
+app.get('/production/cors-debug', (c) => {
+  return c.json({
+    origin: c.req.header('Origin'),
+    corsHeaders: {
+      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
+      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
+      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
+      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
+    },
   });
 });
 
