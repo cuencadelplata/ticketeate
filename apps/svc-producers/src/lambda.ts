@@ -29,7 +29,9 @@ export const handler = async (event: any, context: any) => {
   const method = event.requestContext.http.method;
 
   // eslint-disable-next-line no-console
-  console.log(`[CORS] Method: ${method}, Origin: ${origin}, Allowed: ${ALLOWED_ORIGINS.includes(origin)}`);
+  console.log(
+    `[CORS] Method: ${method}, Origin: ${origin}, Allowed: ${ALLOWED_ORIGINS.includes(origin)}`,
+  );
 
   // Handle OPTIONS preflight requests
   if (method === 'OPTIONS') {
@@ -51,7 +53,11 @@ export const handler = async (event: any, context: any) => {
   console.log(`[CORS] Response status: ${response.statusCode}`);
 
   // Ensure headers object exists and is a plain object (not Map)
-  if (!response.headers || typeof response.headers !== 'object' || typeof response.headers.entries !== 'function') {
+  if (
+    !response.headers ||
+    typeof response.headers !== 'object' ||
+    typeof response.headers.entries !== 'function'
+  ) {
     response.headers = {};
   }
 
