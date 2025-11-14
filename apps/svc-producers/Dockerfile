@@ -59,6 +59,9 @@ COPY --from=builder /app/apps/svc-producers/node_modules ./apps/svc-producers/no
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
 
+# Generate Prisma Client in production node_modules
+RUN pnpm --filter=@repo/db run db:generate
+
 # Set NODE_ENV
 ENV NODE_ENV=production
 
