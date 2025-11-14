@@ -715,10 +715,15 @@ jobs:
           IMAGE_URI="665352994810.dkr.ecr.us-east-2.amazonaws.com/${{ matrix.service.ecr_repo }}:latest"
           
           echo "Updating Lambda code: ${{ matrix.service.lambda_name }}"
+          # Suppress output to avoid exposing environment variables
           aws lambda update-function-code \
             --function-name ${{ matrix.service.lambda_name }} \
             --image-uri $IMAGE_URI \
-            --region us-east-2
+            --region us-east-2 \
+            --query 'FunctionArn' \
+            --output text > /dev/null
+          
+          echo "Lambda code updated successfully"
           
           echo "Waiting for code update to complete..."
           aws lambda wait function-updated \
