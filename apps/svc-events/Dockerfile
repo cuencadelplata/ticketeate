@@ -37,13 +37,14 @@ RUN pnpm --filter=@repo/db run db:generate
 RUN pnpm --filter=@repo/db run build
 RUN pnpm --filter=@ticketeate/svc-events run build
 
-# Runner stage
-FROM node:20-alpine3.18 AS runner
+# Runner stage - Use AWS Lambda base image
+FROM public.ecr.aws/lambda/nodejs:20 AS runner
 
 # Install pnpm
 RUN npm install -g pnpm@10.10.0
 
-WORKDIR /app
+# Lambda uses /var/task as working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Copy necessary files from builder
 COPY --from=builder /app/package.json ./
@@ -67,8 +68,6 @@ RUN pnpm install --prod --frozen-lockfile
 # Set NODE_ENV
 ENV NODE_ENV=production
 
-# Expose port
-EXPOSE 3002
-
-# Start the Lambda handler (lambda.js wraps the Hono app for AWS Lambda)
-CMD ["node", "apps/svc-events/dist/lambda.js"]
+# Set the Lambda handler (format: file.function)
+# Lambda will call exports.handler from apps/svc-events/dist/lambda.js
+CMD ["apps/svc-events/dist/lambda.handler"]
