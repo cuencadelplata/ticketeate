@@ -11,8 +11,8 @@ app.use('*', honoLogger());
 // Handle OPTIONS requests (preflight) for all routes
 // This is needed for tests and any direct calls to Hono
 // The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
-app.options('*', () => {
-  return new Response('', { status: 204 });
+app.options('*', (c) => {
+  return c.text('');
 });
 
 // Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
