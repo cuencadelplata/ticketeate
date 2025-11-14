@@ -5,6 +5,22 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.1...next-frontend-v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* SSM ([a5b2b96](https://github.com/cuencadelplata/ticketeate/commit/a5b2b96f50616297c8068b81939da8f5392fc341))
+* SSM ([#128](https://github.com/cuencadelplata/ticketeate/issues/128)) ([926ad90](https://github.com/cuencadelplata/ticketeate/commit/926ad907b15f0a8a8459959f2b4f048f607db40d))
+
+
+### Features
+
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
 ## [1.2.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.0...next-frontend-v1.2.1) (2025-11-13)
 
 
