@@ -22,13 +22,16 @@ const allowedOrigins = [
 ];
 
 // CORS middleware - MUST be first middleware, before all routes
-app.use('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 600,
-}));
+app.use(
+  '*',
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 600,
+  }),
+);
 
 // Mount routes at both /api and /production/api paths
 // Routes
