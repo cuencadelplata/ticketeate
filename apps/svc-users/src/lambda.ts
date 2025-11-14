@@ -2,10 +2,10 @@ import { handle } from 'hono/aws-lambda';
 import app from './index';
 
 // Wrapper to ensure credentials header
-const handler = handle(app);
+const honoHandler = handle(app);
 
 export const handler = async (event: any, context: any) => {
-  const response = await handler(event, context);
+  const response = await honoHandler(event, context);
   
   // Ensure credentials header is always set if CORS origin is present
   if (response.headers && event.headers?.origin) {
