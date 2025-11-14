@@ -617,9 +617,11 @@ jobs:
             --with-decryption \
             --region us-east-2 \
             --output json | \
-            jq -r '.Parameters[] | @json' | while read -r param; do
-              key=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
-              value=$(echo "$param" | jq -r '.Value' | tr -d '\n\r')
+            jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
+            while read -r encoded; do
+              decoded=$(echo "$encoded" | base64 -d)
+              key=$(echo "$decoded" | jq -r '.name')
+              value=$(echo "$decoded" | jq -r '.value' | sed ':a;N;$!ba;s/\n/ /g')
               echo "$key=$value" >> $GITHUB_ENV
               echo "::add-mask::$value"
             done
@@ -686,25 +688,27 @@ jobs:
           # Create empty env file
           > .env.production
           
-          # Get parameters as JSON and process each one
+          # Get parameters and process with base64 encoding to handle special chars
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
             --output json | \
-            jq -r '.Parameters[] | @json' | while read -r param; do
-              # Extract name and value
-              name=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
-              value=$(echo "$param" | jq -r '.Value')
+            jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
+            while read -r encoded; do
+              # Decode and extract name and value
+              decoded=$(echo "$encoded" | base64 -d)
+              name=$(echo "$decoded" | jq -r '.name')
+              value=$(echo "$decoded" | jq -r '.value')
               
-              # Remove any newlines and carriage returns from value
-              value=$(echo "$value" | tr -d '\n\r')
+              # Replace newlines with spaces in value
+              value=$(echo "$value" | sed ':a;N;$!ba;s/\n/ /g')
               
-              # Write to env file using printf to avoid shell interpretation
-              printf '%s=%s\n' "$name" "$value" >> .env.production
+              # Write to env file
+              echo "${name}=${value}" >> .env.production
               
               # Mask sensitive value
-              echo "::add-mask::$value"
+              echo "::add-mask::${value}"
             done
           
           # Source the file to make variables available
@@ -829,10 +833,12 @@ jobs:
               --with-decryption \
               --region us-east-2 \
               --output json | \
-              jq -r '.Parameters[] | @json' | while read -r param; do
-                name=$(echo "$param" | jq -r '.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase')
-                value=$(echo "$param" | jq -r '.Value' | tr -d '\n\r')
-                printf '%s=%s\n' "$name" "$value" >> .env.production
+              jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
+              while read -r encoded; do
+                decoded=$(echo "$encoded" | base64 -d)
+                name=$(echo "$decoded" | jq -r '.name')
+                value=$(echo "$decoded" | jq -r '.value' | sed ':a;N;$!ba;s/\n/ /g')
+                echo "${name}=${value}" >> .env.production
               done
             
             # Start new container with environment variables
