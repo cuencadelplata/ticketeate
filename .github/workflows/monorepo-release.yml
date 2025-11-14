@@ -611,20 +611,27 @@ jobs:
         run: |
           echo "📥 Fetching environment variables from AWS Parameter Store..."
           
-          # Fetch all parameters and export them with correct naming
+          # Fetch parameters to JSON file
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
-            --output json | \
-            jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
-            while read -r encoded; do
-              decoded=$(echo "$encoded" | base64 -d)
-              key=$(echo "$decoded" | jq -r '.name')
-              value=$(echo "$decoded" | jq -r '.value' | sed ':a;N;$!ba;s/\n/ /g')
-              echo "$key=$value" >> $GITHUB_ENV
-              echo "::add-mask::$value"
-            done
+            --output json > /tmp/params.json
+          
+          # Use Python to safely process parameters
+          cat > /tmp/process_params.py << 'EOF'
+          import json, os
+          with open('/tmp/params.json') as f:
+              data = json.load(f)
+          with open(os.environ['GITHUB_ENV'], 'a') as github_env:
+              for param in data['Parameters']:
+                  name = param['Name'].split('/')[-1].replace('-', '_').upper()
+                  value = param['Value'].replace('\n', ' ').replace('\r', '')
+                  github_env.write(f"{name}={value}\n")
+                  print(f"::add-mask::{value}")
+          EOF
+          
+          python3 /tmp/process_params.py
 
       - name: Build and Push
         env:
@@ -685,41 +692,34 @@ jobs:
         run: |
           echo "Fetching environment variables from Parameter Store..."
           
-          # Create empty env file
-          > .env.production
-          
-          # Get parameters and process with base64 encoding to handle special chars
+          # Fetch parameters to JSON file
           aws ssm get-parameters-by-path \
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
-            --output json | \
-            jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
-            while read -r encoded; do
-              # Decode and extract name and value
-              decoded=$(echo "$encoded" | base64 -d)
-              name=$(echo "$decoded" | jq -r '.name')
-              value=$(echo "$decoded" | jq -r '.value')
-              
-              # Replace newlines with spaces in value
-              value=$(echo "$value" | sed ':a;N;$!ba;s/\n/ /g')
-              
-              # Write to env file
-              echo "${name}=${value}" >> .env.production
-              
-              # Mask sensitive value
-              echo "::add-mask::${value}"
-            done
+            --output json > /tmp/params.json
           
-          # Source the file to make variables available
+          # Use Python to safely process parameters
+          cat > /tmp/process_params.py << 'EOF'
+          import json, os
+          with open('/tmp/params.json') as f:
+              data = json.load(f)
+          with open('.env.production', 'w') as env_file, open(os.environ['GITHUB_ENV'], 'a') as github_env:
+              for param in data['Parameters']:
+                  name = param['Name'].split('/')[-1].replace('-', '_').upper()
+                  value = param['Value'].replace('\n', ' ').replace('\r', '')
+                  env_file.write(f"{name}={value}\n")
+                  github_env.write(f"{name}={value}\n")
+                  print(f"::add-mask::{value}")
+              print(f"✅ {len(data['Parameters'])} variables loaded")
+          EOF
+          
+          python3 /tmp/process_params.py
+          
+          # Source for current step
           set -a
           source .env.production
           set +a
-          
-          # Export for next steps (values already masked)
-          cat .env.production >> $GITHUB_ENV
-          
-          echo "✅ Environment variables loaded ($(wc -l < .env.production) variables)"
 
       - name: Update Lambda ${{ matrix.service.name }}
         run: |
@@ -826,20 +826,26 @@ jobs:
             # Fetch environment variables from Parameter Store
             echo "📥 Fetching environment variables from AWS Parameter Store..."
             
-            # Create .env.production file with correct variable names
-            > .env.production
+            # Fetch parameters and create .env.production
             aws ssm get-parameters-by-path \
               --path "/ticketeate/production/" \
               --with-decryption \
               --region us-east-2 \
-              --output json | \
-              jq -r '.Parameters[] | {name: (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase), value: .Value} | @base64' | \
-              while read -r encoded; do
-                decoded=$(echo "$encoded" | base64 -d)
-                name=$(echo "$decoded" | jq -r '.name')
-                value=$(echo "$decoded" | jq -r '.value' | sed ':a;N;$!ba;s/\n/ /g')
-                echo "${name}=${value}" >> .env.production
-              done
+              --output json > /tmp/params.json
+            
+            # Use Python for safe processing
+            cat > /tmp/make_env.py << 'EOF'
+            import json
+            with open('/tmp/params.json') as f:
+                data = json.load(f)
+            with open('.env.production', 'w') as env_file:
+                for param in data['Parameters']:
+                    name = param['Name'].split('/')[-1].replace('-', '_').upper()
+                    value = param['Value'].replace('\n', ' ').replace('\r', '')
+                    env_file.write(f"{name}={value}\n")
+            EOF
+            
+            python3 /tmp/make_env.py
             
             # Start new container with environment variables
             docker run -d \
