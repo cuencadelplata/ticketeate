@@ -733,6 +733,12 @@ jobs:
             --region us-east-2
           
           echo "Updating Lambda environment variables..."
+          
+          # Source environment variables from .env.production
+          set -a
+          source .env.production
+          set +a
+          
           # Create JSON file with environment variables using jq (more secure)
           # Build JSON programmatically to avoid exposing secrets in heredoc
           jq -n \
