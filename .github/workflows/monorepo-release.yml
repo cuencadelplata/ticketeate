@@ -616,13 +616,13 @@ jobs:
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
-            --query "Parameters[*].[Name,Value]" \
-            --output text | \
-            sed 's|/ticketeate/production/||' | \
-            while IFS=$'\t' read -r key value; do
-              # Convert parameter name: lowercase-with-dashes to UPPERCASE_WITH_UNDERSCORES
-              env_key=$(echo "$key" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
-              echo "$env_key=$value" >> $GITHUB_ENV
+            --output json | \
+            jq -r '.Parameters[] | 
+              (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) as $key |
+              .Value as $value |
+              "\($key)=\($value)"' | \
+            while IFS='=' read -r key value; do
+              echo "$key=$value" >> $GITHUB_ENV
               echo "::add-mask::$value"
             done
 
@@ -688,17 +688,10 @@ jobs:
             --path "/ticketeate/production/" \
             --with-decryption \
             --region us-east-2 \
-            --query "Parameters[*].[Name,Value]" \
-            --output text | \
-            sed 's|/ticketeate/production/||' | \
-            awk '{
-              name = $1;
-              gsub(/-/, "_", name);
-              name = toupper(name);
-              $1 = "";
-              value = substr($0, 2);
-              print name"="value
-            }' > .env.production
+            --output json | \
+            jq -r '.Parameters[] | 
+              (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
+              (.Value | gsub("\n"; "\\n"))' > .env.production
           
           # Mask sensitive values in logs
           while IFS='=' read -r key value; do
@@ -827,17 +820,10 @@ jobs:
               --path "/ticketeate/production/" \
               --with-decryption \
               --region us-east-2 \
-              --query "Parameters[*].[Name,Value]" \
-              --output text | \
-              sed 's|/ticketeate/production/||' | \
-              awk '{
-                name = $1;
-                gsub(/-/, "_", name);
-                name = toupper(name);
-                $1 = "";
-                value = substr($0, 2);
-                print name"="value
-              }' > .env.production
+              --output json | \
+              jq -r '.Parameters[] | 
+                (.Name | split("/")[-1] | gsub("-"; "_") | ascii_upcase) + "=" + 
+                .Value' > .env.production
             
             # Start new container with environment variables
             docker run -d \
