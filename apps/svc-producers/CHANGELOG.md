@@ -5,6 +5,17 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.6](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.5...svc-producers-v1.1.6) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add type casting to response object ([d33822d](https://github.com/cuencadelplata/ticketeate/commit/d33822de6aeb8bd141cc328d164cde4afbbb2532))
+* Move credentials header logic to Lambda handler wrapper for better control ([4efd3b1](https://github.com/cuencadelplata/ticketeate/commit/4efd3b1e16676c4f6a86b0fb05a6a6cc89e83863))
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Simplify CORS - remove post-middleware, rely on Hono CORS middleware credentials: true ([4ebfb9b](https://github.com/cuencadelplata/ticketeate/commit/4ebfb9bb6db0cbda029b835d03b6a6042bf95b47))
+* Use lowercase headers in lambda handler for API Gateway v2 compatibility ([e1070b9](https://github.com/cuencadelplata/ticketeate/commit/e1070b99324fa3408b979e52dba4e80a49dcc2aa))
+
 ## [1.1.5](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.4...svc-producers-v1.1.5) (2025-11-14)
 
 
