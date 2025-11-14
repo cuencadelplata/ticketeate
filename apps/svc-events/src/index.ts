@@ -32,6 +32,15 @@ app.use(
   }),
 );
 
+// Middleware to ensure credentials header is always set
+app.use('*', (c) => {
+  // Only set if origin is allowed
+  const origin = c.req.header('Origin');
+  if (origin && allowedOrigins.includes(origin)) {
+    c.header('Access-Control-Allow-Credentials', 'true');
+  }
+});
+
 // Mount routes at both /api and /production/api paths
 // Routes
 app.get('/', (c) => {
