@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.4](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.3...svc-checkout-v1.3.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* Use proper bash quote concatenation for Parameters string ([9ffeae9](https://github.com/cuencadelplata/ticketeate/commit/9ffeae93e6c47bbf33609dd002832fff5e665ab7))
+
 ## [1.3.3](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.2...svc-checkout-v1.3.3) (2025-11-14)
 
 
