@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.4](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.3...svc-producers-v1.1.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+
 ## [1.1.3](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.2...svc-producers-v1.1.3) (2025-11-14)
 
 
