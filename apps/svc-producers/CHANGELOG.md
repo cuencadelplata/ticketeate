@@ -5,6 +5,32 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.0.1...svc-producers-v1.1.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* Generate Prisma client in all Docker production stages (Next.js and Lambdas) ([c54377d](https://github.com/cuencadelplata/ticketeate/commit/c54377dcff5abf0bfa9181aa5e4b76f50171106a))
+* Generate Prisma client in production Docker stage ([f6abefb](https://github.com/cuencadelplata/ticketeate/commit/f6abefb7facd93356f6aa75814b6531115daa662))
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* mejorar debugging en workflow de nginx deployment ([1ddbc15](https://github.com/cuencadelplata/ticketeate/commit/1ddbc15c3b8f26940ee5436fdb09b309a43ed13f))
+* mejorar debugging en workflow de nginx deployment ([#126](https://github.com/cuencadelplata/ticketeate/issues/126)) ([9159f87](https://github.com/cuencadelplata/ticketeate/commit/9159f877853fad33f7b35807ef93c02be6f82930))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* SSM ([a5b2b96](https://github.com/cuencadelplata/ticketeate/commit/a5b2b96f50616297c8068b81939da8f5392fc341))
+* SSM ([#128](https://github.com/cuencadelplata/ticketeate/issues/128)) ([926ad90](https://github.com/cuencadelplata/ticketeate/commit/926ad907b15f0a8a8459959f2b4f048f607db40d))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([c094e52](https://github.com/cuencadelplata/ticketeate/commit/c094e52afea19c62bbbc023ce75f5e7256549ba6))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([#127](https://github.com/cuencadelplata/ticketeate/issues/127)) ([a681795](https://github.com/cuencadelplata/ticketeate/commit/a6817950e3e8a6455838a1da17459a85b6cf5ab5))
+
+
+### Features
+
+* deploy nginx con hybrid.conf ([97d2fdb](https://github.com/cuencadelplata/ticketeate/commit/97d2fdbd446936a3e5af357c5ab3903623abab6c))
+* deploy nginx con hybrid.conf ([#125](https://github.com/cuencadelplata/ticketeate/issues/125)) ([09fc126](https://github.com/cuencadelplata/ticketeate/commit/09fc12610c6628f50e2d9e5b1e9e1f0dd2c6884d))
+* Update Lambda environment variables during deployment ([8527bf9](https://github.com/cuencadelplata/ticketeate/commit/8527bf90ee84c07dcc53cac7042414f5b8798ae4))
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.0.0...svc-producers-v1.0.1) (2025-11-13)
 
 
