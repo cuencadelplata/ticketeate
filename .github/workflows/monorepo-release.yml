@@ -731,25 +731,36 @@ jobs:
             --region us-east-2
           
           echo "Updating Lambda environment variables..."
-          # Create JSON file with environment variables (properly escaped)
-          cat > lambda-env.json <<EOF
-          {
-            "Variables": {
-              "CORS_ORIGINS": "${CORS_ORIGINS}",
-              "JWT_ISSUER": "${JWT_ISSUER}",
-              "JWT_AUDIENCE": "${JWT_AUDIENCE}",
-              "BETTER_AUTH_SECRET": "${BETTER_AUTH_SECRET}",
-              "FRONTEND_URL": "${FRONTEND_URL}",
-              "DATABASE_URL": "${DATABASE_URL}",
-              "DIRECT_URL": "${DIRECT_URL}",
-              "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
-              "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
-              "REDIS_HOST": "${REDIS_HOST:-10.0.1.226}",
-              "REDIS_PORT": "${REDIS_PORT:-6379}",
-              "ENVIRONMENT": "production"
-            }
-          }
-          EOF
+          # Create JSON file with environment variables using jq (more secure)
+          # Build JSON programmatically to avoid exposing secrets in heredoc
+          jq -n \
+            --arg cors_origins "${CORS_ORIGINS}" \
+            --arg jwt_issuer "${JWT_ISSUER}" \
+            --arg jwt_audience "${JWT_AUDIENCE}" \
+            --arg better_auth_secret "${BETTER_AUTH_SECRET}" \
+            --arg frontend_url "${FRONTEND_URL}" \
+            --arg database_url "${DATABASE_URL}" \
+            --arg direct_url "${DIRECT_URL}" \
+            --arg supabase_service_role_key "${SUPABASE_SERVICE_ROLE_KEY}" \
+            --arg supabase_anon_key "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
+            --arg redis_host "${REDIS_HOST:-10.0.1.226}" \
+            --arg redis_port "${REDIS_PORT:-6379}" \
+            '{
+              Variables: {
+                CORS_ORIGINS: $cors_origins,
+                JWT_ISSUER: $jwt_issuer,
+                JWT_AUDIENCE: $jwt_audience,
+                BETTER_AUTH_SECRET: $better_auth_secret,
+                FRONTEND_URL: $frontend_url,
+                DATABASE_URL: $database_url,
+                DIRECT_URL: $direct_url,
+                SUPABASE_SERVICE_ROLE_KEY: $supabase_service_role_key,
+                NEXT_PUBLIC_SUPABASE_ANON_KEY: $supabase_anon_key,
+                REDIS_HOST: $redis_host,
+                REDIS_PORT: $redis_port,
+                ENVIRONMENT: "production"
+              }
+            }' > lambda-env.json
           
           # Update configuration (suppress output to avoid exposing secrets)
           aws lambda update-function-configuration \
@@ -758,6 +769,9 @@ jobs:
             --region us-east-2 \
             --query 'FunctionArn' \
             --output text > /dev/null
+          
+          # Clean up JSON file
+          rm -f lambda-env.json
           
           echo "Environment variables updated"
           
