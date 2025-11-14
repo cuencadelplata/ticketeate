@@ -5,6 +5,16 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.7](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.6...svc-checkout-v1.3.7) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add explicit middleware to ensure Access-Control-Allow-Credentials header is always set ([b2272ff](https://github.com/cuencadelplata/ticketeate/commit/b2272ff59aa7bdf265d291908124cf2630013f87))
+* Mount routes at both /api and /production/api to handle API Gateway stage prefix ([8420575](https://github.com/cuencadelplata/ticketeate/commit/8420575eac42188b80f95c1b143d252d47bee3d4))
+* Move CORS middleware before stage prefix stripping ([df20879](https://github.com/cuencadelplata/ticketeate/commit/df208793cc8ab0c9c09ba965f276bf1b4d90305b))
+* Simplify CORS with hardcoded origins to eliminate undefined values ([86b521e](https://github.com/cuencadelplata/ticketeate/commit/86b521eb9c553e12f65b94789f4a03161f0fe100))
+
 ## [1.3.6](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.5...svc-checkout-v1.3.6) (2025-11-14)
 
 
