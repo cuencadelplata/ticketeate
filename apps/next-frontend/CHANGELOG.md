@@ -5,6 +5,14 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.0...next-frontend-v1.4.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* Preserve hyphens in parameter values during env var transformation ([3010c32](https://github.com/cuencadelplata/ticketeate/commit/3010c32dbc9719d4eab540e801eff77c6e00314a))
+* Suppress Lambda update output to prevent key exposure ([5e773ed](https://github.com/cuencadelplata/ticketeate/commit/5e773ed3573d4978a21d02495e2df79c45fc97fc))
+
 # [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.3.0...next-frontend-v1.4.0) (2025-11-14)
 
 
