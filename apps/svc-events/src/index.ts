@@ -2,11 +2,32 @@ import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
+import { FRONTEND_API_KEY, PUBLIC_ENDPOINTS } from './config/auth';
 
 const app = new Hono();
 
 // Middleware
 app.use('*', honoLogger());
+
+// API Key validation middleware for protected endpoints
+app.use('*', async (c, next) => {
+  const path = c.req.path;
+  
+  // Skip validation for public endpoints
+  if (PUBLIC_ENDPOINTS.some(endpoint => path === endpoint || path.startsWith(endpoint + '/'))) {
+    return next();
+  }
+
+  // For production endpoints, require API key
+  if (path.startsWith('/production') && !path.startsWith('/production/health')) {
+    const apiKey = c.req.header('X-API-Key');
+    if (!apiKey || apiKey !== FRONTEND_API_KEY) {
+      return c.json({ error: 'Unauthorized: Invalid or missing API key' }, 401);
+    }
+  }
+
+  return next();
+});
 
 // Handle OPTIONS requests (preflight) for all routes
 // This is needed for tests and any direct calls to Hono
