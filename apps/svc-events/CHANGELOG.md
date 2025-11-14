@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.1](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.3.0...svc-events-v1.3.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* Preserve hyphens in parameter values during env var transformation ([3010c32](https://github.com/cuencadelplata/ticketeate/commit/3010c32dbc9719d4eab540e801eff77c6e00314a))
+* Use jq instead of awk to handle multiline Parameter Store values ([2c9c934](https://github.com/cuencadelplata/ticketeate/commit/2c9c934855d6d84ecd2faecc67ea74efda85e6df))
+
 # [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.2.0...svc-events-v1.3.0) (2025-11-14)
 
 
