@@ -5,6 +5,25 @@ Todas las versiones notables de **redis-service** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.1.1...redis-service-v1.2.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* Generate Prisma client in all Docker production stages (Next.js and Lambdas) ([c54377d](https://github.com/cuencadelplata/ticketeate/commit/c54377dcff5abf0bfa9181aa5e4b76f50171106a))
+* Generate Prisma client in production Docker stage ([f6abefb](https://github.com/cuencadelplata/ticketeate/commit/f6abefb7facd93356f6aa75814b6531115daa662))
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* Use JSON file for Lambda env vars & mask sensitive values in logs ([5b9d353](https://github.com/cuencadelplata/ticketeate/commit/5b9d353dd697ece52ec77edbc1be61319f42c42a))
+
+
+### Features
+
+* Update Lambda environment variables during deployment ([8527bf9](https://github.com/cuencadelplata/ticketeate/commit/8527bf90ee84c07dcc53cac7042414f5b8798ae4))
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
 ## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.1.0...redis-service-v1.1.1) (2025-11-13)
 
 
