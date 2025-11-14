@@ -2,14 +2,14 @@ import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
-import { FRONTEND_API_KEY, PUBLIC_ENDPOINTS } from './config/auth';
+import { PUBLIC_ENDPOINTS } from './config/auth';
 
 const app = new Hono();
 
 // Middleware
 app.use('*', honoLogger());
 
-// API Key validation middleware for protected endpoints
+// Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
   
@@ -18,11 +18,16 @@ app.use('*', async (c, next) => {
     return next();
   }
 
-  // For production endpoints, require API key
+  // For protected endpoints, require authentication
+  // In production, the frontend should have a valid session cookie from better-auth
+  // If no Authorization header and no valid session cookie, the request is unauthorized
   if (path.startsWith('/production') && !path.startsWith('/production/health')) {
-    const apiKey = c.req.header('X-API-Key');
-    if (!apiKey || apiKey !== FRONTEND_API_KEY) {
-      return c.json({ error: 'Unauthorized: Invalid or missing API key' }, 401);
+    const authHeader = c.req.header('Authorization');
+    const hasCookie = c.req.header('cookie')?.includes('better_auth');
+    
+    // Require either Authorization header or valid session cookie
+    if (!authHeader && !hasCookie) {
+      return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
     }
   }
 

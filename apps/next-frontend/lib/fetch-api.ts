@@ -1,30 +1,23 @@
-// Helper function to add API Key to fetch requests
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || 'ticketeate-frontend-prod-secret-key-2025';
+// Helper function to ensure authentication token is included in fetch requests
+// This is used for protected API endpoints that require authentication
 
 interface FetchOptions extends RequestInit {
-  skipApiKey?: boolean;
+  skipAuth?: boolean;
 }
 
 export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
-  const { skipApiKey = false, ...init } = options;
+  const { skipAuth = false, ...init } = options;
 
   const headers = new Headers(init.headers);
 
-  // Add API Key for production API endpoints (both /api and /production/api paths)
-  // Skip for localhost and public health endpoints
-  const isProductionEndpoint = (url: string) => {
-    const isHealthCheck = url.includes('/health');
-    const isLocalhost = url.includes('localhost');
-    const isApiEndpoint = url.includes('/api/');
-    return isApiEndpoint && !isHealthCheck && !isLocalhost;
-  };
-
-  if (!skipApiKey && isProductionEndpoint(url)) {
-    headers.set('X-API-Key', API_KEY);
-  }
+  // For authenticated endpoints, we rely on the Authorization header
+  // that should already be set by better-auth via cookies or explicit header
+  // No need to manually add anything - just let the request flow through
+  // The backend will validate the session token if needed
 
   return fetch(url, {
     ...init,
     headers,
+    credentials: 'include', // Important: include cookies for session
   });
 }
