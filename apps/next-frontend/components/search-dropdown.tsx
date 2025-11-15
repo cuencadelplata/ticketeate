@@ -8,6 +8,8 @@ import { useSearch } from '@/contexts/search-context';
 import { useAllEvents } from '@/hooks/use-events';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 interface SearchEvent {
   title: string;
   image: string;
@@ -82,13 +84,14 @@ export function SearchDropdown() {
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (e: Event) => {
-      const mouseEvent = e as MouseEvent;
+    const handleClickOutside = (e: unknown) => {
+      const target = (e as Record<string, unknown>).target as Node | null;
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(mouseEvent.target as Node) &&
+        target &&
+        !dropdownRef.current.contains(target) &&
         inputRef.current &&
-        !inputRef.current.contains(mouseEvent.target as Node)
+        !inputRef.current.contains(target)
       ) {
         setIsOpen(false);
       }
