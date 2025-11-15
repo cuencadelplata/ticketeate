@@ -1,12 +1,31 @@
-export const publicRoutes: string[] = ['/', '/about', '/crear', '/productoras', '/descubrir/*'];
+// Rutas públicas - accesibles sin autenticación
+export const publicRoutes: string[] = [
+  '/',
+  '/about',
+  '/crear',
+  '/productoras',
+  '/descubrir/*',
+  '/evento/*', // Ver detalles de eventos públicos
+];
 
-export const authRoutes: string[] = ['/sign-in', '/sign-up', '/forgot-password'];
+// Rutas de autenticación - solo accesibles sin sesión
+export const authRoutes: string[] = [
+  '/sign-in',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-otp',
+];
 
+// Rutas protegidas - requieren autenticación
 export const protectedRoutes: string[] = [
-  '/evento/manage/*',
-  '/eventos',
+  '/eventos', // Mis eventos (como organizador) - PRIVADO
+  '/eventos/*',
+  '/evento/manage/*', // Gestión de eventos
   '/configuracion',
   '/configuracion/*',
+  '/profile', // Perfil de usuario
+  '/deploys',
 ];
 
 export const apiAuthPrefix: string = '/api/auth';

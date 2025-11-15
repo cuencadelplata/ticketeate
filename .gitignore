@@ -11,6 +11,15 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+correct.env
+
+# Temporary files
+check-logs.json
+fix-env.json
+redeploy-container.json
+*.ps1
+*.sh
 
 # Testing
 coverage
@@ -39,6 +48,22 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 
+# Redis data (persistencia local)
+dump.rdb
+appendonly.aof
+*.rdb
+*.aof
 
 #Ignore cursor AI rules
 .cursor\rules\codacy.mdc
+
+# Terraform
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup
+infrastructure/terraform.tfvars
+infrastructure/*.tfplan
+infrastructure/.terraform.tfstate.lock.info

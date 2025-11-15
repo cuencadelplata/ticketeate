@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { useMockQueue } from '@/hooks/use-mock-queue';
+import { useQueueRedis } from '@/hooks/use-queue-redis';
 
 interface QueueModalProps {
   isOpen: boolean;
@@ -21,52 +21,26 @@ export function QueueModal({
   eventTitle,
   onEnterPurchase,
 }: QueueModalProps) {
-  const {
-    queueStatus,
-    isLoading,
-    error,
-    canEnter,
-    joinQueue,
-    getQueuePosition,
-    leaveQueue,
-    formatWaitTime,
-  } = useMockQueue(eventId, userId);
+  const { queueStatus, isLoading, isJoining, error, canEnter, joinQueue, leaveQueue, isInQueue } =
+    useQueueRedis(eventId, {
+      pollingInterval: 5000,
+      onCanEnter: () => {
+        // Callback cuando puede entrar
+      },
+    });
 
-  const [hasJoined, setHasJoined] = useState(false);
-  const [positionUpdateInterval, setPositionUpdateInterval] = useState<number | null>(null);
+  const formatWaitTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} min`;
+  };
+
   const [isAnimating, setIsAnimating] = useState(false);
   const [animatedPosition, setAnimatedPosition] = useState<number | null>(null);
-
-  // Efecto para actualizar posición periódicamente
-  useEffect(() => {
-    if (hasJoined && queueStatus && !canEnter) {
-      const interval = setInterval(() => {
-        getQueuePosition(eventId, userId);
-      }, 5000); // Actualizar cada 5 segundos
-
-      setPositionUpdateInterval(interval);
-
-      return () => {
-        clearInterval(interval);
-      };
-    } else if (positionUpdateInterval) {
-      clearInterval(positionUpdateInterval);
-      setPositionUpdateInterval(null);
-    }
-  }, [hasJoined, queueStatus, canEnter, getQueuePosition, eventId, userId]);
-
-  // Limpiar intervalos al cerrar
-  useEffect(() => {
-    if (!isOpen && positionUpdateInterval) {
-      clearInterval(positionUpdateInterval);
-      setPositionUpdateInterval(null);
-    }
-  }, [isOpen]);
 
   // Limpiar estados cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
-      setHasJoined(false);
       setIsAnimating(false);
       setAnimatedPosition(null);
     }
@@ -74,38 +48,7 @@ export function QueueModal({
 
   const handleJoinQueue = async () => {
     try {
-      const result = await joinQueue();
-      setHasJoined(true);
-
-      // Si no puede entrar inmediatamente, iniciar animación de progreso
-      if (!result.canEnter && result.position) {
-        setIsAnimating(true);
-        setAnimatedPosition(result.position);
-
-        // Simular progreso en la cola con animación
-        const animateProgress = () => {
-          let currentPos = result.position;
-          const animationInterval = setInterval(() => {
-            if (currentPos > 1) {
-              currentPos--;
-              setAnimatedPosition(currentPos);
-            } else {
-              // Llegó a la posición 1, permitir entrada
-              clearInterval(animationInterval);
-              setIsAnimating(false);
-              setAnimatedPosition(1);
-
-              // Mostrar mensaje de éxito antes de redirigir
-              setTimeout(() => {
-                // Redirigir automáticamente a la página de compra
-                handleEnterPurchase();
-              }, 2000); // Dar tiempo para que el usuario vea que llegó a posición 1
-            }
-          }, 3000); // Cambiar posición cada 3 segundos para dar más tiempo
-        };
-
-        animateProgress();
-      }
+      await joinQueue();
     } catch (err) {
       console.error('Error joining queue:', err);
     }
@@ -114,7 +57,6 @@ export function QueueModal({
   const handleLeaveQueue = async () => {
     try {
       await leaveQueue();
-      setHasJoined(false);
       onClose();
     } catch (err) {
       console.error('Error leaving queue:', err);
@@ -154,7 +96,7 @@ export function QueueModal({
           </div>
         )}
 
-        {!hasJoined ? (
+        {!isInQueue ? (
           <div className="space-y-4">
             <div className="rounded-md bg-blue-50 p-4">
               <div className="flex">
@@ -173,10 +115,10 @@ export function QueueModal({
 
             <button
               onClick={handleJoinQueue}
-              disabled={isLoading}
+              disabled={isJoining}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Uniéndose a la cola...' : 'Unirse a la Cola'}
+              {isJoining ? 'Uniéndose a la cola...' : 'Unirse a la Cola'}
             </button>
           </div>
         ) : canEnter ? (

@@ -8,7 +8,7 @@
   "sideEffects": false,
   "license": "MIT",
   "scripts": {
-    "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts src/seed-categories.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck",
+    "build": "tsup && pnpm exec tsc src/index.ts src/auth.ts src/categories-sync.ts --emitDeclarationOnly --outDir dist --declaration --declarationMap --moduleResolution node --target ES2020 --skipLibCheck",
     "dev": "tsup --watch",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "db:generate": "prisma generate",
@@ -17,24 +17,26 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
     "db:seed-categories": "tsx src/seed-categories.ts",
+    "db:seed-events": "tsx src/seed-events.ts",
+    "db:seed-all": "tsx src/seed-categories.ts && tsx src/seed-events.ts",
     "categories:sync": "tsx src/categories-sync.ts",
     "check-types": "tsc --noEmit",
     "test": "echo 'No tests configured yet'"
   },
   "dependencies": {
-    "@prisma/client": "^6.15.0",
-    "better-auth": "^1.0.0",
-    "dotenv": "^16.4.5"
+    "@prisma/client": "^6.19.0",
+    "better-auth": "^1.3.34",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
     "@repo/eslint-config": "workspace:*",
-    "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0",
-    "prisma": "^6.15.0",
-    "tsup": "^8.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^20.19.25",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "prisma": "^6.19.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   },
   "prisma": {
     "schema": "./prisma/schema.prisma"
@@ -47,4 +49,3 @@
     }
   }
 }
-

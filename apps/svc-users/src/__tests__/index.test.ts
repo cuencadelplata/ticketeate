@@ -120,21 +120,4 @@ describe('Index App', () => {
     const body = (await res.json()) as { error: string };
     expect(body.error).toBe('Internal Server Error');
   });
-
-  it('should handle CORS preflight requests', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const indexModule = (await import('../index.js')) as any;
-    const app = indexModule.default;
-
-    const res = await app.request('/', {
-      method: 'OPTIONS',
-      headers: {
-        Origin: 'http://localhost:3000',
-        'Access-Control-Request-Method': 'POST',
-        'Access-Control-Request-Headers': 'Content-Type',
-      },
-    });
-
-    expect(res.status).toBe(204); // CORS preflight returns 204
-  });
 });

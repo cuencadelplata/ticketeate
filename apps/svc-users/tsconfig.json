@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
     "target": "ES2022",
     "module": "Node16",
     "moduleResolution": "node16",

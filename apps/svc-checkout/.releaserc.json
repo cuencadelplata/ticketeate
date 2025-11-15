@@ -47,7 +47,7 @@
     [
       "@semantic-release/git",
       {
-        "assets": ["CHANGELOG.md", "package.json"],
+        "assets": ["CHANGELOG.md", "package.json", "../../pnpm-lock.yaml"],
         "message": "chore(release): svc-checkout v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],

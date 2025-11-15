@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
 import { categories as staticCategories } from '@/data/categories';
+import { fetchWithApiKey } from '@/lib/fetch-api';
 
 export interface Category {
   id: number;
@@ -32,7 +33,7 @@ export function useCategoriesSync() {
   return useQuery({
     queryKey: ['categories-sync'],
     queryFn: async (): Promise<Category[]> => {
-      const res = await fetch(`${API_ENDPOINTS.events}/categories`, {
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/categories`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Error al obtener categorías');
