@@ -104,7 +104,7 @@ export default function UserNav() {
         </DropdownTrigger>
         <DropdownMenu
           aria-label="User menu"
-          className="p-2"
+          className="p-2 bg-stone-950 rounded-lg"
           disabledKeys={['profile']}
           itemClasses={{
             base: [

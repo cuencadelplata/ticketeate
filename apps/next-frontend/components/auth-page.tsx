@@ -66,6 +66,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     }
   }, [session, sp, router, showOtpVerification]);
 
+  // Validar email con regex más robusto
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length >= 5;
+  };
+
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -93,7 +99,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   // Detectar automáticamente si es login o registro cuando cambia el email
   const handleEmailChange = async (newEmail: string) => {
     updateFormData('email', newEmail);
-    if (newEmail.includes('@') && newEmail.includes('.')) {
+    // Solo hacer check si el email es válido y completo
+    if (isValidEmail(newEmail)) {
       const exists = await checkUserExists(newEmail);
       setTab(exists ? 'login' : 'register');
     }
