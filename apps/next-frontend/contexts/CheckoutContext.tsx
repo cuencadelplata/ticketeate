@@ -48,6 +48,16 @@ export interface CheckoutState {
   currency: Currency;
   cardData: CardData;
 
+  // Coupon
+  codigoCupon: string;
+  cuponAplicado: {
+    cuponid: string;
+    codigo: string;
+    porcentaje_descuento: number;
+  } | null;
+  cuponError: string | null;
+  validandoCupon: boolean;
+
   // UI State
   loading: boolean;
   error: string | null;
@@ -83,11 +93,18 @@ export interface CheckoutContextValue extends CheckoutState {
   setCardCvv: (value: string) => void;
   setCardDni: (value: string) => void;
 
+  // Coupon actions
+  setCodigoCupon: (codigo: string) => void;
+  validarCupon: () => Promise<void>;
+  eliminarCupon: () => void;
+
   // Computed
   sectores: Record<SectorKey, UISector>;
   getDisponibilidad: (sectorKey: SectorKey) => number;
   precioUnitario: number;
   feeUnitario: number;
+  subtotal: number;
+  montoDescuento: number;
   total: number;
   isCardPayment: boolean;
   formatPrice: (amount: number) => string;
@@ -202,6 +219,16 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   const [resultado, setResultado] = useState<any>(null);
   const [showStripeMessage, setShowStripeMessage] = useState(false);
 
+  // Coupon state
+  const [codigoCupon, setCodigoCupon] = useState<string>('');
+  const [cuponAplicado, setCuponAplicado] = useState<{
+    cuponid: string;
+    codigo: string;
+    porcentaje_descuento: number;
+  } | null>(null);
+  const [cuponError, setCuponError] = useState<string | null>(null);
+  const [validandoCupon, setValidandoCupon] = useState(false);
+
   // Load event
   useEffect(() => {
     if (eventId && eventData) {
@@ -303,7 +330,17 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   const base = s ? s.precioDesde : 0;
   const feeUnitario = Math.round(base * 0.1);
   const precioUnitario = base + feeUnitario;
-  const total = precioUnitario * cantidad;
+  
+  // Calcular subtotal (antes de descuento)
+  const subtotal = precioUnitario * cantidad;
+  
+  // Calcular descuento si hay cupón aplicado
+  const montoDescuento = cuponAplicado 
+    ? Math.round(subtotal * (cuponAplicado.porcentaje_descuento / 100))
+    : 0;
+  
+  // Total final con descuento
+  const total = subtotal - montoDescuento;
 
   const isCardPayment = metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito';
 
@@ -346,6 +383,62 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
 
   const setCardDni = (value: string) => {
     setCardData((prev) => ({ ...prev, dni: value.replace(/[^0-9]/g, '').slice(0, 10) }));
+  };
+
+  // Coupon functions
+  const validarCupon = async () => {
+    if (!codigoCupon.trim()) {
+      setCuponError('Ingresa un código de cupón');
+      return;
+    }
+
+    if (!eventId) {
+      setCuponError('No se pudo identificar el evento');
+      return;
+    }
+
+    setValidandoCupon(true);
+    setCuponError(null);
+
+    try {
+      const res = await fetch('/api/cupones/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          codigo: codigoCupon.trim(),
+          eventId: eventId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Error al validar cupón');
+      }
+
+      if (data.valid && data.cupon) {
+        setCuponAplicado({
+          cuponid: data.cupon.cuponid,
+          codigo: data.cupon.codigo,
+          porcentaje_descuento: data.cupon.porcentaje_descuento,
+        });
+        setCuponError(null);
+      } else {
+        setCuponError('Cupón no válido');
+      }
+    } catch (error: any) {
+      setCuponError(error.message || 'Error al validar cupón');
+      setCuponAplicado(null);
+    } finally {
+      setValidandoCupon(false);
+    }
+  };
+
+  const eliminarCupon = () => {
+    setCodigoCupon('');
+    setCuponAplicado(null);
+    setCuponError(null);
   };
 
   // Stripe continue handler
@@ -431,6 +524,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
       cantidad,
       metodo_pago: metodo,
       moneda: currency,
+      cupon_id: cuponAplicado?.cuponid, // Incluir cupón si está aplicado
       datos_tarjeta: isCardPayment
         ? {
             numero: sanitizeNumber(cardData.number),
@@ -545,6 +639,7 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     setSector('Entrada_General');
     setMetodo('tarjeta_debito');
     setCardData({ number: '', expiry: '', cvv: '', dni: '' });
+    eliminarCupon(); // Limpiar cupón aplicado
     clearReservation();
     router.push('/comprar');
   };
@@ -634,6 +729,12 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     resultado,
     showStripeMessage,
 
+    // Coupon state
+    codigoCupon,
+    cuponAplicado,
+    cuponError,
+    validandoCupon,
+
     // Event
     eventLoading,
 
@@ -658,11 +759,18 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     setCardCvv,
     setCardDni,
 
+    // Coupon actions
+    setCodigoCupon,
+    validarCupon,
+    eliminarCupon,
+
     // Computed
     sectores,
     getDisponibilidad,
     precioUnitario,
     feeUnitario,
+    subtotal,
+    montoDescuento,
     total,
     isCardPayment,
     formatPrice,

@@ -30,6 +30,12 @@ function ComprarEventPageContent() {
     resultado,
     showStripeMessage,
 
+    // Coupon state
+    codigoCupon,
+    cuponAplicado,
+    cuponError,
+    validandoCupon,
+
     // Actions
     setSector,
     setCantidad,
@@ -40,11 +46,18 @@ function ComprarEventPageContent() {
     setCardCvv,
     setCardDni,
 
+    // Coupon actions
+    setCodigoCupon,
+    validarCupon,
+    eliminarCupon,
+
     // Computed
     sectores,
     getDisponibilidad,
     precioUnitario,
     feeUnitario,
+    subtotal,
+    montoDescuento,
     total,
     isCardPayment,
     formatPrice,
@@ -138,6 +151,8 @@ function ComprarEventPageContent() {
               isValidCardInputs={isValidCardInputs}
               precioUnitario={precioUnitario}
               feeUnitario={feeUnitario}
+              subtotal={subtotal}
+              montoDescuento={montoDescuento}
               total={total}
               formatPrice={formatPrice}
               currency={currency}
@@ -150,6 +165,14 @@ function ComprarEventPageContent() {
               resetForm={resetForm}
               isReservationActive={!!(isReserved && isReservationActive(eventId))}
               timeLeft={timeLeft}
+              // Coupon props
+              codigoCupon={codigoCupon}
+              setCodigoCupon={setCodigoCupon}
+              validarCupon={validarCupon}
+              eliminarCupon={eliminarCupon}
+              cuponAplicado={cuponAplicado}
+              cuponError={cuponError}
+              validandoCupon={validandoCupon}
             />
 
             {/* Success Card */}

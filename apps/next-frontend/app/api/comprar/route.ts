@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     console.log('=== INICIANDO API COMPRAR ===');
     const body = await request.json();
     console.log('Body recibido:', body);
-    const { id_usuario, id_evento, cantidad, metodo_pago, moneda, datos_tarjeta } = body ?? {};
+    const { id_usuario, id_evento, cantidad, metodo_pago, moneda, datos_tarjeta, cupon_id } = body ?? {};
 
     if (!id_usuario || !id_evento || !cantidad || !metodo_pago) {
       return NextResponse.json(
@@ -142,7 +142,43 @@ export async function POST(request: NextRequest) {
 
     // Calcular precio total
     const precio_unitario = Number(categoriaEntrada.precio);
-    const monto_total = precio_unitario * cantidad;
+    let monto_total = precio_unitario * cantidad;
+    let descuento_aplicado = 0;
+    let porcentaje_descuento = 0;
+
+    // Si hay cupón, validar y aplicar descuento
+    if (cupon_id) {
+      const cupon = await prisma.cupones_evento.findUnique({
+        where: { cuponid: cupon_id },
+      });
+
+      if (cupon && cupon.estado === 'ACTIVO' && cupon.is_active) {
+        // Verificar que no esté expirado
+        const now = new Date();
+        if (new Date(cupon.fecha_expiracion) >= now) {
+          // Verificar límite de usos
+          if (cupon.usos_actuales < cupon.limite_usos) {
+            // Verificar que el usuario no haya usado este cupón antes
+            const cuponYaUsado = await prisma.cupones_redimidos.findFirst({
+              where: {
+                cuponid: cupon_id,
+                eventoid: id_evento,
+                usuarioid: String(id_usuario),
+              },
+            });
+
+            if (!cuponYaUsado) {
+              // Aplicar descuento
+              porcentaje_descuento = Number(cupon.porcentaje_descuento);
+              descuento_aplicado = Math.round(monto_total * (porcentaje_descuento / 100));
+              monto_total = monto_total - descuento_aplicado;
+
+              console.log(`Cupón ${cupon.codigo} aplicado: -${porcentaje_descuento}% = -$${descuento_aplicado}`);
+            }
+          }
+        }
+      }
+    }
 
     // Crear la reserva y entradas en una transacción
     console.log('Iniciando transacción de base de datos...');
@@ -216,6 +252,32 @@ export async function POST(request: NextRequest) {
           estado: 'COMPLETADO',
         },
       });
+
+      // Si se aplicó un cupón, registrarlo
+      if (cupon_id && descuento_aplicado > 0) {
+        // Registrar el cupón redimido
+        await tx.cupones_redimidos.create({
+          data: {
+            cuponid: cupon_id,
+            eventoid: id_evento,
+            usuarioid: String(id_usuario),
+            fecha_redimido: new Date(),
+            monto_descuento: new Prisma.Decimal(descuento_aplicado.toFixed(2)),
+          },
+        });
+
+        // Incrementar el contador de usos del cupón
+        await tx.cupones_evento.update({
+          where: { cuponid: cupon_id },
+          data: {
+            usos_actuales: {
+              increment: 1,
+            },
+          },
+        });
+
+        console.log(`Cupón ${cupon_id} registrado como usado por usuario ${id_usuario}`);
+      }
 
       // Registrar movimiento de stock por venta
       await tx.movimientos_entradas.create({
