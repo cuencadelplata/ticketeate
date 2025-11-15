@@ -20,38 +20,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Código y eventId son requeridos' }, { status: 400 });
     }
 
-    // Obtener la última versión del cupón desde el historial (append-only)
-    const latestCupon = await prisma.$queryRaw<any[]>`
-      SELECT DISTINCT ON (cuponid)
-        cuponid,
-        eventoid,
-        codigo,
-        porcentaje_descuento,
-        fecha_creacion,
-        fecha_expiracion,
-        limite_usos,
-        usos_actuales,
-        estado,
-        version,
-        changed_at,
-        changed_by,
-        change_type
-      FROM cupones_evento_history
-      WHERE eventoid::text = ${eventId}
-        AND UPPER(codigo) = UPPER(${codigo})
-      ORDER BY cuponid, version DESC, changed_at DESC
-      LIMIT 1
-    `;
+    // Buscar cupón en la tabla principal (cupones_evento)
+    const cupon = await prisma.cupones_evento.findFirst({
+      where: {
+        eventoid: eventId,
+        codigo: {
+          equals: codigo,
+          mode: 'insensitive', // Case-insensitive
+        },
+        is_active: true,
+      },
+    });
 
-    if (!latestCupon || latestCupon.length === 0) {
+    if (!cupon) {
       return NextResponse.json({ error: 'Cupón no encontrado' }, { status: 404 });
-    }
-
-    const cupon = latestCupon[0];
-
-    // Validar que el cupón no fue eliminado
-    if (cupon.change_type === 'DELETE') {
-      return NextResponse.json({ error: 'Este cupón ya no está disponible' }, { status: 400 });
     }
 
     // Validar estado
@@ -91,7 +73,7 @@ export async function POST(request: NextRequest) {
         cupon: {
           cuponid: cupon.cuponid,
           codigo: cupon.codigo,
-          porcentaje_descuento: parseFloat(cupon.porcentaje_descuento),
+          porcentaje_descuento: parseFloat(cupon.porcentaje_descuento.toString()),
           fecha_expiracion: cupon.fecha_expiracion,
           usos_disponibles: cupon.limite_usos - cupon.usos_actuales,
         },

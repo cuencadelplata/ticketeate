@@ -211,7 +211,7 @@ export default function ComprarEventPage() {
         </div>
       }
     >
-      <QueueGuard eventId={eventId}>
+      <QueueGuard eventId={eventId} bypassQueue={true}>
         <CheckoutProvider eventId={eventId}>
           <ComprarEventPageContent />
         </CheckoutProvider>

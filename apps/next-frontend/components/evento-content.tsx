@@ -150,6 +150,14 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
       const joinData = await joinResponse.json();
       console.log('[EventoContent] Join queue response:', joinData);
 
+      // DESARROLLO: Bypass de cola - Siempre permite entrar directamente
+      console.log('[EventoContent] 🚀 DEV MODE: Bypassing queue, redirecting to checkout...');
+      // NO iniciar reserva aquí - se iniciará en la página de compra cuando el usuario haga clic en "Reservar"
+      router.push(`/evento/comprar/${id}`);
+      return;
+
+      // PRODUCCIÓN: Descomentar esto cuando vayas a producción
+      /*
       // Si puede entrar directamente, redirigir al checkout
       if (joinData.canEnter) {
         console.log('[EventoContent] ✓ User can enter, redirecting to checkout...');
@@ -165,6 +173,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
 
       // Si hay personas comprando o en cola, mostrar el modal
       setShowQueueModal(true);
+      */
     } catch (error) {
       console.error('Error checking queue status:', error);
       // En caso de error, mostrar el modal por seguridad

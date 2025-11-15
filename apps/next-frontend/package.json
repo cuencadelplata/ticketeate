@@ -112,8 +112,6 @@
     "use-places-autocomplete": "^4.0.1",
     "vaul": "^0.9.9",
     "zod": "^3.25.76"
-    "vaul": "^0.9.6",
-    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
