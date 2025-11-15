@@ -96,7 +96,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       showError('La contraseña es requerida');
       return false;
     }
-  if (formData.password.length < 6) {
+    if (formData.password.length < 6) {
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
@@ -277,10 +277,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
   const inviteRequired = role === 'ORGANIZADOR';
   const isFormValid =
-  formData.email.trim() &&
-  formData.password.trim() &&
-  formData.password.length >= 6;
-
+    formData.email.trim() && formData.password.trim() && formData.password.length >= 6;
 
   const disableSubmit = loading || !isFormValid;
 
@@ -412,7 +409,9 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                       placeholder="Ingresa tu código de organizador"
                       className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
                     />
-                    <p className="text-xs text-stone-500">Requerido para crear y gestionar eventos.</p>
+                    <p className="text-xs text-stone-500">
+                      Requerido para crear y gestionar eventos.
+                    </p>
                   </div>
                 )}
 

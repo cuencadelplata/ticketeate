@@ -88,9 +88,10 @@ function ResetPasswordForm() {
       setLoading(false);
     }
   };
-  
+
   if (success) {
-    return (   <div className="flex min-h-screen items-center justify-center bg-black p-4">
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black p-4">
         <div className="w-full max-w-md space-y-6 rounded-2xl bg-stone-900 p-8 shadow-xl">
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
@@ -166,7 +167,9 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          {error && <div className="rounded-lg bg-red-700/30 p-3 text-sm text-red-500">{error}</div>}
+          {error && (
+            <div className="rounded-lg bg-red-700/30 p-3 text-sm text-red-500">{error}</div>
+          )}
 
           <button
             type="submit"

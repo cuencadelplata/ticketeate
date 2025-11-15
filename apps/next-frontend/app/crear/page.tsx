@@ -3,12 +3,14 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSession } from '@/lib/auth-client';
 import AuthModal from '@/components/auth-modal';
 import CreateEventForm from '@/components/create-event-form';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function CrearPage() {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
@@ -65,15 +67,23 @@ export default function CrearPage() {
       <Suspense fallback={null}>
         <AuthModal
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            if (!session) {
+              router.push('/');
+            }
+          }}
           defaultTab="register"
           defaultRole="ORGANIZADOR"
         />
       </Suspense>
       {/* Gate para usuarios logueados sin rol de ORGANIZADOR */}
       {session && !isOrganizador && (
-        <Dialog open={orgOpen} onOpenChange={() => setOrgOpen(true)}>
+        <Dialog open={orgOpen} onOpenChange={setOrgOpen}>
           <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="sr-only">Se requiere rol de Organizador</DialogTitle>
+            </DialogHeader>
             <div className="px-6 pb-6 pt-4 bg-stone-900 text-stone-100">
               <div className="mb-3">
                 <h2 className="text-lg font-semibold">Se requiere rol de Organizador</h2>
@@ -98,6 +108,16 @@ export default function CrearPage() {
                 >
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   Verificar y continuar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrgOpen(false);
+                    router.push('/');
+                  }}
+                  className="w-full rounded-lg border border-stone-700 bg-stone-800 py-2 text-sm font-medium text-stone-100 hover:bg-stone-700"
+                >
+                  Cancelar
                 </button>
               </form>
             </div>

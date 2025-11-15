@@ -11,20 +11,16 @@ if (!process.env.BETTER_AUTH_SECRET) {
 // Resend es opcional - solo se inicializa si la API key está configurada
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-
 const formatFromEmail = (email: string): string => {
-
   if (email.includes('<') && email.includes('>')) {
     return email;
   }
- 
+
   return `Ticketeate <${email}>`;
 };
 
-
 const RAW_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_EMAIL = formatFromEmail(RAW_FROM_EMAIL);
-
 
 const sendEmail = async (options: {
   from: string;
@@ -56,7 +52,7 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, 
+    requireEmailVerification: false,
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await sendEmail({
         from: FROM_EMAIL,
