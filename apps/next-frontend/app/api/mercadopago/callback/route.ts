@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
 import { Buffer } from 'buffer';
+import jwt from 'jsonwebtoken';
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,6 +75,46 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date(),
       },
     });
+
+    // Crear JWT token para comunicarse con svc-users (si es necesario)
+    const jwtPayload = {
+      id: userId,
+      iat: Math.floor(Date.now() / 1000),
+    };
+    const jwtToken = jwt.sign(jwtPayload, process.env.BETTER_AUTH_SECRET!, {
+      issuer: process.env.JWT_ISSUER,
+      audience: process.env.JWT_AUDIENCE,
+      expiresIn: '1h',
+    });
+
+    // Llamar al endpoint de svc-users para confirmar la vinculación
+    // En desarrollo: http://localhost:3003
+    // En producción: https://api.ticketeate.com.ar/production (mismo puerto que svc-events)
+    let usersApiUrl = process.env.USERS_API_URL;
+    if (!usersApiUrl) {
+      if (process.env.NODE_ENV === 'production') {
+        usersApiUrl = 'https://api.ticketeate.com.ar/production';
+      } else {
+        usersApiUrl = 'http://localhost:3003';
+      }
+    }
+
+    try {
+      await fetch(`${usersApiUrl}/api/wallet/confirm-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          mercado_pago_user_id: user_id,
+          wallet_provider: 'mercado_pago',
+        }),
+      });
+    } catch (err) {
+      console.error('Error notificando a svc-users:', err);
+      // No fallar si la notificación no llega, ya que la BD ya fue actualizada
+    }
 
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?success=wallet_linked`,

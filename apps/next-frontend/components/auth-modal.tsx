@@ -205,6 +205,12 @@ export default function AuthModal({
           throw new Error(j?.error || 'No se pudo asignar el rol');
         }
       }
+
+      // Esperar un poco para que Better Auth refresque la sesión después del cambio de rol
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Forzar una recarga completa de la página para que Better Auth refresque tokens
+      window.location.reload();
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 

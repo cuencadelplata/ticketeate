@@ -14,6 +14,7 @@ async function jwtMiddleware(c: Context, next: Next) {
     const authHeader = c.req.header('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      logger.error('JWT Middleware - Missing or invalid Authorization header');
       return c.json({ error: 'Missing or invalid Authorization header' }, 401);
     }
 
@@ -24,21 +25,47 @@ async function jwtMiddleware(c: Context, next: Next) {
     const jwtAudience =
       process.env.JWT_AUDIENCE || process.env.FRONTEND_URL || 'http://localhost:3000';
 
-    const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
-      issuer: jwtIssuer,
-      audience: jwtAudience,
-      algorithms: ['HS256'], // Specify algorithm
-    });
+    try {
+      const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
+        issuer: jwtIssuer,
+        audience: jwtAudience,
+        algorithms: ['HS256'],
+      });
 
-    // Store JWT payload in context
-    c.set('jwtPayload', payload);
+      // Store JWT payload in context
+      c.set('jwtPayload', payload);
+    } catch (verifyError) {
+      // En desarrollo, intentar verificar sin validar issuer/audience
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('JWT verification failed with issuer/audience, trying without validation', {
+          error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+        });
+
+        try {
+          const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
+            algorithms: ['HS256'],
+          });
+          c.set('jwtPayload', payload);
+        } catch (fallbackError) {
+          logger.error('JWT Middleware - Token verification failed', {
+            error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
+          });
+          return c.json({ error: 'Invalid token' }, 401);
+        }
+      } else {
+        logger.error('JWT Middleware - Token verification failed', {
+          error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+        });
+        return c.json({ error: 'Invalid token' }, 401);
+      }
+    }
 
     await next();
   } catch (error) {
-    logger.error('JWT Middleware - JWT verification failed', {
+    logger.error('JWT Middleware - Unexpected error', {
       error: error instanceof Error ? error.message : String(error),
     });
-    return c.json({ error: 'Invalid token' }, 401);
+    return c.json({ error: 'Internal server error' }, 500);
   }
 }
 
@@ -47,31 +74,31 @@ const app = new Hono();
 // Middleware
 app.use('*', honoLogger());
 app.use('*', timing());
-// CORS configuration with environment-aware origins
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
-  : [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://ticketeate.com.ar',
-      'https://www.ticketeate.com.ar',
-    ];
 
-const allowedOrigins = corsOrigins.filter(Boolean);
-
-app.use(
-  '*',
-  cors({
-    origin: allowedOrigins,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  }),
-);
+// CORS middleware - Always apply in development
+// In production, API Gateway handles CORS headers
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => origin ?? '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      exposeHeaders: ['*'],
+      credentials: true,
+      maxAge: 86400,
+    }),
+  );
+}
 
 // JWT Authentication middleware for protected routes
-app.use('/api/*', jwtMiddleware);
+// Skip OPTIONS requests (CORS preflight)
+app.use('/api/*', async (c, next) => {
+  if (c.req.method === 'OPTIONS') {
+    return await next();
+  }
+  return await jwtMiddleware(c, next);
+});
 
 // Routes
 app.route('/api', apiRoutes);

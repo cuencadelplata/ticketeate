@@ -428,4 +428,215 @@ events.post('/publish-scheduled', async (c) => {
   }
 });
 
+// ===== INVITE CODES ENDPOINTS =====
+
+// POST /api/events/:eventoid/invite-codes - Crear código de invitación
+events.post('/:eventoid/invite-codes', async (c) => {
+  try {
+    const { InviteCodeService } = await import('../services/invite-code-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const { codigo, fecha_expiracion, usos_max } = await c.req.json();
+
+    const inviteCode = await InviteCodeService.createInviteCode({
+      eventoid,
+      creadorid: jwtPayload.id as string,
+      codigo,
+      fecha_expiracion: fecha_expiracion ? new Date(fecha_expiracion) : undefined,
+      usos_max,
+    });
+
+    return c.json(inviteCode, 201);
+  } catch (error) {
+    console.error('Error creating invite code:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// GET /api/events/:eventoid/invite-codes - Obtener códigos de invitación
+events.get('/:eventoid/invite-codes', async (c) => {
+  try {
+    const { InviteCodeService } = await import('../services/invite-code-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const codes = await InviteCodeService.getInviteCodesByEvent(eventoid, jwtPayload.id as string);
+
+    return c.json({ codes });
+  } catch (error) {
+    console.error('Error getting invite codes:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// PUT /api/events/:eventoid/invite-codes/:codigoid - Desactivar código
+events.put('/:eventoid/invite-codes/:codigoid/deactivate', async (c) => {
+  try {
+    const { InviteCodeService } = await import('../services/invite-code-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const codigoid = c.req.param('codigoid');
+    const result = await InviteCodeService.deactivateInviteCode(codigoid, jwtPayload.id as string);
+
+    return c.json(result);
+  } catch (error) {
+    console.error('Error deactivating invite code:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// GET /api/events/:eventoid/colaboradores - Obtener colaboradores del evento
+events.get('/:eventoid/colaboradores', async (c) => {
+  try {
+    const { InviteCodeService } = await import('../services/invite-code-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const colaboradores = await InviteCodeService.getColaboradorsByEvent(
+      eventoid,
+      jwtPayload.id as string,
+    );
+
+    return c.json({ colaboradores });
+  } catch (error) {
+    console.error('Error getting colaboradores:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      500,
+    );
+  }
+});
+
+// ===== SCANNER ENDPOINTS =====
+
+// GET /api/events/:eventoid/stats - Obtener estadísticas de tickets
+events.get('/:eventoid/stats', async (c) => {
+  try {
+    const { ScannerService } = await import('../services/scanner-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const stats = await ScannerService.getTicketStats(eventoid, jwtPayload.id as string);
+
+    return c.json(stats);
+  } catch (error) {
+    console.error('Error getting stats:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      403,
+    );
+  }
+});
+
+// POST /api/events/:eventoid/scan - Escanear un ticket
+events.post('/:eventoid/scan', async (c) => {
+  try {
+    const { ScannerService } = await import('../services/scanner-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const { codigo_qr } = await c.req.json();
+
+    if (!codigo_qr) {
+      return c.json({ error: 'Código QR requerido' }, 400);
+    }
+
+    const result = await ScannerService.scanTicket(eventoid, codigo_qr, jwtPayload.id as string);
+
+    return c.json(result);
+  } catch (error) {
+    console.error('Error scanning ticket:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      400,
+    );
+  }
+});
+
+// GET /api/events/:eventoid/tickets - Obtener entradas de un evento
+events.get('/:eventoid/tickets', async (c) => {
+  try {
+    const { ScannerService } = await import('../services/scanner-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const estado = (c.req.query('estado') as 'VALIDA' | 'USADA' | 'CANCELADA') || undefined;
+
+    const tickets = await ScannerService.getEventoEntradas(
+      eventoid,
+      jwtPayload.id as string,
+      estado,
+    );
+
+    return c.json({ tickets });
+  } catch (error) {
+    console.error('Error getting tickets:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      403,
+    );
+  }
+});
+
+// GET /api/events/:eventoid/activity - Obtener actividad del scanner
+events.get('/:eventoid/activity', async (c) => {
+  try {
+    const { ScannerService } = await import('../services/scanner-service');
+    const jwtPayload = validateJWT(c);
+
+    if (!jwtPayload?.id) {
+      return c.json({ error: 'No autenticado' }, 401);
+    }
+
+    const eventoid = c.req.param('eventoid');
+    const activity = await ScannerService.getScannerActivity(eventoid, jwtPayload.id as string);
+
+    return c.json(activity);
+  } catch (error) {
+    console.error('Error getting activity:', error);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      403,
+    );
+  }
+});
+
 export { events };

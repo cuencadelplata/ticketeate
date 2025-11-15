@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
 
     // Generar token JWT manualmente
     const token = jwt.sign(payload, process.env.BETTER_AUTH_SECRET!, {
-      issuer: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-      audience: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+      issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
+      audience: process.env.FRONTEND_URL || 'http://localhost:3000',
       expiresIn: '1h',
       algorithm: 'HS256',
     });

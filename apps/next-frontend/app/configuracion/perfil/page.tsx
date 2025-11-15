@@ -1,396 +1,141 @@
 'use client';
 
-import { useRef } from 'react';
-import { useSession, signIn } from '@/lib/auth-client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, Trash2, Mail, Key, User } from 'lucide-react';
-import {
-  useProfile,
-  useUpdateProfile,
-  useUploadProfileImage,
-  useDeleteProfileImage,
-  useSendOtp,
-  useVerifyOtp,
-  useForgotPassword,
-} from '@/hooks/use-profile';
-import { useProfileForm } from '@/hooks/use-profile-form';
+import { useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Loader2, User, Mail, Calendar, Shield } from 'lucide-react';
+import AvatarUpload from '@/components/avatar-upload';
+import Link from 'next/link';
 
-export default function PerfilPage() {
-  const { data: session, isPending: sessionLoading } = useSession();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export default function ConfiguracionPerfil() {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-  // TanStack Query hooks
-  const { data: profile, isLoading: profileLoading, error: profileError } = useProfile();
-  const updateProfile = useUpdateProfile();
-  const uploadImage = useUploadProfileImage();
-  const deleteImage = useDeleteProfileImage();
-  const sendOtp = useSendOtp();
-  const verifyOtp = useVerifyOtp();
-  const forgotPassword = useForgotPassword();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // Form state management
-  const {
-    formData,
-    otpState,
-    updateField,
-    updateOtpState,
-    resetOtpState,
-    isFormValid,
-    isEmailValid,
-    isOtpValid,
-  } = useProfileForm(profile ? { name: profile.name, email: profile.email } : undefined);
-
-  // Si no está autenticado, redirigir al login
-  if (!session && !sessionLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acceso requerido</CardTitle>
-            <CardDescription>Necesitas iniciar sesión para acceder a esta página</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => signIn.social({ provider: 'google' })} className="w-full">
-              Iniciar sesión con Google
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (sessionLoading || profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (profileError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Error</CardTitle>
-            <CardDescription>No se pudo cargar el perfil del usuario</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isFormValid || !isEmailValid) {
-      return;
+  useEffect(() => {
+    if (!isPending && !session && mounted) {
+      router.push('/sign-in');
     }
+  }, [session, isPending, router, mounted]);
 
-    updateProfile.mutate({
-      name: formData.name,
-      email: formData.email,
-    });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    uploadImage.mutate(file);
-  };
-
-  const handleImageDelete = async () => {
-    deleteImage.mutate();
-  };
-
-  const handleSendOtp = async () => {
-    if (!profile?.email) return;
-
-    sendOtp.mutate(profile.email, {
-      onSuccess: () => {
-        updateOtpState({ sent: true });
-      },
-    });
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!profile?.email || !isOtpValid) return;
-
-    verifyOtp.mutate(
-      { email: profile.email, otp: otpState.code },
-      {
-        onSuccess: () => {
-          resetOtpState();
-        },
-      },
+  if (isPending || !mounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
     );
-  };
+  }
 
-  const handlePasswordReset = async () => {
-    if (!profile?.email) return;
+  if (!session) {
+    return null;
+  }
 
-    forgotPassword.mutate(profile.email);
+  const user = session.user;
+  const role = (session as any).role || 'USUARIO';
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'ORGANIZADOR':
+        return 'bg-orange-900/30 text-orange-300';
+      case 'COLABORADOR':
+        return 'bg-orange-900/30 text-orange-300';
+      default:
+        return 'bg-stone-800 text-stone-300';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
-          <p className="mt-2 text-gray-600">
-            Gestiona tu información personal y configuración de cuenta
-          </p>
+    <div className="min-h-screen bg-stone-950 py-8 pt-8">
+      <div className="mx-auto max-w-3xl px-4">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-stone-100">Mi Perfil</h1>
+          <Link
+            href="/configuracion"
+            className="text-sm text-stone-400 hover:text-orange-500 transition-colors"
+          >
+            Volver a Configuración
+          </Link>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="security">Seguridad</TabsTrigger>
-            <TabsTrigger value="account">Cuenta</TabsTrigger>
-          </TabsList>
+        <div className="rounded-2xl bg-stone-900 p-8 shadow-lg border border-stone-800">
+          <div className="mb-8 border-b border-stone-800 pb-8">
+            <AvatarUpload />
+          </div>
 
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Información Personal
-                </CardTitle>
-                <CardDescription>
-                  Actualiza tu información personal y foto de perfil
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Foto de perfil */}
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={profile?.image || ''} alt={profile?.name || ''} />
-                    <AvatarFallback className="text-lg">
-                      {profile?.name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadImage.isPending}
-                      >
-                        {uploadImage.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
-                        Cambiar foto
-                      </Button>
-                      {profile?.image && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleImageDelete}
-                          disabled={deleteImage.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">JPG, PNG o WebP. Máximo 5MB.</p>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-stone-300">
+                  <User className="h-4 w-4 text-orange-500" />
+                  Nombre
+                </label>
+                <div className="rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-stone-100">
+                  {user.name || 'Sin nombre'}
                 </div>
+              </div>
 
-                {/* Formulario de perfil */}
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nombre completo</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={(e) => updateField('name', e.target.value)}
-                        placeholder="Tu nombre completo"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Correo electrónico</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => updateField('email', e.target.value)}
-                        placeholder="tu@email.com"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="submit"
-                      disabled={updateProfile.isPending || !isFormValid || !isEmailValid}
-                    >
-                      {updateProfile.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        'Guardar cambios'
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="security" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Verificación de Email
-                </CardTitle>
-                <CardDescription>
-                  Verifica tu correo electrónico para mayor seguridad
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Estado de verificación</p>
-                    <p className="text-sm text-gray-500">
-                      {profile?.emailVerified ? 'Email verificado' : 'Email no verificado'}
-                    </p>
-                  </div>
-                  {!profile?.emailVerified && (
-                    <Button
-                      onClick={handleSendOtp}
-                      disabled={sendOtp.isPending || otpState.sent}
-                      variant="outline"
-                    >
-                      {sendOtp.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : otpState.sent ? (
-                        'Código enviado'
-                      ) : (
-                        'Enviar código'
-                      )}
-                    </Button>
-                  )}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-stone-300">
+                  <Mail className="h-4 w-4 text-orange-500" />
+                  Email
+                </label>
+                <div className="rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-stone-100">
+                  {user.email}
                 </div>
+              </div>
 
-                {otpState.sent && (
-                  <div className="space-y-4">
-                    <Alert>
-                      <AlertDescription>
-                        Se ha enviado un código de verificación a tu correo electrónico. Ingresa el
-                        código de 6 dígitos a continuación.
-                      </AlertDescription>
-                    </Alert>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Código OTP"
-                        value={otpState.code}
-                        onChange={(e) => updateOtpState({ code: e.target.value })}
-                        maxLength={6}
-                        className="max-w-32"
-                      />
-                      <Button
-                        onClick={handleVerifyOtp}
-                        disabled={verifyOtp.isPending || !isOtpValid}
-                      >
-                        {verifyOtp.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          'Verificar'
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Key className="h-5 w-5" />
-                  Contraseña
-                </CardTitle>
-                <CardDescription>Gestiona tu contraseña y seguridad de la cuenta</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="font-medium">Restablecer contraseña</p>
-                  <p className="text-sm text-gray-500">
-                    Recibirás un enlace por correo electrónico para restablecer tu contraseña
-                  </p>
-                  <Button
-                    onClick={handlePasswordReset}
-                    disabled={forgotPassword.isPending}
-                    variant="outline"
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-stone-300">
+                  <Shield className="h-4 w-4 text-orange-500" />
+                  Rol
+                </label>
+                <div className="rounded-lg border border-stone-700 bg-stone-800 px-4 py-3">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${getRoleBadgeColor(role)}`}
                   >
-                    {forgotPassword.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Enviar enlace de restablecimiento'
-                    )}
-                  </Button>
+                    {role}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
 
-          <TabsContent value="account" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Información de la Cuenta</CardTitle>
-                <CardDescription>Detalles de tu cuenta y actividad</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">ID de Usuario</Label>
-                    <p className="text-sm">{profile?.id}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Rol</Label>
-                    <p className="text-sm capitalize">{profile?.role?.toLowerCase()}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Miembro desde</Label>
-                    <p className="text-sm">
-                      {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">
-                      Última actualización
-                    </Label>
-                    <p className="text-sm">
-                      {profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '-'}
-                    </p>
-                  </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-stone-300">
+                  <Calendar className="h-4 w-4 text-orange-500" />
+                  Miembro desde
+                </label>
+                <div className="rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-stone-100">
+                  {user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : 'No disponible'}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-4">
+              <Link
+                href="/forgot-password"
+                className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-orange-700 hover:shadow-md"
+              >
+                Cambiar contraseña
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-lg bg-orange-950/20 border border-orange-900 p-4 text-sm text-orange-200">
+          <p className="font-medium">💡 Tip:</p>
+          <p className="mt-1">
+            Mantén tu perfil actualizado para una mejor experiencia en Ticketeate.
+          </p>
+        </div>
       </div>
     </div>
   );

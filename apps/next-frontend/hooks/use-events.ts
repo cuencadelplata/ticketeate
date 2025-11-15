@@ -19,13 +19,16 @@ async function getAuthHeaders() {
     });
 
     if (!res.ok) {
-      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+      const errorText = await res.text();
+      console.error(`Failed to get auth token: ${res.status}`, errorText);
+      throw new Error(`Token endpoint returned ${res.status}: ${res.statusText}`);
     }
 
     const data = await res.json();
 
     if (!data.token) {
-      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+      console.error('No token in response:', data);
+      throw new Error('No token returned from auth endpoint');
     }
 
     return {
@@ -33,7 +36,10 @@ async function getAuthHeaders() {
       'Content-Type': 'application/json',
     };
   } catch (error) {
-    throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    console.error('getAuthHeaders error:', error);
+    throw error instanceof Error
+      ? error
+      : new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
   }
 }
 
@@ -42,14 +48,33 @@ export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      const headers = await getAuthHeaders();
-      const res = await fetchWithApiKey(API_ENDPOINTS.events, {
-        headers,
-      });
-      if (!res.ok) throw new Error('Error al obtener eventos');
-      const data: GetEventsResponse = await res.json();
-      return data.events || [];
+      try {
+        console.log('[useEvents] Fetching events from:', API_ENDPOINTS.events);
+        const headers = await getAuthHeaders();
+        console.log('[useEvents] Got headers:', { hasAuth: !!headers.Authorization });
+
+        const res = await fetchWithApiKey(API_ENDPOINTS.events, {
+          headers,
+          method: 'GET',
+        });
+
+        console.log('[useEvents] Response status:', res.status, res.statusText);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error(`Error fetching events: ${res.status} ${res.statusText}`, errorText);
+          throw new Error(`Error al obtener eventos: ${res.status}`);
+        }
+
+        const data: GetEventsResponse = await res.json();
+        console.log('[useEvents] Success! Got', data.events?.length || 0, 'events');
+        return data.events || [];
+      } catch (error) {
+        console.error('useEvents hook error:', error);
+        throw error;
+      }
     },
+    retry: 1,
   });
 }
 

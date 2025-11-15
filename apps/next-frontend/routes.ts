@@ -22,6 +22,7 @@ export const protectedRoutes: string[] = [
   '/eventos', // Mis eventos (como organizador) - PRIVADO
   '/eventos/*',
   '/evento/manage/*', // Gestión de eventos
+  '/colaborador/*', // Rutas para colaboradores (scanner, etc)
   '/configuracion',
   '/configuracion/*',
   '/profile', // Perfil de usuario
