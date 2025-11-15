@@ -17,11 +17,10 @@ export function QueueModal({
   isOpen,
   onClose,
   eventId,
-  userId,
   eventTitle,
   onEnterPurchase,
 }: QueueModalProps) {
-  const { queueStatus, isLoading, isJoining, error, canEnter, joinQueue, leaveQueue, isInQueue } =
+  const { queueStatus, isJoining, error, canEnter, joinQueue, leaveQueue, isInQueue } =
     useQueueRedis(eventId, {
       pollingInterval: 5000,
       onCanEnter: () => {

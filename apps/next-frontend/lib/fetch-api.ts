@@ -2,6 +2,8 @@
 // - Public endpoints (like /api/events/all): no credentials needed
 // - Protected endpoints (like /api/events): include session cookies
 
+type RequestCredentialsType = 'omit' | 'include' | 'same-origin';
+
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
@@ -30,13 +32,30 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
   const headers = new Headers(init.headers);
 
   // For public endpoints, don't send credentials
-  // For protected endpoints, include session cookies
+  // For protected endpoints with Authorization header, don't send credentials (use Bearer token instead)
+  // For protected endpoints without Authorization header, use cookies
   const isPublic = isPublicEndpoint(url);
-  const shouldIncludeCredentials = !skipAuth && !isPublic;
+  const hasAuthHeader = headers.has('Authorization');
+
+  // Use 'omit' for public endpoints or when Authorization header is present (Bearer token)
+  // Use 'include' only for protected endpoints with cookie-based auth
+  const credentials: RequestCredentialsType =
+    skipAuth || isPublic || hasAuthHeader ? 'omit' : 'include';
+
+  // Log for debugging
+  if (typeof window !== 'undefined') {
+    console.log('[fetchWithApiKey]', {
+      url,
+      credentials,
+      hasAuthHeader,
+      isPublic,
+      method: init.method || 'GET',
+    });
+  }
 
   return fetch(url, {
     ...init,
     headers,
-    credentials: shouldIncludeCredentials ? 'include' : 'omit',
+    credentials,
   });
 }

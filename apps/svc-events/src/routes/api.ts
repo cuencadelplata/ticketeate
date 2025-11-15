@@ -1,5 +1,6 @@
 import { Hono, Context } from 'hono';
 import { events } from './events';
+import { inviteRoutes } from './invite-codes';
 
 const api = new Hono();
 
@@ -9,6 +10,7 @@ function getJwtPayload(c: Context) {
 }
 
 api.route('/events', events);
+api.route('/invite-codes', inviteRoutes);
 
 // GET /api/users/:id
 api.get('/users/:id', (c) => {

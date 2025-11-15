@@ -1,18 +1,18 @@
 'use client';
 
-import { useWalletStatus, useLinkWallet, useUnlinkWallet } from '@/hooks/use-wallet';
+import { useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Loader2, CreditCard, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, CreditCard, CheckCircle, XCircle } from 'lucide-react';
+import { useWalletStatus, useLinkWallet, useUnlinkWallet } from '@/hooks/use-wallet';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
-import { useSession } from '@/lib/auth-client';
-import { DevelopmentWalletInfo } from '@/components/development-wallet-info';
 
-function ConfiguracionPageContent() {
+export default function ConfiguracionPage() {
   const { data: session, isPending: sessionLoading } = useSession();
+  const router = useRouter();
   const { data, isLoading, error } = useWalletStatus();
   const linkWallet = useLinkWallet();
   const unlinkWallet = useUnlinkWallet();
@@ -21,19 +21,30 @@ function ConfiguracionPageContent() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sessionLoading && !session && mounted) {
+      router.push('/sign-in');
+    }
+  }, [session, sessionLoading, router, mounted]);
 
   useEffect(() => {
     const success = searchParams.get('success');
-    const error = searchParams.get('error');
+    const errorParam = searchParams.get('error');
 
     if (success === 'wallet_linked') {
       setNotification({
         type: 'success',
         message: '¡Billetera vinculada exitosamente! Ya puedes recibir pagos.',
       });
-    } else if (error) {
+    } else if (errorParam) {
       let errorMessage = 'Error al vincular la billetera';
-      switch (error) {
+      switch (errorParam) {
         case 'oauth_error':
           errorMessage = 'Error en el proceso de autorización de Mercado Pago';
           break;
@@ -56,36 +67,36 @@ function ConfiguracionPageContent() {
       });
     }
 
-    // Limpiar la notificación después de 5 segundos
-    if (success || error) {
+    if (success || errorParam) {
       const timer = setTimeout(() => setNotification(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
-  // Mostrar loading mientras se carga la sesión
-  if (sessionLoading) return <div className="p-6">Cargando...</div>;
+  if (sessionLoading || !mounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
-  // Si no hay sesión, el middleware debería haber redirigido, pero por seguridad mostramos un mensaje
-  if (!session) return <div className="p-6">No autorizado</div>;
-
-  if (isLoading) return <div className="p-6">Cargando configuración...</div>;
-  if (error) return <div className="p-6">Error al cargar configuración</div>;
+  if (!session) {
+    return null;
+  }
 
   const linked = data?.wallet_linked;
-  const provider = data?.wallet_provider ?? 'mercado_pago';
 
   return (
-    <div className="min-h-screen bg-black py-24 pt-26">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-stone-200">Configuración</h1>
-          <p className="mt-2 text-stone-300">
-            Gestiona tu cuenta, perfil y configuraciones de pago
-          </p>
+    <div className="min-h-screen bg-stone-950 py-8 pt-8">
+      <div className="mx-auto max-w-3xl px-4">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-stone-100">Configuración</h1>
+          <Link href="/" className="text-sm text-stone-400 hover:text-orange-500 transition-colors">
+            Volver al inicio
+          </Link>
         </div>
 
-        {/* Notificación de estado */}
         {notification && (
           <div
             className={`mb-6 rounded-md p-4 ${
@@ -111,65 +122,41 @@ function ConfiguracionPageContent() {
           </div>
         )}
 
-        <Tabs defaultValue="perfil" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="perfil" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Perfil
-            </TabsTrigger>
-            <TabsTrigger value="pagos" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Pagos
-            </TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          {/* Sección de Perfil */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Mi Perfil</CardTitle>
+              <CardDescription>Gestiona tu información personal y avatar</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/configuracion/perfil">
+                <Button className="w-full bg-orange-600 hover:bg-orange-700">Editar Perfil</Button>
+              </Link>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="perfil" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Gestión de Perfil
-                </CardTitle>
-                <CardDescription>
-                  Administra tu información personal, foto de perfil y configuración de cuenta
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-gray-600">
-                    Desde aquí puedes gestionar toda tu información personal, incluyendo:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600">
-                    <li>Información personal y foto de perfil</li>
-                    <li>Verificación de email</li>
-                    <li>Cambio de contraseña</li>
-                    <li>Información de la cuenta</li>
-                  </ul>
-                  <Link href="/configuracion/perfil">
-                    <Button className="w-full">
-                      <User className="h-4 w-4 mr-2" />
-                      Ir a Perfil
-                    </Button>
-                  </Link>
+          {/* Sección de Billetera */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Configuración de Pagos
+              </CardTitle>
+              <CardDescription>
+                Gestiona tu método de pago y configuración de billetera
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="pagos" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Configuración de Pagos
-                </CardTitle>
-                <CardDescription>
-                  Gestiona tu método de pago y configuración de billetera
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              ) : error ? (
+                <div className="text-red-500 py-4">Error al cargar configuración</div>
+              ) : (
                 <div className="rounded-md border border-stone-700 bg-stone-900 p-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-4">
                     <p className="text-sm text-stone-300">Proveedor: Mercado Pago</p>
                     {linked ? (
                       <div className="flex items-center text-green-400">
@@ -187,70 +174,36 @@ function ConfiguracionPageContent() {
                   {linked ? (
                     <div className="space-y-3">
                       <p className="text-sm text-stone-400">
-                        Tu billetera {provider === 'mock' ? 'simulada' : 'de Mercado Pago'} está
-                        vinculada y lista para recibir pagos.
+                        Tu billetera de Mercado Pago está vinculada y lista para recibir pagos.
                       </p>
-                      <div className="flex gap-2">
-                        <Button
-                          disabled={unlinkWallet.isPending}
-                          onClick={() => unlinkWallet.mutate()}
-                          className="bg-stone-700 text-white hover:bg-stone-600"
-                        >
-                          {unlinkWallet.isPending ? 'Desvinculando...' : 'Desvincular billetera'}
-                        </Button>
-                        {provider === 'mock' && (
-                          <div className="text-xs text-yellow-400 bg-yellow-900/20 px-2 py-1 rounded">
-                            Modo desarrollo
-                          </div>
-                        )}
-                      </div>
-                      {provider === 'mock' && <DevelopmentWalletInfo />}
+                      <Button
+                        disabled={unlinkWallet.isPending}
+                        onClick={() => unlinkWallet.mutate()}
+                        className="bg-stone-700 text-white hover:bg-stone-600"
+                      >
+                        {unlinkWallet.isPending ? 'Desvinculando...' : 'Desvincular billetera'}
+                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <p className="text-sm text-stone-400">
                         Vincula tu billetera para recibir pagos de tus eventos.
                       </p>
-                      <div className="space-y-2">
-                        <Button
-                          disabled={linkWallet.isPending}
-                          onClick={() => linkWallet.mutate('mercado_pago')}
-                          className="bg-white text-black hover:bg-stone-200 w-full"
-                        >
-                          {linkWallet.isPending ? 'Vinculando...' : 'Vincular Mercado Pago'}
-                        </Button>
-                        <Button
-                          disabled={linkWallet.isPending}
-                          onClick={() => linkWallet.mutate('mock')}
-                          variant="outline"
-                          className="w-full border-stone-600 text-stone-300 hover:bg-stone-800"
-                        >
-                          {linkWallet.isPending
-                            ? 'Vinculando...'
-                            : '🔧 Simular billetera (Desarrollo)'}
-                        </Button>
-                        <p className="text-xs text-stone-500">
-                          Usa la simulación para probar la funcionalidad sin configurar Mercado Pago
-                        </p>
-                      </div>
+                      <Button
+                        disabled={linkWallet.isPending}
+                        onClick={() => linkWallet.mutate('mercado_pago')}
+                        className="bg-white text-black hover:bg-stone-200 w-full"
+                      >
+                        {linkWallet.isPending ? 'Vinculando...' : 'Vincular Mercado Pago'}
+                      </Button>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
-  );
-}
-
-export default function ConfiguracionPage() {
-  return (
-    <Suspense
-      fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}
-    >
-      <ConfiguracionPageContent />
-    </Suspense>
   );
 }

@@ -20,7 +20,7 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Permitir registro pero verificar después
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+        from: 'Ticketeate <noreply@ticketeate.com.ar>',
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
         html: `
@@ -37,7 +37,7 @@ export const auth = betterAuth({
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
       await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+        from: 'Ticketeate <noreply@ticketeate.com.ar>',
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
         html: `
@@ -80,7 +80,7 @@ export const auth = betterAuth({
 
         try {
           const { error } = await resend.emails.send({
-            from: 'Ticketeate <onboarding@ticketeate.page>',
+            from: 'Ticketeate <onboarding@ticketeate.com.ar>',
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `

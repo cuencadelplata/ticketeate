@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
-import { Search, SearchIcon, Menu as MenuIcon, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { SearchIcon, MenuIcon, X, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/search-context';
 import { motion, AnimatePresence } from 'framer-motion';

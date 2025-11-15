@@ -49,6 +49,7 @@ model entradas {
   version          Int                @default(1)
   is_active        Boolean            @default(true)
   deleted_at       DateTime?          @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
   updated_by       String?            @db.VarChar
   reservas         reservas           @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
   user             user?              @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -130,6 +131,8 @@ model eventos {
   logs_eventos                  logs_eventos[]
   reservas                      reservas[]
   stock_entrada                 stock_entrada[]
+  invite_codes                  invite_codes[]
+  colaborador_eventos           colaborador_eventos[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -335,6 +338,8 @@ model user {
   reservas_history                   reservas_history[]
   sesiones                           sesiones[]
   session                            session[]
+  invite_codes                       invite_codes[]
+  colaborador_eventos                colaborador_eventos[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -551,4 +556,37 @@ enum change_type {
   CREATE
   UPDATE
   DELETE
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invite_codes {
+  codigoid           String   @id @db.VarChar(255)
+  eventoid           String   @db.VarChar(255)
+  codigo             String   @db.VarChar(50)
+  estado             String   @default("ACTIVO") @db.VarChar(20)
+  fecha_creacion     DateTime @default(now()) @db.Timestamptz(6)
+  fecha_expiracion   DateTime @db.Timestamptz(6)
+  usos_totales       Int      @default(0)
+  usos_max           Int      @default(999999)
+  creador_id         String   @db.VarChar(255)
+  eventos            eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user               user     @relation(fields: [creador_id], references: [id], onDelete: Cascade)
+
+  @@unique([eventoid, codigo], map: "uq_codigo_evento_invite")
+  @@index([eventoid, estado], map: "idx_invite_codigo_evento_estado")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model colaborador_eventos {
+  colaborador_evento_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoid              String   @db.VarChar(255)
+  usuarioid             String   @db.VarChar(255)
+  invite_code_used      String   @db.VarChar(255)
+  fecha_asignacion      DateTime @default(now()) @db.Timestamptz(6)
+  eventos               eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user                  user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+
+  @@unique([eventoid, usuarioid], map: "uq_colaborador_evento")
+  @@index([eventoid], map: "idx_colaborador_eventos_eventoid")
+  @@index([usuarioid], map: "idx_colaborador_eventos_usuarioid")
 }

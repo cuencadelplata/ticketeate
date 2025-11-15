@@ -46,6 +46,7 @@ class ServiceLogger {
    */
   debug(message: string, context?: LogContext): void {
     if (this.isDevelopment) {
+      // eslint-disable-next-line no-console
       console.debug(this.formatMessage('debug', message, context));
     }
   }
@@ -54,6 +55,7 @@ class ServiceLogger {
    * Log de nivel info
    */
   info(message: string, context?: LogContext): void {
+    // eslint-disable-next-line no-console
     console.info(this.formatMessage('info', message, context));
   }
 
@@ -61,6 +63,7 @@ class ServiceLogger {
    * Log de nivel warning
    */
   warn(message: string, context?: LogContext): void {
+    // eslint-disable-next-line no-console
     console.warn(this.formatMessage('warn', message, context));
   }
 
@@ -68,6 +71,7 @@ class ServiceLogger {
    * Log de nivel error
    */
   error(message: string, context?: LogContext): void {
+    // eslint-disable-next-line no-console
     console.error(this.formatMessage('error', message, context));
 
     // En producción, aquí se podría enviar a un servicio de monitoreo

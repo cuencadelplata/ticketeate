@@ -10,6 +10,24 @@ function getJwtPayload(c: Context) {
 
 api.route('/wallet', wallet);
 
+// GET /api/users - Get all users (public endpoint for demo purposes)
+api.get('/users', (c) => {
+  return c.json({
+    users: [
+      {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+      },
+      {
+        id: 2,
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+      },
+    ],
+  });
+});
+
 // GET /api/users/:id
 api.get('/users/:id', (c) => {
   const jwtPayload = getJwtPayload(c);

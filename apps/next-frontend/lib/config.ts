@@ -41,7 +41,7 @@ function getApiBaseUrl(): string {
 // url hono
 export const API_BASE_URL = getApiBaseUrl();
 export const USERS_API_BASE_URL =
-  process.env.NEXT_PUBLIC_USERS_API_URL || API_BASE_URL.replace(':3001', ':3003');
+  process.env.NEXT_PUBLIC_USERS_API_URL || API_BASE_URL.replace(':3001', ':3002');
 
 // Endpoints de la API
 export const API_ENDPOINTS = {

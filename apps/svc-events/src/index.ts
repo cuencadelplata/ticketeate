@@ -1,10 +1,27 @@
 import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
+import { cors } from 'hono/cors';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
 import { PUBLIC_ENDPOINTS } from './config/auth';
 
 const app = new Hono();
+
+// CORS middleware - Only apply in development (not behind API Gateway)
+// In production, API Gateway handles CORS headers
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => origin ?? '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      exposeHeaders: ['*'],
+      credentials: true,
+      maxAge: 86400,
+    }),
+  );
+}
 
 // Middleware
 app.use('*', honoLogger());
@@ -33,24 +50,6 @@ app.use('*', async (c, next) => {
 
   return next();
 });
-
-// Handle OPTIONS requests (preflight) for all routes
-// This is needed for tests and any direct calls to Hono
-// The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
-app.options('*', (c) => {
-  return c.text('');
-});
-
-// Log environment for debugging
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
-
-// Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
-// This is necessary because:
-// 1. Hono CORS middleware sets headers on the Hono Response object
-// 2. @hono/aws-lambda handler returns a plain object, losing those headers
-// 3. API Gateway v2 filters headers if it handles CORS itself
-// 4. Solution: Lambda wrapper sets CORS headers directly on the response object
 
 // Mount routes at both /api and /production/api paths
 // Routes

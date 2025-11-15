@@ -5,7 +5,7 @@ export function roleToPath(role?: AppRole) {
     case 'ORGANIZADOR':
       return '/eventos';
     case 'COLABORADOR':
-      return '/eventos';
+      return '/colaborador/scanner';
     case 'USUARIO':
     default:
       return '/';

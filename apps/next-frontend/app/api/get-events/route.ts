@@ -110,11 +110,9 @@ export async function listarEventos(
 
     // Calcular disponibilidad para cada evento en paralelo
     const eventosTyped: any[] = eventos as any[];
-    const disponiblesArr = await Promise.all(
-      eventosTyped.map((ev: any) => calcularDisponibilidad(ev.eventoid)),
-    );
+    await Promise.all(eventosTyped.map((ev: any) => calcularDisponibilidad(ev.eventoid)));
 
-    const datos: Event[] = eventosTyped.map((ev: any, idx: number) => ({
+    const datos: Event[] = eventosTyped.map((ev: any) => ({
       eventoid: ev.eventoid,
       titulo: ev.titulo,
       descripcion: ev.descripcion || undefined,
@@ -172,7 +170,7 @@ export async function obtenerDetalleEvento(id: string): Promise<Event> {
     }
 
     // Calcular disponibilidad en tiempo real
-    const disponibles = await calcularDisponibilidad(evento.eventoid);
+    await calcularDisponibilidad(evento.eventoid);
 
     const mapped: Event = {
       eventoid: evento.eventoid,

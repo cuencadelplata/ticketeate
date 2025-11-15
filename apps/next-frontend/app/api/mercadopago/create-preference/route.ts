@@ -55,11 +55,12 @@ export async function POST(request: NextRequest) {
         },
       ],
       back_urls: {
-        success: `${baseUrl}/comprar?mp_status=success`,
-        failure: `${baseUrl}/comprar?mp_status=failure`,
-        pending: `${baseUrl}/comprar?mp_status=pending`,
+        success: `${baseUrl}/compra-exitosa`,
+        failure: `${baseUrl}/compra-fallida`,
+        pending: `${baseUrl}/comprar`,
       },
-      // auto_return: 'approved', // algunos entornos dev rechazan auto_return si no reconocen back_urls
+      auto_return: 'approved',
+      notification_url: `${baseUrl}/api/webhook/mp`,
       metadata: metadata || {},
     };
     console.log('MP payload', payload);
