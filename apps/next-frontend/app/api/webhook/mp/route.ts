@@ -50,11 +50,9 @@ function validateMercadoPagoSignature(request: NextRequest, body: string): boole
 async function generateQRCode(data: string): Promise<string> {
   try {
     const qrDataUrl = await QRCode.toDataURL(data, {
-      errorCorrectionLevel: 'H',
-      type: 'image/png',
-      quality: 0.95,
-      margin: 1,
+      errorCorrectionLevel: 'H' as any,
       width: 300,
+      margin: 1,
     });
     return qrDataUrl;
   } catch (error) {
