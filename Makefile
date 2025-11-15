@@ -27,6 +27,10 @@ help:
 	@echo "  $(GREEN)make monitor$(NC)         - Monitorear salud de servicios"
 	@echo "  $(GREEN)make monitor-watch$(NC)   - Monitoreo en tiempo real (actualiza cada 2s)"
 	@echo "  $(GREEN)make test-ha$(NC)         - Ejecutar pruebas completas de HA (~3 min)"
+	@echo "  $(GREEN)make demo-ha$(NC)         - Demo simple con 3 servicios (QUICK)"
+	@echo "  $(GREEN)make demo-completo$(NC)   - Demo completa con 5 servicios × 2 réplicas"
+	@echo "  $(GREEN)make demo-manual$(NC)     - Instrucciones para demo manual (3 terminales)"
+	@echo "  $(GREEN)make test-ha-real$(NC)    - Probar HA de TODOS los servicios reales"
 	@echo "  $(GREEN)make test-ha-quick$(NC)   - Ejecutar prueba rápida de HA (~20 seg)"
 	@echo "  $(GREEN)make test-ha-stress$(NC)  - Ejecutar prueba de estrés (~1 min)"
 	@echo "  $(GREEN)make clean$(NC)           - Limpiar contenedores y volúmenes"
@@ -98,6 +102,11 @@ monitor-watch:
 test-ha:
 	@echo "$(BLUE)Ejecutando pruebas completas de Alta Disponibilidad...$(NC)"
 	@$(SCRIPTS_DIR)/test-ha.sh
+
+## test-ha-real: Probar HA de TODOS los servicios reales de Ticketeate
+test-ha-real:
+	@echo "$(BLUE)Probando Alta Disponibilidad en servicios reales...$(NC)"
+	@$(SCRIPTS_DIR)/test-ha-real.sh
 
 ## test-ha-quick: Ejecutar prueba rápida (requiere CONTAINER y URL)
 test-ha-quick:
@@ -193,6 +202,20 @@ demo:
 	@$(MAKE) test-ha
 	@echo ""
 	@echo "$(GREEN)✓ Demostración completada$(NC)"
+
+## demo-ha: Demo simple con 3 servicios (versión original)
+demo-ha:
+	@echo "$(BLUE)Iniciando demo simple de HA...$(NC)"
+	@bash $(SCRIPTS_DIR)/demo-ha-simple.sh
+
+## demo-completo: Demo completa con 5 servicios × 2 réplicas (RECOMENDADO)
+demo-completo:
+	@echo "$(BLUE)Iniciando demo completa de HA (5 servicios)...$(NC)"
+	@bash $(SCRIPTS_DIR)/demo-ha-completo.sh
+
+## demo-manual: Instrucciones para demo manual con 3 terminales
+demo-manual:
+	@bash $(SCRIPTS_DIR)/demo-manual-setup.sh
 
 ## docs: Abrir documentación
 docs:
