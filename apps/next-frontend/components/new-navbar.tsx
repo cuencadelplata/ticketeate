@@ -6,10 +6,10 @@ import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar
 import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
 import { SearchIcon, MenuIcon, X, ChevronDown } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useSearch } from '@/contexts/search-context';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserNav from './usernav';
+import { SearchDropdown } from './search-dropdown';
 
 export function NewNavbar() {
   return <Navbar />;
@@ -20,11 +20,9 @@ function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
-  const { searchQuery, setSearchQuery } = useSearch();
   const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -55,18 +53,6 @@ function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Si estamos en la home, no redirigir, solo filtrar
-    if (pathname === '/') {
-      return;
-    }
-    // Si estamos en otra página, redirigir a home o descubrir
-    if (searchQuery.trim()) {
-      router.push(`/?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
   const toggleMobileSection = (section: string) => {
     setExpandedMobileSection(expandedMobileSection === section ? null : section);
   };
@@ -93,23 +79,9 @@ function Navbar() {
           </Link>
 
           {/* Barra de búsqueda - Desktop */}
-          <form
-            onSubmit={handleSearch}
-            className="hidden lg:flex items-center flex-1 max-w-md mr-6"
-          >
-            <div className="relative w-full">
-              <input
-                type="search"
-                placeholder="Buscar eventos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="peer h-10 w-full rounded-lg border border-zinc-600 bg-white/10 backdrop-blur-sm px-10 text-sm text-zinc-200 placeholder:text-zinc-400 hover:border-zinc-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
-              />
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <SearchIcon className="h-4 w-4 text-zinc-400" />
-              </div>
-            </div>
-          </form>
+          <div className="hidden lg:flex items-center flex-1 max-w-md mr-6">
+            <SearchDropdown />
+          </div>
 
           {/* Menú Desktop */}
           <div className="hidden lg:flex flex-1 justify-center">
@@ -234,26 +206,14 @@ function Navbar() {
               className="max-w-7xl mx-auto px-4 py-6 space-y-6"
             >
               {/* Barra de búsqueda - Mobile */}
-              <motion.form
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.15 }}
-                onSubmit={handleSearch}
                 className="w-full"
               >
-                <div className="relative w-full">
-                  <input
-                    type="search"
-                    placeholder="Buscar eventos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-12 w-full rounded-lg border border-zinc-600 bg-white/10 backdrop-blur-sm px-12 text-base text-zinc-200 placeholder:text-zinc-400 hover:border-zinc-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
-                  />
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <SearchIcon className="h-5 w-5 text-zinc-400" />
-                  </div>
-                </div>
-              </motion.form>
+                <SearchDropdown />
+              </motion.div>
 
               {/* Sección Descubrir */}
               <motion.div

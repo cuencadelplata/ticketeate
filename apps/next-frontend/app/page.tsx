@@ -21,6 +21,13 @@ function mapEstados(estado?: string) {
   return estadoEvents[estado ?? ''] ?? 'Oculto';
 }
 
+// Detectar si un evento es de Corrientes
+function isEventInCorrientes(ubicacion?: string): boolean {
+  if (!ubicacion) return false;
+  const corrientesKeywords = ['corrientes', 'corrientes,'];
+  return corrientesKeywords.some((keyword) => ubicacion.toLowerCase().includes(keyword));
+}
+
 export default function Home() {
   const { data: allEvents = [], isLoading } = useAllEvents(); //tanstack query
   const [activeFilters, setActiveFilters] = useState<EventFilter[]>([]);
@@ -166,7 +173,7 @@ export default function Home() {
 
   // Eventos destacados (primeros 10 eventos próximos para llenar 2 filas de 5)
   const featuredEvents = useMemo(() => {
-    return filteredEvents.slice(0, 10);
+    return filteredEvents.filter((event) => isEventInCorrientes(event.category2)).slice(0, 10);
   }, [filteredEvents]);
 
   return (
@@ -192,12 +199,12 @@ export default function Home() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="font-instrument-serif text-3xl sm:text-4xl lg:text-5xl bg-gradient-to-b from-black to-stone-900 dark:from-white dark:to-stone-300 bg-clip-text text-transparent">
-                    Tendencias principales en Buenos Aires
+                    Tendencias principales en Corrientes
                   </h2>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
                   <MapPin className="h-4 w-4" />
-                  <span>Buenos Aires, Argentina</span>
+                  <span>Corrientes, Argentina</span>
                 </div>
               </motion.div>
 
