@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.6...svc-producers-v1.2.0) (2025-11-15)
+
+
+### Features
+
+* **svc-users:** mp oauth link ([#135](https://github.com/cuencadelplata/ticketeate/issues/135)) ([8ece996](https://github.com/cuencadelplata/ticketeate/commit/8ece99694e3a334c64e45d1491b5806a34bad0dd))
+* **svc-users:** mp oauth link ([ef83ec4](https://github.com/cuencadelplata/ticketeate/commit/ef83ec47af7aecbf16931839ab3af894aced4821))
+
 ## [1.1.6](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.1.5...svc-producers-v1.1.6) (2025-11-14)
 
 
