@@ -1,5 +1,4 @@
 import { Hono, Context } from 'hono';
-import { cors } from 'hono/cors';
 import { config } from 'dotenv';
 import { prisma } from '@repo/db';
 

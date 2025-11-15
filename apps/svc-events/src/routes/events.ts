@@ -439,7 +439,7 @@ events.post('/publish-scheduled', async (c) => {
 // POST /api/events/:eventoid/invite-codes - Crear código de invitación
 events.post('/:eventoid/invite-codes', async (c) => {
   try {
-    const { InviteCodeService } = await import('../services/invite-code-service');
+    const { InviteCodeService } = await import('../services/invite-code-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -472,7 +472,7 @@ events.post('/:eventoid/invite-codes', async (c) => {
 // GET /api/events/:eventoid/invite-codes - Obtener códigos de invitación
 events.get('/:eventoid/invite-codes', async (c) => {
   try {
-    const { InviteCodeService } = await import('../services/invite-code-service');
+    const { InviteCodeService } = await import('../services/invite-code-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -495,9 +495,9 @@ events.get('/:eventoid/invite-codes', async (c) => {
 });
 
 // PUT /api/events/:eventoid/invite-codes/:codigoid - Desactivar código
-events.put('/:eventoid/invite-codes/:codigoid/deactivate', async (c) => {
+events.put('/:eventoid/invite-codes/:codigoid', async (c) => {
   try {
-    const { InviteCodeService } = await import('../services/invite-code-service');
+    const { InviteCodeService } = await import('../services/invite-code-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -522,7 +522,7 @@ events.put('/:eventoid/invite-codes/:codigoid/deactivate', async (c) => {
 // GET /api/events/:eventoid/colaboradores - Obtener colaboradores del evento
 events.get('/:eventoid/colaboradores', async (c) => {
   try {
-    const { InviteCodeService } = await import('../services/invite-code-service');
+    const { InviteCodeService } = await import('../services/invite-code-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -552,7 +552,7 @@ events.get('/:eventoid/colaboradores', async (c) => {
 // GET /api/events/:eventoid/stats - Obtener estadísticas de tickets
 events.get('/:eventoid/stats', async (c) => {
   try {
-    const { ScannerService } = await import('../services/scanner-service');
+    const { ScannerService } = await import('../services/scanner-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -577,7 +577,7 @@ events.get('/:eventoid/stats', async (c) => {
 // POST /api/events/:eventoid/scan - Escanear un ticket
 events.post('/:eventoid/scan', async (c) => {
   try {
-    const { ScannerService } = await import('../services/scanner-service');
+    const { ScannerService } = await import('../services/scanner-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -608,7 +608,7 @@ events.post('/:eventoid/scan', async (c) => {
 // GET /api/events/:eventoid/tickets - Obtener entradas de un evento
 events.get('/:eventoid/tickets', async (c) => {
   try {
-    const { ScannerService } = await import('../services/scanner-service');
+    const { ScannerService } = await import('../services/scanner-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
@@ -639,7 +639,7 @@ events.get('/:eventoid/tickets', async (c) => {
 // GET /api/events/:eventoid/activity - Obtener actividad del scanner
 events.get('/:eventoid/activity', async (c) => {
   try {
-    const { ScannerService } = await import('../services/scanner-service');
+    const { ScannerService } = await import('../services/scanner-service.js');
     const jwtPayload = validateJWT(c);
 
     if (!jwtPayload?.id) {
