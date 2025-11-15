@@ -128,11 +128,7 @@ function Navbar() {
                     description="Artículos y noticias sobre eventos"
                   />
 
-                  <a
-                    href="/api-docs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/api-docs" target="_blank" rel="noopener noreferrer">
                     <ProductItem
                       title="Documentación API"
                       href="/api-docs"
@@ -359,7 +355,6 @@ function Navbar() {
                           Blog
                         </Link>
 
-                     
                         <Link
                           href="/api-docs"
                           target="_blank"

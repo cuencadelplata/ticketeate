@@ -11,7 +11,7 @@ export default function ApiDocsPage() {
           docExpansion="none"
           defaultModelsExpandDepth={-1}
           // cookies de la sesion
-        
+
           requestInterceptor={(req: any) => {
             req.credentials = 'include';
             return req;
