@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.9...svc-checkout-v1.4.0) (2025-11-15)
+
+
+### Features
+
+* **svc-users:** mp oauth link ([#135](https://github.com/cuencadelplata/ticketeate/issues/135)) ([8ece996](https://github.com/cuencadelplata/ticketeate/commit/8ece99694e3a334c64e45d1491b5806a34bad0dd))
+* **svc-users:** mp oauth link ([ef83ec4](https://github.com/cuencadelplata/ticketeate/commit/ef83ec47af7aecbf16931839ab3af894aced4821))
+
 ## [1.3.9](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.8...svc-checkout-v1.3.9) (2025-11-14)
 
 
