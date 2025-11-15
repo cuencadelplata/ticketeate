@@ -9,6 +9,7 @@ import { SearchIcon, MenuIcon, X, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/search-context';
 import { motion, AnimatePresence } from 'framer-motion';
+import UserNav from './usernav';
 
 export function NewNavbar() {
   return <Navbar />;
@@ -179,12 +180,7 @@ function Navbar() {
             ) : (
               <>
                 {isAuthenticated ? (
-                  <Link
-                    href="/eventos"
-                    className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
-                  >
-                    Mi Panel
-                  </Link>
+                  <UserNav />
                 ) : (
                   <Link
                     href="/sign-in"
@@ -197,7 +193,7 @@ function Navbar() {
             )}
             <Link
               href="/crear"
-              className="px-4 lg:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+              className="px-2 lg:px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
             >
               Crear Evento
             </Link>
@@ -451,12 +447,7 @@ function Navbar() {
                 ) : (
                   <>
                     {isAuthenticated ? (
-                      <Link
-                        href="/eventos"
-                        className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
-                      >
-                        Mi Panel
-                      </Link>
+                      <UserNav />
                     ) : (
                       <Link
                         href="/sign-in"
