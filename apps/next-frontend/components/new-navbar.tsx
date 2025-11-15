@@ -168,7 +168,10 @@ function Navbar() {
           </div>
 
           {/* Botones de acción - Desktop y Mobile */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-2 lg:ml-8">
+          <div
+            className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-2 lg:ml-8"
+            suppressHydrationWarning
+          >
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="w-24 h-9 bg-stone-800 rounded-md animate-pulse"></div>
@@ -441,6 +444,7 @@ function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.4 }}
                 className="pt-4 space-y-3"
+                suppressHydrationWarning
               >
                 {isLoading ? (
                   <div className="w-full h-12 bg-stone-800 rounded-md animate-pulse"></div>
