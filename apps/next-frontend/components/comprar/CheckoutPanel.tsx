@@ -241,10 +241,10 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               <span className="text-xl">✓</span>
               <div>
                 <div className="text-sm font-semibold text-green-800">
-                  {cuponAplicado.codigo} aplicado
+                  ¡Descuento aplicado!
                 </div>
                 <div className="text-xs text-green-700">
-                  -{cuponAplicado.porcentaje_descuento}% de descuento
+                  Cupón {cuponAplicado.codigo} (-{cuponAplicado.porcentaje_descuento}%)
                 </div>
               </div>
             </div>
