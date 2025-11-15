@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Mail, Lock, UserCircle } from 'lucide-react';
 import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
@@ -110,13 +110,10 @@ export default function AuthModal({
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-<<<<<<< HEAD
     if (tab === 'register' && role === 'ORGANIZADOR' && !formData.inviteCode.trim()) {
       showError('El código de organizador es requerido');
       return false;
     }
-=======
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
     return true;
   };
 
@@ -218,7 +215,6 @@ export default function AuthModal({
         name: formData.email,
       });
 
-<<<<<<< HEAD
       // ORGANIZADOR requiere código
       const res = await fetch('/api/auth/assign-role', {
         method: 'POST',
@@ -228,19 +224,6 @@ export default function AuthModal({
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error || 'No se pudo asignar el rol');
-=======
-     if (role === 'ORGANIZADOR') {
-        // ORGANIZADOR no requiere código
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
       }
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
@@ -283,10 +266,7 @@ export default function AuthModal({
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-<<<<<<< HEAD
   const inviteRequired = role === 'ORGANIZADOR';
-=======
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
   const isFormValid =
   formData.email.trim().length > 0 &&
   formData.password.trim().length > 0 &&
@@ -298,12 +278,14 @@ const disableSubmit = loading || !isFormValid;
   return (
     <Dialog
       open={open}
-      onOpenChange={() => {
-        // No permitir cerrar el modal hasta que esté autenticado como ORGANIZADOR
-        return;
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
       }}
     >
       <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Autenticación</DialogTitle>
+        </DialogHeader>
         {/* Header tabs */}
         <div className="grid grid-cols-2">
           <button
@@ -347,7 +329,6 @@ const disableSubmit = loading || !isFormValid;
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
-<<<<<<< HEAD
               <div className="grid grid-cols-1 gap-2">
                 {(['ORGANIZADOR'] as Role[]).map((r) => (
                   <button
@@ -379,30 +360,6 @@ const disableSubmit = loading || !isFormValid;
                   <p className="text-xs text-stone-500">Requerido para crear eventos.</p>
                 </div>
               )}
-=======
-           <div className="grid grid-cols-2 gap-2">
-  {(['ORGANIZADOR'] as Role[]).map((r) => (
-    <button
-      key={r}
-      type="button"
-      onClick={() => setRole(r)}
-      className={`rounded-xl border p-3 text-left text-sm ${
-        role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
-      }`}
-    >
-      <div className="font-semibold">
-        Organizador
-      </div>
-
-      <div className="text-xs text-stone-400">
-        Crea y gestiona eventos (sin código requerido)
-      </div>
-    </button>
-  ))}
-</div>
-
-             
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
 
               <div className="space-y-2">
                 <div className="relative">
