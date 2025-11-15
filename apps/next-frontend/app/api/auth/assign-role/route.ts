@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import { prisma } from '@repo/db';
 import * as jwt from 'jsonwebtoken';
 

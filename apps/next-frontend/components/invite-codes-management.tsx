@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Trash2, Plus } from 'lucide-react';
+import { Copy, Trash2, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useCreateInviteCode,
