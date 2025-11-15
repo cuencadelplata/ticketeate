@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
-import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail } from '@/lib/auth-client';
+import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
+type Role = 'USUARIO' | 'ORGANIZADOR';
 
 type Props = {
   defaultTab?: 'login' | 'register';
@@ -25,15 +25,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [resendingOtp, setResendingOtp] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0); // Segundos restantes para reenviar
+  // OTP deshabilitado: solo email+password
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     inviteCode: '',
   });
+  const [loginAsOrganizer, setLoginAsOrganizer] = useState(false);
+  const [loginInviteCode, setLoginInviteCode] = useState('');
 
   // Función para mostrar errores
   const showError = (message: string) => {
@@ -42,27 +41,13 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   };
 
   useEffect(() => {
-    // No redirigir si:
-    // 1. Estamos mostrando el formulario de verificación OTP, O
-    // 2. El usuario no ha verificado su email aún
     if (session) {
       const user = session.user as any;
-      const emailVerified = user?.emailVerified;
-
-      // Si no está verificado, mostrar formulario OTP
-      if (!emailVerified && !showOtpVerification) {
-        setShowOtpVerification(true);
-        return;
-      }
-
-      // Si está verificado y no estamos en el flujo OTP, redirigir
-      if (emailVerified && !showOtpVerification) {
-        const r = user?.role as Role | undefined;
-        const target = sp.get('redirect_url') || roleToPath(r);
-        router.push(target);
-      }
+      const r = user?.role as Role | undefined;
+      const target = sp.get('redirect_url') || roleToPath(r);
+      router.push(target);
     }
-  }, [session, sp, router, showOtpVerification]);
+  }, [session, sp, router]);
 
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
@@ -111,12 +96,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       showError('La contraseña es requerida');
       return false;
     }
-    if (formData.password.length < 6) {
+  if (formData.password.length < 6) {
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-    if (tab === 'register' && role === 'COLABORADOR' && !formData.inviteCode.trim()) {
-      showError('El código de invitación es requerido para COLABORADOR');
+    if (tab === 'register' && role === 'ORGANIZADOR' && !formData.inviteCode.trim()) {
+      showError('El código de organizador es requerido');
       return false;
     }
     return true;
@@ -133,10 +118,32 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     setErr(null);
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email: formData.email,
         password: formData.password,
       });
+
+      // Algunos clientes no lanzan excepción y retornan { error }
+      if ((result as any)?.error) {
+        throw new Error((result as any).error?.message || 'Email o contraseña incorrectos');
+      }
+
+      // Si quiere ingresar como organizador y provee código, elevar rol
+      if (loginAsOrganizer && loginInviteCode.trim()) {
+        try {
+          const res = await fetch('/api/auth/assign-role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'ORGANIZADOR', inviteCode: loginInviteCode.trim() }),
+          });
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(j?.error || 'No se pudo actualizar a organizador');
+          }
+        } catch (e: any) {
+          showError(e?.message || 'No se pudo actualizar a organizador');
+        }
+      }
 
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
@@ -163,7 +170,17 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
           error.message.includes('Invalid email') ||
           error.message.includes('invalid email')
         ) {
-          errorMessage = 'Email inválido';
+          errorMessage = 'Email y contraseña inválidos';
+        }
+      }
+
+      // Si no pudimos inferir, verificamos si el usuario existe para personalizar el mensaje
+      if (errorMessage === 'Email o contraseña incorrectos') {
+        try {
+          const exists = await checkUserExists(formData.email);
+          errorMessage = exists ? 'Contraseña incorrecta' : 'Usuario no encontrado';
+        } catch {
+          // Ignorar y mantener el mensaje por defecto
         }
       }
 
@@ -196,18 +213,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       }
 
       // Asignar rol según el tipo seleccionado
-      if (role === 'COLABORADOR') {
-        // COLABORADOR requiere código de invitación
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
-      } else if (role === 'ORGANIZADOR') {
+      else if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
@@ -221,13 +227,11 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       }
       // USUARIO no requiere asignación de rol adicional - se asigna por defecto en el callback de auth
 
-      // Mostrar formulario de verificación OTP en la misma página
+      // Registro exitoso: continuar sin verificación por código
       setLoading(false);
-      setShowOtpVerification(true);
-
-      // No enviar OTP aquí - ya se envió automáticamente por sendVerificationOnSignUp
-      // await sendOtpCode();
-      return; // Salir para evitar mostrar error
+      // Hacer login automático
+      await signIn.email({ email: formData.email, password: formData.password });
+      return;
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 
@@ -258,100 +262,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     }
   }
 
-  // useEffect para el countdown del cooldown
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
-
-  // Función para enviar código OTP
-  const sendOtpCode = async () => {
-    if (resendCooldown > 0) {
-      showError(`Espera ${resendCooldown} segundos antes de reenviar`);
-      return;
-    }
-
-    try {
-      setResendingOtp(true);
-      setErr(null);
-
-      const result = await sendVerificationOTP({
-        email: formData.email,
-        type: 'email-verification',
-      });
-
-      if (result.error) {
-        showError('Error al enviar el código. Intenta nuevamente.');
-      } else {
-        // Iniciar cooldown de 60 segundos
-        setResendCooldown(60);
-      }
-    } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      showError('Error al enviar el código. Intenta nuevamente.');
-    } finally {
-      setResendingOtp(false);
-    }
-  };
-
-  // Función para verificar código OTP
-  const verifyOtpCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (otp.length !== 6) {
-      showError('Ingresa el código de 6 dígitos');
-      return;
-    }
-
-    setLoading(true);
-    setErr(null);
-
-    try {
-      console.log('Verificando OTP:', { email: formData.email, otp });
-
-      const result = await verifyEmail({
-        email: formData.email,
-        otp,
-      });
-
-      console.log('Resultado de verificación:', result);
-
-      if (result.error) {
-        console.error('Error en verifyEmail:', result.error);
-        throw new Error(result.error.message || 'Código inválido');
-      }
-
-      // Email verificado exitosamente, hacer login automático
-      const loginResult = await signIn.email({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      console.log('Login result:', loginResult);
-
-      // Esperar un momento para que la sesión se actualice
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // La redirección se manejará automáticamente por el useEffect
-      // que detectará la sesión con emailVerified: true
-      setShowOtpVerification(false);
-    } catch (error: any) {
-      console.error('Error verifying OTP:', error);
-      let errorMessage = 'Código incorrecto o expirado';
-
-      if (error?.message?.includes('TOO_MANY_ATTEMPTS')) {
-        errorMessage = 'Demasiados intentos. Solicita un nuevo código.';
-      }
-
-      showError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Sin OTP: no hay envío ni verificación de código
 
   // Indicador de fortaleza de contraseña
   const getPasswordStrength = (password: string) => {
@@ -364,12 +275,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-  const inviteRequired = role === 'COLABORADOR';
+  const inviteRequired = role === 'ORGANIZADOR';
   const isFormValid =
-    formData.email.trim() &&
-    formData.password.trim() &&
-    formData.password.length >= 6 &&
-    (!inviteRequired || formData.inviteCode.trim());
+  formData.email.trim() &&
+  formData.password.trim() &&
+  formData.password.length >= 6;
+
 
   const disableSubmit = loading || !isFormValid;
 
@@ -378,9 +289,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       case 'USUARIO':
         return 'Compra entradas y participa en eventos';
       case 'ORGANIZADOR':
-        return 'Crea y gestiona eventos (sin código requerido)';
-      case 'COLABORADOR':
-        return 'Escanea entradas y valida tickets (requiere código)';
+        return 'Crea y gestiona eventos (requiere código)';
       default:
         return '';
     }
@@ -392,101 +301,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         return 'Usuario';
       case 'ORGANIZADOR':
         return 'Organizador';
-      case 'COLABORADOR':
-        return 'Colaborador';
       default:
         return role;
     }
   };
 
-  // Si está en modo de verificación OTP, mostrar el formulario de OTP
-  if (showOtpVerification) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 flex items-center justify-center p-4 relative">
-        {/* Imagen de fondo opacada */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: 'url(/ticketeate-hero.webp)' }}
-        />
-        {/* Overlay para mejorar legibilidad */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="w-full max-w-md relative z-10">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Verifica tu email</h1>
-            <p className="text-stone-400">
-              Hemos enviado un código de 6 dígitos a{' '}
-              <strong className="text-white">{formData.email}</strong>
-            </p>
-          </div>
-
-          <div className="bg-stone-900 rounded-2xl p-6 shadow-2xl">
-            <form onSubmit={verifyOtpCode} className="space-y-4">
-              <div>
-                <label className="text-sm text-stone-400 mb-2 block">Código de verificación</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  maxLength={6}
-                  className="w-full rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-center text-2xl font-bold tracking-widest text-white outline-none focus:border-orange-500"
-                  disabled={loading}
-                  autoComplete="off"
-                />
-                <p className="mt-2 text-xs text-stone-500">El código expira en 10 minutos</p>
-              </div>
-
-              {err && (
-                <div className="rounded-lg bg-red-900/20 border border-red-700/50 px-3 py-2 text-sm text-red-400">
-                  {err}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-3 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  'Verificar código'
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={sendOtpCode}
-                disabled={resendingOtp || resendCooldown > 0}
-                className="w-full text-sm text-stone-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {resendingOtp
-                  ? 'Enviando...'
-                  : resendCooldown > 0
-                    ? `Reenviar en ${resendCooldown}s`
-                    : '¿No recibiste el código? Reenviar'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOtpVerification(false);
-                  setOtp('');
-                  setErr(null);
-                }}
-                className="w-full text-sm text-stone-400 hover:text-white"
-              >
-                Volver atrás
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // No UI de verificación: seguimos directo con el formulario principal
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 flex items-center justify-center p-4 relative">
@@ -567,7 +387,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
               <form onSubmit={doRegister} className="space-y-3">
                 {/* Role selector */}
                 <div className="grid grid-cols-1 gap-2">
-                  {(['USUARIO', 'ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
+                  {(['USUARIO', 'ORGANIZADOR'] as Role[]).map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -585,14 +405,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 {/* Invite code */}
                 {inviteRequired && (
                   <div className="space-y-1">
-                    <label className="text-xs text-stone-400">Código de invitación</label>
+                    <label className="text-xs text-stone-400">Código de organizador</label>
                     <input
                       value={formData.inviteCode}
                       onChange={(e) => updateFormData('inviteCode', e.target.value)}
-                      placeholder="Ingresa tu código"
+                      placeholder="Ingresa tu código de organizador"
                       className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
                     />
-                    <p className="text-xs text-stone-500">Requerido solo para COLABORADOR.</p>
+                    <p className="text-xs text-stone-500">Requerido para crear y gestionar eventos.</p>
                   </div>
                 )}
 
@@ -692,6 +512,28 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                       className="w-full rounded-lg border border-stone-700 bg-stone-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-orange-500"
                     />
                   </div>
+                </div>
+
+                {/* Opción: ingresar como organizador */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs text-stone-400">
+                    <input
+                      type="checkbox"
+                      checked={loginAsOrganizer}
+                      onChange={(e) => setLoginAsOrganizer(e.target.checked)}
+                      className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+                    />
+                    Ingresar como organizador
+                  </label>
+                  {loginAsOrganizer && (
+                    <input
+                      type="text"
+                      value={loginInviteCode}
+                      onChange={(e) => setLoginInviteCode(e.target.value)}
+                      placeholder="Código de organizador"
+                      className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                    />
+                  )}
                 </div>
 
                 <button

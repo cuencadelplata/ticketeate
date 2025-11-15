@@ -88,20 +88,19 @@ function ResetPasswordForm() {
       setLoading(false);
     }
   };
-
+  
   if (success) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl">
+    return (   <div className="flex min-h-screen items-center justify-center bg-black p-4">
+        <div className="w-full max-w-md space-y-6 rounded-2xl bg-stone-900 p-8 shadow-xl">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
+              <CheckCircle className="h-8 w-8 text-orange-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">¡Contraseña restablecida!</h2>
-            <p className="mt-3 text-sm text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-200">¡Contraseña restablecida!</h2>
+            <p className="mt-3 text-sm text-gray-200">
               Tu contraseña ha sido actualizada exitosamente.
             </p>
-            <p className="mt-2 text-sm text-gray-500">Serás redirigido al inicio de sesión...</p>
+            <p className="mt-2 text-sm text-gray-200">Serás redirigido al inicio de sesión...</p>
           </div>
         </div>
       </div>
@@ -109,27 +108,27 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br bg-black p-4">
+      <div className="w-full max-w-md space-y-6 rounded-2xl bg-stone-900 p-8 shadow-xl">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">Restablecer contraseña</h2>
-          <p className="mt-2 text-sm text-gray-600">Ingresa tu nueva contraseña</p>
+          <h2 className="text-2xl font-bold text-white">Restablecer contraseña</h2>
+          <p className="mt-2 text-sm text-gray-200">Ingresa tu nueva contraseña</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-200">
               Nueva contraseña
             </label>
             <div className="relative mt-1">
-              <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-200" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-12 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-12 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 disabled={loading || !token}
               />
               <button
@@ -143,7 +142,7 @@ function ResetPasswordForm() {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-200">
               Confirmar contraseña
             </label>
             <div className="relative mt-1">
@@ -154,7 +153,7 @@ function ResetPasswordForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repite tu contraseña"
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-12 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border- py-2.5 pl-10 pr-12 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 disabled={loading || !token}
               />
               <button
@@ -167,12 +166,12 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+          {error && <div className="rounded-lg bg-red-700/30 p-3 text-sm text-red-500">{error}</div>}
 
           <button
             type="submit"
             disabled={loading || !token}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -186,7 +185,7 @@ function ResetPasswordForm() {
         </form>
 
         <div className="text-center">
-          <Link href="/sign-in" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link href="/sign-in" className="text-sm text-gray-200 hover:text-gray-400">
             Volver al inicio de sesión
           </Link>
         </div>
@@ -200,7 +199,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
         </div>
       }
     >

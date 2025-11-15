@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma, change_type } from '@repo/db';
+import { prisma } from '@repo/db';
 import { auth } from '@/lib/auth';
+
+const change_type = {
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
+} as const;
 
 // GET - Obtener cupones de un evento
 export async function GET(request: NextRequest) {

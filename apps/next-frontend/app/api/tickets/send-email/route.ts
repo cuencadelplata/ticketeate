@@ -5,6 +5,23 @@ import type { TicketData } from '@/lib/services/ticket-generator';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Función para formatear el email "from" correctamente
+// Acepta:
+// - Solo email: "noreply@ticketeate.com.ar" → "Ticketeate <noreply@ticketeate.com.ar>"
+// - Formato completo: "Ticketeate <noreply@ticketeate.com.ar>" → se usa tal cual
+const formatFromEmail = (email: string): string => {
+  // Si ya viene con formato completo (contiene < y >)
+  if (email.includes('<') && email.includes('>')) {
+    return email;
+  }
+  // Si solo es un email, agregar el nombre
+  return `Ticketeate <${email}>`;
+};
+
+// Remitente configurable
+const RAW_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@ticketeate.com.ar';
+const FROM_EMAIL = formatFromEmail(RAW_FROM_EMAIL);
+
 export interface SendTicketEmailRequest {
   to: string;
   userName?: string;
@@ -40,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Enviar email con Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Ticketeate <noreply@ticketeate.page>',
+      from: FROM_EMAIL,
       to: [to],
       subject: `🎉 Tu entrada para ${ticketData.eventTitle}`,
       html: generateEmailHTML(userName || 'Usuario', ticketData),

@@ -8,7 +8,46 @@ if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error('BETTER_AUTH_SECRET is not set');
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend es opcional - solo se inicializa si la API key está configurada
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+
+const formatFromEmail = (email: string): string => {
+
+  if (email.includes('<') && email.includes('>')) {
+    return email;
+  }
+ 
+  return `Ticketeate <${email}>`;
+};
+
+
+const RAW_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+const FROM_EMAIL = formatFromEmail(RAW_FROM_EMAIL);
+
+
+const sendEmail = async (options: {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}) => {
+  if (!resend) {
+    const errorMsg = 'RESEND_API_KEY is not set. Email functionality is disabled.';
+    console.error('[Email]', errorMsg);
+    console.error(
+      '[Email] To enable email functionality, set RESEND_API_KEY in your .env.local file',
+    );
+    console.error('[Email] Get your API key from: https://resend.com/api-keys');
+    throw new Error(errorMsg);
+  }
+
+  const { error } = await resend.emails.send(options);
+  if (error) {
+    console.error('[Email] Resend error:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+};
 
 export const auth = betterAuth({
   url: process.env.BETTER_AUTH_URL,
@@ -17,10 +56,10 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Permitir registro pero verificar después
+    requireEmailVerification: false, 
     sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
-      await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+      await sendEmail({
+        from: FROM_EMAIL,
         to: [user.email],
         subject: 'Restablecer contraseña - Ticketeate',
         html: `
@@ -36,8 +75,8 @@ export const auth = betterAuth({
       });
     },
     sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
-      await resend.emails.send({
-        from: 'Ticketeate <noreply@ticketeate.page>',
+      await sendEmail({
+        from: FROM_EMAIL,
         to: [user.email],
         subject: 'Verificar correo electrónico - Ticketeate',
         html: `
@@ -54,12 +93,17 @@ export const auth = betterAuth({
     },
   },
 
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-  },
+  // Configuración de Google OAuth (opcional)
+  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        socialProviders: {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          },
+        },
+      }
+    : {}),
 
   plugins: [
     emailOTP({
@@ -79,8 +123,8 @@ export const auth = betterAuth({
         };
 
         try {
-          const { error } = await resend.emails.send({
-            from: 'Ticketeate <onboarding@ticketeate.page>',
+          await sendEmail({
+            from: FROM_EMAIL,
             to: [email],
             subject: subjects[type] || 'Código de verificación - Ticketeate',
             html: `
@@ -95,11 +139,6 @@ export const auth = betterAuth({
               </div>
             `,
           });
-
-          if (error) {
-            console.error('[OTP] Resend error:', error);
-            throw new Error(`Failed to send OTP: ${error.message}`);
-          }
         } catch (error) {
           console.error('[OTP] Failed to send email:', error);
           throw error;
@@ -107,7 +146,7 @@ export const auth = betterAuth({
       },
       otpLength: 6,
       expiresIn: 600, // 10 minutos
-      sendVerificationOnSignUp: true, // Enviar OTP automáticamente al registrarse
+      sendVerificationOnSignUp: false, // No enviar OTP automáticamente al registrarse
     }),
     customSession(async ({ user, session }) => {
       // Obtener el usuario completo de la base de datos para incluir el rol

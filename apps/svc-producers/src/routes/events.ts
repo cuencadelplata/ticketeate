@@ -33,6 +33,9 @@ events.post('/', async (c) => {
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
     }
+    if (jwtPayload?.role !== 'ORGANIZADOR') {
+      return c.json({ error: 'Se requiere rol de ORGANIZADOR para crear eventos' }, 403);
+    }
 
     const body = await c.req.json();
 
@@ -92,6 +95,9 @@ events.post('/upload-image', async (c) => {
     const jwtPayload = getJwtPayload(c);
     if (!jwtPayload?.id) {
       return c.json({ error: 'Usuario no autenticado' }, 401);
+    }
+    if (jwtPayload?.role !== 'ORGANIZADOR') {
+      return c.json({ error: 'Se requiere rol de ORGANIZADOR para subir imágenes' }, 403);
     }
 
     // Usar formData para procesar el archivo

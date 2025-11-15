@@ -1,0 +1,1080 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ticketeate API",
+    "version": "1.0.0",
+    "description": "Documentación de la API de Ticketeate (OAS 3.0)."
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Desarrollo local" }
+  ],
+  "tags": [
+    { "name": "Admin" },
+    { "name": "Auth" },
+    { "name": "Compras" },
+    { "name": "Cupones" },
+    { "name": "Eventos" },
+    { "name": "GitHub" },
+    { "name": "Pagos (MercadoPago/Stripe)" },
+    { "name": "Perfil" },
+    { "name": "Cola de Tickets (Queue)" },
+    { "name": "Revalidate" },
+    { "name": "Tickets" },
+    { "name": "Uploads" },
+    { "name": "Usuarios" },
+    { "name": "Vistas/Views" }
+  ],
+  "paths": {
+    "/api/admin/views": {
+     "get": {
+    "tags": ["Admin"],
+    "summary": "Resumen de contadores de vistas pendientes en Redis",
+    "description": "Lee claves `event:*:views` en Redis (Upstash) y devuelve métricas globales (pendientes) por evento.",
+    "responses": {
+      "200": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pendingSync": { "type": "integer", "description": "Cantidad de claves event:*:views en Redis" },
+                "totalPendingViews": { "type": "integer", "description": "Suma de todas las vistas pendientes" },
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "eventId": { "type": "string" },
+                      "pendingViews": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            },
+            "example": {
+              "pendingSync": 2,
+              "totalPendingViews": 57,
+              "events": [
+                { "eventId": "evt_001", "pendingViews": 42 },
+                { "eventId": "evt_002", "pendingViews": 15 }
+              ]
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Error al leer Redis o Redis no configurado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            },
+            "examples": {
+              "no_redis": { "value": { "error": "Redis not configured" } },
+              "runtime": { "value": { "error": "Failed to fetch views stats", "message": "Unknown error" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": ["Admin"],
+    "summary": "Sincronizar vistas desde Redis a Postgres",
+    "description": "Para cada clave `event:*:views`, incrementa `eventos.views`, sincroniza vistas diarias (`evento_views_history`) y elimina la clave en Redis.",
+    "requestBody": { "description": "No requiere body", "content": {} },
+    "responses": {
+      "200": {
+        "description": "Sincronización ejecutada (puede no haber claves para sincronizar)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "synced": { "type": "integer", "description": "Total de vistas aplicadas a DB" },
+                "processed": { "type": "integer", "description": "Cantidad de claves procesadas" },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "eventId": { "type": "string" },
+                      "count": { "type": "integer" },
+                      "synced": { "type": "boolean" },
+                      "error": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "con_sync": {
+                "value": {
+                  "message": "View sync completed",
+                  "synced": 57,
+                  "processed": 2,
+                  "results": [
+                    { "eventId": "evt_001", "count": 42, "synced": true },
+                    { "eventId": "evt_002", "count": 15, "synced": true }
+                  ]
+                }
+              },
+              "sin_claves": {
+                "value": { "message": "No view counters to sync", "synced": 0 }
+              },
+              "con_error_parcial": {
+                "value": {
+                  "message": "View sync completed",
+                  "synced": 42,
+                  "processed": 2,
+                  "results": [
+                    { "eventId": "evt_001", "count": 42, "synced": true },
+                    { "eventId": "evt_XXX", "count": 0, "synced": false, "error": "Record to update not found." }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Error al sincronizar o Redis no configurado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            },
+            "examples": {
+              "no_redis": { "value": { "error": "Redis not configured" } },
+              "runtime": { "value": { "error": "Failed to sync views", "message": "Unknown error" } }
+            }
+          }
+        }
+      }
+    }
+  }
+      
+    },
+
+    "/api/auth/assign-role": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Asignar rol a usuario",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "userId": { "type": "string" }, "role": { "type": "string" } }, "required": ["userId","role"] } } } },
+        "responses": { "200": { "description": "Rol asignado" } }
+      }
+    },
+    "/api/auth/check-user": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verificar usuario/credenciales",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+    "/api/auth/otp": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Solicitar/verificar OTP",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/auth/password-reset": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset de contraseña",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/auth/token": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Obtener token/estado",
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+
+    "/api/comprar": {
+      "post": {
+    "tags": ["Compras"],
+    "summary": "Realizar compra de entradas",
+    "description": "Crea reserva, entradas, pago, movimiento de stock y registro en historial. Valida campos requeridos y método de pago. Para tarjetas hace validaciones básicas de formato.",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": ["id_usuario", "id_evento", "cantidad", "metodo_pago"],
+            "properties": {
+              "id_usuario": { "type": "integer", "example": 123 },
+              "id_evento": { "type": "string", "description": "UUID del evento", "example": "evt_001" },
+              "cantidad": { "type": "integer", "minimum": 1, "maximum": 5, "example": 2 },
+              "metodo_pago": {
+                "type": "string",
+                "enum": ["tarjeta_credito", "tarjeta_debito", "stripe", "mercado_pago"],
+                "example": "tarjeta_credito"
+              },
+              "moneda": { "type": "string", "description": "Código ISO interno (ARS|USD|EUR)", "example": "ARS" },
+              "datos_tarjeta": {
+                "type": "object",
+                "description": "Obligatorio si metodo_pago es tarjeta_*",
+                "properties": {
+                  "numero": { "type": "string", "description": "13-19 dígitos", "example": "4111111111111111" },
+                  "vencimiento": { "type": "string", "description": "MM/AA", "example": "12/27" },
+                  "cvv": { "type": "string", "description": "3-4 dígitos", "example": "123" },
+                  "dni": { "type": "string", "description": "7-10 dígitos", "example": "30123456" }
+                }
+              }
+            }
+          },
+          "examples": {
+            "tarjeta_credito": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 2,
+                "metodo_pago": "tarjeta_credito",
+                "moneda": "ARS",
+                "datos_tarjeta": {
+                  "numero": "4111111111111111",
+                  "vencimiento": "12/27",
+                  "cvv": "123",
+                  "dni": "30123456"
+                }
+              }
+            },
+            "stripe": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 1,
+                "metodo_pago": "stripe",
+                "moneda": "USD"
+              }
+            },
+            "mercado_pago": {
+              "value": {
+                "id_usuario": 123,
+                "id_evento": "evt_001",
+                "cantidad": 3,
+                "metodo_pago": "mercado_pago",
+                "moneda": "ARS"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Compra creada correctamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reserva": {
+                  "type": "object",
+                  "properties": {
+                    "reservaid": { "type": "string" },
+                    "usuarioid": { "type": "string" },
+                    "eventoid": { "type": "string" },
+                    "fechaid": { "type": "string" },
+                    "categoriaid": { "type": "string" },
+                    "cantidad": { "type": "integer" },
+                    "estado": { "type": "string", "example": "CONFIRMADA" }
+                  }
+                },
+                "pago": {
+                  "type": "object",
+                  "properties": {
+                    "pagoid": { "type": "string" },
+                    "reservaid": { "type": "string" },
+                    "metodo_pago": { "type": "string" },
+                    "monto_total": { "type": "string", "description": "Decimal como string" },
+                    "estado": { "type": "string", "example": "COMPLETADO" }
+                  }
+                },
+                "entradas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "entradaid": { "type": "string" },
+                      "reservaid": { "type": "string" },
+                      "codigo_qr": { "type": "string" },
+                      "estado": { "type": "string", "example": "VALIDA" }
+                    }
+                  }
+                },
+                "historialId": { "type": "string" },
+                "resumen": {
+                  "type": "object",
+                  "properties": {
+                    "total_entradas": { "type": "integer" },
+                    "precio_unitario": { "type": "string" },
+                    "monto_total": { "type": "string" },
+                    "metodo_pago": { "type": "string" },
+                    "estado": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "example": {
+              "reserva": {
+                "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                "usuarioid": "123",
+                "eventoid": "evt_001",
+                "fechaid": "fec_001",
+                "categoriaid": "stk_001",
+                "cantidad": 2,
+                "estado": "CONFIRMADA"
+              },
+              "pago": {
+                "pagoid": "e3a6b5a8-2f61-4f1b-9d9f-7d3f0b2f9876",
+                "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                "metodo_pago": "tarjeta_credito",
+                "monto_total": "24000.00",
+                "estado": "COMPLETADO"
+              },
+              "entradas": [
+                {
+                  "entradaid": "e1",
+                  "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                  "codigo_qr": "c0a801b5-...-0",
+                  "estado": "VALIDA"
+                },
+                {
+                  "entradaid": "e2",
+                  "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                  "codigo_qr": "c0a801b5-...-1",
+                  "estado": "VALIDA"
+                }
+              ],
+              "historialId": "h_abc123",
+              "resumen": {
+                "total_entradas": 2,
+                "precio_unitario": "12000.00",
+                "monto_total": "24000.00",
+                "metodo_pago": "tarjeta_credito",
+                "estado": "Compra procesada exitosamente"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Solicitud inválida (faltan campos / cantidad fuera de rango / método inválido / datos de tarjeta inválidos / evento sin fechas o stock)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "campos_requeridos": { "type": "array", "items": { "type": "string" } },
+                "debug": {
+                  "type": "object",
+                  "properties": {
+                    "tiene_fechas": { "type": "boolean" },
+                    "tiene_stock": { "type": "boolean" },
+                    "fechas_count": { "type": "integer" },
+                    "stock_count": { "type": "integer" }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "faltan_campos": {
+                "value": {
+                  "error": "Faltan campos requeridos",
+                  "campos_requeridos": ["id_usuario", "id_evento", "cantidad", "metodo_pago"]
+                }
+              },
+              "cantidad_invalida": { "value": { "error": "Cantidad debe estar entre 1 y 5" } },
+              "metodo_invalido": {
+                "value": { "error": "Método de pago no válido. Use: tarjeta_credito, tarjeta_debito, stripe o mercado_pago" }
+              },
+              "tarjeta_invalida": {
+                "value": {
+                  "error": "Datos de tarjeta inválidos",
+                  "campos_requeridos": [
+                    "datos_tarjeta.numero (13-19 dígitos)",
+                    "datos_tarjeta.vencimiento (MM/AA)",
+                    "datos_tarjeta.cvv (3-4 dígitos)",
+                    "datos_tarjeta.dni (7-10 dígitos)"
+                  ]
+                }
+              },
+              "evento_sin_config": {
+                "value": {
+                  "error": "Evento no tiene fechas o stock de entradas configurado",
+                  "debug": { "tiene_fechas": false, "tiene_stock": true, "fechas_count": 0, "stock_count": 1 }
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Evento no encontrado",
+        "content": {
+          "application/json": {
+            "schema": { "type": "object", "properties": { "error": { "type": "string" } } },
+            "example": { "error": "Evento no encontrado o no disponible" }
+          }
+        }
+      },
+      "500": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "detalles": { "type": "string" }
+              }
+            },
+            "example": { "error": "Error interno del servidor", "detalles": "Unknown error" }
+          }
+        }
+      }
+    }
+  }
+    },
+    "/api/compras/historial": {
+      "get": {
+        "tags": ["Compras"],
+        "summary": "Historial de compras del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      }
+    },
+
+    "/api/cupones": {
+      "get": {
+        "tags": ["Cupones"],
+        "summary": "Obtener cupones (última versión por cupón) de un evento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del evento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cupones": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "cuponid": { "type": "string" },
+                          "eventoid": { "type": "string" },
+                          "codigo": { "type": "string" },
+                          "porcentaje_descuento": { "type": "number" },
+                          "fecha_creacion": { "type": "string", "format": "date-time" },
+                          "fecha_expiracion": { "type": "string", "format": "date-time" },
+                          "limite_usos": { "type": "integer" },
+                          "usos_actuales": { "type": "integer" },
+                          "estado": { "type": "string" },
+                          "version": { "type": "integer" },
+                          "changed_at": { "type": "string", "format": "date-time" },
+                          "changed_by": { "type": "string" },
+                          "change_type": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "cupones": [
+                    {
+                      "cuponid": "cup_123",
+                      "eventoid": "evt_001",
+                      "codigo": "EARLYBIRD",
+                      "porcentaje_descuento": 20,
+                      "fecha_creacion": "2025-10-01T10:00:00.000Z",
+                      "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                      "limite_usos": 100,
+                      "usos_actuales": 5,
+                      "estado": "ACTIVO",
+                      "version": 3,
+                      "changed_at": "2025-11-08T13:00:00.000Z",
+                      "changed_by": "usr_abc",
+                      "change_type": "UPDATE"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "description": "eventId es requerido" },
+          "401": { "description": "No autorizado" },
+          "403": { "description": "Sin permisos" },
+          "500": { "description": "Error del servidor" }
+        }
+      },
+      "post": {
+        "tags": ["Cupones"],
+        "summary": "Crear un nuevo cupón para un evento",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventId","codigo","porcentaje_descuento","fecha_expiracion","limite_usos"],
+                "properties": {
+                  "eventId": { "type": "string" },
+                  "codigo": { "type": "string" },
+                  "porcentaje_descuento": { "type": "number" },
+                  "fecha_expiracion": { "type": "string", "format": "date-time" },
+                  "limite_usos": { "type": "integer" }
+                }
+              },
+              "example": {
+                "eventId": "evt_001",
+                "codigo": "EARLY2025",
+                "porcentaje_descuento": 15,
+                "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                "limite_usos": 200
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "cupon": { "type": "object" } }
+                },
+                "example": {
+                  "cupon": {
+                    "cuponid": "cup_456",
+                    "eventoid": "evt_001",
+                    "codigo": "EARLY2025",
+                    "porcentaje_descuento": 15,
+                    "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                    "fecha_expiracion": "2025-12-31T23:59:59.000Z",
+                    "limite_usos": 200,
+                    "usos_actuales": 0,
+                    "estado": "ACTIVO",
+                    "version": 1,
+                    "updated_by": "usr_abc"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Faltan campos o duplicado" },
+          "401": { "description": "No autorizado" },
+          "403": { "description": "Sin permisos" },
+          "500": { "description": "Error del servidor" }
+        }
+      },
+      "patch": {
+        "tags": ["Cupones"],
+        "summary": "Actualizar un cupón (append-only history)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cuponId","eventId"],
+                "properties": {
+                  "cuponId": { "type": "string" },
+                  "eventId": { "type": "string" },
+                  "codigo": { "type": "string" },
+                  "porcentaje_descuento": { "type": "number" },
+                  "fecha_expiracion": { "type": "string", "format": "date-time" },
+                  "limite_usos": { "type": "integer" },
+                  "estado": { "type": "string" }
+                }
+              },
+              "example": {
+                "cuponId": "cup_456",
+                "eventId": "evt_001",
+                "codigo": "EARLY2025-2",
+                "porcentaje_descuento": 18,
+                "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                "limite_usos": 250,
+                "estado": "ACTIVO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "cupon": { "type": "object" } } },
+                "example": {
+                  "cupon": {
+                    "cuponid": "cup_456",
+                    "eventoid": "evt_001",
+                    "codigo": "EARLY2025-2",
+                    "porcentaje_descuento": 18,
+                    "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                    "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                    "limite_usos": 250,
+                    "usos_actuales": 0,
+                    "estado": "ACTIVO",
+                    "version": 2,
+                    "changed_by": "usr_abc",
+                    "change_type": "UPDATE"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "cuponId/eventId requeridos o conflicto" },
+          "401": { "description": "No autorizado" },
+          "403": { "description": "Sin permisos" },
+          "404": { "description": "No encontrado" },
+          "500": { "description": "Error del servidor" }
+        }
+      },
+      "delete": {
+        "tags": ["Cupones"],
+        "summary": "Eliminar (soft delete) un cupón",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "cuponId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "eventId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eliminado",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "cupon": { "type": "object" } } },
+                "example": {
+                  "cupon": {
+                    "cuponid": "cup_456",
+                    "eventoid": "evt_001",
+                    "codigo": "EARLY2025-2",
+                    "porcentaje_descuento": 18,
+                    "fecha_creacion": "2025-11-08T14:10:00.000Z",
+                    "fecha_expiracion": "2026-01-31T23:59:59.000Z",
+                    "limite_usos": 250,
+                    "usos_actuales": 0,
+                    "estado": "INACTIVO",
+                    "version": 3,
+                    "changed_by": "usr_abc",
+                    "change_type": "DELETE"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "cuponId y eventId requeridos" },
+          "401": { "description": "No autorizado" },
+          "403": { "description": "Sin permisos" },
+          "404": { "description": "No encontrado" },
+          "500": { "description": "Error del servidor" }
+        }
+      }
+    },
+
+    "/api/cupones/validate": {
+      "post": {
+        "tags": ["Cupones"],
+        "summary": "Validar cupón",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "code": { "type": "string" } }, "required": ["code"] } } } },
+        "responses": { "200": { "description": "Válido/Inválido" } }
+      }
+    },
+
+    "/api/generate-description": {
+      "post": {
+        "tags": ["Eventos"],
+        "summary": "Generar descripción (AI) para evento",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/get-events": {
+      "get": {
+        "tags": ["Eventos"],
+        "summary": "Listar eventos (servicio interno)",
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/github/deploys": {
+      "get": {
+        "tags": ["GitHub"],
+        "summary": "Listar deploys",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/github/workflows": {
+      "get": {
+        "tags": ["GitHub"],
+        "summary": "Listar workflows",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/mercadopago/auth": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Auth de MercadoPago (redirect/estado)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/mercadopago/callback": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Callback de MercadoPago",
+        "parameters": [
+          { "name": "payment_id", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/mercadopago/create-preference": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Crear preferencia de pago",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Creada" } }
+      }
+    },
+    "/api/mercadopago/mock-callback": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Mock de callback (testing)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/profile": {
+      "get": {
+        "tags": ["Perfil"],
+        "summary": "Obtener perfil",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" }, "401": { "description": "No autorizado" } }
+      },
+      "put": {
+        "tags": ["Perfil"],
+        "summary": "Actualizar perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "Actualizado" } }
+      }
+    },
+    "/api/profile/image": {
+      "post": {
+        "tags": ["Perfil"],
+        "summary": "Subir/actualizar imagen de perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Perfil"],
+        "summary": "Eliminar imagen de perfil",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+
+    "/api/queue": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Crear/abrir cola",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "201": { "description": "Creada" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado general de colas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Cerrar/eliminar cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+    "/api/queue/complete": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Completar atención en cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/config": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Configurar cola",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Obtener config de cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Eliminar config de cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminada" } }
+      }
+    },
+    "/api/queue/join": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Unirse a la cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/leave": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Salir de la cola",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/process": {
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Procesar la cola (tick)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Obtener estado de procesamiento",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/status": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado de la cola del usuario/evento",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/queue/stream": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Stream SSE/WebSocket de la cola",
+        "responses": { "200": { "description": "OK (stream)" } }
+      }
+    },
+    "/api/queue/worker": {
+      "get": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Estado del worker",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "tags": ["Cola de Tickets (Queue)"],
+        "summary": "Control del worker (start/stop/…)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/revalidate": {
+      "post": {
+        "tags": ["Revalidate"],
+        "summary": "Solicitar revalidación de rutas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "put": {
+        "tags": ["Revalidate"],
+        "summary": "Revalidación específica",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/stripe/create-session": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Crear sesión de pago (Stripe Checkout)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/stripe/verify-payment": {
+      "get": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Verificar pago (Stripe)",
+        "parameters": [
+          { "name": "session_id", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "tags": ["Pagos (MercadoPago/Stripe)"],
+        "summary": "Webhook de Stripe",
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/tickets/enqueue": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Encolar generación/envío de ticket",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "202": { "description": "Encolado" } }
+      }
+    },
+    "/api/tickets/send-email": {
+      "post": {
+        "tags": ["Tickets"],
+        "summary": "Enviar ticket por email",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "Enviado" } }
+      }
+    },
+
+    "/api/upload-avatar": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Subir avatar",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "201": { "description": "Subido" } }
+      },
+      "delete": {
+        "tags": ["Uploads"],
+        "summary": "Eliminar avatar",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "204": { "description": "Eliminado" } }
+      }
+    },
+
+    "/api/user/role": {
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Asignar/cambiar rol de usuario",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "userId": { "type": "string" }, "role": { "type": "string" } }, "required": ["userId","role"] } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/views/{id}": {
+      "parameters": [
+        { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+      ],
+      "post": {
+        "tags": ["Vistas/Views"],
+        "summary": "Registrar/actualizar vista por id",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Obtener vista por id",
+        "responses": { "200": { "description": "OK" }, "404": { "description": "No encontrado" } }
+      }
+    },
+    "/api/views/{id}/history": {
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Histórico de vistas por id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/views/{id}/daily-sync": {
+      "post": {
+        "tags": ["Vistas/Views"],
+        "summary": "Sincronizar vistas diarias por id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "get": {
+        "tags": ["Vistas/Views"],
+        "summary": "Obtener sync diario por id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": { "error": { "type": "string" } }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    }
+  }
+}

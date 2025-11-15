@@ -9,6 +9,7 @@ import { Search, SearchIcon, Menu as MenuIcon, X, ChevronDown, ChevronUp } from 
 import { useRouter, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/search-context';
 import { motion, AnimatePresence } from 'framer-motion';
+import UserNav from './usernav';
 
 export function NewNavbar() {
   return <Navbar />;
@@ -176,28 +177,41 @@ function Navbar() {
             ) : (
               <>
                 {isAuthenticated ? (
-                  <Link
-                    href="/eventos"
-                    className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
-                  >
-                    Mi Panel
-                  </Link>
+                  <>
+                    <Link
+                      href="/eventos"
+                      className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
+                    >
+                      Mi Panel
+                    </Link>
+                    {(session as any)?.user?.role === 'ORGANIZADOR' && (
+                      <Link
+                        href="/crear"
+                        className="px-4 lg:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+                      >
+                        Crear Evento
+                      </Link>
+                    )}
+                    <UserNav />
+                  </>
                 ) : (
-                  <Link
-                    href="/sign-in"
-                    className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
-                  >
-                    Acceso
-                  </Link>
+                  <>
+                    <Link
+                      href="/sign-in"
+                      className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
+                    >
+                      Acceso
+                    </Link>
+                    <Link
+                      href="/crear"
+                      className="px-4 lg:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+                    >
+                      Crear Evento
+                    </Link>
+                  </>
                 )}
               </>
             )}
-            <Link
-              href="/crear"
-              className="px-4 lg:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
-            >
-              Crear Evento
-            </Link>
           </div>
 
           {/* Botón hamburguesa - Mobile */}
@@ -447,28 +461,43 @@ function Navbar() {
                 ) : (
                   <>
                     {isAuthenticated ? (
-                      <Link
-                        href="/eventos"
-                        className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
-                      >
-                        Mi Panel
-                      </Link>
+                      <>
+                        <Link
+                          href="/eventos"
+                          className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
+                        >
+                          Mi Panel
+                        </Link>
+                        {(session as any)?.user?.role === 'ORGANIZADOR' && (
+                          <Link
+                            href="/crear"
+                            className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+                          >
+                            Crear Evento
+                          </Link>
+                        )}
+                        <div className="border-t border-zinc-800 pt-3 mt-3">
+                          <UserNav />
+                        </div>
+                      </>
                     ) : (
-                      <Link
-                        href="/sign-in"
-                        className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
-                      >
-                        Acceso
-                      </Link>
+                      <>
+                        <Link
+                          href="/sign-in"
+                          className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
+                        >
+                          Acceso
+                        </Link>
+                        <Link
+                          href="/crear"
+                          className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+                        >
+                          Crear Evento
+                        </Link>
+                      </>
                     )}
                   </>
                 )}
-                <Link
-                  href="/crear"
-                  className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
-                >
-                  Crear Evento
-                </Link>
               </motion.div>
             </motion.div>
           </motion.div>
