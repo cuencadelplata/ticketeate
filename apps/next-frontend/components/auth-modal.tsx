@@ -9,7 +9,6 @@ import { useSearchParams } from 'next/navigation';
 
 type Role = 'ORGANIZADOR';
 
-
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -202,9 +201,8 @@ export default function AuthModal({
   async function doRegister(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!validateForm()) 
-      return;
-    
+    if (!validateForm()) return;
+
     setLoading(true);
     setErr(null);
 
@@ -268,12 +266,11 @@ export default function AuthModal({
 
   const inviteRequired = role === 'ORGANIZADOR';
   const isFormValid =
-  formData.email.trim().length > 0 &&
-  formData.password.trim().length > 0 &&
-  formData.password.length >= 6;
+    formData.email.trim().length > 0 &&
+    formData.password.trim().length > 0 &&
+    formData.password.length >= 6;
 
-const disableSubmit = loading || !isFormValid;
-
+  const disableSubmit = loading || !isFormValid;
 
   return (
     <Dialog

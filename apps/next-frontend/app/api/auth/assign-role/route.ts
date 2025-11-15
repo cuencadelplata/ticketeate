@@ -17,10 +17,7 @@ export async function POST(req: Request) {
     } else if (role === 'ORGANIZADOR') {
       // ORGANIZADOR requiere código de invitación
       if (!inviteCode)
-        return NextResponse.json(
-          { error: 'Código de organizador requerido' },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: 'Código de organizador requerido' }, { status: 400 });
       const ok = inviteCode === process.env.INVITE_CODE_ORG;
       if (!ok)
         return NextResponse.json({ error: 'Código de organizador inválido' }, { status: 401 });
