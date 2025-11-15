@@ -330,15 +330,15 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
   const base = s ? s.precioDesde : 0;
   const feeUnitario = Math.round(base * 0.1);
   const precioUnitario = base + feeUnitario;
-  
+
   // Calcular subtotal (antes de descuento)
   const subtotal = precioUnitario * cantidad;
-  
+
   // Calcular descuento si hay cupón aplicado
-  const montoDescuento = cuponAplicado 
+  const montoDescuento = cuponAplicado
     ? Math.round(subtotal * (cuponAplicado.porcentaje_descuento / 100))
     : 0;
-  
+
   // Total final con descuento
   const total = subtotal - montoDescuento;
 

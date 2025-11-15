@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     console.log('=== INICIANDO API COMPRAR ===');
     const body = await request.json();
     console.log('Body recibido:', body);
-    const { id_usuario, id_evento, cantidad, metodo_pago, moneda, datos_tarjeta, cupon_id } = body ?? {};
+    const { id_usuario, id_evento, cantidad, metodo_pago, moneda, datos_tarjeta, cupon_id } =
+      body ?? {};
 
     if (!id_usuario || !id_evento || !cantidad || !metodo_pago) {
       return NextResponse.json(
@@ -173,7 +174,9 @@ export async function POST(request: NextRequest) {
               descuento_aplicado = Math.round(monto_total * (porcentaje_descuento / 100));
               monto_total = monto_total - descuento_aplicado;
 
-              console.log(`Cupón ${cupon.codigo} aplicado: -${porcentaje_descuento}% = -$${descuento_aplicado}`);
+              console.log(
+                `Cupón ${cupon.codigo} aplicado: -${porcentaje_descuento}% = -$${descuento_aplicado}`,
+              );
             }
           }
         }

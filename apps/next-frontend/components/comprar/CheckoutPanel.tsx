@@ -216,7 +216,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
       {/* Cupón de Descuento */}
       <div className="mb-3 rounded-xl border border-gray-200 bg-white p-3">
         <label className="mb-2 block text-xs font-medium text-gray-700">Cupón de Descuento</label>
-        
+
         {!cuponAplicado ? (
           <div className="flex gap-2">
             <input
@@ -240,9 +240,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl">✓</span>
               <div>
-                <div className="text-sm font-semibold text-green-800">
-                  ¡Descuento aplicado!
-                </div>
+                <div className="text-sm font-semibold text-green-800">¡Descuento aplicado!</div>
                 <div className="text-xs text-green-700">
                   Cupón {cuponAplicado.codigo} (-{cuponAplicado.porcentaje_descuento}%)
                 </div>
@@ -275,7 +273,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
         <div className="text-right">
           <div className="text-xs text-gray-500">Subtotal</div>
           <div className="text-lg font-bold text-gray-900">{formatPrice(subtotal)}</div>
-          
+
           {cuponAplicado && montoDescuento > 0 && (
             <>
               <div className="mt-1 text-xs text-green-600">
@@ -286,7 +284,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
               </div>
             </>
           )}
-          
+
           <div className="mt-2 border-t border-gray-200 pt-2">
             <div className="text-xs text-gray-500">Total a pagar</div>
             <div className="text-xl font-extrabold text-blue-900">{formatPrice(total)}</div>
