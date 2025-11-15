@@ -82,12 +82,13 @@ export function SearchDropdown() {
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: Event) => {
+      const mouseEvent = e as MouseEvent;
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node) &&
+        !dropdownRef.current.contains(mouseEvent.target as Node) &&
         inputRef.current &&
-        !inputRef.current.contains(e.target as Node)
+        !inputRef.current.contains(mouseEvent.target as Node)
       ) {
         setIsOpen(false);
       }
