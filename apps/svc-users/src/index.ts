@@ -10,6 +10,13 @@ import { PUBLIC_ENDPOINTS } from './config/auth';
 // Custom JWT middleware using shared secret (same as frontend)
 async function jwtMiddleware(c: Context, next: Next) {
   try {
+    const path = c.req.path;
+
+    // Skip JWT validation only for exact public endpoints (not subroutes)
+    if (PUBLIC_ENDPOINTS.includes(path)) {
+      return next();
+    }
+
     const authHeader = c.req.header('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
