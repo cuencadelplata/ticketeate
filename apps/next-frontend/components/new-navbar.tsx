@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
-import { Search, SearchIcon, Menu as MenuIcon, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, SearchIcon, Menu as MenuIcon, X, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/search-context';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -57,11 +57,9 @@ function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Si estamos en la home, no redirigir, solo filtrar
     if (pathname === '/') {
       return;
     }
-    // Si estamos en otra página, redirigir a home o descubrir
     if (searchQuery.trim()) {
       router.push(`/?search=${encodeURIComponent(searchQuery)}`);
     }
@@ -129,12 +127,20 @@ function Navbar() {
                     src="/graphqr-ticketeate.png"
                     description="Artículos y noticias sobre eventos"
                   />
-                  <ProductItem
-                    title="Cómo trabajamos"
-                    href="/como-trabajamos"
-                    src="/graphqr-ticketeate.png"
-                    description="Nuestro proceso y metodología"
-                  />
+
+                  <a
+                    href="/api-docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ProductItem
+                      title="Documentación API"
+                      href="/api-docs"
+                      src="/graphqr-ticketeate.png"
+                      description="Swagger UI de la API de Ticketeate"
+                    />
+                  </a>
+
                   <ProductItem
                     title="Nuestros valores"
                     href="/valores"
@@ -352,12 +358,17 @@ function Navbar() {
                         >
                           Blog
                         </Link>
+
+                     
                         <Link
-                          href="/como-trabajamos"
+                          href="/api-docs"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="block py-2 text-stone-300 hover:text-white transition-colors"
                         >
-                          Cómo trabajamos
+                          Documentación API
                         </Link>
+
                         <Link
                           href="/valores"
                           className="block py-2 text-stone-300 hover:text-white transition-colors"

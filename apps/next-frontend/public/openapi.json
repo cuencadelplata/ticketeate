@@ -465,6 +465,167 @@
       }
     },
 
+    "/api/reservas/user": {
+  "get": {
+    "tags": ["Compras"],
+    "summary": "Obtener reservas del usuario autenticado",
+    "description": "Devuelve el listado de reservas activas asociadas al usuario actual, incluyendo información del evento, entradas y último pago registrado.",
+    "security": [{ "bearerAuth": [] }],
+    "responses": {
+      "200": {
+        "description": "Listado de reservas del usuario",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reservas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "reservaid": { "type": "string" },
+                      "eventoid": { "type": "string" },
+                      "cantidad": { "type": "integer" },
+                      "estado": { "type": "string" },
+                      "fecha_reserva": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "evento": {
+                        "type": "object",
+                        "properties": {
+                          "eventoid": { "type": "string" },
+                          "titulo": { "type": "string" },
+                          "descripcion": { "type": "string" },
+                          "ubicacion": { "type": "string" },
+                          "imagen": { "type": "string", "nullable": true },
+                          "fecha": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "categoria": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "entrada": {
+                        "type": "object",
+                        "properties": {
+                          "nombre": { "type": "string" },
+                          "precio": {
+                            "type": "string",
+                            "description": "Precio unitario como string decimal"
+                          },
+                          "moneda": { "type": "string" }
+                        }
+                      },
+                      "entradas": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "entradaid": { "type": "string" },
+                            "codigo_qr": { "type": "string" },
+                            "estado": { "type": "string" }
+                          }
+                        }
+                      },
+                      "pago": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "pagoid": { "type": "string" },
+                          "estado": { "type": "string" },
+                          "monto_total": {
+                            "type": "string",
+                            "description": "Monto total como string decimal"
+                          },
+                          "moneda": { "type": "string" },
+                          "fecha_pago": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "total": { "type": "integer" }
+              }
+            },
+            "example": {
+              "reservas": [
+                {
+                  "reservaid": "c0a801b5-7d0e-4c7b-8c2b-8f3f7f0a1234",
+                  "eventoid": "evt_001",
+                  "cantidad": 2,
+                  "estado": "CONFIRMADA",
+                  "fecha_reserva": "2025-11-01T10:00:00.000Z",
+                  "evento": {
+                    "eventoid": "evt_001",
+                    "titulo": "Taylor Swift - The Eras Tour",
+                    "descripcion": "Show en vivo",
+                    "ubicacion": "Corrientes, Argentina",
+                    "imagen": "https://cdn.ticketeate.com/eventos/evt_001_portada.jpg",
+                    "fecha": "2025-12-24T22:00:00.000Z",
+                    "categoria": "Campo VIP"
+                  },
+                  "entrada": {
+                    "nombre": "Campo",
+                    "precio": "12000.00",
+                    "moneda": "ARS"
+                  },
+                  "entradas": [
+                    {
+                      "entradaid": "ent_001",
+                      "codigo_qr": "qr-001-xyz",
+                      "estado": "VALIDA"
+                    },
+                    {
+                      "entradaid": "ent_002",
+                      "codigo_qr": "qr-002-xyz",
+                      "estado": "VALIDA"
+                    }
+                  ],
+                  "pago": {
+                    "pagoid": "pay_001",
+                    "estado": "COMPLETADO",
+                    "monto_total": "24000.00",
+                    "moneda": "ARS",
+                    "fecha_pago": "2025-11-01T10:05:00.000Z"
+                  }
+                }
+              ],
+              "total": 1
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "No autorizado (sin sesión de usuario)",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": "No autorizado" }
+          }
+        }
+      },
+      "500": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": "Error interno del servidor" }
+          }
+        }
+      }
+    }
+  }
+},
+
     "/api/cupones": {
       "get": {
         "tags": ["Cupones"],
