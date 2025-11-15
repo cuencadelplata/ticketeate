@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@repo/db';
+import * as jwt from 'jsonwebtoken';
 
 // En el servidor, usar API_EVENTS_URL (variable privada)
 // En desarrollo: http://localhost:3001/api
@@ -70,7 +70,6 @@ export async function POST(req: Request) {
         let authToken = '';
         try {
           // Generar token JWT para autenticarse con el microservicio
-          const jwt = require('jsonwebtoken');
           authToken = jwt.sign(
             {
               id: session.user.id,

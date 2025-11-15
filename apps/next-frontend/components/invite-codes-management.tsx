@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Trash2, Plus, RefreshCw, Check } from 'lucide-react';
+import { Copy, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useCreateInviteCode,
@@ -15,7 +15,6 @@ interface InviteCodesManagementProps {
 }
 
 export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) {
-  const [generatedCode, setGeneratedCode] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
   const [customCode, setCustomCode] = useState('');
   const [maxUsos, setMaxUsos] = useState('999999');
@@ -40,7 +39,6 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
       },
       {
         onSuccess: (data) => {
-          setGeneratedCode(data.codigo);
           toast.success(`Código "${data.codigo}" generado exitosamente`);
           setShowForm(false);
           setCustomCode('');
@@ -63,6 +61,7 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
   };
 
   const handleDeactivateCode = (codigoid: string) => {
+    // eslint-disable-next-line no-undef
     if (!confirm('¿Desactivar este código de invitación?')) return;
 
     deactivateCode(

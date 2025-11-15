@@ -77,7 +77,7 @@ export default function ManageCuponesPage() {
   };
 
   const handleDelete = async (cuponId: string) => {
-    // eslint-disable-next-line no-undef, no-restricted-globals
+    // eslint-disable-next-line no-undef
     if (!confirm('¿Estás seguro de que deseas eliminar este cupón?')) return;
 
     try {

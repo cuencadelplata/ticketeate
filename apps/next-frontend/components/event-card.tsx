@@ -20,42 +20,6 @@ type EventCardProps = {
   totalDates?: number;
 };
 
-function getDisponibilidadBadge(disponibilidad: string) {
-  if (disponibilidad.toLowerCase().includes('cancelado')) {
-    return {
-      text: 'Cancelado',
-      className: 'bg-red-500 text-white',
-      icon: '🔴',
-    };
-  }
-  if (disponibilidad.toLowerCase().includes('completado')) {
-    return {
-      text: 'Completado',
-      className: 'bg-gray-500 text-white',
-      icon: '⚫',
-    };
-  }
-  if (disponibilidad.toLowerCase().includes('disponible')) {
-    return {
-      text: 'Disponible',
-      className: 'bg-green-500 text-white',
-      icon: '🟢',
-    };
-  }
-  if (disponibilidad.toLowerCase().includes('oculto')) {
-    return {
-      text: 'Oculto',
-      className: 'bg-yellow-500 text-white',
-      icon: '🟡',
-    };
-  }
-  return {
-    text: disponibilidad,
-    className: 'bg-gray-500 text-white',
-    icon: '⚪',
-  };
-}
-
 export function EventCard({
   title,
   price,
@@ -63,7 +27,6 @@ export function EventCard({
   image,
   category,
   category2,
-  disponibilidad,
   href,
   isFree = false,
   totalDates = 1,

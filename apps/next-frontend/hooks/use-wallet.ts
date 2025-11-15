@@ -56,7 +56,6 @@ export function useWalletStatus() {
 }
 
 export function useLinkWallet() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -87,7 +86,6 @@ export function useLinkWallet() {
 }
 
 export function useUnlinkWallet() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -110,7 +108,6 @@ export function useUnlinkWallet() {
 }
 
 export function useSimulatePayment() {
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   return useMutation({

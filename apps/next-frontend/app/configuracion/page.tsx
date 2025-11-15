@@ -86,7 +86,6 @@ export default function ConfiguracionPage() {
   }
 
   const linked = data?.wallet_linked;
-  const provider = data?.wallet_provider ?? 'mercado_pago';
 
   return (
     <div className="min-h-screen bg-stone-950 py-8 pt-8">
