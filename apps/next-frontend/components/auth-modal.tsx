@@ -7,7 +7,7 @@ import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-type Role = 'ORGANIZADOR';
+type Role = 'ORGANIZADOR' | 'USUARIO';
 
 type Props = {
   open: boolean;
@@ -33,6 +33,7 @@ export default function AuthModal({
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    inviteCode: '',
   });
 
   // Función para mostrar errores
@@ -174,10 +175,9 @@ export default function AuthModal({
   async function doRegister(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm()) 
       return;
-    }
-
+    
     setLoading(true);
     setErr(null);
 
@@ -188,8 +188,7 @@ export default function AuthModal({
         name: formData.email,
       });
 
-
-    if (role === 'ORGANIZADOR') {
+     if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
@@ -243,11 +242,12 @@ export default function AuthModal({
   const passwordStrength = getPasswordStrength(formData.password);
 
   const isFormValid =
-    formData.email.trim() &&
-    formData.password.trim() &&
-    formData.password.length >= 6 
+  formData.email.trim().length > 0 &&
+  formData.password.trim().length > 0 &&
+  formData.password.length >= 6;
 
-  const disableSubmit = loading || !isFormValid;
+const disableSubmit = loading || !isFormValid;
+
 
   return (
     <Dialog
@@ -301,27 +301,28 @@ export default function AuthModal({
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
-              <div className="grid grid-cols-2 gap-2">
-                {(['ORGANIZADOR'] as Role[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`rounded-xl border p-3 text-left text-sm ${
-                      role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
-                    }`}
-                  >
-                    <div className="font-semibold">
-                      {r === 'ORGANIZADOR' ? 'Organizador' : ''}
-                    </div>
-                    <div className="text-xs text-stone-400">
-                      {r === 'ORGANIZADOR'
-                        ? 'Crea y gestiona eventos (sin código requerido)'
-                        : 'Escanea entradas y valida tickets (requiere código)'}
-                    </div>
-                  </button>
-                ))}
-              </div>
+           <div className="grid grid-cols-2 gap-2">
+  {(['ORGANIZADOR'] as Role[]).map((r) => (
+    <button
+      key={r}
+      type="button"
+      onClick={() => setRole(r)}
+      className={`rounded-xl border p-3 text-left text-sm ${
+        role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
+      }`}
+    >
+      <div className="font-semibold">
+        Organizador
+      </div>
+
+      <div className="text-xs text-stone-400">
+        Crea y gestiona eventos (sin código requerido)
+      </div>
+    </button>
+  ))}
+</div>
+
+             
 
               <div className="space-y-2">
                 <div className="relative">

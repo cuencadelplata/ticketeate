@@ -115,6 +115,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
+    return true;
   };
 
   async function doLogin(e: React.FormEvent) {
@@ -206,7 +207,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       }
 
       // Asignar rol según el tipo seleccionado
-     if (role === 'ORGANIZADOR') {
+      else if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
@@ -364,21 +365,24 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const passwordStrength = getPasswordStrength(formData.password);
 
   const isFormValid =
-    formData.email.trim() &&
-    formData.password.trim() &&
-    formData.password.length >= 6 
+  formData.email.trim() &&
+  formData.password.trim() &&
+  formData.password.length >= 6;
 
+
+  const disableSubmit = loading || !isFormValid;
 
   const getRoleDescription = (role: Role) => {
-    switch (role) {
-      case 'USUARIO':
-        return 'Compra entradas y participa en eventos';
-      case 'ORGANIZADOR':
-        return 'Crea y gestiona eventos (sin código requerido)';
-      default:
-        return '';
-    }
-  };
+  switch (role) {
+    case 'USUARIO':
+      return 'Compra entradas y participa en eventos';
+    case 'ORGANIZADOR':
+      return 'Crea y gestiona eventos (sin código requerido)';
+    default:
+      return '';
+  }
+};
+
 
   const getRoleDisplayName = (role: Role) => {
     switch (role) {
@@ -574,7 +578,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   ))}
                 </div>
 
-            
+                
 
                 <div className="space-y-2">
                   <div className="relative">
@@ -632,7 +636,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 )}
 
                 <button
-
+                  disabled={disableSubmit}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -675,6 +679,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 </div>
 
                 <button
+                  disabled={disableSubmit}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
                 >
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
