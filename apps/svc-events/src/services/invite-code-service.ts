@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'node:crypto';
+import { logger } from '../logger';
 
 export interface CreateInviteCodeData {
   eventoid: string;
@@ -93,7 +94,9 @@ export class InviteCodeService {
         usos_max: inviteCode.usos_max,
       };
     } catch (error) {
-      console.error('Error al crear código de invitación:', error);
+      logger.error('Error creating invite code', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -132,7 +135,9 @@ export class InviteCodeService {
         usos_max: code.usos_max,
       }));
     } catch (error) {
-      console.error('Error al obtener códigos de invitación:', error);
+      logger.error('Error getting invite codes', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -188,7 +193,9 @@ export class InviteCodeService {
         fecha_expiracion: inviteCode.fecha_expiracion,
       };
     } catch (error) {
-      console.error('Error al validar código de invitación:', error);
+      logger.error('Error validating invite code', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -260,7 +267,9 @@ export class InviteCodeService {
         colaboradorEventoId: result.colaborador_evento_id,
       };
     } catch (error) {
-      console.error('Error al usar código de invitación:', error);
+      logger.error('Error using invite code', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -298,7 +307,9 @@ export class InviteCodeService {
         estado: updated.estado,
       };
     } catch (error) {
-      console.error('Error al desactivar código de invitación:', error);
+      logger.error('Error deactivating invite code', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -345,7 +356,9 @@ export class InviteCodeService {
         fecha_asignacion: col.fecha_asignacion,
       }));
     } catch (error) {
-      console.error('Error al obtener colaboradores del evento:', error);
+      logger.error('Error getting colaboradores', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -382,7 +395,9 @@ export class InviteCodeService {
         fecha_asignacion: col.fecha_asignacion,
       }));
     } catch (error) {
-      console.error('Error al obtener evento del colaborador:', error);
+      logger.error('Error getting evento by colaborador', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }

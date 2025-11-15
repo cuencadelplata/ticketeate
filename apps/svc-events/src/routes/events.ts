@@ -5,6 +5,7 @@ import { ImageUploadService } from '../services/image-upload';
 import { prisma } from '@repo/db';
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { logger } from '../logger';
 
 // Cargar variables de entorno
 config();
@@ -31,8 +32,9 @@ function validateJWT(c: Context) {
 
     return payload as jwt.JwtPayload;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('JWT validation failed:', error);
+    logger.error('JWT validation failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }
@@ -60,8 +62,9 @@ events.get('/all', async (c) => {
       total: events.length,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting all events:', error);
+    logger.error('Error getting all events', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         error: error instanceof Error ? error.message : 'Error interno del servidor',
@@ -81,8 +84,9 @@ events.get('/public/:id', async (c) => {
     }
     return c.json({ event });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting public event:', error);
+    logger.error('Error getting public event', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         error: error instanceof Error ? error.message : 'Error interno del servidor',
@@ -418,7 +422,9 @@ events.post('/publish-scheduled', async (c) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error publishing scheduled events:', error);
+    logger.error('Error publishing scheduled events', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         error: error instanceof Error ? error.message : 'Error interno del servidor',
@@ -453,7 +459,9 @@ events.post('/:eventoid/invite-codes', async (c) => {
 
     return c.json(inviteCode, 201);
   } catch (error) {
-    console.error('Error creating invite code:', error);
+    logger.error('Error creating invite code', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
@@ -476,7 +484,9 @@ events.get('/:eventoid/invite-codes', async (c) => {
 
     return c.json({ codes });
   } catch (error) {
-    console.error('Error getting invite codes:', error);
+    logger.error('Error getting invite codes', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
@@ -499,7 +509,9 @@ events.put('/:eventoid/invite-codes/:codigoid/deactivate', async (c) => {
 
     return c.json(result);
   } catch (error) {
-    console.error('Error deactivating invite code:', error);
+    logger.error('Error deactivating invite code', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
@@ -525,7 +537,9 @@ events.get('/:eventoid/colaboradores', async (c) => {
 
     return c.json({ colaboradores });
   } catch (error) {
-    console.error('Error getting colaboradores:', error);
+    logger.error('Error getting colaboradores', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       500,
@@ -550,7 +564,9 @@ events.get('/:eventoid/stats', async (c) => {
 
     return c.json(stats);
   } catch (error) {
-    console.error('Error getting stats:', error);
+    logger.error('Error getting stats', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       403,
@@ -579,7 +595,9 @@ events.post('/:eventoid/scan', async (c) => {
 
     return c.json(result);
   } catch (error) {
-    console.error('Error scanning ticket:', error);
+    logger.error('Error scanning ticket', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       400,
@@ -608,7 +626,9 @@ events.get('/:eventoid/tickets', async (c) => {
 
     return c.json({ tickets });
   } catch (error) {
-    console.error('Error getting tickets:', error);
+    logger.error('Error getting tickets', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       403,
@@ -631,7 +651,9 @@ events.get('/:eventoid/activity', async (c) => {
 
     return c.json(activity);
   } catch (error) {
-    console.error('Error getting activity:', error);
+    logger.error('Error getting activity', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       403,

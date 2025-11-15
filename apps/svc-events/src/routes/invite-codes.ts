@@ -1,5 +1,7 @@
-import { Hono, Context } from 'hono';
+import { Hono } from 'hono';
 import { InviteCodeService } from '../services/invite-code-service';
+import * as jwt from 'jsonwebtoken';
+import { logger } from '../logger';
 
 const inviteRoutes = new Hono();
 
@@ -19,7 +21,9 @@ inviteRoutes.post('/validate', async (c) => {
       ...result,
     });
   } catch (error) {
-    console.error('Error validating invite code:', error);
+    logger.error('Error validating invite code', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         valid: false,
@@ -46,12 +50,11 @@ inviteRoutes.post('/use', async (c) => {
 
     // Extraer usuario ID del JWT
     const token = authHeader.substring(7);
-    const jwt = require('jsonwebtoken');
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
       audience: process.env.FRONTEND_URL || 'http://localhost:3000',
       algorithms: ['HS256'],
-    });
+    }) as jwt.JwtPayload;
 
     if (!payload?.id) {
       return c.json({ error: 'No autenticado' }, 401);
@@ -64,7 +67,9 @@ inviteRoutes.post('/use', async (c) => {
       ...result,
     });
   } catch (error) {
-    console.error('Error using invite code:', error);
+    logger.error('Error using invite code', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         success: false,
@@ -84,12 +89,11 @@ inviteRoutes.get('/my-event', async (c) => {
     }
 
     const token = authHeader.substring(7);
-    const jwt = require('jsonwebtoken');
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
       audience: process.env.FRONTEND_URL || 'http://localhost:3000',
       algorithms: ['HS256'],
-    });
+    }) as jwt.JwtPayload;
 
     if (!payload?.id) {
       return c.json({ error: 'No autenticado' }, 401);
@@ -99,7 +103,9 @@ inviteRoutes.get('/my-event', async (c) => {
 
     return c.json({ eventos });
   } catch (error) {
-    console.error('Error getting my event:', error);
+    logger.error('Error getting my event', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return c.json(
       {
         error: error instanceof Error ? error.message : 'No hay evento asignado',
