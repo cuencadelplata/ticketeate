@@ -7,11 +7,8 @@ import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-<<<<<<< HEAD
 type Role = 'ORGANIZADOR';
-=======
-type Role = 'ORGANIZADOR' | 'USUARIO';
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
+
 
 type Props = {
   open: boolean;

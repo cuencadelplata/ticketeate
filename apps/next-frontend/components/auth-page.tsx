@@ -96,17 +96,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       showError('La contraseña es requerida');
       return false;
     }
-    if (formData.password.length < 6) {
+  if (formData.password.length < 6) {
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-<<<<<<< HEAD
     if (tab === 'register' && role === 'ORGANIZADOR' && !formData.inviteCode.trim()) {
       showError('El código de organizador es requerido');
       return false;
     }
-=======
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
     return true;
   };
 
@@ -216,20 +213,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       }
 
       // Asignar rol según el tipo seleccionado
-<<<<<<< HEAD
-      if (role === 'ORGANIZADOR') {
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-=======
       else if (role === 'ORGANIZADOR') {
         // ORGANIZADOR no requiere código
         const res = await fetch('/api/auth/assign-role', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role }),
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
         });
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
@@ -286,10 +275,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-<<<<<<< HEAD
   const inviteRequired = role === 'ORGANIZADOR';
-=======
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
   const isFormValid =
   formData.email.trim() &&
   formData.password.trim() &&
@@ -299,7 +285,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const disableSubmit = loading || !isFormValid;
 
   const getRoleDescription = (role: Role) => {
-<<<<<<< HEAD
     switch (role) {
       case 'USUARIO':
         return 'Compra entradas y participa en eventos';
@@ -309,18 +294,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         return '';
     }
   };
-=======
-  switch (role) {
-    case 'USUARIO':
-      return 'Compra entradas y participa en eventos';
-    case 'ORGANIZADOR':
-      return 'Crea y gestiona eventos (sin código requerido)';
-    default:
-      return '';
-  }
-};
-
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
 
   const getRoleDisplayName = (role: Role) => {
     switch (role) {
@@ -429,7 +402,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   ))}
                 </div>
 
-<<<<<<< HEAD
                 {/* Invite code */}
                 {inviteRequired && (
                   <div className="space-y-1">
@@ -443,9 +415,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                     <p className="text-xs text-stone-500">Requerido para crear y gestionar eventos.</p>
                   </div>
                 )}
-=======
-                
->>>>>>> e78f57312a035d9c1285fd164cc837ce8d75c9c0
 
                 <div className="space-y-2">
                   <div className="relative">
