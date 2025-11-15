@@ -45,7 +45,7 @@ export default function UserNav() {
   const isAuthenticated = !!session;
   const isLoading = isPending;
   const userRole = (session as any)?.user?.role || (session as any)?.role;
-  const isOrganizador = userRole === 'ORGANIZADOR' || userRole === 'COLABORADOR';
+  const isOrganizador = userRole === 'ORGANIZADOR';
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -99,11 +99,7 @@ export default function UserNav() {
                 {session?.user.name || session?.user.email}
               </span>
               <span className="text-xs text-gray-400">
-                {userRole === 'ORGANIZADOR'
-                  ? 'Organizador'
-                  : userRole === 'COLABORADOR'
-                    ? 'Colaborador'
-                    : 'Usuario'}
+                {userRole === 'ORGANIZADOR' ? 'Organizador' : 'Usuario'}
               </span>
             </div>
             <svg
@@ -164,11 +160,7 @@ export default function UserNav() {
                     {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {userRole === 'ORGANIZADOR'
-                      ? 'Organizador'
-                      : userRole === 'COLABORADOR'
-                        ? 'Colaborador'
-                        : 'Usuario'}
+                    {userRole === 'ORGANIZADOR' ? 'Organizador' : 'Usuario'}
                   </p>
                 </div>
               </div>

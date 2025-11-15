@@ -146,7 +146,7 @@ export const auth = betterAuth({
       },
       otpLength: 6,
       expiresIn: 600, // 10 minutos
-      sendVerificationOnSignUp: true, // Enviar OTP automáticamente al registrarse
+      sendVerificationOnSignUp: false, // No enviar OTP automáticamente al registrarse
     }),
     customSession(async ({ user, session }) => {
       // Obtener el usuario completo de la base de datos para incluir el rol

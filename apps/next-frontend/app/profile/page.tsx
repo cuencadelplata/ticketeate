@@ -41,8 +41,6 @@ export default function ProfilePage() {
     switch (role) {
       case 'ORGANIZADOR':
         return 'bg-orange-900/30 text-orange-300';
-      case 'COLABORADOR':
-        return 'bg-orange-900/30 text-orange-300';
       default:
         return 'bg-stone-800 text-stone-300';
     }

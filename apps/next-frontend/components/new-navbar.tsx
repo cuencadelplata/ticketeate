@@ -184,8 +184,7 @@ function Navbar() {
                     >
                       Mi Panel
                     </Link>
-                    {((session as any)?.user?.role === 'ORGANIZADOR' ||
-                      (session as any)?.user?.role === 'COLABORADOR') && (
+                    {(session as any)?.user?.role === 'ORGANIZADOR' && (
                       <Link
                         href="/crear"
                         className="px-4 lg:px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
@@ -469,8 +468,7 @@ function Navbar() {
                         >
                           Mi Panel
                         </Link>
-                        {((session as any)?.user?.role === 'ORGANIZADOR' ||
-                          (session as any)?.user?.role === 'COLABORADOR') && (
+                        {(session as any)?.user?.role === 'ORGANIZADOR' && (
                           <Link
                             href="/crear"
                             className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"

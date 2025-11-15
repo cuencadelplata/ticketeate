@@ -7,7 +7,7 @@ import { signIn, signUp, useSession } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams } from 'next/navigation';
 
-type Role = 'ORGANIZADOR' | 'COLABORADOR';
+type Role = 'ORGANIZADOR';
 
 type Props = {
   open: boolean;
@@ -35,6 +35,9 @@ export default function AuthModal({
     password: '',
     inviteCode: '',
   });
+  const [loginAsOrganizer, setLoginAsOrganizer] = useState(false);
+  const [loginInviteCode, setLoginInviteCode] = useState('');
+  // Inicio de sesión solo con email + contraseña
 
   // Función para mostrar errores
   const showError = (message: string) => {
@@ -106,8 +109,8 @@ export default function AuthModal({
       showError('La contraseña debe tener al menos 6 caracteres');
       return false;
     }
-    if (tab === 'register' && role === 'COLABORADOR' && !formData.inviteCode.trim()) {
-      showError('El código de invitación es requerido para COLABORADOR');
+    if (tab === 'register' && role === 'ORGANIZADOR' && !formData.inviteCode.trim()) {
+      showError('El código de organizador es requerido');
       return false;
     }
     return true;
@@ -136,6 +139,23 @@ export default function AuthModal({
 
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
+
+      // Elevar a organizador si corresponde
+      if (loginAsOrganizer && loginInviteCode.trim()) {
+        try {
+          const res = await fetch('/api/auth/assign-role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'ORGANIZADOR', inviteCode: loginInviteCode.trim() }),
+          });
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(j?.error || 'No se pudo actualizar a organizador');
+          }
+        } catch (e: any) {
+          showError(e?.message || 'No se pudo actualizar a organizador');
+        }
+      }
     } catch (error: any) {
       console.log('Login failed:', error);
 
@@ -176,6 +196,8 @@ export default function AuthModal({
     }
   }
 
+  // Sin envío de código de verificación para login
+
   async function doRegister(e: React.FormEvent) {
     e.preventDefault();
 
@@ -193,29 +215,15 @@ export default function AuthModal({
         name: formData.email,
       });
 
-      // Solo asignar rol si es COLABORADOR (requiere código) o ORGANIZADOR (no requiere código)
-      if (role === 'COLABORADOR') {
-        // COLABORADOR requiere código de invitación
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
-      } else if (role === 'ORGANIZADOR') {
-        // ORGANIZADOR no requiere código
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
+      // ORGANIZADOR requiere código
+      const res = await fetch('/api/auth/assign-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error || 'No se pudo asignar el rol');
       }
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
@@ -258,7 +266,7 @@ export default function AuthModal({
 
   const passwordStrength = getPasswordStrength(formData.password);
 
-  const inviteRequired = role === 'COLABORADOR';
+  const inviteRequired = role === 'ORGANIZADOR';
   const isFormValid =
     formData.email.trim() &&
     formData.password.trim() &&
@@ -319,8 +327,8 @@ export default function AuthModal({
           {tab === 'register' && (
             <form onSubmit={doRegister} className="space-y-3">
               {/* Role selector */}
-              <div className="grid grid-cols-2 gap-2">
-                {(['ORGANIZADOR', 'COLABORADOR'] as Role[]).map((r) => (
+              <div className="grid grid-cols-1 gap-2">
+                {(['ORGANIZADOR'] as Role[]).map((r) => (
                   <button
                     key={r}
                     type="button"
@@ -329,13 +337,9 @@ export default function AuthModal({
                       role === r ? 'border-orange-500 ring-2 ring-orange-200' : 'border-stone-700'
                     }`}
                   >
-                    <div className="font-semibold">
-                      {r === 'ORGANIZADOR' ? 'Organizador' : 'Colaborador'}
-                    </div>
+                    <div className="font-semibold">Organizador</div>
                     <div className="text-xs text-stone-400">
-                      {r === 'ORGANIZADOR'
-                        ? 'Crea y gestiona eventos (sin código requerido)'
-                        : 'Escanea entradas y valida tickets (requiere código)'}
+                      Crea y gestiona eventos (requiere código de organizador)
                     </div>
                   </button>
                 ))}
@@ -344,14 +348,14 @@ export default function AuthModal({
               {/* Invite code */}
               {inviteRequired && (
                 <div className="space-y-1">
-                  <label className="text-xs text-stone-400">Código de invitación</label>
+                  <label className="text-xs text-stone-400">Código de organizador</label>
                   <input
                     value={formData.inviteCode}
                     onChange={(e) => updateFormData('inviteCode', e.target.value)}
-                    placeholder="Ingresa tu código"
+                    placeholder="Ingresa tu código de organizador"
                     className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
-                  <p className="text-xs text-stone-500">Requerido solo para COLABORADOR.</p>
+                  <p className="text-xs text-stone-500">Requerido para crear eventos.</p>
                 </div>
               )}
 
@@ -459,6 +463,28 @@ export default function AuthModal({
                     className="w-full rounded-lg border border-stone-700 bg-stone-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-orange-500"
                   />
                 </div>
+              </div>
+
+              {/* Opción: ingresar como organizador */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs text-stone-400">
+                  <input
+                    type="checkbox"
+                    checked={loginAsOrganizer}
+                    onChange={(e) => setLoginAsOrganizer(e.target.checked)}
+                    className="rounded border-stone-600 bg-stone-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+                  />
+                  Ingresar como organizador
+                </label>
+                {loginAsOrganizer && (
+                  <input
+                    type="text"
+                    value={loginInviteCode}
+                    onChange={(e) => setLoginInviteCode(e.target.value)}
+                    placeholder="Código de organizador"
+                    className="w-full rounded-lg border border-stone-700 bg-stone-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
+                  />
+                )}
               </div>
 
               <button

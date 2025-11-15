@@ -5,33 +5,25 @@ import { prisma } from '@repo/db';
 export async function POST(req: Request) {
   try {
     const { role, inviteCode } = (await req.json()) as {
-      role: 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
+      role: 'USUARIO' | 'ORGANIZADOR';
       inviteCode?: string;
     };
 
-    if (!role || !['USUARIO', 'ORGANIZADOR', 'COLABORADOR'].includes(role)) {
+    if (!role || !['USUARIO', 'ORGANIZADOR'].includes(role)) {
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
     }
 
-    // USUARIO no requiere código de invitación
     if (role === 'USUARIO') {
-      // No validar código para USUARIO
     } else if (role === 'ORGANIZADOR') {
-      // ORGANIZADOR no requiere código de invitación
-      // No validar código para ORGANIZADOR
-    } else if (role === 'COLABORADOR') {
-      // COLABORADOR requiere código de invitación
-      if (!inviteCode) {
+      // ORGANIZADOR requiere código de invitación
+      if (!inviteCode)
         return NextResponse.json(
-          { error: 'Código de invitación requerido para COLABORADOR' },
+          { error: 'Código de organizador requerido' },
           { status: 400 },
         );
-      }
-
-      const ok = inviteCode === process.env.INVITE_CODE_COLABORADOR;
-      if (!ok) {
-        return NextResponse.json({ error: 'Código de invitación inválido' }, { status: 401 });
-      }
+      const ok = inviteCode === process.env.INVITE_CODE_ORG;
+      if (!ok)
+        return NextResponse.json({ error: 'Código de organizador inválido' }, { status: 401 });
     }
 
     const session = await auth.api.getSession({ headers: req.headers });

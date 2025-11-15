@@ -230,7 +230,7 @@ const isEventPast = (event: Event) => {
 export default function EventosPage() {
   const { data: session } = useSession();
   const userRole = (session as any)?.user?.role || (session as any)?.role;
-  const isOrganizador = userRole === 'ORGANIZADOR' || userRole === 'COLABORADOR';
+  const isOrganizador = userRole === 'ORGANIZADOR';
   const isUsuario = userRole === 'USUARIO';
 
   const [activeTab, setActiveTab] = useState<'proximos' | 'pasados'>('proximos');
