@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.0...svc-users-v1.5.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* update nextjs-2 EC2 IP address ([#146](https://github.com/cuencadelplata/ticketeate/issues/146)) ([9ef7169](https://github.com/cuencadelplata/ticketeate/commit/9ef716959ca2d4de5943df0939b26e29dca1141f))
+* update nextjs-2 EC2 IP address to 18.217.216.210 ([c082fe9](https://github.com/cuencadelplata/ticketeate/commit/c082fe9ba65e16c4f3aeed5b3aab75710d053da8))
+
 # [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.4.2...svc-users-v1.5.0) (2025-11-15)
 
 
