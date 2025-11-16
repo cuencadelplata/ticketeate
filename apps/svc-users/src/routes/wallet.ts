@@ -16,7 +16,10 @@ const mockWallets = new Map<string, { wallet_linked: boolean; wallet_provider: s
 // Get wallet status
 wallet.get('/', async (c) => {
   const jwtPayload = getJwtPayload(c);
+  console.log('[wallet.get /] jwtPayload=%s', JSON.stringify(jwtPayload));
+
   if (!jwtPayload?.id) {
+    console.error('[wallet.get /] REJECTING: Missing userId in payload');
     return c.json({ error: 'Usuario no autenticado' }, 401);
   }
 

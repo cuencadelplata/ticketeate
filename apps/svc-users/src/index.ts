@@ -31,6 +31,10 @@ const getCorsHeaders = (origin?: string) => {
 async function jwtMiddleware(c: Context, next: Next) {
   try {
     const path = c.req.path;
+    const allHeaders = c.req.header();
+
+    // Log all headers for debugging
+    console.log('[jwtMiddleware DEBUG] path=%s, headers keys=%s', path, Object.keys(allHeaders).join(','));
 
     // Skip JWT validation only for exact public endpoints (not subroutes)
     if (PUBLIC_ENDPOINTS.includes(path)) {
@@ -40,21 +44,27 @@ async function jwtMiddleware(c: Context, next: Next) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
+    console.log('[jwtMiddleware DEBUG] authHeader present=%s, hasCookie=%s', !!authHeader, !!hasCookie);
+
     // If no Authorization header but has cookie, allow to proceed
     // The cookie-based auth was already validated by the previous middleware
     if (!authHeader && hasCookie) {
+      console.log('[jwtMiddleware] Using cookie-based auth, skipping JWT');
       return await next();
     }
 
     // If has Authorization header, validate JWT
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       const origin = c.req.header('origin');
+      console.log('[jwtMiddleware] REJECTING: Missing or invalid Authorization header. authHeader=%s', authHeader);
       return c.json(
         { error: 'Missing or invalid Authorization header' },
         401,
         getCorsHeaders(origin),
       );
     }
+
+    console.log('[jwtMiddleware] Authorization header found, parsing token...');
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
@@ -64,11 +74,15 @@ async function jwtMiddleware(c: Context, next: Next) {
         ? 'https://ticketeate.com.ar'
         : process.env.FRONTEND_URL || 'http://localhost:3000';
 
+    console.log('[jwtMiddleware] Verifying JWT with issuer=%s, audience=%s', frontendUrl, frontendUrl);
+
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
       issuer: frontendUrl,
       audience: frontendUrl,
       algorithms: ['HS256'], // Specify algorithm
     });
+
+    console.log('[jwtMiddleware] JWT verified successfully. userId=%s', payload.id);
 
     // Store JWT payload in context
     c.set('jwtPayload', payload);
@@ -76,7 +90,7 @@ async function jwtMiddleware(c: Context, next: Next) {
     await next();
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('JWT Middleware - JWT verification failed:', error);
+    console.error('[jwtMiddleware] JWT verification FAILED:', error instanceof Error ? error.message : String(error));
     const origin = c.req.header('origin');
     return c.json({ error: 'Invalid token' }, 401, getCorsHeaders(origin));
   }
