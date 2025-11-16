@@ -25,7 +25,9 @@ function Navbar() {
   const isLoading = isPending;
   const pathname = usePathname();
   const userRole = (session?.user as any)?.role;
-  const canCreateEvents = userRole !== 'USUARIO' && isAuthenticated;
+  // Permitir crear evento si: no está autenticado O es ORGANIZADOR/PRODUCER
+  // Bloquear si: está autenticado Y es USUARIO o COLABORADOR
+  const canCreateEvents = !isAuthenticated || userRole === 'ORGANIZADOR' || userRole === 'PRODUCER';
 
   useEffect(() => {
     const handleScroll = () => {

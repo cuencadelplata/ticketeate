@@ -2,6 +2,7 @@
 
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
+import { useEventStats } from '@/hooks/use-event-stats';
 import { Navbar } from '@/components/navbar';
 import { Calendar, MapPin, Users, Settings, BarChart3, Eye, Gift, UserCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -102,6 +103,14 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
     isLoading: isLoadingViews,
     error: viewCountError,
   } = useViewCount(id);
+
+  // Hook para obtener estadísticas de invitados e inscriptos
+  const {
+    data: stats,
+    isLoading: isLoadingStats,
+    error: statsError,
+    isError: isStatsError,
+  } = useEventStats(id);
 
   // Manejar errores
   if (error) {
@@ -321,49 +330,6 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 </div>
               </div>
             </Link>
-
-            <Link
-              href={`/evento/manage/${id}/difusiones`}
-              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-pink-500/20 p-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-pink-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5.882V19.24a1.961 1.961 0 01-2.998-1.679v-4.129a1.961 1.961 0 01.751-1.56L9 10m5.672-4.118a2 2 0 10-3.968 3.6 2 2 0 003.968-3.6m7.99 5.618a8.022 8.022 0 01-4.142 7.667c-.359.214-.773.322-1.201.322H7a1 1 0 01-1-1V5a2 2 0 012-2 6 6 0 016 6"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-pink-400">Difusiones</h3>
-                  <p className="text-sm text-stone-400">Promociones</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href={`/evento/manage/${id}/mas`}
-              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-800/20 p-3">
-                  <BarChart3 className="h-6 w-6 text-orange-700" />
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-orange-700">Más opciones</h3>
-                  <p className="text-sm text-stone-400">Configuración avanzada</p>
-                </div>
-              </div>
-            </Link>
           </div>
 
           {/* Estadísticas rápidas */}
@@ -390,7 +356,13 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-stone-400">Total Invitados</p>
-                  <p className="text-2xl font-bold text-orange-500">0</p>
+                  <p className="text-2xl font-bold text-orange-500">
+                    {isLoadingStats ? (
+                      <span className="text-stone-400">Cargando...</span>
+                    ) : (
+                      stats?.totalInvitados || 0
+                    )}
+                  </p>
                 </div>
                 <Users className="h-8 w-8 text-orange-600" />
               </div>
@@ -399,8 +371,14 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-stone-400">Confirmados</p>
-                  <p className="text-2xl font-bold text-orange-600">0</p>
+                  <p className="text-sm text-stone-400">Total Inscriptos</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {isLoadingStats ? (
+                      <span className="text-stone-400">Cargando...</span>
+                    ) : (
+                      stats?.totalInscriptos || 0
+                    )}
+                  </p>
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600/20">
                   <span className="font-bold text-orange-600">✓</span>

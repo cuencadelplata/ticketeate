@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { useEvent } from '@/hooks/use-events';
-import { Mail, Plus, Trash2, Send, AlertCircle } from 'lucide-react';
+import { useInvitados } from '@/hooks/use-invitados';
+import { useQueryClient } from '@tanstack/react-query';
+import { Mail, Plus, Trash2, Send, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Invitado {
@@ -18,12 +20,21 @@ interface Invitado {
 export default function InvitadosPage() {
   const params = useParams();
   const eventId = params.id as string;
+  const queryClient = useQueryClient();
   const { data: evento, isLoading } = useEvent(eventId);
+  const {
+    data: invitadosData,
+    isLoading: isLoadingInvitados,
+    error: invitadosError,
+    isError: isInvitadosError,
+  } = useInvitados(eventId);
 
-  const [invitados, setInvitados] = useState<Invitado[]>([]);
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sendingQR, setSendingQR] = useState<string | null>(null);
+
+  const invitados = invitadosData || [];
 
   const handleAgregarInvitado = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,46 +60,68 @@ export default function InvitadosPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Llamar a la API para agregar invitado y generar QR
-      const nuevoInvitado: Invitado = {
-        id: Date.now().toString(),
-        nombre,
-        email,
-        estado: 'pendiente',
-      };
+      const response = await fetch(`/api/administrador/invitados`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, nombre, email }),
+      });
 
-      setInvitados([...invitados, nuevoInvitado]);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al agregar invitado');
+      }
+
       setNombre('');
       setEmail('');
       toast.success(`Invitado "${nombre}" agregado correctamente`);
+
+      // Invalidar cache de invitados para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ['invitados', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event-stats', eventId] });
     } catch (error) {
       console.error('Error al agregar invitado:', error);
-      toast.error('Error al agregar invitado');
+      toast.error(error instanceof Error ? error.message : 'Error al agregar invitado');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleEnviarQR = async (invitadoId: string) => {
+    setSendingQR(invitadoId);
     try {
-      // TODO: Llamar a la API para enviar el QR por email
-      setInvitados((prev) =>
-        prev.map((inv) =>
-          inv.id === invitadoId
-            ? { ...inv, estado: 'enviado', fechaEnvio: new Date().toISOString() }
-            : inv,
-        ),
-      );
+      const response = await fetch(`/api/administrador/invitados/send-qr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, invitadoId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al enviar QR');
+      }
+
       toast.success('QR enviado correctamente');
+      // Invalidar cache de invitados para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ['invitados', eventId] });
     } catch (error) {
       console.error('Error al enviar QR:', error);
-      toast.error('Error al enviar QR');
+      toast.error(error instanceof Error ? error.message : 'Error al enviar QR');
+    } finally {
+      setSendingQR(null);
     }
   };
 
-  const handleEliminarInvitado = (invitadoId: string) => {
-    setInvitados((prev) => prev.filter((inv) => inv.id !== invitadoId));
-    toast.success('Invitado eliminado');
+  const handleEliminarInvitado = async (invitadoId: string) => {
+    try {
+      // Aquí iría un DELETE a la API si es necesario
+      toast.success('Invitado eliminado');
+      // Invalidar cache de invitados para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ['invitados', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event-stats', eventId] });
+    } catch (error) {
+      console.error('Error al eliminar invitado:', error);
+      toast.error('Error al eliminar invitado');
+    }
   };
 
   const getEstadoColor = (estado: string) => {
@@ -104,7 +137,7 @@ export default function InvitadosPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingInvitados) {
     return (
       <div className="min-h-screen bg-black text-white">
         <div className="pb-4">
@@ -112,6 +145,24 @@ export default function InvitadosPage() {
         </div>
         <div className="flex items-center justify-center p-6">
           <div className="animate-spin">Cargando...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isInvitadosError) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <div className="pb-4">
+          <Navbar />
+        </div>
+        <div className="flex items-center justify-center p-6">
+          <div className="text-center">
+            <p className="text-red-400 mb-2">Error al cargar los invitados</p>
+            <p className="text-stone-400 text-sm">
+              {invitadosError instanceof Error ? invitadosError.message : 'Error desconocido'}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -229,10 +280,20 @@ export default function InvitadosPage() {
                     {invitado.estado === 'pendiente' && (
                       <button
                         onClick={() => handleEnviarQR(invitado.id)}
-                        className="flex items-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 px-3 py-2 text-sm text-white font-medium transition-colors"
+                        disabled={sendingQR === invitado.id}
+                        className="flex items-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 px-3 py-2 text-sm text-white font-medium transition-colors"
                       >
-                        <Send className="h-4 w-4" />
-                        Enviar QR
+                        {sendingQR === invitado.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4" />
+                            Enviar QR
+                          </>
+                        )}
                       </button>
                     )}
                     <button
