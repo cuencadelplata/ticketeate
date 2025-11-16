@@ -5,6 +5,20 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.1...next-frontend-v1.5.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* add CORS headers to all error responses ([ee0eef0](https://github.com/cuencadelplata/ticketeate/commit/ee0eef037a8dbc79c4b6fbb2e724dba5fd7dd086))
+* add CORS headers to all error responses ([#155](https://github.com/cuencadelplata/ticketeate/issues/155)) ([66d3b5b](https://github.com/cuencadelplata/ticketeate/commit/66d3b5b3fa6ea600ab208a01f4038fa46156eb70))
+* remove /production from custom domain URL ([7d3e808](https://github.com/cuencadelplata/ticketeate/commit/7d3e808e23177fc7fe64752c06ff25e98db0881c))
+* remove /production from custom domain URL ([#152](https://github.com/cuencadelplata/ticketeate/issues/152)) ([afc1854](https://github.com/cuencadelplata/ticketeate/commit/afc1854429e52c48da0e06c65faf2e0931daeae1))
+* support custom domain routes in Lambda auth middleware ([49c2f74](https://github.com/cuencadelplata/ticketeate/commit/49c2f74c96e3cca2082a0b8a1716290b5e24f7cc))
+* support custom domain routes in Lambda auth middleware ([#153](https://github.com/cuencadelplata/ticketeate/issues/153)) ([bd130be](https://github.com/cuencadelplata/ticketeate/commit/bd130be0eaa4c52bccb8e402b8262ceebb232076))
+* update CORS headers and GitHub Actions IPs ([75f052f](https://github.com/cuencadelplata/ticketeate/commit/75f052f370619d7b02c932c365c1235db3e950ec))
+* update CORS headers and GitHub Actions IPs ([#150](https://github.com/cuencadelplata/ticketeate/issues/150)) ([5eb7c1f](https://github.com/cuencadelplata/ticketeate/commit/5eb7c1f06b6afaba734b1427d613413c5c6ba0e9))
+
 ## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.0...next-frontend-v1.5.1) (2025-11-16)
 
 
