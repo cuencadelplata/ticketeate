@@ -56,7 +56,7 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
   return fetch(url, {
     ...init,
     method: init.method || 'GET',
-    headers,  // Headers object - asegura que los headers se pasen correctamente
+    headers, // Headers object - asegura que los headers se pasen correctamente
     credentials,
   });
 }
