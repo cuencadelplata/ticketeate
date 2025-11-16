@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
 import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail } from '@/lib/auth-client';
+import { roleToPath } from '@/lib/role-redirect';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
