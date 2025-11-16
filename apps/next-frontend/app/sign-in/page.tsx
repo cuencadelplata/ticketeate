@@ -1,12 +1,5 @@
-import { Suspense } from 'react';
-import AuthPage from '@/components/auth-page';
+import { redirect } from 'next/navigation';
 
 export default function SignInPage() {
-  return (
-    <Suspense
-      fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}
-    >
-      <AuthPage defaultTab="login" defaultRole="USUARIO" />
-    </Suspense>
-  );
+  redirect('/acceso');
 }

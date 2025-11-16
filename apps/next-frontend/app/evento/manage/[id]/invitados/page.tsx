@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Navbar } from '@/components/navbar';
 import { useEvent } from '@/hooks/use-events';
 import { useInvitados } from '@/hooks/use-invitados';
 import { useQueryClient } from '@tanstack/react-query';
-import { Mail, Plus, Trash2, Send, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Plus, Trash2, Send, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function InvitadosPage() {
@@ -136,7 +137,10 @@ export default function InvitadosPage() {
           <Navbar />
         </div>
         <div className="flex items-center justify-center p-6">
-          <div className="animate-spin">Cargando...</div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-700 border-t-blue-500"></div>
+            <p className="text-stone-400">Cargando...</p>
+          </div>
         </div>
       </div>
     );
@@ -168,12 +172,21 @@ export default function InvitadosPage() {
 
       <div className="p-6">
         <div className="mx-auto max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">QRs de Cortesía</h1>
-            <p className="text-stone-400">
-              Envía QRs de cortesía a personas puntuales para el evento "{evento?.titulo}"
-            </p>
+          {/* Header con botón atrás */}
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">QRs de Cortesía</h1>
+              <p className="text-stone-400">
+                Envía QRs de cortesía a personas puntuales para el evento "{evento?.titulo}"
+              </p>
+            </div>
+            <Link
+              href={`/evento/manage/${eventId}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors duration-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm font-medium">Volver</span>
+            </Link>
           </div>
 
           {/* Alert informativo */}

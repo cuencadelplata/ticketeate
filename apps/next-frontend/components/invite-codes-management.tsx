@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Trash2, Plus, Check } from 'lucide-react';
+import Link from 'next/link';
+import { Copy, Trash2, Plus, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useCreateInviteCode,
@@ -91,13 +92,22 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
           <h2 className="text-2xl font-bold text-white">Códigos de Invitación</h2>
           <p className="text-sm text-stone-400">Gestiona códigos para que colaboradores se unan</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-700 px-4 py-2 text-white transition-colors"
-        >
-          <Plus size={18} />
-          Generar Código
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/evento/manage/${eventoid}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors duration-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-sm font-medium">Volver</span>
+          </Link>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 rounded-lg bg-orange-600 hover:bg-orange-700 px-4 py-2 text-white transition-colors"
+          >
+            <Plus size={18} />
+            Generar Código
+          </button>
+        </div>
       </div>
 
       {/* Form */}

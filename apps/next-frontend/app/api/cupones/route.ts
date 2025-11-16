@@ -80,8 +80,38 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { eventId, codigo, porcentaje_descuento, fecha_expiracion, limite_usos } = body;
 
-    if (!eventId || !codigo || !porcentaje_descuento || !fecha_expiracion || !limite_usos) {
-      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
+    console.log('[Cupones API POST] Datos recibidos:', {
+      eventId,
+      codigo,
+      porcentaje_descuento,
+      fecha_expiracion,
+      limite_usos,
+    });
+
+    // Validar campos requeridos (sin usar operadores falsy que fallan con 0)
+    if (
+      !eventId ||
+      !codigo ||
+      porcentaje_descuento === undefined ||
+      porcentaje_descuento === null ||
+      !fecha_expiracion ||
+      limite_usos === undefined ||
+      limite_usos === null
+    ) {
+      console.error('[Cupones API POST] Validación fallida:', {
+        eventId: !!eventId,
+        codigo: !!codigo,
+        porcentaje_descuento,
+        fecha_expiracion: !!fecha_expiracion,
+        limite_usos,
+      });
+      return NextResponse.json(
+        {
+          error: 'Faltan campos requeridos',
+          received: { eventId, codigo, porcentaje_descuento, fecha_expiracion, limite_usos },
+        },
+        { status: 400 },
+      );
     }
 
     // Verificar que el usuario es el creador del evento
@@ -116,19 +146,26 @@ export async function POST(request: NextRequest) {
     const cupon = await prisma.cupones_evento.create({
       data: {
         eventoid: eventId,
-        codigo: codigo,
-        porcentaje_descuento: Number(porcentaje_descuento),
+        codigo: codigo.toUpperCase(),
+        porcentaje_descuento: parseFloat(String(porcentaje_descuento)),
         fecha_expiracion: new Date(fecha_expiracion),
-        limite_usos: Number(limite_usos),
+        limite_usos: parseInt(String(limite_usos), 10),
         estado: 'ACTIVO',
         updated_by: session.user.id,
+        // usos_actuales y is_active tienen valores por defecto en el schema
       },
     });
 
     return NextResponse.json({ cupon }, { status: 201 });
   } catch (error) {
     console.error('Error al crear cupón:', error);
-    return NextResponse.json({ error: 'Error al crear cupón' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    const errorDetails =
+      error instanceof Error ? { message: error.message, stack: error.stack } : error;
+    return NextResponse.json(
+      { error: 'Error al crear cupón', details: errorDetails },
+      { status: 500 },
+    );
   }
 }
 
@@ -196,10 +233,10 @@ export async function PATCH(request: NextRequest) {
       data: {
         cuponid: cuponId,
         eventoid: currentCupon.eventoid,
-        codigo: updateData.codigo ?? currentCupon.codigo,
+        codigo: (updateData.codigo ?? currentCupon.codigo).toUpperCase(),
         porcentaje_descuento:
           updateData.porcentaje_descuento !== undefined
-            ? Number(updateData.porcentaje_descuento)
+            ? parseFloat(String(updateData.porcentaje_descuento))
             : currentCupon.porcentaje_descuento,
         fecha_creacion: currentCupon.fecha_creacion,
         fecha_expiracion: updateData.fecha_expiracion
@@ -207,7 +244,7 @@ export async function PATCH(request: NextRequest) {
           : currentCupon.fecha_expiracion,
         limite_usos:
           updateData.limite_usos !== undefined
-            ? Number(updateData.limite_usos)
+            ? parseInt(String(updateData.limite_usos), 10)
             : currentCupon.limite_usos,
         usos_actuales: currentCupon.usos_actuales,
         estado: updateData.estado ?? currentCupon.estado,
@@ -220,7 +257,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ cupon }, { status: 200 });
   } catch (error) {
     console.error('Error al actualizar cupón:', error);
-    return NextResponse.json({ error: 'Error al actualizar cupón' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json(
+      { error: 'Error al actualizar cupón', details: errorMessage },
+      { status: 500 },
+    );
   }
 }
 

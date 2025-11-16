@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { HoveredLink, Menu, MenuItem, ProductItem } from '@/components/ui/navbar-menu';
@@ -25,9 +25,11 @@ function Navbar() {
   const isLoading = isPending;
   const pathname = usePathname();
   const userRole = (session?.user as any)?.role;
-  // Permitir crear evento si: no está autenticado O es ORGANIZADOR/PRODUCER
-  // Bloquear si: está autenticado Y es USUARIO o COLABORADOR
-  const canCreateEvents = !isAuthenticated || userRole === 'ORGANIZADOR' || userRole === 'PRODUCER';
+
+  // Memoizar el valor de canCreateEvents para evitar re-renderizados innecesarios
+  const canCreateEvents = useMemo(() => {
+    return !isAuthenticated || userRole === 'ORGANIZADOR' || userRole === 'PRODUCER';
+  }, [isAuthenticated, userRole]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -159,7 +161,7 @@ function Navbar() {
                   <UserNav />
                 ) : (
                   <Link
-                    href="/sign-in"
+                    href="/acceso"
                     className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
                   >
                     Acceso
@@ -167,14 +169,24 @@ function Navbar() {
                 )}
               </>
             )}
-            {canCreateEvents && (
-              <Link
-                href="/crear"
-                className="px-2 lg:px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
-              >
-                Crear Evento
-              </Link>
-            )}
+            <AnimatePresence mode="wait">
+              {canCreateEvents && (
+                <motion.div
+                  key="crear-evento-btn"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    href="/crear"
+                    className="px-2 lg:px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+                  >
+                    Crear Evento
+                  </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Botón hamburguesa - Mobile */}
@@ -416,7 +428,7 @@ function Navbar() {
                       <UserNav />
                     ) : (
                       <Link
-                        href="/sign-in"
+                        href="/acceso"
                         className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
                       >
                         Acceso
@@ -424,14 +436,24 @@ function Navbar() {
                     )}
                   </>
                 )}
-                {canCreateEvents && (
-                  <Link
-                    href="/crear"
-                    className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
-                  >
-                    Crear Evento
-                  </Link>
-                )}
+                <AnimatePresence mode="wait">
+                  {canCreateEvents && (
+                    <motion.div
+                      key="crear-evento-mobile"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Link
+                        href="/crear"
+                        className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+                      >
+                        Crear Evento
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             </motion.div>
           </motion.div>
