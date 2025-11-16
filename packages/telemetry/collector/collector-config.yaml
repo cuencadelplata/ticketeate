@@ -1,0 +1,36 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 4000
+    spike_limit_mib: 500
+  batch:
+
+exporters:
+  # AWS EMF exporter: convierte métricas/trazas a EMF y las envía a CloudWatch
+  awsemf:
+    namespace: "Ticketeate"
+  # Logging exporter útil para depuración
+  logging:
+    logLevel: info
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [awsemf]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsemf]
+
+# Notes:
+# - `awsemf` enviará métricas y trazas a CloudWatch usando las credenciales AWS del entorno
+#   (EC2 instance role, ECS task role, or IRSA in EKS). Asegúrate de asignar permisos
+#   `cloudwatch:PutMetricData` y `logs:PutLogEvents` al role del collector.

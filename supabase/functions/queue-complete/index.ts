@@ -6,6 +6,52 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: post telemetry event to ingest endpoint if configured
+async function postTelemetryEvent(eventType: string, eventId: string, userId: string) {
+  const telemetryUrl = Deno.env.get('TELEMETRY_INGEST_URL');
+  if (!telemetryUrl) return;
+
+  const telemetrySecret = Deno.env.get('TELEMETRY_INGEST_SECRET');
+  const body = JSON.stringify({ type: eventType, eventId, userId, attrs: { source: 'queue-complete' } });
+
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (telemetrySecret) headers['x-telemetry-secret'] = telemetrySecret;
+
+  const resp = await fetch(telemetryUrl, { method: 'POST', headers, body });
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    console.error('Telemetry ingest failed:', resp.status, text);
+  }
+}
+
+// Helper: update DB and publish realtime for a completed purchase
+async function handleCompletedPurchase(supabaseClient: any, eventId: string, userId: string, success: boolean) {
+  const { error: updateError } = await supabaseClient
+    .from('cola_turnos')
+    .update({
+      estado: success ? 'completado' : 'abandonado',
+    })
+    .eq('usuarioid', userId)
+    .eq('colas_evento.eventoid', eventId);
+
+  if (updateError) {
+    console.error('Error updating turnos:', updateError);
+  }
+
+  // Publicar update via Realtime
+  await supabaseClient.channel(`queue:${eventId}`).send({
+    type: 'broadcast',
+    event: 'queue_update',
+    payload: {
+      eventId,
+      userId,
+      action: success ? 'completed' : 'failed',
+      timestamp: Date.now(),
+    },
+  });
+}
+
+
 // Cliente Redis para Upstash
 class RedisClient {
   private url: string;
@@ -77,7 +123,8 @@ class RedisClient {
   }
 }
 
-serve(async (req) => {
+// Main request processor extracted to reduce cognitive complexity in top-level handler
+async function processRequest(req: Request): Promise<Response> {
   // Manejar CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -108,30 +155,14 @@ serve(async (req) => {
     const completed = await redis.completePurchase(eventId, userId);
 
     if (completed) {
-      // Actualizar estado en BD
-      const { error: updateError } = await supabase
-        .from('cola_turnos')
-        .update({
-          estado: success ? 'completado' : 'abandonado',
-        })
-        .eq('usuarioid', userId)
-        .eq('colas_evento.eventoid', eventId);
+      await handleCompletedPurchase(supabase, eventId, userId, success);
 
-      if (updateError) {
-        console.error('Error updating turnos:', updateError);
+      try {
+        const eventType = success ? 'purchase_confirmed' : 'purchase_error';
+        await postTelemetryEvent(eventType, eventId, userId);
+      } catch (error_) {
+        console.error('Telemetry post error:', error_);
       }
-
-      // Publicar update via Realtime
-      await supabase.channel(`queue:${eventId}`).send({
-        type: 'broadcast',
-        event: 'queue_update',
-        payload: {
-          eventId,
-          userId,
-          action: success ? 'completed' : 'failed',
-          timestamp: Date.now(),
-        },
-      });
 
       console.log(`✅ Compra ${success ? 'completada' : 'fallida'} para usuario ${userId}`);
     }
@@ -147,4 +178,6 @@ serve(async (req) => {
       status: 500,
     });
   }
-});
+}
+
+serve(processRequest);

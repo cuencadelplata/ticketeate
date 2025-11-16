@@ -1,4 +1,5 @@
 import { Hono, Context } from 'hono';
+import { recordPurchaseConfirmed, recordPurchaseCancelled, recordPurchaseError } from '@ticketeate/telemetry';
 
 const api = new Hono();
 
@@ -17,7 +18,7 @@ api.get('/users/:id', (c) => {
 
   const id = c.req.param('id');
   return c.json({
-    id: parseInt(id),
+    id: Number.parseInt(id),
     name: 'John Doe',
     email: 'john@example.com',
     authenticatedUserId: jwtPayload.id,
@@ -57,7 +58,7 @@ api.put('/users/:id', async (c) => {
   const body = await c.req.json();
   return c.json({
     message: 'User updated successfully',
-    id: parseInt(id),
+    id: Number.parseInt(id),
     user: body,
     authenticatedUserId: jwtPayload.id,
     userRole: jwtPayload.role,
@@ -75,7 +76,7 @@ api.delete('/users/:id', (c) => {
   const id = c.req.param('id');
   return c.json({
     message: 'User deleted successfully',
-    id: parseInt(id),
+    id: Number.parseInt(id),
     authenticatedUserId: jwtPayload.id,
     userRole: jwtPayload.role,
   });
@@ -101,3 +102,40 @@ api.get('/protected/profile', (c) => {
 });
 
 export { api as apiRoutes };
+
+// POST /api/telemetry/ingest - endpoint simple para recibir eventos de telemetría
+// Espera body: { type: 'purchase_confirmed'|'purchase_cancelled'|'purchase_error', eventId?, userId?, attrs? }
+// Opcional: proteger con header 'x-telemetry-secret' igual a env TELEMETRY_INGEST_SECRET
+api.post('/telemetry/ingest', async (c) => {
+  try {
+    const secret = process.env.TELEMETRY_INGEST_SECRET;
+    if (secret) {
+      const header = c.req.header('x-telemetry-secret');
+      if (header !== secret) return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const body = await c.req.json();
+    const { type, eventId, userId, attrs } = body || {};
+
+    const commonAttrs: Record<string, any> = { eventId, userId };
+    if (attrs && typeof attrs === 'object') {
+      Object.assign(commonAttrs, attrs);
+    }
+
+    if (type === 'purchase_confirmed') {
+      recordPurchaseConfirmed(commonAttrs);
+    } else if (type === 'purchase_cancelled') {
+      recordPurchaseCancelled(commonAttrs);
+    } else if (type === 'purchase_error') {
+      recordPurchaseError(commonAttrs);
+    } else {
+      return c.json({ error: 'Unknown event type' }, 400);
+    }
+
+    return c.json({ ok: true });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Telemetry ingest error:', error);
+    return c.json({ error: 'Internal Server Error' }, 500);
+  }
+});

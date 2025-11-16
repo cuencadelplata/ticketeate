@@ -1,0 +1,44 @@
+# Example Helm values for aws-otel-collector (AWS Distro for OpenTelemetry)
+# Adapt these values to your cluster (EKS) and enable IRSA annotations for the service account.
+
+serviceAccount:
+  create: true
+  name: adot-collector
+  annotations: {}
+  # If using IRSA, add the annotation below (example):
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/ADOTCollectorRole
+
+replicaCount: 1
+
+aws:
+  region: us-east-1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+config:
+  # You can mount your own collector-config.yaml via config override.
+  # See README for example config files under packages/telemetry/collector
+  collectorConfig: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch: {}
+    exporters:
+      awsemf:
+        namespace: "Ticketeate"
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [awsemf]

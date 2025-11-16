@@ -2,8 +2,12 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
+import { initOtelMetrics } from '@ticketeate/telemetry';
 
 const app = new Hono();
+
+// Inicializar métricas OTLP (idempotente)
+initOtelMetrics(process.env.SERVICE_NAME || 'svc-checkout');
 
 // Middleware
 app.use('*', logger());

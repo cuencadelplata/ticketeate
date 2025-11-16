@@ -24,6 +24,13 @@ const envVars = Object.fromEntries(
 // Usar la variable del archivo .env directamente
 const port = parseInt(envVars.PORT || '3001', 10);
 
+// Exportar variables relevantes al entorno de ejecución (útil en dev)
+process.env.NODE_ENV = envVars.NODE_ENV || process.env.NODE_ENV || 'development';
+process.env.SERVICE_NAME = envVars.SERVICE_NAME || process.env.SERVICE_NAME || 'svc-events';
+if (envVars.OTEL_EXPORTER_OTLP_ENDPOINT) {
+  process.env.OTEL_EXPORTER_OTLP_ENDPOINT = envVars.OTEL_EXPORTER_OTLP_ENDPOINT;
+}
+
 console.log(`🚀 Development server running on http://localhost:${port}`);
 
 serve({

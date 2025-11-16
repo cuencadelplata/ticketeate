@@ -1,0 +1,53 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [ "Ticketeate", "ticket_purchase_confirmed", { "stat": "Sum" } ],
+          [ ".", "ticket_purchase_cancelled", { "stat": "Sum" } ],
+          [ ".", "ticket_purchase_error", { "stat": "Sum" } ]
+        ],
+        "region": "us-east-1",
+        "title": "Ticket purchases (confirmed / cancelled / errors)"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "metrics": [
+          [ "Ticketeate", "process_memory_rss_bytes", { "stat": "Average" } ],
+          [ ".", "process_cpu_seconds_total", { "stat": "Average" } ]
+        ],
+        "region": "us-east-1",
+        "title": "Process memory (RSS) and CPU seconds"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "view": "singleValue",
+        "metrics": [
+          [ "Ticketeate", "ticket_purchase_error", { "stat": "Sum", "period": 300 } ]
+        ],
+        "region": "us-east-1",
+        "title": "Errors (5m sum)"
+      }
+    }
+  ]
+}

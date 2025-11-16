@@ -2,6 +2,10 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
+import { initOtelMetrics } from '@ticketeate/telemetry';
+
+// Inicializar métricas OTLP (idempotente). Usa env vars: SERVICE_NAME, NODE_ENV, OTEL_EXPORTER_OTLP_ENDPOINT
+initOtelMetrics(process.env.SERVICE_NAME || 'svc-events');
 
 const app = new Hono();
 
