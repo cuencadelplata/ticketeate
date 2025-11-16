@@ -28,6 +28,7 @@ export function AccessPageContent() {
         const target = roleToPath(userRole);
         setIsRedirecting(true);
         router.push(target);
+        return;
       }
     }
   }, [session, isPending, isRedirecting, router]);

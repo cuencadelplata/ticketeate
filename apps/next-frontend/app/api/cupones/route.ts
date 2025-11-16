@@ -33,18 +33,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener cupones desde la tabla principal (más recientes y actuales)
-    const cupones = await prisma.cupones_evento.findMany({
-      where: {
-        eventoid: eventId,
-        is_active: true,
-      },
-      orderBy: {
-        fecha_creacion: 'desc',
-      },
-    });
+    // Obtener la última versión de cada cupón desde el historial (append-only)
+    // Esto incluye deletes, updates y creaciones
+    const cuponesHistory = await prisma.$queryRaw<any[]>`
+      WITH latest_versions AS (
+        SELECT DISTINCT ON (cuponid)
+          cuponid,
+          eventoid,
+          codigo,
+          porcentaje_descuento,
+          fecha_creacion,
+          fecha_expiracion,
+          limite_usos,
+          usos_actuales,
+          estado,
+          version,
+          changed_at,
+          changed_by,
+          change_type
+        FROM cupones_evento_history
+        WHERE eventoid::text = ${eventId}
+        ORDER BY cuponid, version DESC, changed_at DESC
+      )
+      SELECT * FROM latest_versions
+      WHERE change_type::text != 'DELETE'
+      ORDER BY fecha_creacion DESC
+    `;
 
-    return NextResponse.json({ cupones }, { status: 200 });
+    return NextResponse.json({ cupones: cuponesHistory }, { status: 200 });
   } catch (error) {
     console.error('Error al obtener cupones:', error);
     return NextResponse.json({ error: 'Error al obtener cupones' }, { status: 500 });

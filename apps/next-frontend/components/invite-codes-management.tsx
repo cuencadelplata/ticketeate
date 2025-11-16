@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Copy, Trash2, Plus, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { ConfirmDeactivateModal } from './confirm-deactivate-modal';
 import {
   useCreateInviteCode,
   useGetInviteCodes,
@@ -21,6 +22,11 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
   const [maxUsos, setMaxUsos] = useState('10');
   const [expirationDays, setExpirationDays] = useState('30');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [codeToDeactivate, setCodeToDeactivate] = useState<{
+    codigoid: string;
+    codigo: string;
+  } | null>(null);
 
   const { mutate: createInviteCode, isPending: isCreating } = useCreateInviteCode();
   const { data: inviteCodes, isLoading: isLoadingCodes, refetch } = useGetInviteCodes(eventoid);
@@ -61,15 +67,21 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const handleDeactivateCode = (codigoid: string) => {
-    // eslint-disable-next-line no-undef
-    if (!confirm('¿Desactivar este código de invitación?')) return;
+  const handleOpenDeactivateModal = (codigoid: string, codigo: string) => {
+    setCodeToDeactivate({ codigoid, codigo });
+    setShowDeactivateModal(true);
+  };
+
+  const handleConfirmDeactivate = () => {
+    if (!codeToDeactivate) return;
 
     deactivateCode(
-      { eventoid, codigoid },
+      { eventoid, codigoid: codeToDeactivate.codigoid },
       {
         onSuccess: () => {
-          toast.success('Código desactivado');
+          toast.success(`Código "${codeToDeactivate.codigo}" desactivado exitosamente`);
+          setShowDeactivateModal(false);
+          setCodeToDeactivate(null);
           refetch();
         },
         onError: (error) => {
@@ -77,6 +89,11 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
         },
       },
     );
+  };
+
+  const handleCancelDeactivate = () => {
+    setShowDeactivateModal(false);
+    setCodeToDeactivate(null);
   };
 
   const formatDate = (date: Date | string) => {
@@ -245,7 +262,7 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
                 {/* Actions */}
                 {code.estado === 'ACTIVO' && (
                   <button
-                    onClick={() => handleDeactivateCode(code.codigoid)}
+                    onClick={() => handleOpenDeactivateModal(code.codigoid, code.codigo)}
                     disabled={isDeactivating}
                     className="w-full flex items-center justify-center gap-2 text-xs px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                   >
@@ -331,6 +348,17 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación para desactivar código */}
+      <ConfirmDeactivateModal
+        isOpen={showDeactivateModal}
+        title="Desactivar Código de Invitación"
+        description="Este código de invitación será desactivado y ya no podrá ser utilizado por los colaboradores."
+        itemName={codeToDeactivate ? `Código: ${codeToDeactivate.codigo}` : undefined}
+        isLoading={isDeactivating}
+        onConfirm={handleConfirmDeactivate}
+        onCancel={handleCancelDeactivate}
+      />
     </div>
   );
 }

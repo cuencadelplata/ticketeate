@@ -183,13 +183,35 @@ export function useUpdateCupon() {
 
       return { previousCupones };
     },
+    onSuccess: (data, updatedCupon) => {
+      // Actualizar con los datos reales del servidor desde el historial
+      queryClient.setQueryData<Cupon[]>(['cupones', updatedCupon.eventId], (old) =>
+        old?.map((cupon) =>
+          cupon.cuponid === updatedCupon.cuponId
+            ? {
+                ...cupon,
+                codigo: data.codigo || cupon.codigo,
+                porcentaje_descuento:
+                  data.porcentaje_descuento?.toString() || cupon.porcentaje_descuento,
+                fecha_expiracion: data.fecha_expiracion || cupon.fecha_expiracion,
+                limite_usos: data.limite_usos || cupon.limite_usos,
+                estado: data.estado || cupon.estado,
+                version: data.version || cupon.version,
+              }
+            : cupon,
+        ),
+      );
+    },
     onError: (_err, updatedCupon, context) => {
       if (context?.previousCupones) {
         queryClient.setQueryData(['cupones', updatedCupon.eventId], context.previousCupones);
       }
     },
     onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });
+      // Pequeño delay para asegurar sincronización del historial
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });
+      }, 100);
     },
   });
 }
@@ -231,13 +253,20 @@ export function useDeleteCupon() {
 
       return { previousCupones };
     },
+    onSuccess: (_data, { cuponId, eventId }) => {
+      // El cupón ya fue removido optimisticamente, no hacer nada
+      // El refetch en onSettled traerá los datos actualizados
+    },
     onError: (_err, { eventId }, context) => {
       if (context?.previousCupones) {
         queryClient.setQueryData(['cupones', eventId], context.previousCupones);
       }
     },
     onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });
+      // Pequeño delay para asegurar sincronización del historial
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });
+      }, 100);
     },
   });
 }
