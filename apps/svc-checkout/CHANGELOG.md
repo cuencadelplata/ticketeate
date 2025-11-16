@@ -5,6 +5,31 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.4...svc-checkout-v1.5.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* add /api/wallet routes to API Gateway for svc-users ([08b1e44](https://github.com/cuencadelplata/ticketeate/commit/08b1e44ddfb742f6e04b4440aa1bf92dfe918d8c))
+* add /api/wallet routes to API Gateway for svc-users ([#159](https://github.com/cuencadelplata/ticketeate/issues/159)) ([4a1fa38](https://github.com/cuencadelplata/ticketeate/commit/4a1fa38daae866facd2a2f40ff4874fd9b0ece8e))
+* **mercado-pago:** add environment variables to runner stage for runtime access ([7fe975b](https://github.com/cuencadelplata/ticketeate/commit/7fe975b940d83c48df2fcb9d0a2fe18ebfc0e0fb))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([77976ea](https://github.com/cuencadelplata/ticketeate/commit/77976eacf9a2cbe9311d751b77503d1dd093244a))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([#157](https://github.com/cuencadelplata/ticketeate/issues/157)) ([41f01ef](https://github.com/cuencadelplata/ticketeate/commit/41f01ef6e13801a8d4208a8d7a70c04b65a7e0fe))
+* apply jwtMiddleware to both api and production paths ([aa9c889](https://github.com/cuencadelplata/ticketeate/commit/aa9c8892245f9ea066409a9674632db1e6c104a0))
+* apply jwtMiddleware to both api and production paths ([#163](https://github.com/cuencadelplata/ticketeate/issues/163)) ([313f414](https://github.com/cuencadelplata/ticketeate/commit/313f414f28fa110dc14d6233cffa793231848f49))
+* cast JWT payload to Record string unknown to satisfy TypeScript ([9e7a360](https://github.com/cuencadelplata/ticketeate/commit/9e7a360eabf26fe06746836f0ba8ba37f3e4a2e9))
+* ensure Authorization header is correctly passed to fetch requests ([59431b3](https://github.com/cuencadelplata/ticketeate/commit/59431b3486289af6b25c2ee346406f6915934613))
+* ensure Authorization header is correctly passed to fetch requests ([#166](https://github.com/cuencadelplata/ticketeate/issues/166)) ([08e7077](https://github.com/cuencadelplata/ticketeate/commit/08e70776e75bdf2e2f4a2dcad851735d903755ca))
+* explicit OPTIONS handler with CORS headers and 200 status ([b0809e8](https://github.com/cuencadelplata/ticketeate/commit/b0809e8e92992c2a42c22e465bc68809ca8dd8bc))
+* explicit OPTIONS handler with CORS headers and 200 status ([#158](https://github.com/cuencadelplata/ticketeate/issues/158)) ([ac264d1](https://github.com/cuencadelplata/ticketeate/commit/ac264d18038632d825cbc9318fca8160d4ec83a2))
+* skip OPTIONS requests in auth middleware for CORS preflight ([d04ca32](https://github.com/cuencadelplata/ticketeate/commit/d04ca324e59bf43449fc52dc5f9f2460780b4462))
+* standardize JWT issuer/audience to https://ticketeate.com.ar in production ([98473e2](https://github.com/cuencadelplata/ticketeate/commit/98473e29f94e439ca85e67de46fdbb3474d8d0f2))
+
+
+### Features
+
+* **deployment:** pass mercado pago variables as docker build args ([3e58219](https://github.com/cuencadelplata/ticketeate/commit/3e582191ea15605b8d79b19402ac7d2f845a1121))
+
 ## [1.4.4](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.3...svc-checkout-v1.4.4) (2025-11-16)
 
 
