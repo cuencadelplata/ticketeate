@@ -11,8 +11,8 @@ async function getApplicationToken(): Promise<{
   expires_in: number;
   token_type: string;
 }> {
-  const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
-  const clientSecret = process.env.MERCADO_PAGO_CLIENT_SECRET;
+  const clientId = process.env.MERCADOPAGO_CLIENT_ID;
+  const clientSecret = process.env.MERCADOPAGO_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     throw new Error('Configuración de Mercado Pago incompleta');

@@ -15,13 +15,40 @@ async function exchangeCodeForToken(
   user_id: string;
   expires_in: number;
 }> {
-  const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
-  const clientSecret = process.env.MERCADO_PAGO_CLIENT_SECRET;
-  const redirectUri = process.env.MERCADO_PAGO_REDIRECT_URI;
+  const clientId = process.env.MERCADOPAGO_CLIENT_ID;
+  const clientSecret = process.env.MERCADOPAGO_CLIENT_SECRET;
+  const redirectUri = process.env.MERCADOPAGO_REDIRECT_URI;
+
+  console.log('[OAuth Token Exchange] Configuration check:', {
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    hasRedirectUri: !!redirectUri,
+    clientIdLength: clientId?.length,
+    clientSecretLength: clientSecret?.length,
+    redirectUri,
+  });
 
   if (!clientId || !clientSecret || !redirectUri) {
     throw new Error('Configuración de Mercado Pago incompleta');
   }
+
+  const payload = {
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier,
+  };
+
+  console.log('[OAuth Token Exchange] Request payload:', {
+    client_id: clientId,
+    client_secret: '***',
+    grant_type: payload.grant_type,
+    code,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier.substring(0, 10) + '...',
+  });
 
   const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
     method: 'POST',
@@ -29,15 +56,13 @@ async function exchangeCodeForToken(
       'Content-Type': 'application/json',
       'User-Agent': 'ticketeate/1.0',
     },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: redirectUri,
-      // PKCE: incluir el code_verifier
-      code_verifier: codeVerifier,
-    }),
+    body: JSON.stringify(payload),
+  });
+
+  console.log('[OAuth Token Exchange] Response status:', {
+    status: tokenResponse.status,
+    statusText: tokenResponse.statusText,
+    contentType: tokenResponse.headers.get('content-type'),
   });
 
   if (!tokenResponse.ok) {
@@ -45,12 +70,25 @@ async function exchangeCodeForToken(
     console.error('[OAuth Callback] Token exchange failed:', {
       status: tokenResponse.status,
       statusText: tokenResponse.statusText,
-      body: errorText,
+      responseBody: errorText,
+      requestPayload: {
+        client_id: clientId,
+        grant_type: 'authorization_code',
+        code: code.substring(0, 20) + '...',
+      },
     });
     throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
   }
 
   const tokenData = await tokenResponse.json();
+
+  console.log('[OAuth Token Exchange] Token response received:', {
+    hasAccessToken: !!tokenData.access_token,
+    hasRefreshToken: !!tokenData.refresh_token,
+    hasUserId: !!tokenData.user_id,
+    expiresIn: tokenData.expires_in,
+    tokenType: tokenData.token_type,
+  });
 
   // Validar que la respuesta tenga los campos requeridos
   if (!tokenData.access_token || !tokenData.refresh_token || !tokenData.user_id) {
@@ -72,6 +110,14 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
+
+    console.log('[OAuth Callback] Callback initiated:', {
+      url: request.url,
+      hasCode: !!code,
+      hasState: !!state,
+      hasError: !!error,
+      timestamp: new Date().toISOString(),
+    });
 
     // Manejo de errores de OAuth de Mercado Pago
     if (error) {
@@ -107,6 +153,13 @@ export async function GET(request: NextRequest) {
     const cookieCodeVerifier = request.cookies.get('oauth_code_verifier')?.value;
     const cookieState = request.cookies.get('oauth_state')?.value;
     const cookieUserId = request.cookies.get('oauth_user_id')?.value;
+
+    console.log('[OAuth Callback] Cookie check:', {
+      hasCookieCodeVerifier: !!cookieCodeVerifier,
+      hasCookieState: !!cookieState,
+      hasCookieUserId: !!cookieUserId,
+      stateMatch: state === cookieState,
+    });
 
     // Validar state para protección CSRF
     if (!cookieState || state !== cookieState) {
