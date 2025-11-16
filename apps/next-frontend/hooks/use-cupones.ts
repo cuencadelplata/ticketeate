@@ -191,7 +191,8 @@ export function useUpdateCupon() {
             ? {
                 ...cupon,
                 codigo: data.codigo || cupon.codigo,
-                porcentaje_descuento: data.porcentaje_descuento?.toString() || cupon.porcentaje_descuento,
+                porcentaje_descuento:
+                  data.porcentaje_descuento?.toString() || cupon.porcentaje_descuento,
                 fecha_expiracion: data.fecha_expiracion || cupon.fecha_expiracion,
                 limite_usos: data.limite_usos || cupon.limite_usos,
                 estado: data.estado || cupon.estado,
