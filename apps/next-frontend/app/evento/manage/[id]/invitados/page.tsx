@@ -103,7 +103,7 @@ export default function InvitadosPage() {
     }
   };
 
-  const handleEliminarInvitado = async () => {
+  const handleEliminarInvitado = async (invitadoId: string) => {
     try {
       // Aquí iría un DELETE a la API si es necesario
       toast.success('Invitado eliminado');
