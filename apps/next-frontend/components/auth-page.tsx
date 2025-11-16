@@ -7,6 +7,7 @@ import { roleToPath } from '@/lib/role-redirect';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
@@ -41,7 +42,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const showError = (message: string) => {
     console.log('Setting error:', message);
     setErr(message);
+    // También mostrar como toast para más visibilidad
+    toast.error(message);
   };
+
+  // Limpiar error cuando cambia el tab
+  useEffect(() => {
+    setErr(null);
+  }, [tab]);
 
   useEffect(() => {
     // No redirigir si:
@@ -556,15 +564,19 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
           <div className="px-6 pb-6 pt-4 bg-stone-900 text-stone-100">
             {/* Error */}
             {err && (
-              <div className="mb-3 rounded-md bg-red-500/20 border border-red-500/30 px-3 py-2 text-sm text-red-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-red-400">⚠️</span>
-                    <span>{err}</span>
+              <div className="mb-4 rounded-lg bg-red-500/15 border border-red-500/50 px-4 py-3 text-sm text-red-200 animate-in fade-in duration-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <span className="text-red-400 flex-shrink-0 mt-0.5">●</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-red-100">{err}</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setErr(null)}
-                    className="text-red-400 hover:text-red-300 text-lg leading-none"
+                    type="button"
+                    className="text-red-400 hover:text-red-300 flex-shrink-0 text-xl leading-none transition-colors"
+                    aria-label="Cerrar error"
                   >
                     ×
                   </button>
