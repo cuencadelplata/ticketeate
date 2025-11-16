@@ -14,14 +14,25 @@ export const handler = async (event: any, context: any) => {
     'http://localhost:3000',
   ];
 
+  // Convertir response a un objeto con headers mutables si es necesario
+  const modifiedResponse = {
+    ...response,
+    headers: {
+      ...(response.headers instanceof Map
+        ? Object.fromEntries(response.headers)
+        : response.headers || {}),
+    },
+  };
+
   if (origin && allowedOrigins.includes(origin)) {
-    response.headers = response.headers || {};
-    response.headers['Access-Control-Allow-Origin'] = origin;
-    response.headers['Access-Control-Allow-Credentials'] = 'true';
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS';
-    response.headers['Access-Control-Allow-Headers'] = '*';
-    response.headers['Access-Control-Expose-Headers'] = '*';
+    modifiedResponse.headers['Access-Control-Allow-Origin'] = origin;
+    modifiedResponse.headers['Access-Control-Allow-Credentials'] = 'true';
+    modifiedResponse.headers['Access-Control-Allow-Methods'] =
+      'GET, POST, PUT, DELETE, PATCH, OPTIONS';
+    modifiedResponse.headers['Access-Control-Allow-Headers'] =
+      'Authorization, Content-Type, X-Requested-With, Cookie';
+    modifiedResponse.headers['Access-Control-Expose-Headers'] = 'Content-Type, X-Total-Count';
   }
 
-  return response;
+  return modifiedResponse;
 };
