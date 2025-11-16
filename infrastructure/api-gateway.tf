@@ -207,6 +207,21 @@ resource "aws_apigatewayv2_route" "svc_checkout" {
   target    = "integrations/${aws_apigatewayv2_integration.svc_checkout.id}"
 }
 
+# Routes for invite-codes (handled by svc-events)
+# Route for exact /api/invite-codes path
+resource "aws_apigatewayv2_route" "svc_invite_codes_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/invite-codes"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_events.id}"
+}
+
+# Route for /api/invite-codes/* paths
+resource "aws_apigatewayv2_route" "svc_invite_codes" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/invite-codes/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_events.id}"
+}
+
 # Custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "api.${var.domain_name}"
