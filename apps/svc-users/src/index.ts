@@ -139,6 +139,10 @@ app.use('*', honoLogger());
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
+  const authHeader = c.req.header('Authorization');
+  const hasCookie = c.req.header('cookie')?.includes('better_auth');
+
+  console.log('[auth-general] path=%s, authHeader=%s, hasCookie=%s', path, !!authHeader, !!hasCookie);
 
   // Skip OPTIONS requests (CORS preflight) - don't validate auth
   if (c.req.method === 'OPTIONS') {
@@ -170,7 +174,9 @@ app.use('*', async (c, next) => {
 });
 
 // JWT Authentication middleware for protected API routes
+// Must match both /api/* and /production/api/* patterns
 app.use('/api/*', jwtMiddleware);
+app.use('/production/api/*', jwtMiddleware);
 
 // Handle OPTIONS requests (preflight) for all routes
 // This is needed for tests and any direct calls to Hono
