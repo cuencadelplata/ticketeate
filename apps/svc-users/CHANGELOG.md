@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.2](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.1...svc-users-v1.5.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* update CORS headers and GitHub Actions IPs ([75f052f](https://github.com/cuencadelplata/ticketeate/commit/75f052f370619d7b02c932c365c1235db3e950ec))
+* update CORS headers and GitHub Actions IPs ([#150](https://github.com/cuencadelplata/ticketeate/issues/150)) ([5eb7c1f](https://github.com/cuencadelplata/ticketeate/commit/5eb7c1f06b6afaba734b1427d613413c5c6ba0e9))
+
 ## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.0...svc-users-v1.5.1) (2025-11-16)
 
 
