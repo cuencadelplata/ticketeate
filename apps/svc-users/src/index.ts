@@ -38,7 +38,15 @@ async function jwtMiddleware(c: Context, next: Next) {
     }
 
     const authHeader = c.req.header('Authorization');
+    const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
+    // If no Authorization header but has cookie, allow to proceed
+    // The cookie-based auth was already validated by the previous middleware
+    if (!authHeader && hasCookie) {
+      return await next();
+    }
+
+    // If has Authorization header, validate JWT
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       const origin = c.req.header('origin');
       return c.json(
