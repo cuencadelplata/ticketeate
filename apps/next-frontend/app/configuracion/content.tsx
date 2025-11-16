@@ -85,7 +85,7 @@ export default function ConfiguracionContent() {
 
   return (
     <OrganizerGuard>
-      <div className="min-h-screen bg-stone-950 py-8 pt-8">
+      <div className="min-h-screen bg-stone-950 py-8 pt-24 p-12">
         <div className="mx-auto max-w-3xl px-4">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-stone-100">Configuración</h1>
