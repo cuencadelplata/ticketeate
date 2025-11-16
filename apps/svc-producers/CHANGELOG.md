@@ -5,6 +5,29 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.2.4...svc-producers-v1.3.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **mercado-pago:** add environment variables to runner stage for runtime access ([7fe975b](https://github.com/cuencadelplata/ticketeate/commit/7fe975b940d83c48df2fcb9d0a2fe18ebfc0e0fb))
+* **mercadopago:** use MERCADOPAGO_ env var names to match parameter store ([7fd3708](https://github.com/cuencadelplata/ticketeate/commit/7fd37088fc111b9b7b239c5b1a06cd0e8f595c01))
+
+
+### Features
+
+* **deployment:** pass mercado pago variables as docker build args ([3e58219](https://github.com/cuencadelplata/ticketeate/commit/3e582191ea15605b8d79b19402ac7d2f845a1121))
+
+## [1.2.4](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.2.3...svc-producers-v1.2.4) (2025-11-16)
+
+
+### Bug Fixes
+
+* apply jwtMiddleware to both api and production paths ([aa9c889](https://github.com/cuencadelplata/ticketeate/commit/aa9c8892245f9ea066409a9674632db1e6c104a0))
+* apply jwtMiddleware to both api and production paths ([#163](https://github.com/cuencadelplata/ticketeate/issues/163)) ([313f414](https://github.com/cuencadelplata/ticketeate/commit/313f414f28fa110dc14d6233cffa793231848f49))
+* ensure Authorization header is correctly passed to fetch requests ([59431b3](https://github.com/cuencadelplata/ticketeate/commit/59431b3486289af6b25c2ee346406f6915934613))
+* ensure Authorization header is correctly passed to fetch requests ([#166](https://github.com/cuencadelplata/ticketeate/issues/166)) ([08e7077](https://github.com/cuencadelplata/ticketeate/commit/08e70776e75bdf2e2f4a2dcad851735d903755ca))
+
 ## [1.2.3](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.2.2...svc-producers-v1.2.3) (2025-11-16)
 
 

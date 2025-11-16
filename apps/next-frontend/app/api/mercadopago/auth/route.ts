@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
-    const redirectUri = process.env.MERCADO_PAGO_REDIRECT_URI;
+    const clientId = process.env.MERCADOPAGO_CLIENT_ID;
+    const redirectUri = process.env.MERCADOPAGO_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
       console.error('[OAuth Auth] Missing configuration:', {

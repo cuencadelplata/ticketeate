@@ -31,6 +31,14 @@ const getCorsHeaders = (origin?: string) => {
 async function jwtMiddleware(c: Context, next: Next) {
   try {
     const path = c.req.path;
+    const method = c.req.method;
+
+    // Skip JWT validation for OPTIONS (CORS preflight) requests
+    if (method === 'OPTIONS') {
+      console.log('[jwtMiddleware] Skipping OPTIONS preflight request');
+      return next();
+    }
+
     const allHeaders = c.req.header();
 
     // Log all headers for debugging
