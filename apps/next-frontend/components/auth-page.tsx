@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
 import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail } from '@/lib/auth-client';
-import { roleToPath } from '@/lib/role-redirect';
-import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -17,8 +15,6 @@ type Props = {
 };
 
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
-  const router = useRouter();
-  const sp = useSearchParams();
   const { data: session } = useSession();
 
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
@@ -52,10 +48,10 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   }, [tab]);
 
   useEffect(() => {
-    // No redirigir si:
-    // 1. Estamos mostrando el formulario de verificación OTP, O
-    // 2. El usuario no ha verificado su email aún
-    if (session) {
+    // Solo mostrar el formulario OTP si:
+    // 1. La sesión existe pero no está verificada, Y
+    // 2. Estamos en el flujo de REGISTRO (no de login)
+    if (session && tab === 'register') {
       const user = session.user as any;
       const emailVerified = user?.emailVerified;
 
@@ -64,15 +60,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         setShowOtpVerification(true);
         return;
       }
-
-      // Si está verificado y no estamos en el flujo OTP, redirigir
-      if (emailVerified && !showOtpVerification) {
-        const r = user?.role as Role | undefined;
-        const target = sp.get('redirect_url') || roleToPath(r);
-        router.push(target);
-      }
     }
-  }, [session, sp, router, showOtpVerification]);
+  }, [session, tab, showOtpVerification]);
 
   // Validar email con regex más robusto
   const isValidEmail = (email: string): boolean => {

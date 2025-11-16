@@ -12,10 +12,7 @@ export async function GET(request: NextRequest) {
   const hasValidSecret = debugSecret === process.env.SERVICE_AUTH_SECRET;
 
   if (!isDevMode && !hasValidSecret) {
-    return NextResponse.json(
-      { error: 'Not authorized' },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
   }
 
   return NextResponse.json(
@@ -38,11 +35,13 @@ export async function GET(request: NextRequest) {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '✗ MISSING',
         NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || '✗ MISSING',
       },
-      details: isDevMode ? {
-        MERCADOPAGO_CLIENT_ID: process.env.MERCADOPAGO_CLIENT_ID?.substring(0, 10) + '...',
-        MERCADO_PAGO_REDIRECT_URI: process.env.MERCADO_PAGO_REDIRECT_URI,
-        NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
-      } : {},
+      details: isDevMode
+        ? {
+            MERCADOPAGO_CLIENT_ID: process.env.MERCADOPAGO_CLIENT_ID?.substring(0, 10) + '...',
+            MERCADO_PAGO_REDIRECT_URI: process.env.MERCADO_PAGO_REDIRECT_URI,
+            NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+          }
+        : {},
     },
     { status: 200 },
   );

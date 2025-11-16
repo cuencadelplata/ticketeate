@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -12,26 +12,28 @@ type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 export function AccessPageContent() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     // No hacer nada mientras se carga la sesión
     if (isPending) return;
 
     // Si hay sesión y está verificado, redirigir según el rol
-    if (session) {
+    if (session && !isRedirecting) {
       const user = session.user as any;
       const emailVerified = user?.emailVerified;
 
       if (emailVerified) {
         const userRole = user?.role as Role | undefined;
         const target = roleToPath(userRole);
+        setIsRedirecting(true);
         router.push(target);
       }
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, isRedirecting, router]);
 
-  // Si está cargando la sesión, mostrar spinner
-  if (isPending) {
+  // Si está cargando la sesión o redirigiendo, mostrar spinner
+  if (isPending || isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 flex items-center justify-center">
         <Loader2 size={40} className="animate-spin text-orange-500" />
@@ -39,7 +41,7 @@ export function AccessPageContent() {
     );
   }
 
-  // Si hay sesión y está verificado, no mostrar nada (el useEffect redirigirá)
+  // Si hay sesión y está verificado, no mostrar nada (debería haber redirigido)
   if (session && (session.user as any)?.emailVerified) {
     return null;
   }
