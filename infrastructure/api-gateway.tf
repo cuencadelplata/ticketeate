@@ -148,6 +148,20 @@ resource "aws_apigatewayv2_route" "svc_users" {
   target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
 }
 
+# Route for exact /api/wallet path
+resource "aws_apigatewayv2_route" "svc_wallet_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/wallet"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
+# Route for /api/wallet/* paths
+resource "aws_apigatewayv2_route" "svc_wallet" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/wallet/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
 # Routes for svc-events
 # Route for exact /api/events path (without trailing segments)
 resource "aws_apigatewayv2_route" "svc_events_root" {
