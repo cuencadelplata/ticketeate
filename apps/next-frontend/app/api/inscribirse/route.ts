@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
       return await createSignup({
         eventId,
-        nombre: user.name,
+        nombre: user.name || user.email || 'Usuario',
         correo: user.email,
         userId,
       });
@@ -134,8 +134,8 @@ async function createSignup({
     // Enviar email con QR
     try {
       await resend.emails.send({
-        from: 'noreply@ticketeate.com',
-        to: correo,
+        from: 'Ticketeate <onboarding@ticketeate.com.ar>',
+        to: [correo],
         subject: `Tu código QR para el evento: ${evento.titulo}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

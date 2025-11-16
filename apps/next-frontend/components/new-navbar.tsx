@@ -24,6 +24,8 @@ function Navbar() {
   const isAuthenticated = !!session;
   const isLoading = isPending;
   const pathname = usePathname();
+  const userRole = (session?.user as any)?.role;
+  const canCreateEvents = userRole !== 'USUARIO' && isAuthenticated;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -163,12 +165,14 @@ function Navbar() {
                 )}
               </>
             )}
-            <Link
-              href="/crear"
-              className="px-2 lg:px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
-            >
-              Crear Evento
-            </Link>
+            {canCreateEvents && (
+              <Link
+                href="/crear"
+                className="px-2 lg:px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+              >
+                Crear Evento
+              </Link>
+            )}
           </div>
 
           {/* Botón hamburguesa - Mobile */}
@@ -418,12 +422,14 @@ function Navbar() {
                     )}
                   </>
                 )}
-                <Link
-                  href="/crear"
-                  className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
-                >
-                  Crear Evento
-                </Link>
+                {canCreateEvents && (
+                  <Link
+                    href="/crear"
+                    className="block w-full px-4 py-3 text-center bg-orange-600 hover:bg-orange-700 text-white text-base font-medium rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Crear Evento
+                  </Link>
+                )}
               </motion.div>
             </motion.div>
           </motion.div>

@@ -34,13 +34,15 @@ const instrumentSerif = Instrument_Serif({
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
+    <html lang="es" suppressHydrationWarning className="h-full">
+      <body className={`${jakarta.className} ${instrumentSerif.variable} h-full flex flex-col`}>
         <Providers>
           <SearchProvider>
-            <ConditionalNavbar />
-            {children}
-            <Footer />
+            <div className="flex flex-col min-h-screen">
+              <ConditionalNavbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
           </SearchProvider>
         </Providers>
         <Toaster position="top-right" richColors closeButton expand={true} />

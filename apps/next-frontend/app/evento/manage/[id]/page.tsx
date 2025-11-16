@@ -3,7 +3,7 @@
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
 import { Navbar } from '@/components/navbar';
-import { Calendar, MapPin, Users, Settings, BarChart3, Info, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Settings, BarChart3, Eye, Gift, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -248,33 +248,18 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* Navegación de gestión */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Link
-              href={`/evento/manage/${id}/informacion`}
-              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-500/20 p-3">
-                  <Info className="h-6 w-6 text-orange-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-orange-400">Información</h3>
-                  <p className="text-sm text-stone-400">Editar detalles del evento</p>
-                </div>
-              </div>
-            </Link>
-
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Link
               href={`/evento/manage/${id}/invitados`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-orange-600/20 p-3">
-                  <Users className="h-6 w-6 text-orange-500" />
+                  <Gift className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-500">Invitados</h3>
-                  <p className="text-sm text-stone-400">Gestionar lista de invitados</p>
+                  <p className="text-sm text-stone-400">QRs de cortesía</p>
                 </div>
               </div>
             </Link>
@@ -284,12 +269,27 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-700/20 p-3">
-                  <Settings className="h-6 w-6 text-orange-600" />
+                <div className="rounded-lg bg-blue-500/20 p-3">
+                  <UserCheck className="h-6 w-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-orange-600">Inscripción</h3>
-                  <p className="text-sm text-stone-400">Configurar registro</p>
+                  <h3 className="font-semibold group-hover:text-blue-400">Inscripción</h3>
+                  <p className="text-sm text-stone-400">Ver personas inscriptas</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href={`/evento/manage/${id}/colaboradores`}
+              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-purple-500/20 p-3">
+                  <Users className="h-6 w-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold group-hover:text-purple-400">Colaboradores</h3>
+                  <p className="text-sm text-stone-400">Gestionar equipo</p>
                 </div>
               </div>
             </Link>
@@ -318,6 +318,34 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
                 <div>
                   <h3 className="font-semibold group-hover:text-green-400">Cupones</h3>
                   <p className="text-sm text-stone-400">Gestionar descuentos</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href={`/evento/manage/${id}/difusiones`}
+              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-pink-500/20 p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-pink-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5.882V19.24a1.961 1.961 0 01-2.998-1.679v-4.129a1.961 1.961 0 01.751-1.56L9 10m5.672-4.118a2 2 0 10-3.968 3.6 2 2 0 003.968-3.6m7.99 5.618a8.022 8.022 0 01-4.142 7.667c-.359.214-.773.322-1.201.322H7a1 1 0 01-1-1V5a2 2 0 012-2 6 6 0 016 6"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold group-hover:text-pink-400">Difusiones</h3>
+                  <p className="text-sm text-stone-400">Promociones</p>
                 </div>
               </div>
             </Link>
