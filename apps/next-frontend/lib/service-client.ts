@@ -3,6 +3,66 @@
  */
 
 import { generateServiceToken, SERVICE_IDS, type ServiceId } from './service-auth';
+import {
+  createServiceCircuitBreaker,
+  type CircuitBreakerInstance,
+} from './circuit-breaker';
+
+// Circuit breakers por servicio - se crean una vez y se reutilizan
+const circuitBreakers = new Map<string, CircuitBreakerInstance<[string, RequestInit], Response>>();
+
+/**
+ * Obtener o crear circuit breaker para un servicio
+ */
+function getCircuitBreakerForService(serviceName: string): CircuitBreakerInstance<[string, RequestInit], Response> {
+  if (!circuitBreakers.has(serviceName)) {
+    const breaker = createServiceCircuitBreaker(
+      async (url: string, options: RequestInit = {}): Promise<Response> => {
+        const response = await fetch(url, options);
+
+        // Considerar errores HTTP 5xx como fallos del servicio (abren el circuito)
+        // Los errores 4xx son errores del cliente, no del servicio, así que no abren el circuito
+        if (response.status >= 500 && response.status < 600) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Los errores de red y timeouts también se consideran fallos
+        // fetch() lanza excepciones para estos casos automáticamente
+
+        return response;
+      },
+      serviceName,
+    );
+    circuitBreakers.set(serviceName, breaker);
+  }
+
+  return circuitBreakers.get(serviceName)!;
+}
+
+/**
+ * Extraer nombre del servicio de la URL
+ */
+function extractServiceName(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Usar el hostname o path para identificar el servicio
+    if (urlObj.hostname.includes('events') || url.includes('/api/events')) {
+      return 'events';
+    }
+    if (urlObj.hostname.includes('users') || url.includes('/api/users')) {
+      return 'users';
+    }
+    if (urlObj.hostname.includes('checkout') || url.includes('/api/checkout')) {
+      return 'checkout';
+    }
+    if (urlObj.hostname.includes('producers') || url.includes('/api/producers')) {
+      return 'producers';
+    }
+    return 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
 
 interface FetchOptions extends RequestInit {
   serviceId?: ServiceId;
@@ -11,6 +71,7 @@ interface FetchOptions extends RequestInit {
 
 /**
  * Fetch wrapper que agrega autenticación de servicio automáticamente
+ * Incluye protección con circuit breaker
  */
 export async function serviceFetch(url: string, options: FetchOptions = {}): Promise<Response> {
   const {
@@ -28,10 +89,17 @@ export async function serviceFetch(url: string, options: FetchOptions = {}): Pro
     (requestHeaders as Record<string, string>)['X-Service-Auth'] = `Bearer ${serviceToken}`;
   }
 
-  return fetch(url, {
+  // Obtener circuit breaker para este servicio
+  const serviceName = extractServiceName(url);
+  const breaker = getCircuitBreakerForService(serviceName);
+
+  // Ejecutar fetch a través del circuit breaker
+  const response = await breaker.fire(url, {
     ...fetchOptions,
     headers: requestHeaders,
   });
+
+  return response;
 }
 
 /**
