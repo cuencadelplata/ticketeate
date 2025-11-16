@@ -67,7 +67,6 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const handleScan = async (codigo: string) => {
     if (!codigo.trim()) return;
 
-    setLastScanned(codigo);
     setManualCode('');
     setScanning(true);
 
