@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSession } from '@/lib/auth-client';
 import AuthModal from '@/components/auth-modal';
 import CreateEventForm from '@/components/create-event-form';
+import { OrganizerGuard } from '@/components/organizer-guard';
 
 export default function CrearPage() {
   const { data: session, isPending } = useSession();
@@ -20,7 +21,7 @@ export default function CrearPage() {
   }, [isPending, session]);
 
   return (
-    <>
+    <OrganizerGuard>
       <CreateEventForm />
       <Suspense fallback={null}>
         <AuthModal
@@ -30,6 +31,6 @@ export default function CrearPage() {
           defaultRole="ORGANIZADOR"
         />
       </Suspense>
-    </>
+    </OrganizerGuard>
   );
 }

@@ -58,6 +58,9 @@ export default function UserNav() {
   const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
+  const userRole = (session?.user as any)?.role;
+  const isRegularUser = userRole === 'USUARIO';
+  const isOrganizerOrAbove = ['ORGANIZADOR', 'COLABORADOR', 'PRODUCER'].includes(userRole || '');
 
   const handleSignOut = async () => {
     try {
@@ -105,7 +108,9 @@ export default function UserNav() {
         <DropdownMenu
           aria-label="User menu"
           className="p-2 bg-stone-950 rounded-lg"
-          disabledKeys={['profile']}
+          disabledKeys={
+            isRegularUser ? ['dashboard', 'settings', 'new_project'] : ['my_purchases', 'my_events']
+          }
           itemClasses={{
             base: [
               'rounded-md',
@@ -150,6 +155,14 @@ export default function UserNav() {
                 </div>
               </div>
             </DropdownItem>
+
+            <DropdownItem key="my_purchases" href="/mi-cuenta/compras">
+              Mis Compras
+            </DropdownItem>
+            <DropdownItem key="my_events" href="/mi-cuenta/inscripciones">
+              Mis Inscripciones
+            </DropdownItem>
+
             <DropdownItem key="dashboard" href="/eventos">
               Mis Eventos
             </DropdownItem>
