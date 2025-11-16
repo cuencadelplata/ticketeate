@@ -69,20 +69,14 @@ export async function GET(request: NextRequest) {
 
     if (!authHeader || !expectedSecret) {
       console.warn('[App Token] Missing authentication or secret');
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Validar que el secret sea correcto (Bearer token)
     const [scheme, token] = authHeader.split(' ');
     if (scheme !== 'Bearer' || token !== expectedSecret) {
       console.warn('[App Token] Invalid authentication token');
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Obtener el token de aplicación
@@ -100,15 +94,12 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           'Cache-Control': 'no-store',
-          'Pragma': 'no-cache',
+          Pragma: 'no-cache',
         },
       },
     );
   } catch (error) {
     console.error('[App Token] Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

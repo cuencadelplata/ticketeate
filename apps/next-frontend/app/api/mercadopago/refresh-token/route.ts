@@ -7,9 +7,7 @@ import { auth } from '@/lib/auth';
  * Implementa el flujo "Refresh Token" según OAuth 2.0 de Mercado Pago
  * @see https://developers.mercadopago.com/es/docs/advanced-payments/oauth/refresh-token
  */
-async function refreshAccessToken(
-  refreshToken: string,
-): Promise<{
+async function refreshAccessToken(refreshToken: string): Promise<{
   access_token: string;
   expires_in: number;
 }> {
@@ -69,10 +67,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -89,10 +84,7 @@ export async function POST(request: NextRequest) {
 
     if (!user || !user.wallet_linked || !user.mercado_pago_refresh_token) {
       console.warn('[Refresh Token] User does not have wallet linked:', userId);
-      return NextResponse.json(
-        { error: 'Billetera no vinculada' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Billetera no vinculada' }, { status: 400 });
     }
 
     // Validar si el token aún es válido (si aún tiene 5 minutos, no renovar)
@@ -161,9 +153,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('[Refresh Token] Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
