@@ -41,11 +41,11 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.MERCADO_PAGO_CLIENT_ID,
-        client_secret: process.env.MERCADO_PAGO_CLIENT_SECRET,
+        client_id: process.env.MERCADOPAGO_CLIENT_ID,
+        client_secret: process.env.MERCADOPAGO_CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: process.env.MERCADO_PAGO_REDIRECT_URI,
+        redirect_uri: process.env.MERCADOPAGO_REDIRECT_URI,
       }),
     });
 

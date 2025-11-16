@@ -13,14 +13,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Modo mock para desarrollo
-    if (process.env.NODE_ENV === 'development' && process.env.MERCADO_PAGO_MOCK === 'true') {
+    if (process.env.NODE_ENV === 'development' && process.env.MERCADOPAGO_MOCK === 'true') {
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/api/mercadopago/mock-callback?userId=${session.user.id}`,
       );
     }
 
-    const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
-    const redirectUri = process.env.MERCADO_PAGO_REDIRECT_URI;
+    const clientId = process.env.MERCADOPAGO_CLIENT_ID;
+    const redirectUri = process.env.MERCADOPAGO_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
       return NextResponse.json(
