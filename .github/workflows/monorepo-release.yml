@@ -777,7 +777,7 @@ jobs:
           - name: nextjs-1
             host: 3.145.87.228
           - name: nextjs-2
-            host: 18.118.83.113
+            host: 18.217.216.210
     steps:
       - name: Deploy to ${{ matrix.instance.name }}
         uses: appleboy/ssh-action@v1.0.0
