@@ -650,6 +650,9 @@ jobs:
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}" \
             --build-arg NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}" \
             --build-arg MERCADOPAGO_WEBHOOK_SECRET="${MERCADOPAGO_WEBHOOK_SECRET}" \
+            --build-arg MERCADOPAGO_CLIENT_ID="${MERCADOPAGO_CLIENT_ID}" \
+            --build-arg MERCADOPAGO_CLIENT_SECRET="${MERCADOPAGO_CLIENT_SECRET}" \
+            --build-arg MERCADOPAGO_REDIRECT_URI="${MERCADOPAGO_REDIRECT_URI}" \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           
