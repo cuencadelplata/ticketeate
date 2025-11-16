@@ -69,31 +69,6 @@ app.get('/production', (c) => {
   });
 });
 
-// Debug endpoint to check CORS headers
-app.get('/cors-debug', (c) => {
-  return c.json({
-    origin: c.req.header('Origin'),
-    corsHeaders: {
-      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
-      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
-      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
-      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
-    },
-  });
-});
-
-app.get('/production/cors-debug', (c) => {
-  return c.json({
-    origin: c.req.header('Origin'),
-    corsHeaders: {
-      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
-      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
-      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
-      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
-    },
-  });
-});
-
 app.get('/health', (c) => {
   return c.json({
     status: 'healthy',
