@@ -27,17 +27,18 @@ const getCorsHeaders = (origin?: string) => {
   };
 };
 
+// Handle OPTIONS requests (preflight) for all routes - MUST be before auth middleware
+app.options('*', (c) => {
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
+});
+
 // Middleware
 app.use('*', honoLogger());
 
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
-
-  // Skip validation for OPTIONS requests (CORS preflight)
-  if (c.req.method === 'OPTIONS') {
-    return next();
-  }
 
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
@@ -62,12 +63,6 @@ app.use('*', async (c, next) => {
   }
 
   return next();
-});
-
-// Handle OPTIONS requests (preflight) for all routes
-app.options('*', (c) => {
-  const origin = c.req.header('origin');
-  return c.text('', 200, getCorsHeaders(origin));
 });
 
 // Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)

@@ -3,7 +3,7 @@
 export function useImageUpload() {
   const getToken = async (): Promise<string | null> => {
     try {
-      const res = await fetch('/api/auth/jwt', { cache: 'no-store' });
+      const res = await fetch('/api/auth/token', { cache: 'no-store' });
       if (!res.ok) {
         console.error('Error obteniendo token JWT:', res.statusText);
         return null;
