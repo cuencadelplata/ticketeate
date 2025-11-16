@@ -13,6 +13,35 @@ function getJwtPayload(c: Context) {
 // Almacenamiento simple en memoria para billeteras mock (solo para desarrollo)
 const mockWallets = new Map<string, { wallet_linked: boolean; wallet_provider: string }>();
 
+// Debug endpoint to see all headers
+wallet.get('/debug/headers', (c) => {
+  const authHeader = c.req.header('Authorization');
+  const allHeaders: Record<string, string> = {};
+  // Try to iterate over all headers
+  const headerNames = [
+    'Authorization',
+    'authorization',
+    'X-Forwarded-For',
+    'Host',
+    'Origin',
+    'User-Agent',
+  ];
+  headerNames.forEach((name) => {
+    const value = c.req.header(name);
+    if (value) {
+      allHeaders[name] = value;
+    }
+  });
+
+  console.log('[wallet.debug] Authorization header:', authHeader || 'NOT FOUND');
+  console.log('[wallet.debug] All headers from c.req:', JSON.stringify(allHeaders));
+
+  return c.json({
+    authorizationHeader: authHeader,
+    message: 'Debug endpoint - check logs for full headers',
+  });
+});
+
 // Get wallet status
 wallet.get('/', async (c) => {
   const jwtPayload = getJwtPayload(c);

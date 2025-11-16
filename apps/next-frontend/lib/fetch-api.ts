@@ -41,22 +41,39 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
   // Use 'omit' only for public endpoints or when explicitly skipped
   const credentials: RequestCredentialsType = skipAuth || isPublic ? 'omit' : 'include';
 
-  // Log for debugging
+  // Log for debugging - include ALL headers
   if (typeof window !== 'undefined') {
-    console.log('[fetchWithApiKey]', {
+    const allHeaders: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      allHeaders[key] = value.substring(0, 50);
+    });
+    console.log('[fetchWithApiKey] FULL HEADERS:', allHeaders);
+    console.log('[fetchWithApiKey] REQUEST DETAILS:', {
       url,
       credentials,
       hasAuthHeader,
-      authValue: headers.get('Authorization')?.substring(0, 20),
+      authValue: headers.get('Authorization')?.substring(0, 50),
+      authFullLength: headers.get('Authorization')?.length || 0,
       isPublic,
       method: init.method || 'GET',
+      allHeaderKeys: Array.from(headers.keys()),
     });
   }
 
-  return fetch(url, {
+  const fetchRequest = {
     ...init,
     method: init.method || 'GET',
     headers, // Headers object - asegura que los headers se pasen correctamente
     credentials,
-  });
+  };
+
+  if (typeof window !== 'undefined') {
+    console.log('[fetchWithApiKey] EXECUTING FETCH:', {
+      url,
+      requestHasHeaders: !!fetchRequest.headers,
+      headersType: typeof fetchRequest.headers,
+    });
+  }
+
+  return fetch(url, fetchRequest);
 }
