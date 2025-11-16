@@ -73,7 +73,8 @@ async function jwtMiddleware(c: Context, next: Next) {
   }
 }
 
-const app = new Hono();
+// Enable strict: false to handle both /path and /path/ routes
+const app = new Hono({ strict: false });
 
 // CORS middleware - Only apply in development (not behind API Gateway)
 // In production, API Gateway handles CORS headers
