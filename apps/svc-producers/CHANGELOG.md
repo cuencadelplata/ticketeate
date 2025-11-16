@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.2.3](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.2.2...svc-producers-v1.2.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* cast JWT payload to Record string unknown to satisfy TypeScript ([9e7a360](https://github.com/cuencadelplata/ticketeate/commit/9e7a360eabf26fe06746836f0ba8ba37f3e4a2e9))
+
 ## [1.2.2](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.2.1...svc-producers-v1.2.2) (2025-11-16)
 
 
