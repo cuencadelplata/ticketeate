@@ -29,7 +29,8 @@ function isPublicEndpoint(url: string): boolean {
 export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
   const { skipAuth = false, ...init } = options;
 
-  const headers = new Headers(init.headers);
+  // Crear Headers object combinando init.headers (si existe) con opciones adicionales
+  const headers = new Headers(init.headers || {});
 
   // For public endpoints, don't send credentials
   // For protected endpoints, always include credentials (cookies + Authorization header)
@@ -46,6 +47,7 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
       url,
       credentials,
       hasAuthHeader,
+      authValue: headers.get('Authorization')?.substring(0, 20),
       isPublic,
       method: init.method || 'GET',
     });
@@ -53,7 +55,8 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
 
   return fetch(url, {
     ...init,
-    headers,
+    method: init.method || 'GET',
+    headers,  // Headers object - asegura que los headers se pasen correctamente
     credentials,
   });
 }
