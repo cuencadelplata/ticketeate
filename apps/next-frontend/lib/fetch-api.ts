@@ -32,15 +32,13 @@ export async function fetchWithApiKey(url: string, options: FetchOptions = {}) {
   const headers = new Headers(init.headers);
 
   // For public endpoints, don't send credentials
-  // For protected endpoints with Authorization header, don't send credentials (use Bearer token instead)
-  // For protected endpoints without Authorization header, use cookies
+  // For protected endpoints, always include credentials (cookies + Authorization header)
   const isPublic = isPublicEndpoint(url);
   const hasAuthHeader = headers.has('Authorization');
 
-  // Use 'omit' for public endpoints or when Authorization header is present (Bearer token)
-  // Use 'include' only for protected endpoints with cookie-based auth
-  const credentials: RequestCredentialsType =
-    skipAuth || isPublic || hasAuthHeader ? 'omit' : 'include';
+  // Use 'include' for all protected endpoints to send both cookies and Authorization header
+  // Use 'omit' only for public endpoints or when explicitly skipped
+  const credentials: RequestCredentialsType = skipAuth || isPublic ? 'omit' : 'include';
 
   // Log for debugging
   if (typeof window !== 'undefined') {

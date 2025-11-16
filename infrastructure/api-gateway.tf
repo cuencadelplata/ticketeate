@@ -152,14 +152,12 @@ resource "aws_apigatewayv2_route" "svc_checkout" {
   target    = "integrations/${aws_apigatewayv2_integration.svc_checkout.id}"
 }
 
-# Custom domain (optional - requires ACM certificate)
-# Uncomment and configure when ready to use custom domain
-/*
+# Custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "api.${var.domain_name}"
 
   domain_name_configuration {
-    certificate_arn = var.acm_certificate_arn
+    certificate_arn = aws_acm_certificate.api.arn
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
@@ -171,6 +169,8 @@ resource "aws_apigatewayv2_domain_name" "main" {
       Environment = var.environment
     }
   )
+
+  depends_on = [aws_acm_certificate.api]
 }
 
 resource "aws_apigatewayv2_api_mapping" "main" {
@@ -178,4 +178,3 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   domain_name = aws_apigatewayv2_domain_name.main.id
   stage       = aws_apigatewayv2_stage.main.id
 }
-*/
