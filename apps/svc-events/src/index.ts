@@ -28,21 +28,56 @@ const getCorsHeaders = (origin?: string) => {
   };
 };
 
-// CORS middleware - Only apply in development (not behind API Gateway)
-// In production, API Gateway handles CORS headers
-if (process.env.NODE_ENV !== 'production') {
-  app.use(
-    '*',
-    cors({
-      origin: (origin) => origin ?? '*',
-      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
-      exposeHeaders: ['*'],
-      credentials: true,
-      maxAge: 86400,
-    }),
-  );
-}
+// CORS middleware - Apply in all environments
+// In production, also add explicit headers since API Gateway may not handle all responses
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      const allowedOrigins = [
+        'https://ticketeate.com.ar',
+        'https://www.ticketeate.com.ar',
+        'http://localhost:3000',
+      ];
+      return origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+    },
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With', 'Cookie'],
+    exposeHeaders: ['*'],
+    credentials: true,
+    maxAge: 86400,
+  }),
+);
+
+// Additional CORS headers middleware for error responses
+// Ensures CORS headers are present even on 401/404/500 responses
+app.use('*', async (c, next) => {
+  await next();
+
+  const origin = c.req.header('origin');
+  if (
+    origin &&
+    [
+      'https://ticketeate.com.ar',
+      'https://www.ticketeate.com.ar',
+      'http://localhost:3000',
+    ].includes(origin)
+  ) {
+    c.header('Access-Control-Allow-Origin', origin);
+    c.header('Access-Control-Allow-Credentials', 'true');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    c.header(
+      'Access-Control-Allow-Headers',
+      'Authorization, Content-Type, X-Requested-With, Cookie',
+    );
+  }
+});
+
+// Explicit OPTIONS handler for CORS preflight - MUST be before auth middleware
+app.options('*', (c) => {
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
+});
 
 // Middleware
 app.use('*', honoLogger());
@@ -50,11 +85,6 @@ app.use('*', honoLogger());
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
-
-  // Skip validation for OPTIONS requests (CORS preflight)
-  if (c.req.method === 'OPTIONS') {
-    return next();
-  }
 
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
@@ -78,12 +108,6 @@ app.use('*', async (c, next) => {
   }
 
   return next();
-});
-
-// Explicit OPTIONS handler for CORS preflight
-app.options('*', (c) => {
-  const origin = c.req.header('origin');
-  return c.text('', 200, getCorsHeaders(origin));
 });
 
 // Mount routes at both /api and /production/api paths

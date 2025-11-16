@@ -10,6 +10,7 @@ export function ConditionalNavbar() {
     pathname === '/crear' ||
     pathname === '/sign-in' ||
     pathname === '/sign-up' ||
+    pathname === '/acceso' ||
     pathname === '/deploys'
   ) {
     return null;
