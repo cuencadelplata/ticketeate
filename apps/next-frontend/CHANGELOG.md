@@ -5,6 +5,15 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.7.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.7.0...next-frontend-v1.7.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* add API Gateway routes for /api/invite-codes endpoints ([3133db4](https://github.com/cuencadelplata/ticketeate/commit/3133db498619721e2880c92a39218c3b97732265))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([#179](https://github.com/cuencadelplata/ticketeate/issues/179)) ([217497e](https://github.com/cuencadelplata/ticketeate/commit/217497e6c2bf82a68cc0db80089cf40827db0c45))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([8391b52](https://github.com/cuencadelplata/ticketeate/commit/8391b521d617450581df4dfbabaf85b76648b5a5))
+
 # [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.6.0...next-frontend-v1.7.0) (2025-11-16)
 
 
