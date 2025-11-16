@@ -80,6 +80,12 @@ app.use('*', async (c, next) => {
   return next();
 });
 
+// Explicit OPTIONS handler for CORS preflight
+app.options('*', (c) => {
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
+});
+
 // Mount routes at both /api and /production/api paths
 // Routes
 app.get('/', (c) => {
