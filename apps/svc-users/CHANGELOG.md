@@ -5,6 +5,18 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.6.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.6...svc-users-v1.6.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **mercadopago:** use MERCADOPAGO_ env var names to match parameter store ([7fd3708](https://github.com/cuencadelplata/ticketeate/commit/7fd37088fc111b9b7b239c5b1a06cd0e8f595c01))
+
+
+### Features
+
+* **deployment:** pass mercado pago variables as docker build args ([3e58219](https://github.com/cuencadelplata/ticketeate/commit/3e582191ea15605b8d79b19402ac7d2f845a1121))
+
 ## [1.5.6](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.5...svc-users-v1.5.6) (2025-11-16)
 
 
