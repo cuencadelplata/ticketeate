@@ -23,7 +23,10 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
   const [expirationDays, setExpirationDays] = useState('30');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
-  const [codeToDeactivate, setCodeToDeactivate] = useState<{ codigoid: string; codigo: string } | null>(null);
+  const [codeToDeactivate, setCodeToDeactivate] = useState<{
+    codigoid: string;
+    codigo: string;
+  } | null>(null);
 
   const { mutate: createInviteCode, isPending: isCreating } = useCreateInviteCode();
   const { data: inviteCodes, isLoading: isLoadingCodes, refetch } = useGetInviteCodes(eventoid);

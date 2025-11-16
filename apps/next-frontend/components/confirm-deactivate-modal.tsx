@@ -34,7 +34,9 @@ export function ConfirmDeactivateModal({
             <h2 className="text-lg font-bold text-white mb-2">{title}</h2>
             <p className="text-sm text-stone-400">
               {description}
-              {itemName && <span className="block mt-2 text-yellow-400 font-medium">{itemName}</span>}
+              {itemName && (
+                <span className="block mt-2 text-yellow-400 font-medium">{itemName}</span>
+              )}
             </p>
           </div>
         </div>
