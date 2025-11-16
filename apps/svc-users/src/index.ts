@@ -86,7 +86,7 @@ app.use('*', async (c, next) => {
   // Check both /production prefix (direct AWS URL) and without it (custom domain)
   const isProtectedPath = path.startsWith('/production/api') || path.startsWith('/api');
   const isHealthCheck = path.endsWith('/health');
-  
+
   if (isProtectedPath && !isHealthCheck) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');

@@ -23,7 +23,7 @@ app.use('*', async (c, next) => {
   // If no Authorization header and no valid session cookie, the request is unauthorized
   const isProtectedPath = path.startsWith('/production/api') || path.startsWith('/api');
   const isHealthCheck = path.endsWith('/health');
-  
+
   if (isProtectedPath && !isHealthCheck) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
