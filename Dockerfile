@@ -15,6 +15,9 @@ ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 ARG NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ARG NEXT_PUBLIC_GOOGLE_PLACES_API_KEY
+ARG MERCADO_PAGO_CLIENT_ID
+ARG MERCADO_PAGO_CLIENT_SECRET
+ARG MERCADO_PAGO_REDIRECT_URI
 
 # Set build-time environment variables
 # Use build args if provided, otherwise use placeholder values
@@ -31,9 +34,9 @@ ENV NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY:-place
 ENV RESEND_API_KEY=build-time-placeholder-resend-key
 ENV GOOGLE_CLIENT_ID=build-time-placeholder-google-client-id
 ENV GOOGLE_CLIENT_SECRET=build-time-placeholder-google-client-secret
-ENV MERCADO_PAGO_CLIENT_ID=placeholder-mp-client-id
-ENV MERCADO_PAGO_CLIENT_SECRET=placeholder-mp-client-secret
-ENV MERCADO_PAGO_REDIRECT_URI=http://localhost:3000/configuracion
+ENV MERCADO_PAGO_CLIENT_ID=${MERCADO_PAGO_CLIENT_ID:-placeholder-mp-client-id}
+ENV MERCADO_PAGO_CLIENT_SECRET=${MERCADO_PAGO_CLIENT_SECRET:-placeholder-mp-client-secret}
+ENV MERCADO_PAGO_REDIRECT_URI=${MERCADO_PAGO_REDIRECT_URI:-http://localhost:3000/configuracion}
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV DIRECT_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV UPSTASH_REDIS_REST_URL=https://placeholder.upstash.io
