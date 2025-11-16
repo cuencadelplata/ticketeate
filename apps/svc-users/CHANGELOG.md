@@ -5,6 +5,19 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.7.1](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.7.0...svc-users-v1.7.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* correct API_BASE URL construction in invite-codes hook ([0af5a55](https://github.com/cuencadelplata/ticketeate/commit/0af5a55978e1e81f6adef2ed40dd3e3f0f6bce66))
+* correct API_BASE URL construction in invite-codes hook  ([#177](https://github.com/cuencadelplata/ticketeate/issues/177)) ([b7d985f](https://github.com/cuencadelplata/ticketeate/commit/b7d985f3fab91b2d8eb50fb1b7de59f9b2e063d6))
+* **mercadopago:** correct OAuth client ([#176](https://github.com/cuencadelplata/ticketeate/issues/176)) ([5913340](https://github.com/cuencadelplata/ticketeate/commit/5913340611f4ef0bcdfb947b51c96ea06650b934))
+* **mercadopago:** correct OAuth client credentials ([5b7173e](https://github.com/cuencadelplata/ticketeate/commit/5b7173ed06b99da03664c1d216305eb1a0a18008))
+* CORS handling for invite-codes endpoint - add OPTIONS method check ([c2cfdeb](https://github.com/cuencadelplata/ticketeate/commit/c2cfdeb4631a44023004da8439f789d60eadb36b))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([#179](https://github.com/cuencadelplata/ticketeate/issues/179)) ([217497e](https://github.com/cuencadelplata/ticketeate/commit/217497e6c2bf82a68cc0db80089cf40827db0c45))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([8391b52](https://github.com/cuencadelplata/ticketeate/commit/8391b521d617450581df4dfbabaf85b76648b5a5))
+
 # [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.6.0...svc-users-v1.7.0) (2025-11-16)
 
 
