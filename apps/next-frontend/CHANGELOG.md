@@ -5,6 +5,22 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.2...next-frontend-v1.5.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* add /api/wallet routes to API Gateway for svc-users ([08b1e44](https://github.com/cuencadelplata/ticketeate/commit/08b1e44ddfb742f6e04b4440aa1bf92dfe918d8c))
+* add /api/wallet routes to API Gateway for svc-users ([#159](https://github.com/cuencadelplata/ticketeate/issues/159)) ([4a1fa38](https://github.com/cuencadelplata/ticketeate/commit/4a1fa38daae866facd2a2f40ff4874fd9b0ece8e))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([77976ea](https://github.com/cuencadelplata/ticketeate/commit/77976eacf9a2cbe9311d751b77503d1dd093244a))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([#157](https://github.com/cuencadelplata/ticketeate/issues/157)) ([41f01ef](https://github.com/cuencadelplata/ticketeate/commit/41f01ef6e13801a8d4208a8d7a70c04b65a7e0fe))
+* enable strict:false in Hono to handle routes with/without traili… ([#156](https://github.com/cuencadelplata/ticketeate/issues/156)) ([ed3f52d](https://github.com/cuencadelplata/ticketeate/commit/ed3f52d2f98265ade96243b5f41f85f552dda2ac))
+* enable strict:false in Hono to handle routes with/without trailing slash ([5c278a1](https://github.com/cuencadelplata/ticketeate/commit/5c278a1524c0c823830a569f17953601eec6f0fa))
+* explicit OPTIONS handler with CORS headers and 200 status ([b0809e8](https://github.com/cuencadelplata/ticketeate/commit/b0809e8e92992c2a42c22e465bc68809ca8dd8bc))
+* explicit OPTIONS handler with CORS headers and 200 status ([#158](https://github.com/cuencadelplata/ticketeate/issues/158)) ([ac264d1](https://github.com/cuencadelplata/ticketeate/commit/ac264d18038632d825cbc9318fca8160d4ec83a2))
+* skip OPTIONS requests in auth middleware for CORS preflight ([d04ca32](https://github.com/cuencadelplata/ticketeate/commit/d04ca324e59bf43449fc52dc5f9f2460780b4462))
+* standardize JWT issuer/audience to https://ticketeate.com.ar in production ([98473e2](https://github.com/cuencadelplata/ticketeate/commit/98473e29f94e439ca85e67de46fdbb3474d8d0f2))
+
 ## [1.5.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.1...next-frontend-v1.5.2) (2025-11-16)
 
 
