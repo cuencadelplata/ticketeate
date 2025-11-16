@@ -7,10 +7,13 @@ import { fetchWithApiKey } from '@/lib/fetch-api';
 // Helper para obtener token JWT dinámicamente
 async function getAuthToken(): Promise<string> {
   try {
+    console.log('[getAuthToken] Fetching token from /api/auth/token');
     const response = await fetch('/api/auth/token', {
       method: 'GET',
       credentials: 'include',
     });
+    console.log('[getAuthToken] Response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
@@ -18,6 +21,8 @@ async function getAuthToken(): Promise<string> {
       );
     }
     const data = await response.json();
+    console.log('[getAuthToken] Token received, length:', data.token?.length || 0);
+
     if (!data.token) {
       throw new Error('No token in response');
     }
@@ -34,11 +39,18 @@ export function useWalletStatus() {
     queryKey: ['wallet-status'],
     queryFn: async () => {
       try {
+        console.log('[useWalletStatus] Starting query');
         const token = await getAuthToken();
+        console.log('[useWalletStatus] Token obtained, length:', token.length);
+        console.log('[useWalletStatus] Calling wallet API with token');
+
         const res = await fetchWithApiKey(API_ENDPOINTS.wallet, {
           headers: { Authorization: `Bearer ${token}` },
           method: 'GET',
         });
+
+        console.log('[useWalletStatus] Wallet API response status:', res.status);
+
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({ error: 'Error desconocido' }));
           throw new Error(errorData.error || 'Error al obtener estado de billetera');
