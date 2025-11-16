@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
       case 'send':
         const sendData = sendOtpSchema.parse(data);
 
+        // Obtener cookies del cliente para mantener la sesión OTP
+        const cookieHeaderSend = request.headers.get('cookie') || '';
+
         // Usar el endpoint estándar de Better Auth para enviar OTP
         const sendResponse = await fetch(
           `${process.env.BETTER_AUTH_URL}/api/auth/sign-in/email-otp`,
@@ -26,10 +29,12 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              ...(cookieHeaderSend ? { Cookie: cookieHeaderSend } : {}),
             },
             body: JSON.stringify({
               email: sendData.email,
             }),
+            credentials: 'include',
           },
         );
 
@@ -44,26 +49,39 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
           message: 'Código OTP enviado al correo electrónico',
         });
+
+        // Propagar las cookies de Better Auth al cliente
+        const setCookieHeaders = sendResponse.headers.getSetCookie();
+        setCookieHeaders.forEach((cookie) => {
+          response.headers.append('Set-Cookie', cookie);
+        });
+
+        return response;
 
       case 'verify':
         const verifyData = verifyOtpSchema.parse(data);
 
         // Usar el endpoint estándar de Better Auth para verificar OTP
+        // Obtener cookies del cliente para mantener la sesión OTP
+        const cookieHeader = request.headers.get('cookie') || '';
+
         const verifyResponse = await fetch(
           `${process.env.BETTER_AUTH_URL}/api/auth/verify-email-otp`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              ...(cookieHeader ? { Cookie: cookieHeader } : {}),
             },
             body: JSON.stringify({
               email: verifyData.email,
               otp: verifyData.otp,
             }),
+            credentials: 'include',
           },
         );
 
@@ -78,12 +96,20 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        return NextResponse.json({
+        const verifyResponseData = NextResponse.json({
           success: true,
           message: 'Código OTP verificado correctamente',
           session: verifyResult.session,
           user: verifyResult.user,
         });
+
+        // Propagar las cookies de Better Auth al cliente
+        const verifySetCookieHeaders = verifyResponse.headers.getSetCookie();
+        verifySetCookieHeaders.forEach((cookie) => {
+          verifyResponseData.headers.append('Set-Cookie', cookie);
+        });
+
+        return verifyResponseData;
 
       default:
         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
