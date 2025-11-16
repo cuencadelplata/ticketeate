@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.4](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.3...svc-users-v1.5.4) (2025-11-16)
+
+
+### Bug Fixes
+
+* support custom domain routes in Lambda auth middleware ([49c2f74](https://github.com/cuencadelplata/ticketeate/commit/49c2f74c96e3cca2082a0b8a1716290b5e24f7cc))
+* support custom domain routes in Lambda auth middleware ([#153](https://github.com/cuencadelplata/ticketeate/issues/153)) ([bd130be](https://github.com/cuencadelplata/ticketeate/commit/bd130be0eaa4c52bccb8e402b8262ceebb232076))
+
 ## [1.5.3](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.2...svc-users-v1.5.3) (2025-11-16)
 
 
