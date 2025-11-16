@@ -133,6 +133,8 @@ model eventos {
   stock_entrada                 stock_entrada[]
   invite_codes                  invite_codes[]
   colaborador_eventos           colaborador_eventos[]
+  inscripciones_evento          inscripciones_evento[]
+  codigos_qr                    codigos_qr[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -340,6 +342,8 @@ model user {
   session                            session[]
   invite_codes                       invite_codes[]
   colaborador_eventos                colaborador_eventos[]
+  inscripciones_evento               inscripciones_evento[]
+  codigos_qr                         codigos_qr[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -590,3 +594,43 @@ model colaborador_eventos {
   @@index([eventoid], map: "idx_colaborador_eventos_eventoid")
   @@index([usuarioid], map: "idx_colaborador_eventos_usuarioid")
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model inscripciones_evento {
+  inscripcionid     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoid          String    @db.VarChar(255)
+  nombre            String    @db.VarChar(255)
+  correo            String    @db.VarChar(255)
+  usuarioid         String?   @db.VarChar(255)
+  fecha_inscripcion DateTime  @default(now()) @db.Timestamptz(6)
+  estado            String    @default("confirmado") @db.VarChar(20)
+  eventos           eventos   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user              user?     @relation(fields: [usuarioid], references: [id], onDelete: SetNull)
+  codigos_qr        codigos_qr[]
+
+  @@unique([eventoid, correo], map: "uq_inscripcion_evento_correo")
+  @@index([eventoid], map: "idx_inscripcion_evento_eventoid")
+  @@index([correo], map: "idx_inscripcion_evento_correo")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model codigos_qr {
+  codigoqrid        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inscripcionid     String    @db.Uuid
+  eventoid          String    @db.VarChar(255)
+  codigo            String    @unique @db.VarChar(255)
+  datos_qr          String    @db.Text
+  validado          Boolean   @default(false)
+  fecha_creacion    DateTime  @default(now()) @db.Timestamptz(6)
+  fecha_validacion  DateTime? @db.Timestamptz(6)
+  validado_por      String?   @db.VarChar(255)
+  inscripciones     inscripciones_evento @relation(fields: [inscripcionid], references: [inscripcionid], onDelete: Cascade)
+  eventos           eventos   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user              user?     @relation(fields: [validado_por], references: [id], onDelete: SetNull)
+
+  @@index([inscripcionid], map: "idx_codigo_qr_inscripcion")
+  @@index([eventoid], map: "idx_codigo_qr_evento")
+  @@index([codigo], map: "idx_codigo_qr_codigo")
+  @@index([validado], map: "idx_codigo_qr_validado")
+}
+
