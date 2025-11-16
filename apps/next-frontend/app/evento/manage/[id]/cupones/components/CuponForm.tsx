@@ -36,10 +36,16 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
 
   const handleFormSubmit = (data: any) => {
     // Asegurar que los valores numéricos sean números, no strings
+    // y que la fecha se envíe en formato ISO correcto
+    const fecha = new Date(data.fecha_expiracion);
+    // Ajustar para medianoche UTC
+    fecha.setUTCHours(0, 0, 0, 0);
+
     const processedData = {
       ...data,
       porcentaje_descuento: Number(data.porcentaje_descuento),
       limite_usos: Number(data.limite_usos),
+      fecha_expiracion: fecha.toISOString(),
     };
     onSubmit(processedData);
   };

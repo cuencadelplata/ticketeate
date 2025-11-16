@@ -56,6 +56,17 @@ export function useCreateCupon() {
 
   return useMutation({
     mutationFn: async (cuponData: CreateCuponData): Promise<Cupon> => {
+      console.log('[useCreateCupon] Datos enviados:', {
+        ...cuponData,
+        types: {
+          eventId: typeof cuponData.eventId,
+          codigo: typeof cuponData.codigo,
+          porcentaje_descuento: typeof cuponData.porcentaje_descuento,
+          fecha_expiracion: typeof cuponData.fecha_expiracion,
+          limite_usos: typeof cuponData.limite_usos,
+        },
+      });
+
       const res = await fetch('/api/cupones', {
         method: 'POST',
         headers: {
@@ -67,6 +78,10 @@ export function useCreateCupon() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('[useCreateCupon] Error response:', {
+          status: res.status,
+          error: errorData,
+        });
         throw new Error(errorData.error || 'Error al crear cupón');
       }
 

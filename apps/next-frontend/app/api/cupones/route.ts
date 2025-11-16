@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       types: {
         porcentaje_descuento: typeof porcentaje_descuento,
         limite_usos: typeof limite_usos,
+        fecha_expiracion: typeof fecha_expiracion,
       },
     });
 
@@ -98,6 +99,23 @@ export async function POST(request: NextRequest) {
         ? parseFloat(porcentaje_descuento)
         : porcentaje_descuento;
     const limitesNumero = typeof limite_usos === 'string' ? parseInt(limite_usos, 10) : limite_usos;
+
+    // Validar y convertir fecha
+    let fechaExpiracion: Date;
+    try {
+      fechaExpiracion = new Date(fecha_expiracion);
+      if (isNaN(fechaExpiracion.getTime())) {
+        throw new Error('Fecha inválida');
+      }
+    } catch {
+      return NextResponse.json(
+        {
+          error: 'fecha_expiracion inválida. Debe ser una fecha válida en formato ISO o YYYY-MM-DD',
+          received: fecha_expiracion,
+        },
+        { status: 400 },
+      );
+    }
 
     // Validar campos requeridos (sin usar operadores falsy que fallan con 0)
     if (
@@ -171,7 +189,7 @@ export async function POST(request: NextRequest) {
         eventoid: eventId,
         codigo: codigo.toUpperCase(),
         porcentaje_descuento: porcentajeNumero,
-        fecha_expiracion: new Date(fecha_expiracion),
+        fecha_expiracion: fechaExpiracion,
         limite_usos: limitesNumero,
         estado: 'ACTIVO',
         updated_by: session.user.id,
