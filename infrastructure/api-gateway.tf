@@ -13,8 +13,17 @@ resource "aws_apigatewayv2_api" "main" {
       "http://localhost:3000"
     ]
     allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    allow_headers = ["*"]
-    expose_headers = ["*"]
+    allow_headers = [
+      "authorization",
+      "content-type",
+      "x-requested-with",
+      "cookie",
+      "accept",
+      "origin",
+      "cache-control",
+      "x-api-key"
+    ]
+    expose_headers = ["content-type", "x-total-count"]
     allow_credentials = true
     max_age       = 300
   }
@@ -157,7 +166,8 @@ resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "api.${var.domain_name}"
 
   domain_name_configuration {
-    certificate_arn = aws_acm_certificate.api.arn
+    # Using existing certificate
+    certificate_arn = "arn:aws:acm:us-east-2:665352994810:certificate/ce1aaef5-cb3a-46fe-bcfe-6a1cf5ddd6b4"
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
@@ -169,8 +179,6 @@ resource "aws_apigatewayv2_domain_name" "main" {
       Environment = var.environment
     }
   )
-
-  depends_on = [aws_acm_certificate.api]
 }
 
 resource "aws_apigatewayv2_api_mapping" "main" {
