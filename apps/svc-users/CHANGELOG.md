@@ -5,6 +5,18 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.6.0...svc-users-v1.7.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **next-frontend:** add MERCADOPAGO_WEBHOOK_SECRET to docker build args and github workflow ([e84a926](https://github.com/cuencadelplata/ticketeate/commit/e84a926ebbc9fad66ec596c22a193c8444b2acc1))
+
+
+### Features
+
+* **mercadopago:** implement OAuth 2.0 with PKCE, token refresh, and comprehensive documentation ([0edec7d](https://github.com/cuencadelplata/ticketeate/commit/0edec7db2ad84a53d83b4bd2403cc0f59486ece3))
+
 # [1.6.0](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.6...svc-users-v1.6.0) (2025-11-16)
 
 
