@@ -3,15 +3,14 @@ import Link from 'next/link';
 import { Search, Bell } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@heroui/react';
-import DarkMode from './DarkMode';
-import { useSession, signOut } from '../lib/auth-client';
+import { useSession } from '../lib/auth-client';
 import { useRouter, usePathname } from 'next/navigation';
+import UserNav from './usernav';
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // ✅ usa las props reales del hook de Better Auth
   const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
@@ -23,12 +22,6 @@ export function Navbar() {
 
   const handleSignUp = () => {
     router.push('/sign-up');
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
-    router.refresh();
   };
 
   // helpers para links protegidos con mejor UX:
@@ -50,7 +43,7 @@ export function Navbar() {
     <div className="flex h-14 items-center justify-between bg-transparent px-6">
       <div className="flex items-center space-x-8">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={40} priority />
+          <Image src="/wordmark-light-alt.png" alt="Ticketeate" width={130} height={40} priority />
         </Link>
 
         <div className="hidden space-x-6 pl-12 md:flex">
@@ -116,31 +109,15 @@ export function Navbar() {
           <Bell className="h-4 w-4" />
         </Button>
 
-        <DarkMode />
-
         {/* Auth actions */}
-        <div className="px-2 flex items-center gap-3 min-w-[180px] justify-end">
+        <div className="px-2 flex items-center gap-3 justify-end">
           {isLoading ? (
             <div className="flex gap-2">
               <div className="h-6 w-24 animate-pulse rounded bg-zinc-700/50" />
               <div className="h-6 w-20 animate-pulse rounded bg-zinc-700/50" />
             </div>
           ) : isAuthenticated ? (
-            <>
-              <span
-                title={session?.user?.email ?? ''}
-                className="max-w-[160px] truncate text-sm text-zinc-200 dark:text-zinc-300"
-              >
-                {session?.user?.email ?? 'Mi cuenta'}
-              </span>
-              <Button
-                size="sm"
-                className="rounded-full bg-orange-600 hover:bg-orange-700 text-white"
-                onClick={handleSignOut}
-              >
-                Cerrar sesión
-              </Button>
-            </>
+            <UserNav />
           ) : (
             <>
               <Button

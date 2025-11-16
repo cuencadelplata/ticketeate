@@ -16,7 +16,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Función para publicar updates de cola
 export async function publishQueueUpdate(eventId: string, data: any) {
   try {
-    const { error } = await supabase.channel(`queue:${eventId}`).send({
+    await supabase.channel(`queue:${eventId}`).send({
       type: 'broadcast',
       event: 'queue_update',
       payload: {
@@ -25,12 +25,8 @@ export async function publishQueueUpdate(eventId: string, data: any) {
         ...data,
       },
     });
-
-    if (error) {
-      console.error('Error publishing queue update:', error);
-    }
   } catch (error) {
-    console.error('Error in publishQueueUpdate:', error);
+    console.error('Error publishing queue update:', error);
   }
 }
 

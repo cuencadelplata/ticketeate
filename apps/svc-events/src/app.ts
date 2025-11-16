@@ -3,8 +3,6 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
 import jwt from 'jsonwebtoken';
-
-// Import routes
 import { apiRoutes } from './routes/api';
 import { healthRoutes } from './routes/health';
 
@@ -20,9 +18,14 @@ async function jwtMiddleware(c: Context, next: Next) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify JWT token using shared secret (same as frontend)
+    const frontendUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://ticketeate.com.ar'
+        : process.env.FRONTEND_URL || 'http://localhost:3000';
+
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
-      issuer: process.env.FRONTEND_URL || 'http://localhost:3000',
-      audience: process.env.FRONTEND_URL || 'http://localhost:3000',
+      issuer: frontendUrl,
+      audience: frontendUrl,
       algorithms: ['HS256'], // Specify algorithm
     });
 
@@ -42,10 +45,23 @@ const app = new Hono();
 // Middleware
 app.use('*', logger());
 app.use('*', timing());
+// CORS configuration with environment-aware origins
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
+  : [
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://ticketeate.com.ar',
+      'https://www.ticketeate.com.ar',
+    ];
+
+const allowedOrigins = corsOrigins.filter(Boolean);
+
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: allowedOrigins,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

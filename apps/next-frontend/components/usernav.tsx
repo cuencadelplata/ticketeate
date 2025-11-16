@@ -39,10 +39,30 @@ export const PlusIcon = (props: any) => {
   );
 };
 
+const getRoleDisplayName = (role?: string): string => {
+  switch (role) {
+    case 'ORGANIZADOR':
+      return 'Organizador';
+    case 'COLABORADOR':
+      return 'Colaborador';
+    case 'USUARIO':
+      return 'Usuario';
+    case 'PRODUCER':
+      return 'Productor';
+    default:
+      return 'Usuario';
+  }
+};
+
 export default function UserNav() {
   const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
   const isLoading = isPending;
+  const userRole = (session?.user as any)?.role;
+  const isRegularUser = userRole === 'USUARIO';
+  const isOrganizer = userRole === 'ORGANIZADOR';
+  const isCollaborator = userRole === 'COLABORADOR';
+  const isProducer = userRole === 'PRODUCER';
 
   const handleSignOut = async () => {
     try {
@@ -70,9 +90,9 @@ export default function UserNav() {
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
           <div className="relative cursor-pointer">
-            {session?.user.imageUrl ? (
+            {session?.user.image ? (
               <Image
-                src={session?.user.imageUrl}
+                src={session?.user.image}
                 alt="Profile"
                 width={32}
                 height={32}
@@ -81,18 +101,16 @@ export default function UserNav() {
               />
             ) : null}
             <div
-              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.imageUrl ? 'hidden' : ''}`}
+              className={`flex size-8 cursor-pointer items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white transition-transform hover:scale-105 ${session?.user.image ? 'hidden' : ''}`}
             >
-              {session?.user.firstName?.[0] ||
-                session?.user.emailAddresses[0]?.emailAddress?.[0] ||
-                'U'}
+              {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
             </div>
           </div>
         </DropdownTrigger>
         <DropdownMenu
           aria-label="User menu"
-          className="p-2"
-          disabledKeys={['profile']}
+          className="p-2 bg-stone-950 rounded-lg"
+          disabledKeys={[]}
           itemClasses={{
             base: [
               'rounded-md',
@@ -111,9 +129,9 @@ export default function UserNav() {
             <DropdownItem key="profile" isReadOnly className="h-14 gap-2 opacity-100">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  {session?.user.imageUrl ? (
+                  {session?.user.image ? (
                     <Image
-                      src={session?.user.imageUrl}
+                      src={session?.user.image}
                       alt="Profile"
                       width={32}
                       height={32}
@@ -122,38 +140,56 @@ export default function UserNav() {
                     />
                   ) : null}
                   <div
-                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.imageUrl ? 'hidden' : ''}`}
+                    className={`flex size-8 items-center justify-center rounded-full border-2 border-gray-600 bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ${session?.user.image ? 'hidden' : ''}`}
                   >
-                    {session?.user.firstName?.[0] ||
-                      session?.user.emailAddresses[0]?.emailAddress?.[0] ||
-                      'U'}
+                    {session?.user.name?.[0] || session?.user.email?.[0] || 'U'}
                   </div>
                 </div>
                 <div className="flex flex-col">
                   <p className="text-sm font-medium leading-none text-default-600">
-                    {session?.user.fullName ||
-                      session?.user.firstName ||
-                      session?.user.emailAddresses[0]?.emailAddress}
+                    {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {session?.user.publicMetadata?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                    {getRoleDisplayName((session?.user as any)?.role)}
                   </p>
                 </div>
               </div>
             </DropdownItem>
-            <DropdownItem key="dashboard" href="/eventos">
-              Mis Eventos
-            </DropdownItem>
-            <DropdownItem key="settings" href="/configuracion">
-              Configuración
-            </DropdownItem>
-            <DropdownItem
-              key="new_project"
-              href="/crear"
-              endContent={<PlusIcon className="text-large" />}
-            >
-              Crear Evento
-            </DropdownItem>
+
+            {isRegularUser ? (
+              <>
+                <DropdownItem key="my_purchases" href="/mi-cuenta/compras">
+                  Mis Compras
+                </DropdownItem>
+                <DropdownItem key="my_events" href="/mi-cuenta/inscripciones">
+                  Mis Inscripciones
+                </DropdownItem>
+              </>
+            ) : null}
+
+            {isCollaborator ? (
+              <DropdownItem key="scanner" href="/colaborador/scanner">
+                Escanear Entradas
+              </DropdownItem>
+            ) : null}
+
+            {isOrganizer || isProducer ? (
+              <>
+                <DropdownItem key="dashboard" href="/eventos">
+                  Mis Eventos
+                </DropdownItem>
+                <DropdownItem key="settings" href="/configuracion">
+                  Configuración
+                </DropdownItem>
+                <DropdownItem
+                  key="new_project"
+                  href="/crear"
+                  endContent={<PlusIcon className="text-large" />}
+                >
+                  Crear Evento
+                </DropdownItem>
+              </>
+            ) : null}
           </DropdownSection>
 
           <DropdownSection showDivider aria-label="Preferences">

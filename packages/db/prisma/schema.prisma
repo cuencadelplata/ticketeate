@@ -42,11 +42,18 @@ model colas_evento {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model entradas {
-  entradaid String   @id @db.VarChar(255)
-  reservaid String   @db.VarChar(255)
-  codigo_qr String   @unique @db.VarChar(255)
-  estado    String   @default("VALIDA") @db.VarChar(20)
-  reservas  reservas @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+  entradaid        String             @id @db.VarChar(255)
+  reservaid        String             @db.VarChar(255)
+  codigo_qr        String             @unique @db.VarChar(255)
+  estado           String             @default("VALIDA") @db.VarChar(20)
+  version          Int                @default(1)
+  is_active        Boolean            @default(true)
+  deleted_at       DateTime?          @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_by       String?            @db.VarChar
+  reservas         reservas           @relation(fields: [reservaid], references: [reservaid], onDelete: Cascade)
+  user             user?              @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entradas_history entradas_history[]
 
   @@index([reservaid], map: "idx_entradas_reservaid")
 }
@@ -78,44 +85,56 @@ model evento_estado {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model evento_modificaciones {
-  modificacionid String   @id @db.VarChar
-  eventoid       String   @db.VarChar
-  campo_modificado String @db.VarChar(50) // 'titulo', 'descripcion', 'ubicacion', 'mapa_evento', etc.
-  valor_anterior String?  @db.Text
-  valor_nuevo    String?  @db.Text
+  modificacionid     String   @id @db.VarChar
+  eventoid           String   @db.VarChar
+  campo_modificado   String   @db.VarChar(50)
+  valor_anterior     String?
+  valor_nuevo        String?
   fecha_modificacion DateTime @default(now()) @db.Timestamptz(6)
-  usuarioid      String   @db.VarChar
-  eventos        eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  user           user     @relation(fields: [usuarioid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuarioid          String   @db.VarChar
+  eventos            eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user               user     @relation(fields: [usuarioid], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([eventoid, fecha_modificacion(sort: Desc)], map: "idx_evento_modificaciones_eventoid_fecha")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model eventos {
-  eventoid          String              @id @db.VarChar(255)
-  titulo            String              @db.VarChar(200)
-  descripcion       String?
-  ubicacion         String              @db.VarChar(255)
-  fecha_creacion    DateTime            @default(now()) @db.Timestamptz(6)
-  fecha_publicacion  DateTime?           @db.Timestamptz(6)
-  creadorid         String              @db.VarChar(255)
-  mapa_evento       Json
-  fecha_cambio      DateTime            @default(now()) @db.Timestamptz(6)
-  views             Int                 @default(0)
-  colas_evento      colas_evento[]
-  estadisticas      estadisticas[]
-  evento_categorias evento_categorias[]
-  evento_estado     evento_estado[]
-  evento_modificaciones evento_modificaciones[]
-  user              user                @relation(fields: [creadorid], references: [id], onDelete: Cascade)
-  fechas_evento     fechas_evento[]
-  historial_compras historial_compras[]
-  imagenes_evento   imagenes_evento[]
-  logs_eventos      logs_eventos[]
-  reservas          reservas[]
-  stock_entrada     stock_entrada[]
-  views_history     evento_views_history[]
+  eventoid                      String                  @id @db.VarChar(255)
+  titulo                        String                  @db.VarChar(200)
+  descripcion                   String?
+  ubicacion                     String                  @db.VarChar(255)
+  fecha_creacion                DateTime                @default(now()) @db.Timestamptz(6)
+  creadorid                     String                  @db.VarChar(255)
+  mapa_evento                   Json
+  fecha_cambio                  DateTime                @default(now()) @db.Timestamptz(6)
+  fecha_publicacion             DateTime?               @db.Timestamptz(6)
+  views                         Int                     @default(0)
+  version                       Int                     @default(1)
+  is_active                     Boolean                 @default(true)
+  deleted_at                    DateTime?               @db.Timestamptz(6)
+  updated_by                    String?                 @db.VarChar
+  colas_evento                  colas_evento[]
+  cupones_evento                cupones_evento[]
+  cupones_redimidos             cupones_redimidos[]
+  estadisticas                  estadisticas[]
+  evento_categorias             evento_categorias[]
+  evento_estado                 evento_estado[]
+  evento_modificaciones         evento_modificaciones[]
+  views_history                 evento_views_history[]
+  user                          user                    @relation(fields: [creadorid], references: [id], onDelete: Cascade)
+  user_eventos_updated_byTouser user?                   @relation("eventos_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  eventos_history               eventos_history[]
+  fechas_evento                 fechas_evento[]
+  historial_compras             historial_compras[]
+  imagenes_evento               imagenes_evento[]
+  logs_eventos                  logs_eventos[]
+  reservas                      reservas[]
+  stock_entrada                 stock_entrada[]
+  invite_codes                  invite_codes[]
+  colaborador_eventos           colaborador_eventos[]
+  inscripciones_evento          inscripciones_evento[]
+  codigos_qr                    codigos_qr[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -189,21 +208,27 @@ model pagos {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model reservas {
-  reservaid         String              @id @db.VarChar(255)
-  usuarioid         String              @db.VarChar(255)
-  eventoid          String              @db.VarChar(255)
-  fechaid           String              @db.VarChar(255)
-  categoriaid       String              @db.VarChar(255)
-  cantidad          Int
-  fecha_reserva     DateTime            @default(now()) @db.Timestamptz(6)
-  estado            String              @default("PENDIENTE") @db.VarChar(20)
-  entradas          entradas[]
-  historial_compras historial_compras[]
-  pagos             pagos[]
-  stock_entrada     stock_entrada       @relation(fields: [categoriaid], references: [stockid], onDelete: Cascade)
-  eventos           eventos             @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-  fechas_evento     fechas_evento       @relation(fields: [fechaid], references: [fechaid], onDelete: Cascade)
-  user              user                @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+  reservaid                      String              @id @db.VarChar(255)
+  usuarioid                      String              @db.VarChar(255)
+  eventoid                       String              @db.VarChar(255)
+  fechaid                        String              @db.VarChar(255)
+  categoriaid                    String              @db.VarChar(255)
+  cantidad                       Int
+  fecha_reserva                  DateTime            @default(now()) @db.Timestamptz(6)
+  estado                         String              @default("PENDIENTE") @db.VarChar(20)
+  version                        Int                 @default(1)
+  is_active                      Boolean             @default(true)
+  deleted_at                     DateTime?           @db.Timestamptz(6)
+  updated_by                     String?             @db.VarChar
+  entradas                       entradas[]
+  historial_compras              historial_compras[]
+  pagos                          pagos[]
+  stock_entrada                  stock_entrada       @relation(fields: [categoriaid], references: [stockid], onDelete: Cascade)
+  eventos                        eventos             @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  fechas_evento                  fechas_evento       @relation(fields: [fechaid], references: [fechaid], onDelete: Cascade)
+  user_reservas_updated_byTouser user?               @relation("reservas_updated_byTouser", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                           user                @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+  reservas_history               reservas_history[]
 
   @@index([usuarioid, eventoid], map: "idx_reservas_usuario_evento")
 }
@@ -268,33 +293,57 @@ model session {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+
+  @@unique([identifier, value])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model user {
-  id                   String                 @id
-  name                 String
-  email                String                 @unique
-  emailVerified        Boolean
-  image                String?
-  role                 Role                   @default(USUARIO)
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  // Wallet fields for Mercado Pago OAuth
-  wallet_linked        Boolean                @default(false)
-  wallet_provider      String?
-  mercado_pago_user_id String?
-  mercado_pago_access_token String?
-  mercado_pago_refresh_token String?
-  mercado_pago_token_expires_at DateTime?
-  account              account[]
-  cola_turnos          cola_turnos[]
-  evento_estado        evento_estado[]
-  evento_modificaciones evento_modificaciones[]
-  eventos              eventos[]
-  historial_compras    historial_compras[]
-  logs_eventos         logs_eventos[]
-  movimientos_entradas movimientos_entradas[]
-  reservas             reservas[]
-  sesiones             sesiones[]
-  session              session[]
+  id                                 String                   @id
+  name                               String
+  email                              String                   @unique
+  emailVerified                      Boolean
+  image                              String?
+  role                               Role                     @default(USUARIO)
+  createdAt                          DateTime                 @default(now())
+  updatedAt                          DateTime
+  mercado_pago_access_token          String?
+  mercado_pago_refresh_token         String?
+  mercado_pago_token_expires_at      DateTime?
+  mercado_pago_user_id               String?
+  wallet_linked                      Boolean                  @default(false)
+  wallet_provider                    String?
+  account                            account[]
+  cola_turnos                        cola_turnos[]
+  cupones_evento                     cupones_evento[]
+  cupones_evento_history             cupones_evento_history[]
+  cupones_redimidos                  cupones_redimidos[]
+  entradas                           entradas[]
+  entradas_history                   entradas_history[]
+  evento_estado                      evento_estado[]
+  evento_modificaciones              evento_modificaciones[]
+  eventos                            eventos[]
+  eventos_eventos_updated_byTouser   eventos[]                @relation("eventos_updated_byTouser")
+  eventos_history                    eventos_history[]
+  historial_compras                  historial_compras[]
+  logs_eventos                       logs_eventos[]
+  movimientos_entradas               movimientos_entradas[]
+  reservas_reservas_updated_byTouser reservas[]               @relation("reservas_updated_byTouser")
+  reservas                           reservas[]
+  reservas_history                   reservas_history[]
+  sesiones                           sesiones[]
+  session                            session[]
+  invite_codes                       invite_codes[]
+  colaborador_eventos                colaborador_eventos[]
+  inscripciones_evento               inscripciones_evento[]
+  codigos_qr                         codigos_qr[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -349,6 +398,127 @@ model tasas_cambio {
   @@index([moneda_origen, moneda_destino, fecha_actualizacion])
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evento_views_history {
+  id          String   @id @db.VarChar(255)
+  eventoid    String   @db.VarChar(255)
+  fecha       DateTime @db.Date
+  views_count Int      @default(0)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  eventos     eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+
+  @@unique([eventoid, fecha], map: "unique_evento_fecha")
+  @@index([eventoid, fecha(sort: Desc)], map: "idx_evento_views_history_eventoid_fecha")
+  @@index([fecha(sort: Desc)], map: "idx_evento_views_history_fecha")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cupones_evento {
+  cuponid                String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventoid               String                   @db.VarChar
+  codigo                 String                   @db.VarChar(50)
+  porcentaje_descuento   Decimal                  @db.Decimal(5, 2)
+  fecha_creacion         DateTime                 @default(now()) @db.Timestamptz(6)
+  fecha_expiracion       DateTime                 @db.Timestamptz(6)
+  limite_usos            Int
+  usos_actuales          Int                      @default(0)
+  estado                 String                   @default("ACTIVO") @db.VarChar(20)
+  version                Int                      @default(1)
+  is_active              Boolean                  @default(true)
+  deleted_at             DateTime?                @db.Timestamptz(6)
+  updated_by             String?                  @db.VarChar
+  eventos                eventos                  @relation(fields: [eventoid], references: [eventoid], onDelete: NoAction, onUpdate: NoAction)
+  user                   user?                    @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cupones_evento_history cupones_evento_history[]
+  cupones_redimidos      cupones_redimidos[]
+
+  @@unique([eventoid, codigo], map: "uq_codigo_evento")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cupones_evento_history {
+  history_id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cuponid              String         @db.Uuid
+  eventoid             String         @db.VarChar
+  codigo               String         @db.VarChar(50)
+  porcentaje_descuento Decimal        @db.Decimal(5, 2)
+  fecha_creacion       DateTime       @db.Timestamptz(6)
+  fecha_expiracion     DateTime       @db.Timestamptz(6)
+  limite_usos          Int
+  usos_actuales        Int
+  estado               String         @db.VarChar(20)
+  version              Int
+  changed_at           DateTime       @default(now()) @db.Timestamptz(6)
+  changed_by           String         @db.VarChar
+  change_type          change_type
+  user                 user           @relation(fields: [changed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cupones_evento       cupones_evento @relation(fields: [cuponid], references: [cuponid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model cupones_redimidos {
+  redencionid        String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cuponid            String         @db.Uuid
+  eventoid           String         @db.VarChar
+  usuarioid          String         @db.VarChar
+  fecha_redencion    DateTime       @default(now()) @db.Timestamptz(6)
+  descuento_aplicado Decimal        @db.Decimal(10, 2)
+  cupones_evento     cupones_evento @relation(fields: [cuponid], references: [cuponid], onDelete: NoAction, onUpdate: NoAction)
+  eventos            eventos        @relation(fields: [eventoid], references: [eventoid], onDelete: NoAction, onUpdate: NoAction)
+  user               user           @relation(fields: [usuarioid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([cuponid, usuarioid, eventoid], map: "uq_cupon_usuario_evento")
+}
+
+model entradas_history {
+  history_id  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entradaid   String      @db.VarChar
+  reservaid   String      @db.VarChar
+  codigo_qr   String      @db.VarChar
+  estado      String      @db.VarChar
+  version     Int
+  changed_at  DateTime    @default(now()) @db.Timestamptz(6)
+  changed_by  String      @db.VarChar
+  change_type change_type
+  user        user        @relation(fields: [changed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entradas    entradas    @relation(fields: [entradaid], references: [entradaid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model eventos_history {
+  history_id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoid          String      @db.VarChar
+  titulo            String      @db.VarChar
+  descripcion       String?
+  ubicacion         String      @db.VarChar
+  creadorid         String      @db.VarChar
+  mapa_evento       Json
+  fecha_publicacion DateTime?   @db.Timestamptz(6)
+  views             Int
+  version           Int
+  changed_at        DateTime    @default(now()) @db.Timestamptz(6)
+  changed_by        String      @db.VarChar
+  change_type       change_type
+  user              user        @relation(fields: [changed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  eventos           eventos     @relation(fields: [eventoid], references: [eventoid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model reservas_history {
+  history_id  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservaid   String      @db.VarChar
+  usuarioid   String      @db.VarChar
+  eventoid    String      @db.VarChar
+  fechaid     String      @db.VarChar
+  categoriaid String      @db.VarChar
+  cantidad    Int
+  estado      String      @db.VarChar
+  version     Int
+  changed_at  DateTime    @default(now()) @db.Timestamptz(6)
+  changed_by  String      @db.VarChar
+  change_type change_type
+  user        user        @relation(fields: [changed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reservas    reservas    @relation(fields: [reservaid], references: [reservaid], onDelete: NoAction, onUpdate: NoAction)
+}
+
 enum EstadoEntrada {
   VALIDA
   USADA
@@ -386,17 +556,81 @@ enum Role {
   USUARIO
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model evento_views_history {
-  id          String   @id @db.VarChar(255)
-  eventoid    String   @db.VarChar(255)
-  fecha       DateTime @db.Date
-  views_count Int      @default(0)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @db.Timestamptz(6)
-  eventos     eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
-
-  @@unique([eventoid, fecha], map: "unique_evento_fecha")
-  @@index([eventoid, fecha(sort: Desc)], map: "idx_evento_views_history_eventoid_fecha")
-  @@index([fecha(sort: Desc)], map: "idx_evento_views_history_fecha")
+enum change_type {
+  CREATE
+  UPDATE
+  DELETE
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invite_codes {
+  codigoid           String   @id @db.VarChar(255)
+  eventoid           String   @db.VarChar(255)
+  codigo             String   @db.VarChar(50)
+  estado             String   @default("ACTIVO") @db.VarChar(20)
+  fecha_creacion     DateTime @default(now()) @db.Timestamptz(6)
+  fecha_expiracion   DateTime @db.Timestamptz(6)
+  usos_totales       Int      @default(0)
+  usos_max           Int      @default(999999)
+  creador_id         String   @db.VarChar(255)
+  eventos            eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user               user     @relation(fields: [creador_id], references: [id], onDelete: Cascade)
+
+  @@unique([eventoid, codigo], map: "uq_codigo_evento_invite")
+  @@index([eventoid, estado], map: "idx_invite_codigo_evento_estado")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model colaborador_eventos {
+  colaborador_evento_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoid              String   @db.VarChar(255)
+  usuarioid             String   @db.VarChar(255)
+  invite_code_used      String   @db.VarChar(255)
+  fecha_asignacion      DateTime @default(now()) @db.Timestamptz(6)
+  eventos               eventos  @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user                  user     @relation(fields: [usuarioid], references: [id], onDelete: Cascade)
+
+  @@unique([eventoid, usuarioid], map: "uq_colaborador_evento")
+  @@index([eventoid], map: "idx_colaborador_eventos_eventoid")
+  @@index([usuarioid], map: "idx_colaborador_eventos_usuarioid")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model inscripciones_evento {
+  inscripcionid     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoid          String    @db.VarChar(255)
+  nombre            String    @db.VarChar(255)
+  correo            String    @db.VarChar(255)
+  usuarioid         String?   @db.VarChar(255)
+  fecha_inscripcion DateTime  @default(now()) @db.Timestamptz(6)
+  estado            String    @default("confirmado") @db.VarChar(20)
+  eventos           eventos   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user              user?     @relation(fields: [usuarioid], references: [id], onDelete: SetNull)
+  codigos_qr        codigos_qr[]
+
+  @@unique([eventoid, correo], map: "uq_inscripcion_evento_correo")
+  @@index([eventoid], map: "idx_inscripcion_evento_eventoid")
+  @@index([correo], map: "idx_inscripcion_evento_correo")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model codigos_qr {
+  codigoqrid        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inscripcionid     String    @db.Uuid
+  eventoid          String    @db.VarChar(255)
+  codigo            String    @unique @db.VarChar(255)
+  datos_qr          String    @db.Text
+  validado          Boolean   @default(false)
+  fecha_creacion    DateTime  @default(now()) @db.Timestamptz(6)
+  fecha_validacion  DateTime? @db.Timestamptz(6)
+  validado_por      String?   @db.VarChar(255)
+  inscripciones     inscripciones_evento @relation(fields: [inscripcionid], references: [inscripcionid], onDelete: Cascade)
+  eventos           eventos   @relation(fields: [eventoid], references: [eventoid], onDelete: Cascade)
+  user              user?     @relation(fields: [validado_por], references: [id], onDelete: SetNull)
+
+  @@index([inscripcionid], map: "idx_codigo_qr_inscripcion")
+  @@index([eventoid], map: "idx_codigo_qr_evento")
+  @@index([codigo], map: "idx_codigo_qr_codigo")
+  @@index([validado], map: "idx_codigo_qr_validado")
+}
+

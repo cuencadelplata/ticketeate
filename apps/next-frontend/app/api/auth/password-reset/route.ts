@@ -19,12 +19,15 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'forgot':
         const forgotData = forgotPasswordSchema.parse(data);
-        const forgotResult = await auth.api.forgotPassword({
+        const forgotResult = await auth.api.forgetPassword({
           body: { email: forgotData.email },
         });
 
-        if (forgotResult.error) {
-          return NextResponse.json({ error: forgotResult.error.message }, { status: 400 });
+        if (!forgotResult.status) {
+          return NextResponse.json(
+            { error: 'Error al enviar el enlace de restablecimiento' },
+            { status: 400 },
+          );
         }
 
         return NextResponse.json({
@@ -37,12 +40,15 @@ export async function POST(request: NextRequest) {
         const resetResult = await auth.api.resetPassword({
           body: {
             token: resetData.token,
-            password: resetData.password,
+            newPassword: resetData.password,
           },
         });
 
-        if (resetResult.error) {
-          return NextResponse.json({ error: resetResult.error.message }, { status: 400 });
+        if (!resetResult.status) {
+          return NextResponse.json(
+            { error: 'Error al restablecer la contraseña' },
+            { status: 400 },
+          );
         }
 
         return NextResponse.json({

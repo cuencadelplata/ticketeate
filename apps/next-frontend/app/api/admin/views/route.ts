@@ -114,7 +114,7 @@ async function syncDailyViewsForEvent(eventId: string, redis: RedisClient): Prom
       // Insertar o actualizar en la base de datos
       await prisma.evento_views_history.upsert({
         where: {
-          unique_evento_fecha: {
+          eventoid_fecha: {
             eventoid: eventId,
             fecha: date,
           },
@@ -153,7 +153,7 @@ export async function GET() {
     const stats = {
       pendingSync: viewKeys.length,
       totalPendingViews: 0,
-      events: [],
+      events: [] as Array<{ eventId: string; pendingViews: number }>,
     };
 
     for (const key of viewKeys) {

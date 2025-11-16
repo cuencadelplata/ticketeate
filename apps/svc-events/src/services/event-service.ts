@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma';
 import { randomUUID } from 'node:crypto';
+import { logger } from '../logger';
 
 export interface CreateEventData {
   titulo: string;
@@ -201,6 +202,7 @@ export class EventService {
           mapa_evento: data.eventMap ?? {},
           fecha_publicacion: data.fecha_publicacion ? new Date(data.fecha_publicacion) : null,
           creadorid: data.userId,
+          updated_by: data.userId,
           evento_categorias: {
             create: categoriaIds.map((categoriaId) => ({
               categoriaeventoid: Number(categoriaId),
@@ -322,8 +324,9 @@ export class EventService {
 
       return eventoCompleto as EventWithImages;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error creating event:', error);
+      logger.error('Error creating event', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al crear el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -507,8 +510,9 @@ export class EventService {
 
       return eventoSerializado as EventWithImages;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating event:', error);
+      logger.error('Error updating event', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al actualizar el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -531,8 +535,9 @@ export class EventService {
         },
       });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error deleting event:', error);
+      logger.error('Error deleting event', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al eliminar el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -574,8 +579,9 @@ export class EventService {
 
       return eventoSerializado as EventWithImages;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error getting event:', error);
+      logger.error('Error getting event', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al obtener el evento: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -620,8 +626,9 @@ export class EventService {
 
       return eventosSerializados as EventWithImages[];
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error getting user events:', error);
+      logger.error('Error getting user events', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al obtener los eventos del usuario: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -669,8 +676,9 @@ export class EventService {
 
       return eventosSerializados as EventWithImages[];
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error getting all public events:', error);
+      logger.error('Error getting all public events', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al obtener todos los eventos: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -770,16 +778,24 @@ export class EventService {
           });
 
           published++;
-          console.log(`Published scheduled event: ${evento.titulo} (${evento.eventoid})`);
+          logger.info('Published scheduled event', {
+            titulo: evento.titulo,
+            eventoid: evento.eventoid,
+          });
         } catch (error) {
           errors++;
-          console.error(`Error publishing event ${evento.eventoid}:`, error);
+          logger.error('Error publishing event', {
+            eventoid: evento.eventoid,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
 
       return { published, errors };
     } catch (error) {
-      console.error('Error in publishScheduledEvents:', error);
+      logger.error('Error in publishScheduledEvents', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw new Error(
         `Error al publicar eventos programados: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );

@@ -2,9 +2,9 @@ import { EventsByCategory } from '@/components/events-by-category';
 import { useCategories } from '@/hooks/use-categories';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     categoria: string;
-  };
+  }>;
 }
 
 // Función para convertir slugs a nombres de categoría

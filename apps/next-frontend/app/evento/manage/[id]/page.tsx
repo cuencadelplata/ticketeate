@@ -2,8 +2,10 @@
 
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
+import { useEventStats } from '@/hooks/use-event-stats';
+import { usePrefetchManageData } from '@/hooks/use-prefetch-manage-data';
 import { Navbar } from '@/components/navbar';
-import { Calendar, MapPin, Users, Settings, BarChart3, Info, Eye } from 'lucide-react';
+import { Calendar, MapPin, Users, Eye, Gift, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -102,6 +104,12 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
     isLoading: isLoadingViews,
     error: viewCountError,
   } = useViewCount(id);
+
+  // Hook para obtener estadísticas de invitados e inscriptos
+  const { data: stats, isLoading: isLoadingStats } = useEventStats(id);
+
+  // Hook para prefetch de datos de las secciones
+  usePrefetchManageData(id);
 
   // Manejar errores
   if (error) {
@@ -250,31 +258,16 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
           {/* Navegación de gestión */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Link
-              href={`/evento/manage/${id}/informacion`}
-              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-500/20 p-3">
-                  <Info className="h-6 w-6 text-orange-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-orange-400">Información</h3>
-                  <p className="text-sm text-stone-400">Editar detalles del evento</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
               href={`/evento/manage/${id}/invitados`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-orange-600/20 p-3">
-                  <Users className="h-6 w-6 text-orange-500" />
+                  <Gift className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold group-hover:text-orange-500">Invitados</h3>
-                  <p className="text-sm text-stone-400">Gestionar lista de invitados</p>
+                  <p className="text-sm text-stone-400">QRs de cortesía</p>
                 </div>
               </div>
             </Link>
@@ -284,27 +277,55 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-700/20 p-3">
-                  <Settings className="h-6 w-6 text-orange-600" />
+                <div className="rounded-lg bg-blue-500/20 p-3">
+                  <UserCheck className="h-6 w-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-orange-600">Inscripción</h3>
-                  <p className="text-sm text-stone-400">Configurar registro</p>
+                  <h3 className="font-semibold group-hover:text-blue-400">Inscripción</h3>
+                  <p className="text-sm text-stone-400">Ver personas inscriptas</p>
                 </div>
               </div>
             </Link>
 
             <Link
-              href={`/evento/manage/${id}/mas`}
+              href={`/evento/manage/${id}/colaboradores`}
               className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
             >
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-orange-800/20 p-3">
-                  <BarChart3 className="h-6 w-6 text-orange-700" />
+                <div className="rounded-lg bg-purple-500/20 p-3">
+                  <Users className="h-6 w-6 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold group-hover:text-orange-700">Más opciones</h3>
-                  <p className="text-sm text-stone-400">Configuración avanzada</p>
+                  <h3 className="font-semibold group-hover:text-purple-400">Colaboradores</h3>
+                  <p className="text-sm text-stone-400">Gestionar equipo</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href={`/evento/manage/${id}/cupones`}
+              className="group rounded-lg bg-[#1E1E1E] p-6 transition-colors hover:bg-[#2A2A2A]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-green-500/20 p-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-green-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold group-hover:text-green-400">Cupones</h3>
+                  <p className="text-sm text-stone-400">Gestionar descuentos</p>
                 </div>
               </div>
             </Link>
@@ -334,7 +355,13 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-stone-400">Total Invitados</p>
-                  <p className="text-2xl font-bold text-orange-500">0</p>
+                  <p className="text-2xl font-bold text-orange-500">
+                    {isLoadingStats ? (
+                      <span className="text-stone-400">Cargando...</span>
+                    ) : (
+                      stats?.totalInvitados || 0
+                    )}
+                  </p>
                 </div>
                 <Users className="h-8 w-8 text-orange-600" />
               </div>
@@ -343,8 +370,14 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
             <div className="rounded-lg bg-[#1E1E1E] p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-stone-400">Confirmados</p>
-                  <p className="text-2xl font-bold text-orange-600">0</p>
+                  <p className="text-sm text-stone-400">Total Inscriptos</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {isLoadingStats ? (
+                      <span className="text-stone-400">Cargando...</span>
+                    ) : (
+                      stats?.totalInscriptos || 0
+                    )}
+                  </p>
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600/20">
                   <span className="font-bold text-orange-600">✓</span>

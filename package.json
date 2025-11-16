@@ -4,9 +4,18 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=Ticketeate",
-    "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=Ticketeate",
+    "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=ticketeate",
+    "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=ticketeate",
+    "dev:local": "powershell -File ./dev.ps1",
+    "dev:local:bash": "bash ./dev.sh",
+    "dev:stop": "powershell -File ./dev.ps1 -StopOnly",
+    "dev:clean": "powershell -File ./dev.ps1 -Clean",
+    "redis:start": "docker compose -f docker-compose.dev.yml up -d redis",
+    "redis:stop": "docker compose -f docker-compose.dev.yml down",
+    "redis:logs": "docker logs ticketeate-redis-dev -f",
+    "redis:cli": "docker exec -it ticketeate-redis-dev redis-cli -a ticketeate123",
     "lint": "turbo run lint --filter=./apps/* --output-logs=full",
+    "lint:fix": "turbo run lint -- --fix",
     "lint:ci": "set CI=1 && turbo run lint --filter=./apps/* --no-cache --output-logs=full",
     "lint:apps": "turbo run lint --filter=apps/*",
     "check-types:apps": "turbo run check-types --filter=./apps/*",
@@ -14,7 +23,12 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "test": "turbo run test",
-    "check-types": "turbo run check-types"
+    "test:ci": "turbo run test -- --ci --coverage",
+    "check-types": "turbo run check-types",
+    "validate": "pnpm run lint && pnpm run check-types && pnpm run test",
+    "audit:deps": "pnpm audit --audit-level moderate",
+    "update:deps": "pnpm update -r -i",
+    "clean": "turbo run clean && rm -rf node_modules"
   },
   "workspaces": [
     "apps/*",
@@ -23,7 +37,7 @@
   "devDependencies": {
     "cross-env": "^7.0.3",
     "prettier": "^3.6.2",
-    "turbo": "^2.5.6",
+    "turbo": "^2.6.1",
     "typescript": "5.9.2"
   },
   "engines": {

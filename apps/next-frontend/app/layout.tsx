@@ -5,6 +5,7 @@ import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { ConditionalNavbar } from '../components/conditional-navbar';
 import { Footer } from '@/components/footer';
+import { SearchProvider } from '@/contexts/search-context';
 
 export const metadata: Metadata = {
   title: 'Ticketeate - Crea, gestiona y vende entradas en minutos',
@@ -33,12 +34,16 @@ const instrumentSerif = Instrument_Serif({
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={`${jakarta.className} ${instrumentSerif.variable}`}>
+    <html lang="es" suppressHydrationWarning className="h-full">
+      <body className={`${jakarta.className} ${instrumentSerif.variable} h-full flex flex-col`}>
         <Providers>
-          <ConditionalNavbar />
-          {children}
-          <Footer />
+          <SearchProvider>
+            <div className="flex flex-col min-h-screen">
+              <ConditionalNavbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </SearchProvider>
         </Providers>
         <Toaster position="top-right" richColors closeButton expand={true} />
       </body>

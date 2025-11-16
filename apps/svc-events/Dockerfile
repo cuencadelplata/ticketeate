@@ -12,6 +12,8 @@ COPY tsconfig.json turbo.json ./
 
 # Copy package.json files for workspace packages
 COPY packages/db/package.json ./packages/db/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY apps/svc-events/package.json ./apps/svc-events/
 
 # Copy essential source files for packages
@@ -19,12 +21,14 @@ COPY packages/db/prisma ./packages/db/prisma
 COPY packages/db/src ./packages/db/src
 COPY packages/db/tsconfig.json ./packages/db/
 COPY packages/db/tsup.config.ts ./packages/db/
+COPY packages/eslint-config ./packages/eslint-config
+COPY packages/typescript-config ./packages/typescript-config
 
 # Copy svc-events source
 COPY apps/svc-events ./apps/svc-events
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (using --no-frozen-lockfile to allow dynamic resolution)
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma Client
 RUN pnpm --filter=@repo/db run db:generate
@@ -33,13 +37,14 @@ RUN pnpm --filter=@repo/db run db:generate
 RUN pnpm --filter=@repo/db run build
 RUN pnpm --filter=@ticketeate/svc-events run build
 
-# Runner stage
-FROM node:20-alpine3.18 AS runner
+# Runner stage - Use AWS Lambda base image
+FROM public.ecr.aws/lambda/nodejs:20 AS runner
 
 # Install pnpm
 RUN npm install -g pnpm@10.10.0
 
-WORKDIR /app
+# Lambda uses /var/task as working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Copy necessary files from builder
 COPY --from=builder /app/package.json ./
@@ -50,16 +55,19 @@ COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/packages/db ./packages/db
 COPY --from=builder /app/apps/svc-events/package.json ./apps/svc-events/
 COPY --from=builder /app/apps/svc-events/dist ./apps/svc-events/dist
-COPY --from=builder /app/apps/svc-events/node_modules ./apps/svc-events/node_modules
 
-# Install production dependencies only
+# Install all dependencies first (including dev) to generate Prisma client
+RUN pnpm install --frozen-lockfile
+
+# Generate Prisma Client with dev dependencies available
+RUN pnpm --filter=@repo/db run db:generate
+
+# Remove dev dependencies and reinstall only production
 RUN pnpm install --prod --frozen-lockfile
 
 # Set NODE_ENV
 ENV NODE_ENV=production
 
-# Expose port
-EXPOSE 3002
-
-# Start the service
-CMD ["node", "apps/svc-events/dist/index.js"]
+# Set the Lambda handler (format: file.function)
+# Lambda will call exports.handler from apps/svc-events/dist/lambda.js
+CMD ["apps/svc-events/dist/lambda.handler"]

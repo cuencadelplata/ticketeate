@@ -5,6 +5,280 @@ Todas las versiones notables de **next-frontend** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.6.0...next-frontend-v1.7.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **next-frontend:** add MERCADOPAGO_WEBHOOK_SECRET to docker build args and github workflow ([e84a926](https://github.com/cuencadelplata/ticketeate/commit/e84a926ebbc9fad66ec596c22a193c8444b2acc1))
+* correct API_BASE URL construction in invite-codes hook ([0af5a55](https://github.com/cuencadelplata/ticketeate/commit/0af5a55978e1e81f6adef2ed40dd3e3f0f6bce66))
+* correct API_BASE URL construction in invite-codes hook  ([#177](https://github.com/cuencadelplata/ticketeate/issues/177)) ([b7d985f](https://github.com/cuencadelplata/ticketeate/commit/b7d985f3fab91b2d8eb50fb1b7de59f9b2e063d6))
+* **mercadopago:** correct OAuth client ([#176](https://github.com/cuencadelplata/ticketeate/issues/176)) ([5913340](https://github.com/cuencadelplata/ticketeate/commit/5913340611f4ef0bcdfb947b51c96ea06650b934))
+* **mercadopago:** correct OAuth client credentials ([5b7173e](https://github.com/cuencadelplata/ticketeate/commit/5b7173ed06b99da03664c1d216305eb1a0a18008))
+* CORS handling for invite-codes endpoint - add OPTIONS method check ([c2cfdeb](https://github.com/cuencadelplata/ticketeate/commit/c2cfdeb4631a44023004da8439f789d60eadb36b))
+
+
+### Features
+
+* **mercadopago:** implement OAuth 2.0 with PKCE, token refresh, and comprehensive documentation ([0edec7d](https://github.com/cuencadelplata/ticketeate/commit/0edec7db2ad84a53d83b4bd2403cc0f59486ece3))
+
+# [1.6.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.4...next-frontend-v1.6.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **mercado-pago:** add environment variables to runner stage for runtime access ([7fe975b](https://github.com/cuencadelplata/ticketeate/commit/7fe975b940d83c48df2fcb9d0a2fe18ebfc0e0fb))
+* ensure Authorization header is correctly passed to fetch requests ([59431b3](https://github.com/cuencadelplata/ticketeate/commit/59431b3486289af6b25c2ee346406f6915934613))
+* ensure Authorization header is correctly passed to fetch requests ([#166](https://github.com/cuencadelplata/ticketeate/issues/166)) ([08e7077](https://github.com/cuencadelplata/ticketeate/commit/08e70776e75bdf2e2f4a2dcad851735d903755ca))
+* **mercadopago:** use MERCADOPAGO_ env var names to match parameter store ([7fd3708](https://github.com/cuencadelplata/ticketeate/commit/7fd37088fc111b9b7b239c5b1a06cd0e8f595c01))
+
+
+### Features
+
+* **deployment:** pass mercado pago variables as docker build args ([3e58219](https://github.com/cuencadelplata/ticketeate/commit/3e582191ea15605b8d79b19402ac7d2f845a1121))
+
+## [1.5.4](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.3...next-frontend-v1.5.4) (2025-11-16)
+
+
+### Bug Fixes
+
+* apply jwtMiddleware to both api and production paths ([aa9c889](https://github.com/cuencadelplata/ticketeate/commit/aa9c8892245f9ea066409a9674632db1e6c104a0))
+* apply jwtMiddleware to both api and production paths ([#163](https://github.com/cuencadelplata/ticketeate/issues/163)) ([313f414](https://github.com/cuencadelplata/ticketeate/commit/313f414f28fa110dc14d6233cffa793231848f49))
+* cast JWT payload to Record string unknown to satisfy TypeScript ([9e7a360](https://github.com/cuencadelplata/ticketeate/commit/9e7a360eabf26fe06746836f0ba8ba37f3e4a2e9))
+
+## [1.5.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.2...next-frontend-v1.5.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* add /api/wallet routes to API Gateway for svc-users ([08b1e44](https://github.com/cuencadelplata/ticketeate/commit/08b1e44ddfb742f6e04b4440aa1bf92dfe918d8c))
+* add /api/wallet routes to API Gateway for svc-users ([#159](https://github.com/cuencadelplata/ticketeate/issues/159)) ([4a1fa38](https://github.com/cuencadelplata/ticketeate/commit/4a1fa38daae866facd2a2f40ff4874fd9b0ece8e))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([77976ea](https://github.com/cuencadelplata/ticketeate/commit/77976eacf9a2cbe9311d751b77503d1dd093244a))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([#157](https://github.com/cuencadelplata/ticketeate/issues/157)) ([41f01ef](https://github.com/cuencadelplata/ticketeate/commit/41f01ef6e13801a8d4208a8d7a70c04b65a7e0fe))
+* enable strict:false in Hono to handle routes with/without traili… ([#156](https://github.com/cuencadelplata/ticketeate/issues/156)) ([ed3f52d](https://github.com/cuencadelplata/ticketeate/commit/ed3f52d2f98265ade96243b5f41f85f552dda2ac))
+* enable strict:false in Hono to handle routes with/without trailing slash ([5c278a1](https://github.com/cuencadelplata/ticketeate/commit/5c278a1524c0c823830a569f17953601eec6f0fa))
+* explicit OPTIONS handler with CORS headers and 200 status ([b0809e8](https://github.com/cuencadelplata/ticketeate/commit/b0809e8e92992c2a42c22e465bc68809ca8dd8bc))
+* explicit OPTIONS handler with CORS headers and 200 status ([#158](https://github.com/cuencadelplata/ticketeate/issues/158)) ([ac264d1](https://github.com/cuencadelplata/ticketeate/commit/ac264d18038632d825cbc9318fca8160d4ec83a2))
+* skip OPTIONS requests in auth middleware for CORS preflight ([d04ca32](https://github.com/cuencadelplata/ticketeate/commit/d04ca324e59bf43449fc52dc5f9f2460780b4462))
+* standardize JWT issuer/audience to https://ticketeate.com.ar in production ([98473e2](https://github.com/cuencadelplata/ticketeate/commit/98473e29f94e439ca85e67de46fdbb3474d8d0f2))
+
+## [1.5.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.1...next-frontend-v1.5.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* add CORS headers to all error responses ([ee0eef0](https://github.com/cuencadelplata/ticketeate/commit/ee0eef037a8dbc79c4b6fbb2e724dba5fd7dd086))
+* add CORS headers to all error responses ([#155](https://github.com/cuencadelplata/ticketeate/issues/155)) ([66d3b5b](https://github.com/cuencadelplata/ticketeate/commit/66d3b5b3fa6ea600ab208a01f4038fa46156eb70))
+* remove /production from custom domain URL ([7d3e808](https://github.com/cuencadelplata/ticketeate/commit/7d3e808e23177fc7fe64752c06ff25e98db0881c))
+* remove /production from custom domain URL ([#152](https://github.com/cuencadelplata/ticketeate/issues/152)) ([afc1854](https://github.com/cuencadelplata/ticketeate/commit/afc1854429e52c48da0e06c65faf2e0931daeae1))
+* support custom domain routes in Lambda auth middleware ([49c2f74](https://github.com/cuencadelplata/ticketeate/commit/49c2f74c96e3cca2082a0b8a1716290b5e24f7cc))
+* support custom domain routes in Lambda auth middleware ([#153](https://github.com/cuencadelplata/ticketeate/issues/153)) ([bd130be](https://github.com/cuencadelplata/ticketeate/commit/bd130be0eaa4c52bccb8e402b8262ceebb232076))
+* update CORS headers and GitHub Actions IPs ([75f052f](https://github.com/cuencadelplata/ticketeate/commit/75f052f370619d7b02c932c365c1235db3e950ec))
+* update CORS headers and GitHub Actions IPs ([#150](https://github.com/cuencadelplata/ticketeate/issues/150)) ([5eb7c1f](https://github.com/cuencadelplata/ticketeate/commit/5eb7c1f06b6afaba734b1427d613413c5c6ba0e9))
+
+## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.5.0...next-frontend-v1.5.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* update nextjs-2 EC2 IP address ([#146](https://github.com/cuencadelplata/ticketeate/issues/146)) ([9ef7169](https://github.com/cuencadelplata/ticketeate/commit/9ef716959ca2d4de5943df0939b26e29dca1141f))
+* update nextjs-2 EC2 IP address to 18.217.216.210 ([c082fe9](https://github.com/cuencadelplata/ticketeate/commit/c082fe9ba65e16c4f3aeed5b3aab75710d053da8))
+
+# [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.7...next-frontend-v1.5.0) (2025-11-15)
+
+
+### Features
+
+* **svc-users:** mp oauth link ([#135](https://github.com/cuencadelplata/ticketeate/issues/135)) ([8ece996](https://github.com/cuencadelplata/ticketeate/commit/8ece99694e3a334c64e45d1491b5806a34bad0dd))
+* **svc-users:** mp oauth link ([ef83ec4](https://github.com/cuencadelplata/ticketeate/commit/ef83ec47af7aecbf16931839ab3af894aced4821))
+
+## [1.4.7](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.6...next-frontend-v1.4.7) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add type casting to response object ([d33822d](https://github.com/cuencadelplata/ticketeate/commit/d33822de6aeb8bd141cc328d164cde4afbbb2532))
+* Use lowercase headers in lambda handler for API Gateway v2 compatibility ([e1070b9](https://github.com/cuencadelplata/ticketeate/commit/e1070b99324fa3408b979e52dba4e80a49dcc2aa))
+
+## [1.4.6](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.5...next-frontend-v1.4.6) (2025-11-14)
+
+
+### Bug Fixes
+
+* Add explicit middleware to ensure Access-Control-Allow-Credentials header is always set ([b2272ff](https://github.com/cuencadelplata/ticketeate/commit/b2272ff59aa7bdf265d291908124cf2630013f87))
+* Make middleware properly async and await next() ([b0acb3e](https://github.com/cuencadelplata/ticketeate/commit/b0acb3ebc1d5195240072b119c8598143e3344e5))
+* Move credentials header logic to Lambda handler wrapper for better control ([4efd3b1](https://github.com/cuencadelplata/ticketeate/commit/4efd3b1e16676c4f6a86b0fb05a6a6cc89e83863))
+* Rename handler variable to avoid redeclaration ([80f283d](https://github.com/cuencadelplata/ticketeate/commit/80f283df7b70ea7529f93a5e52d87ed8d7aaff03))
+* Simplify CORS - remove post-middleware, rely on Hono CORS middleware credentials: true ([4ebfb9b](https://github.com/cuencadelplata/ticketeate/commit/4ebfb9bb6db0cbda029b835d03b6a6042bf95b47))
+
+## [1.4.5](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.4...next-frontend-v1.4.5) (2025-11-14)
+
+
+### Bug Fixes
+
+* Simplify CORS with hardcoded origins to eliminate undefined values ([86b521e](https://github.com/cuencadelplata/ticketeate/commit/86b521eb9c553e12f65b94789f4a03161f0fe100))
+
+## [1.4.4](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.3...next-frontend-v1.4.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* Mount routes at both /api and /production/api to handle API Gateway stage prefix ([8420575](https://github.com/cuencadelplata/ticketeate/commit/8420575eac42188b80f95c1b143d252d47bee3d4))
+
+## [1.4.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.2...next-frontend-v1.4.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* Move CORS middleware before stage prefix stripping ([df20879](https://github.com/cuencadelplata/ticketeate/commit/df208793cc8ab0c9c09ba965f276bf1b4d90305b))
+* Remove node_modules copy from builder to prevent broken workspace symlinks ([48fea4e](https://github.com/cuencadelplata/ticketeate/commit/48fea4eb4586c4df92e688268394ffebba39b51e))
+* Strip API Gateway stage prefix from request path ([6a864b4](https://github.com/cuencadelplata/ticketeate/commit/6a864b435fc420b5ea4bd3180873fa1dbdfa8b75))
+* Use AWS Lambda base image for all Lambda services ([a56982d](https://github.com/cuencadelplata/ticketeate/commit/a56982d7adc99245fe86400a9d7d7255e1d409ac))
+* Use jq to build Lambda env vars directly from params JSON ([77319d3](https://github.com/cuencadelplata/ticketeate/commit/77319d379d6e0bd3f5e0b78afc9e7e14af8d9f07))
+
+## [1.4.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.1...next-frontend-v1.4.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* Convert newlines to spaces in jq parameter processing ([62f01a5](https://github.com/cuencadelplata/ticketeate/commit/62f01a54b9c383f02cec24963ccb5a1a4710f36e))
+* Robust newline handling in parameter processing with tr and printf ([c0b1836](https://github.com/cuencadelplata/ticketeate/commit/c0b1836c079ea87b29ecf21589f7f4b7e6ac8c65))
+* Source .env.production before updating Lambda environment variables ([ba433de](https://github.com/cuencadelplata/ticketeate/commit/ba433de94218d76e1d0d33827da837965aa4e0b6))
+* Use base64 encoding to safely handle parameter values with special characters ([ae8d821](https://github.com/cuencadelplata/ticketeate/commit/ae8d821521fedd127a2dd3b20836752f84253d6f))
+* Use echo method instead of heredoc to avoid YAML parsing issues ([a8586ab](https://github.com/cuencadelplata/ticketeate/commit/a8586abe2880e99d4af0f5e0e012073819784ce0))
+* Use jq instead of awk to handle multiline Parameter Store values ([2c9c934](https://github.com/cuencadelplata/ticketeate/commit/2c9c934855d6d84ecd2faecc67ea74efda85e6df))
+* Use lambda.js handler in all Lambda Dockerfiles instead of index.js ([e0b0cf2](https://github.com/cuencadelplata/ticketeate/commit/e0b0cf2adabf1181930fbef62b8182a8ec0a3a4d))
+* Use proper bash quote concatenation for Parameters string ([9ffeae9](https://github.com/cuencadelplata/ticketeate/commit/9ffeae93e6c47bbf33609dd002832fff5e665ab7))
+* Use Python for robust parameter processing - handles multiline values correctly ([e3c5f8e](https://github.com/cuencadelplata/ticketeate/commit/e3c5f8e7258827bd998b628019a531cf89773d52))
+* Use Python one-liner to avoid bash source issues with special characters ([b0c74f3](https://github.com/cuencadelplata/ticketeate/commit/b0c74f34bd3f6e54505a7953f2a7050b398b70e1))
+
+## [1.4.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.4.0...next-frontend-v1.4.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* Preserve hyphens in parameter values during env var transformation ([3010c32](https://github.com/cuencadelplata/ticketeate/commit/3010c32dbc9719d4eab540e801eff77c6e00314a))
+* Suppress Lambda update output to prevent key exposure ([5e773ed](https://github.com/cuencadelplata/ticketeate/commit/5e773ed3573d4978a21d02495e2df79c45fc97fc))
+
+# [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.3.0...next-frontend-v1.4.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* Generate Prisma client in all Docker production stages (Next.js and Lambdas) ([c54377d](https://github.com/cuencadelplata/ticketeate/commit/c54377dcff5abf0bfa9181aa5e4b76f50171106a))
+* Generate Prisma client in production Docker stage ([f6abefb](https://github.com/cuencadelplata/ticketeate/commit/f6abefb7facd93356f6aa75814b6531115daa662))
+* Install all deps before Prisma generation, then reinstall prod only ([0066c85](https://github.com/cuencadelplata/ticketeate/commit/0066c858f7313b2dd258099c97817275b78d8efb))
+* Use JSON file for Lambda env vars & mask sensitive values in logs ([5b9d353](https://github.com/cuencadelplata/ticketeate/commit/5b9d353dd697ece52ec77edbc1be61319f42c42a))
+
+
+### Features
+
+* Update Lambda environment variables during deployment ([8527bf9](https://github.com/cuencadelplata/ticketeate/commit/8527bf90ee84c07dcc53cac7042414f5b8798ae4))
+
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.1...next-frontend-v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* inject production env vars into Next.js build and runtime ([59be1f6](https://github.com/cuencadelplata/ticketeate/commit/59be1f6b0f213cdd9252c70aa0208ea9eee59eff))
+* Remove SSL configuration temporarily to fix nginx startup ([6b87d17](https://github.com/cuencadelplata/ticketeate/commit/6b87d17818b05d3fcccc016d8c52e7f9900364ca))
+* Remove SSL configuration temporarily to fix nginx startup ([#129](https://github.com/cuencadelplata/ticketeate/issues/129)) ([c45b958](https://github.com/cuencadelplata/ticketeate/commit/c45b958a46492bed3f4716826ae54b811450d6af))
+* SSM ([a5b2b96](https://github.com/cuencadelplata/ticketeate/commit/a5b2b96f50616297c8068b81939da8f5392fc341))
+* SSM ([#128](https://github.com/cuencadelplata/ticketeate/issues/128)) ([926ad90](https://github.com/cuencadelplata/ticketeate/commit/926ad907b15f0a8a8459959f2b4f048f607db40d))
+
+
+### Features
+
+* use environment variables for CORS and JWT configuration in microservices ([80d380e](https://github.com/cuencadelplata/ticketeate/commit/80d380eaa908bc6b5667fb63140eb85025aa0b3e))
+
+## [1.2.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.2.0...next-frontend-v1.2.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([c094e52](https://github.com/cuencadelplata/ticketeate/commit/c094e52afea19c62bbbc023ce75f5e7256549ba6))
+* usar SSM en lugar de SSH para deployment desde GitHub Actions ([#127](https://github.com/cuencadelplata/ticketeate/issues/127)) ([a681795](https://github.com/cuencadelplata/ticketeate/commit/a6817950e3e8a6455838a1da17459a85b6cf5ab5))
+
+# [1.2.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.3...next-frontend-v1.2.0) (2025-11-13)
+
+
+### Bug Fixes
+
+* mejorar debugging en workflow de nginx deployment ([1ddbc15](https://github.com/cuencadelplata/ticketeate/commit/1ddbc15c3b8f26940ee5436fdb09b309a43ed13f))
+* mejorar debugging en workflow de nginx deployment ([#126](https://github.com/cuencadelplata/ticketeate/issues/126)) ([9159f87](https://github.com/cuencadelplata/ticketeate/commit/9159f877853fad33f7b35807ef93c02be6f82930))
+
+
+### Features
+
+* deploy nginx con hybrid.conf ([97d2fdb](https://github.com/cuencadelplata/ticketeate/commit/97d2fdbd446936a3e5af357c5ab3903623abab6c))
+* deploy nginx con hybrid.conf ([#125](https://github.com/cuencadelplata/ticketeate/issues/125)) ([09fc126](https://github.com/cuencadelplata/ticketeate/commit/09fc12610c6628f50e2d9e5b1e9e1f0dd2c6884d))
+
+## [1.1.3](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.2...next-frontend-v1.1.3) (2025-11-08)
+
+
+### Bug Fixes
+
+* **web:** main container - responsive menu ([#116](https://github.com/cuencadelplata/ticketeate/issues/116)) ([b4f5e86](https://github.com/cuencadelplata/ticketeate/commit/b4f5e86897e4f11a9eb79215f0f29f238dba47cc))
+* **hero:** main container ([ddb594c](https://github.com/cuencadelplata/ticketeate/commit/ddb594c4989e4c7b83d9cc005fb672196537a876))
+
+## [1.1.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.1...next-frontend-v1.1.2) (2025-11-05)
+
+
+### Bug Fixes
+
+* workflows ([3ff0ddf](https://github.com/cuencadelplata/ticketeate/commit/3ff0ddf8d9cddbcf832d0aab8f8c2856c9ac8fbc))
+* workflows ([#113](https://github.com/cuencadelplata/ticketeate/issues/113)) ([3d20386](https://github.com/cuencadelplata/ticketeate/commit/3d203866bcf4d90303ed212eb2bdb2740eb185ec))
+
+## [1.1.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.1.0...next-frontend-v1.1.1) (2025-11-03)
+
+
+### Bug Fixes
+
+* **docker:** correct next-frontend package name filter in build ([#106](https://github.com/cuencadelplata/ticketeate/issues/106)) ([3f00d83](https://github.com/cuencadelplata/ticketeate/commit/3f00d8330e183ccdcbd5fceb1b3dce445043e7ef))
+* **docker:** correct next-frontend package name filter in build ([ee4cfda](https://github.com/cuencadelplata/ticketeate/commit/ee4cfda8c0ab0ea55bd515fbb8e0ff862bb7dd4d))
+
+# [1.1.0](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.2...next-frontend-v1.1.0) (2025-11-03)
+
+
+### Bug Fixes
+
+* deploy ecr ([be99448](https://github.com/cuencadelplata/ticketeate/commit/be99448f1ce03789de5f3538a0fb4a2f01e2fca2))
+* deploy ecr ([ef8c15b](https://github.com/cuencadelplata/ticketeate/commit/ef8c15bb0e156e7b3c4748eed562a224e3f582f6))
+* deploy ecr ([#102](https://github.com/cuencadelplata/ticketeate/issues/102)) ([154d8a0](https://github.com/cuencadelplata/ticketeate/commit/154d8a0e5002743e1d12c84b16723d1242bdef18))
+* deploy ecr ([#103](https://github.com/cuencadelplata/ticketeate/issues/103)) ([0c2d93a](https://github.com/cuencadelplata/ticketeate/commit/0c2d93a327cd9dc9ea1588391203711e28335050))
+* **tsconfig:** enable emit for all services to produce dist in Docker builds ([ceb598d](https://github.com/cuencadelplata/ticketeate/commit/ceb598da68e9d1345f45bc8b62cde35295ccdfcd))
+* **tsconfig:** enable emit for svc-users build ([#104](https://github.com/cuencadelplata/ticketeate/issues/104)) ([9bbe842](https://github.com/cuencadelplata/ticketeate/commit/9bbe8425b71905dd8665c090e77608bf8d5e8031))
+* **tsconfig:** enable emit for svc-users build to produce dist in Docker builds ([5e08686](https://github.com/cuencadelplata/ticketeate/commit/5e086867404f97cf148b2452301bd58308f76e40))
+* **docker:** include eslint-config and typescript-config packages in … ([#101](https://github.com/cuencadelplata/ticketeate/issues/101)) ([fe3b3b4](https://github.com/cuencadelplata/ticketeate/commit/fe3b3b41671e6e6255879c7712d1768164278b59))
+* **docker:** include eslint-config and typescript-config packages in Docker builds ([d1ac621](https://github.com/cuencadelplata/ticketeate/commit/d1ac62120fe9e43f0e951fc4b8c6d3b21ba76b80))
+* queues - rsc - profile config ([#96](https://github.com/cuencadelplata/ticketeate/issues/96)) ([dc0d3ed](https://github.com/cuencadelplata/ticketeate/commit/dc0d3edb9a306d8428ecad7d009315e262b98172))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to preve… ([#100](https://github.com/cuencadelplata/ticketeate/issues/100)) ([27c3058](https://github.com/cuencadelplata/ticketeate/commit/27c3058542e8348f25378a781df4d7ae944e3439))
+* **docker:** use --no-frozen-lockfile in service Dockerfiles to prevent CI conflicts ([01be6c2](https://github.com/cuencadelplata/ticketeate/commit/01be6c2d5d1745c3d5f5417f51fd0d4c47e15b62))
+* workflows aws ecr ([f8885c0](https://github.com/cuencadelplata/ticketeate/commit/f8885c083e5bfcd45bc81fd11858dd4d1cb82dd9))
+
+
+### Features
+
+* **svc-events:** test release workflow with version bump ([#98](https://github.com/cuencadelplata/ticketeate/issues/98)) ([bab7624](https://github.com/cuencadelplata/ticketeate/commit/bab76244920468490e2325016bb42b7e9d6b1cab))
+* **svc-events:** test release workflow with version bump ([4112dcb](https://github.com/cuencadelplata/ticketeate/commit/4112dcb64b164a195ee7704a25d8fd634645ae97))
+
+## [1.0.2](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.1...next-frontend-v1.0.2) (2025-11-02)
+
+
+### Bug Fixes
+
+* add semantic-release dependencies to svc-users to sync lockfile ([7d4a250](https://github.com/cuencadelplata/ticketeate/commit/7d4a2503516333aac0b09722476df01b03fd9172))
+* auth - middleware - otp email ([1da6520](https://github.com/cuencadelplata/ticketeate/commit/1da6520e18a4311ca50f3748ffc3a1bca59360d6))
+* auth - middleware - otp email ([#93](https://github.com/cuencadelplata/ticketeate/issues/93)) ([91e52f2](https://github.com/cuencadelplata/ticketeate/commit/91e52f2d721ec1eeb0748279486bd06782531bd7))
+* **next-frontend:** auth - middleware - otp email ([#94](https://github.com/cuencadelplata/ticketeate/issues/94)) ([e6f6ea7](https://github.com/cuencadelplata/ticketeate/commit/e6f6ea72b378ff0c54a5bf24e012951846f6a7ad))
+* **next-frontend:** auth - middleware - otp email ([f360028](https://github.com/cuencadelplata/ticketeate/commit/f3600289958a49d08767ceb6c4a716f6b29b85c9))
+* **next-frontend:** auth - middleware - otp email ([925534a](https://github.com/cuencadelplata/ticketeate/commit/925534ae8a1e0250d778d00abf70fbc8b0a808aa))
+* cooldown resend email ([b61fa56](https://github.com/cuencadelplata/ticketeate/commit/b61fa5640c821efc9385ac0bc8a7a336b0c95e08))
+* format ([68b8006](https://github.com/cuencadelplata/ticketeate/commit/68b800688e9d54aa7f50b1c679f792571a502fe9))
+* reset password ([0c0a262](https://github.com/cuencadelplata/ticketeate/commit/0c0a262907ed803560e917ded3a68196a21e5a57))
+* tsconfig - import google fonts ([0572c6f](https://github.com/cuencadelplata/ticketeate/commit/0572c6f681bf28bc558c451ccea3edda1723a5dd))
+* unused vars ([4d1f2c9](https://github.com/cuencadelplata/ticketeate/commit/4d1f2c9f3aa61d6950e06c2d0e3b4c6755283314))
+
 ## [1.0.1](https://github.com/cuencadelplata/ticketeate/compare/next-frontend-v1.0.0...next-frontend-v1.0.1) (2025-10-29)
 
 

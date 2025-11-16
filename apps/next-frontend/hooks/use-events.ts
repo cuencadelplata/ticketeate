@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/config';
+import { fetchWithApiKey } from '@/lib/fetch-api';
 import type {
   Event,
   CreateEventData,
@@ -18,13 +19,16 @@ async function getAuthHeaders() {
     });
 
     if (!res.ok) {
-      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+      const errorText = await res.text();
+      console.error(`Failed to get auth token: ${res.status}`, errorText);
+      throw new Error(`Token endpoint returned ${res.status}: ${res.statusText}`);
     }
 
     const data = await res.json();
 
     if (!data.token) {
-      throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+      console.error('No token in response:', data);
+      throw new Error('No token returned from auth endpoint');
     }
 
     return {
@@ -32,7 +36,10 @@ async function getAuthHeaders() {
       'Content-Type': 'application/json',
     };
   } catch (error) {
-    throw new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
+    console.error('getAuthHeaders error:', error);
+    throw error instanceof Error
+      ? error
+      : new Error('No se pudo obtener el token JWT. Asegúrate de estar autenticado.');
   }
 }
 
@@ -41,14 +48,33 @@ export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      const headers = await getAuthHeaders();
-      const res = await fetch(API_ENDPOINTS.events, {
-        headers,
-      });
-      if (!res.ok) throw new Error('Error al obtener eventos');
-      const data: GetEventsResponse = await res.json();
-      return data.events || [];
+      try {
+        console.log('[useEvents] Fetching events from:', API_ENDPOINTS.events);
+        const headers = await getAuthHeaders();
+        console.log('[useEvents] Got headers:', { hasAuth: !!headers.Authorization });
+
+        const res = await fetchWithApiKey(API_ENDPOINTS.events, {
+          headers,
+          method: 'GET',
+        });
+
+        console.log('[useEvents] Response status:', res.status, res.statusText);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error(`Error fetching events: ${res.status} ${res.statusText}`, errorText);
+          throw new Error(`Error al obtener eventos: ${res.status}`);
+        }
+
+        const data: GetEventsResponse = await res.json();
+        console.log('[useEvents] Success! Got', data.events?.length || 0, 'events');
+        return data.events || [];
+      } catch (error) {
+        console.error('useEvents hook error:', error);
+        throw error;
+      }
     },
+    retry: 1,
   });
 }
 
@@ -57,7 +83,7 @@ export function useAllEvents() {
   return useQuery({
     queryKey: ['all-events'],
     queryFn: async (): Promise<Event[]> => {
-      const res = await fetch(API_ENDPOINTS.allEvents, { credentials: 'include' });
+      const res = await fetchWithApiKey(API_ENDPOINTS.allEvents, { credentials: 'include' });
       if (!res.ok) throw new Error('Error al obtener todos los eventos');
       const data: GetAllEventsResponse = await res.json();
       return data.events || [];
@@ -74,7 +100,7 @@ export function usePublicEvent(id?: string) {
   return useQuery({
     queryKey: ['public-event', id],
     queryFn: async (): Promise<Event> => {
-      const res = await fetch(API_ENDPOINTS.publicEventById(id as string), {
+      const res = await fetchWithApiKey(API_ENDPOINTS.publicEventById(id as string), {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Error al obtener el evento');
@@ -92,7 +118,7 @@ export function useEvent(id: string) {
     queryKey: ['events', id],
     queryFn: async (): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, { headers });
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, { headers });
       if (!res.ok) throw new Error('Error al obtener el evento');
       const data: GetEventResponse = await res.json();
       return data.event;
@@ -108,7 +134,7 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: async (eventData: CreateEventData): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(API_ENDPOINTS.events, {
+      const res = await fetchWithApiKey(API_ENDPOINTS.events, {
         method: 'POST',
         headers,
         body: JSON.stringify(eventData),
@@ -155,7 +181,7 @@ export function useUpdateEvent() {
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify(eventData),
@@ -170,7 +196,7 @@ export function useUpdateEvent() {
       }
       return res.json();
     },
-    onSuccess: (updatedEvent) => {
+    onSuccess: async (updatedEvent) => {
       // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -178,6 +204,21 @@ export function useUpdateEvent() {
 
       // Forzar refetch inmediato de las queries principales
       queryClient.refetchQueries({ queryKey: ['events'] });
+
+      // Revalidar ISR on-demand para esta página específica
+      try {
+        await fetch('/api/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: updatedEvent.eventoid,
+            // No enviamos secret desde el cliente por seguridad
+          }),
+        });
+      } catch (error) {
+        console.error('Error revalidating ISR:', error);
+        // No lanzar error, el cache eventualmente se actualizará
+      }
       queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
   });
@@ -190,7 +231,7 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const headers = await getAuthHeaders();
-      const res = await fetch(`${API_ENDPOINTS.events}/${id}`, {
+      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
         method: 'DELETE',
         headers,
       });
@@ -203,7 +244,7 @@ export function useDeleteEvent() {
         throw new Error(msg);
       }
     },
-    onSuccess: (_, deletedId) => {
+    onSuccess: async (_, deletedId) => {
       // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['all-events'] });
@@ -212,6 +253,20 @@ export function useDeleteEvent() {
       // Forzar refetch inmediato de las queries principales
       queryClient.refetchQueries({ queryKey: ['events'] });
       queryClient.refetchQueries({ queryKey: ['all-events'] });
+
+      // Revalidar ISR on-demand (tanto el evento eliminado como la lista)
+      try {
+        await fetch('/api/revalidate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: deletedId,
+            // No enviamos secret desde el cliente por seguridad
+          }),
+        });
+      } catch (error) {
+        console.error('Error revalidating ISR:', error);
+      }
     },
   });
 }
