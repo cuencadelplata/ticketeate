@@ -19,7 +19,7 @@ interface Purchase {
 
 export default function ComprasPage() {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [purchases] = useState<Purchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

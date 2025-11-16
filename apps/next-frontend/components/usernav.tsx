@@ -60,7 +60,9 @@ export default function UserNav() {
   const isLoading = isPending;
   const userRole = (session?.user as any)?.role;
   const isRegularUser = userRole === 'USUARIO';
-  const isOrganizerOrAbove = ['ORGANIZADOR', 'COLABORADOR', 'PRODUCER'].includes(userRole || '');
+  const isOrganizer = userRole === 'ORGANIZADOR';
+  const isCollaborator = userRole === 'COLABORADOR';
+  const isProducer = userRole === 'PRODUCER';
 
   const handleSignOut = async () => {
     try {
@@ -108,9 +110,11 @@ export default function UserNav() {
         <DropdownMenu
           aria-label="User menu"
           className="p-2 bg-stone-950 rounded-lg"
-          disabledKeys={
-            isRegularUser ? ['dashboard', 'settings', 'new_project'] : ['my_purchases', 'my_events']
-          }
+          disabledKeys={[
+            ...(isRegularUser ? ['dashboard', 'settings', 'new_project'] : []),
+            ...(isOrganizer || isCollaborator || isProducer ? ['my_purchases', 'my_events'] : []),
+            ...(isRegularUser || isOrganizer || isProducer ? ['scanner'] : []),
+          ]}
           itemClasses={{
             base: [
               'rounded-md',
@@ -161,6 +165,10 @@ export default function UserNav() {
             </DropdownItem>
             <DropdownItem key="my_events" href="/mi-cuenta/inscripciones">
               Mis Inscripciones
+            </DropdownItem>
+
+            <DropdownItem key="scanner" href="/colaborador/scanner">
+              Escanear Entradas
             </DropdownItem>
 
             <DropdownItem key="dashboard" href="/eventos">

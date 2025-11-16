@@ -7,7 +7,6 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { prisma } from '@repo/db';
 
 export default function ScannerPage() {
   const { data: session, isPending: sessionLoading } = useSession();

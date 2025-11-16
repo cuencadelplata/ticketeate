@@ -18,7 +18,7 @@ interface Inscription {
 
 export default function InscripcionesPage() {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
+  const [inscriptions] = useState<Inscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

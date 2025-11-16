@@ -10,8 +10,9 @@ interface OrganizerGuardProps {
 }
 
 /**
- * Guard component that ensures only ORGANIZADOR (and COLABORADOR/PRODUCER) roles can access the content
- * Redirects USUARIO role to home page
+ * Guard component que controla acceso a rutas de organizador
+ * Permite: No autenticados (para que se registren), ORGANIZADOR, PRODUCER
+ * Bloquea: USUARIO, COLABORADOR
  */
 export function OrganizerGuard({ children }: OrganizerGuardProps) {
   const { data: session, isPending } = useSession();
@@ -19,8 +20,9 @@ export function OrganizerGuard({ children }: OrganizerGuardProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   const userRole = (session?.user as any)?.role;
-  const isAuthorized =
-    userRole === 'ORGANIZADOR' || userRole === 'COLABORADOR' || userRole === 'PRODUCER';
+  // Autorizado si: no hay sesión (usuario anónimo) O es ORGANIZADOR/PRODUCER
+  // No autorizado si: es USUARIO o COLABORADOR
+  const isAuthorized = !session || userRole === 'ORGANIZADOR' || userRole === 'PRODUCER';
 
   useEffect(() => {
     setIsMounted(true);
@@ -30,14 +32,8 @@ export function OrganizerGuard({ children }: OrganizerGuardProps) {
     // Solo ejecutar después de que el componente esté montado y la sesión se haya cargado
     if (!isMounted || isPending) return;
 
-    // Si no hay sesión, redirigir a home
-    if (!session?.user) {
-      router.push('/');
-      return;
-    }
-
-    // Si es USUARIO, redirigir a home
-    if (userRole === 'USUARIO') {
+    // Si es USUARIO o COLABORADOR, redirigir a home
+    if (session?.user && (userRole === 'USUARIO' || userRole === 'COLABORADOR')) {
       router.push('/');
       return;
     }

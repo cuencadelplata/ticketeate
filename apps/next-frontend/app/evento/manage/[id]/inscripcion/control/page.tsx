@@ -52,14 +52,11 @@ export default function ControlEventoPage() {
 
   const userId = session?.user?.id;
 
-  // Cargar inscripciones en tiempo real
+  // Cargar inscripciones
   useEffect(() => {
     if (!eventId || !userId) return;
 
     loadInscripciones();
-    // Actualizar cada 2 segundos para tiempo real
-    const interval = setInterval(loadInscripciones, 2000);
-    return () => clearInterval(interval);
   }, [eventId, userId]);
 
   const loadInscripciones = async () => {
