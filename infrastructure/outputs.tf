@@ -58,11 +58,21 @@ output "lambda_function_names" {
 output "api_gateway_urls" {
   description = "API Gateway URLs"
   value = {
-    base_url  = aws_apigatewayv2_stage.main.invoke_url
-    users     = "${aws_apigatewayv2_stage.main.invoke_url}/api/users"
-    events    = "${aws_apigatewayv2_stage.main.invoke_url}/api/events"
-    producers = "${aws_apigatewayv2_stage.main.invoke_url}/api/producers"
-    checkout  = "${aws_apigatewayv2_stage.main.invoke_url}/api/checkout"
+    base_url       = aws_apigatewayv2_stage.main.invoke_url
+    custom_domain  = "https://api.${var.domain_name}/production"
+    users          = "${aws_apigatewayv2_stage.main.invoke_url}/api/users"
+    events         = "${aws_apigatewayv2_stage.main.invoke_url}/api/events"
+    producers      = "${aws_apigatewayv2_stage.main.invoke_url}/api/producers"
+    checkout       = "${aws_apigatewayv2_stage.main.invoke_url}/api/checkout"
+  }
+}
+
+output "api_gateway_custom_domain" {
+  description = "Custom domain configuration for API Gateway"
+  value = {
+    domain_name = aws_apigatewayv2_domain_name.main.domain_name
+    target_domain_name = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name
+    hosted_zone_id = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].hosted_zone_id
   }
 }
 
@@ -106,18 +116,28 @@ output "deployment_summary" {
     - Redis: ${aws_instance.redis.private_ip} (private)
   
   ⚡ Lambda APIs:
+    - Custom Domain: https://api.${var.domain_name}/production
     - Base URL: ${aws_apigatewayv2_stage.main.invoke_url}
     - Users: ${aws_apigatewayv2_stage.main.invoke_url}/api/users
     - Events: ${aws_apigatewayv2_stage.main.invoke_url}/api/events
     - Producers: ${aws_apigatewayv2_stage.main.invoke_url}/api/producers
     - Checkout: ${aws_apigatewayv2_stage.main.invoke_url}/api/checkout
   
+  🌐 DNS Configuration Required:
+    Add CNAME record: api.${var.domain_name} → ${aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name}
+  
+  🔐 ACM Certificate Validation:
+    Certificate must be validated via DNS before custom domain works.
+    Run: terraform output api_certificate_validation_records
+  
   📋 Next Steps:
-    1. Configure DNS: ${var.domain_name} → ${aws_instance.nginx.public_ip}
-    2. Upload environment variables: ./scripts/upload-env-vars.ps1 -Environment production
-    3. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_instance.nginx.public_ip)}
-    4. Deploy Next.js: sudo ~/deploy-nextjs.sh (on each EC2 instance)
-    5. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
+    1. Configure DNS: ${var.domain_name} → ${aws_eip.nginx.public_ip}
+    2. Add DNS validation records for ACM certificate (see above)
+    3. Add CNAME for API: api.${var.domain_name} (see above)
+    4. Upload environment variables: ./scripts/upload-env-vars.ps1 -Environment production
+    5. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_eip.nginx.public_ip)}
+    6. Deploy Next.js: sudo ~/deploy-nextjs.sh (on each EC2 instance)
+    7. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
   
   📚 Documentation:
     - Environment Variables: infrastructure/docs/ENV_QUICKSTART.md
