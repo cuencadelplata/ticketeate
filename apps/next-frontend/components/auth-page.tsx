@@ -48,22 +48,6 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     setErr(null);
   }, [tab]);
 
-  useEffect(() => {
-    // Solo mostrar el formulario OTP si:
-    // 1. La sesión existe pero no está verificada, Y
-    // 2. Estamos en el flujo de REGISTRO (no de login)
-    if (session && tab === 'register') {
-      const user = session.user as any;
-      const emailVerified = user?.emailVerified;
-
-      // Si no está verificado, mostrar formulario OTP
-      if (!emailVerified && !showOtpVerification) {
-        setShowOtpVerification(true);
-        return;
-      }
-    }
-  }, [session, tab, showOtpVerification]);
-
   // Validar email con regex más robusto
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
