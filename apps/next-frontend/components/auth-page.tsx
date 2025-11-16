@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
-import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail } from '@/lib/auth-client';
+import { signIn, signUp, useSession, sendVerificationOTP, verifyEmail, emailOtp } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -131,6 +131,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
       // Si llegamos aquí sin excepción, el login fue exitoso
       console.log('Login successful!');
+      // La sesión se actualiza automáticamente a través de useSession()
+      // AccessPageContent detectará emailVerified=true y redirigirá
     } catch (error: any) {
       console.log('Login failed:', error);
 
@@ -304,7 +306,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     try {
       console.log('Verificando OTP:', { email: formData.email, otp });
 
-      const result = await verifyEmail({
+      // Usar el método de Better Auth para verificar el OTP
+      const result = await emailOtp.verifyEmail({
         email: formData.email,
         otp,
       });
@@ -313,24 +316,15 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
       if (result.error) {
         console.error('Error en verifyEmail:', result.error);
-        throw new Error(result.error.message || 'Código inválido');
+        throw new Error(result.error.message || 'Código inválido o expirado');
       }
 
-      // Email verificado exitosamente, hacer login automático
-      const loginResult = await signIn.email({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      console.log('Login result:', loginResult);
-
-      // Esperar un momento para que la sesión se actualice
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Forzar recarga para que Better Auth refresque la sesión completamente
-      // Esto es necesario porque asignamos un rol en /api/auth/assign-role
-      // y Better Auth necesita regenerar los tokens con el nuevo rol
-      window.location.href = roleToPath(role);
+      // Email verificado exitosamente
+      // La sesión se actualiza automáticamente a través de useSession()
+      // AccessPageContent detectará emailVerified=true y redirigirá
+      console.log('Email verificado exitosamente');
+      setShowOtpVerification(false);
+      setOtp('');
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       let errorMessage = 'Código incorrecto o expirado';
