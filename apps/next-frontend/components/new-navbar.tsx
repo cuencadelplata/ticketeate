@@ -161,7 +161,7 @@ function Navbar() {
                   <UserNav />
                 ) : (
                   <Link
-                    href="/sign-in"
+                    href="/acceso"
                     className="px-3 lg:px-4 py-2 text-sm font-medium rounded-md text-stone-300 hover:text-white transition-colors duration-200"
                   >
                     Acceso
@@ -428,7 +428,7 @@ function Navbar() {
                       <UserNav />
                     ) : (
                       <Link
-                        href="/sign-in"
+                        href="/acceso"
                         className="block w-full px-4 py-3 text-center text-base font-medium rounded-md text-white bg-zinc-800 hover:bg-zinc-700 transition-colors duration-200"
                       >
                         Acceso

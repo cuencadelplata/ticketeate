@@ -186,7 +186,7 @@ function ResetPasswordForm() {
         </form>
 
         <div className="text-center">
-          <Link href="/sign-in" className="text-sm text-gray-600 hover:text-gray-900">
+          <Link href="/acceso" className="text-sm text-gray-600 hover:text-gray-900">
             Volver al inicio de sesión
           </Link>
         </div>

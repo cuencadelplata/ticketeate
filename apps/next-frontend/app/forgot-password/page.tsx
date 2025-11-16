@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           <Link
-            href="/sign-in"
+            href="/acceso"
             className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
 
         <div className="text-center">
           <Link
-            href="/sign-in"
+            href="/acceso"
             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
