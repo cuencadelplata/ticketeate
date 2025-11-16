@@ -39,6 +39,14 @@ app.use('*', honoLogger());
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
+  const method = c.req.method;
+
+  // Skip validation for OPTIONS requests (CORS preflight)
+  // This allows the OPTIONS handler to respond with CORS headers
+  // without requiring authentication
+  if (method === 'OPTIONS') {
+    return next();
+  }
 
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
