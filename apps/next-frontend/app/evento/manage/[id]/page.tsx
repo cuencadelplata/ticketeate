@@ -3,6 +3,7 @@
 import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
 import { useEventStats } from '@/hooks/use-event-stats';
+import { usePrefetchManageData } from '@/hooks/use-prefetch-manage-data';
 import { Navbar } from '@/components/navbar';
 import { Calendar, MapPin, Users, Eye, Gift, UserCheck } from 'lucide-react';
 import Link from 'next/link';
@@ -106,6 +107,9 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
 
   // Hook para obtener estadísticas de invitados e inscriptos
   const { data: stats, isLoading: isLoadingStats } = useEventStats(id);
+
+  // Hook para prefetch de datos de las secciones
+  usePrefetchManageData(id);
 
   // Manejar errores
   if (error) {

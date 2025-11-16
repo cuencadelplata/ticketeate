@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useState } from 'react';
 import {
   useCupones,
@@ -11,7 +12,7 @@ import {
 } from '@/hooks/use-cupones';
 import { useEvent } from '@/hooks/use-events';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CuponForm from './components/CuponForm';
 import CuponCard from './components/CuponCard';
@@ -143,16 +144,25 @@ export default function ManageCuponesPage() {
             <h1 className="text-3xl font-bold">Cupones de Descuento</h1>
             <p className="text-muted-foreground mt-1">Gestiona los cupones para {event.titulo}</p>
           </div>
-          <Button
-            onClick={() => {
-              setEditingCupon(null);
-              setShowForm(true);
-            }}
-            disabled={showForm}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Cupón
-          </Button>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/evento/manage/${id}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors duration-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="text-sm font-medium">Volver</span>
+            </Link>
+            <Button
+              onClick={() => {
+                setEditingCupon(null);
+                setShowForm(true);
+              }}
+              disabled={showForm}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Cupón
+            </Button>
+          </div>
         </div>
 
         {showForm && (
