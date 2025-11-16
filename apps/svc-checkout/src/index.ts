@@ -34,6 +34,11 @@ app.use('*', honoLogger());
 app.use('*', async (c, next) => {
   const path = c.req.path;
 
+  // Skip validation for OPTIONS requests (CORS preflight)
+  if (c.req.method === 'OPTIONS') {
+    return next();
+  }
+
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
     return next();

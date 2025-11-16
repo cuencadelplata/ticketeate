@@ -134,6 +134,14 @@ resource "aws_apigatewayv2_integration" "svc_checkout" {
 }
 
 # Routes for svc-users
+# Route for exact /api/users path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_users_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/users"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
+# Route for /api/users/* paths
 resource "aws_apigatewayv2_route" "svc_users" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/users/{proxy+}"
@@ -141,6 +149,14 @@ resource "aws_apigatewayv2_route" "svc_users" {
 }
 
 # Routes for svc-events
+# Route for exact /api/events path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_events_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/events"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_events.id}"
+}
+
+# Route for /api/events/* paths
 resource "aws_apigatewayv2_route" "svc_events" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/events/{proxy+}"
@@ -148,6 +164,14 @@ resource "aws_apigatewayv2_route" "svc_events" {
 }
 
 # Routes for svc-producers
+# Route for exact /api/producers path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_producers_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/producers"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_producers.id}"
+}
+
+# Route for /api/producers/* paths
 resource "aws_apigatewayv2_route" "svc_producers" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/producers/{proxy+}"
@@ -155,6 +179,14 @@ resource "aws_apigatewayv2_route" "svc_producers" {
 }
 
 # Routes for svc-checkout
+# Route for exact /api/checkout path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_checkout_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/checkout"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_checkout.id}"
+}
+
+# Route for /api/checkout/* paths
 resource "aws_apigatewayv2_route" "svc_checkout" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/checkout/{proxy+}"
