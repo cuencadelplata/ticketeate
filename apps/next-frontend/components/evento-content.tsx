@@ -258,9 +258,9 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
       <div
         className={`relative z-20 min-h-screen text-zinc-200 transition-all duration-500 ${isReserved && isReservationActive(id) && timeLeft > 0 ? 'pt-20' : ''}`}
       >
-        <div className="mx-auto max-w-[68rem] space-y-2 px-20 pb-3 pt-10">
-          <div className="grid gap-6 md:grid-cols-[350px,1fr]">
-            <div className="space-y-2">
+        <div className="mx-auto max-w-[68rem] space-y-2 px-4 pb-3 pt-6 md:px-20 md:pt-10">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-[350px,1fr] order-1 md:order-none">
+            <div className="space-y-2 order-2 md:order-1">
               {coverImage ? (
                 <div className="relative rounded-xl overflow-hidden bg-stone-900 backdrop-blur-lg transition-all duration-300 aspect-square">
                   <Image
@@ -268,7 +268,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                     alt={event.titulo}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 900px) 100vw, 500px"
+                    sizes="(max-width: 768px) 100vw, (max-width: 900px) 50vw, 350px"
                     priority
                   />
                 </div>
@@ -295,7 +295,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                           alt={event.titulo}
                           fill
                           className="object-cover"
-                          sizes="(max-width: 768px) 50vw, 200px"
+                          sizes="(max-width: 768px) 40vw, 150px"
                         />
                       </div>
                     ))}
@@ -304,9 +304,9 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
               )}
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <h1 className="w-full border-none bg-transparent text-4xl font-normal text-stone-100">
+            <div className="space-y-4 order-3 md:order-2">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <h1 className="w-full border-none bg-transparent text-2xl sm:text-3xl md:text-4xl font-normal text-stone-100">
                   {event.titulo}
                 </h1>
               </div>
@@ -352,8 +352,8 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                               </span>
                             )}
                           </div>
-                          <div className="ml-2 flex flex-wrap gap-4">
-                            <div className="flex items-center gap-2 text-sm">
+                          <div className="ml-2 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm">
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3 text-green-400" />
                                 <span className="font-medium text-stone-300">Inicio</span>
@@ -361,7 +361,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                               <span className="text-stone-200">{startDate.time}</span>
                             </div>
                             {endDate && (
-                              <div className="flex items-center gap-2 text-sm">
+                              <div className="flex items-center gap-2 text-xs sm:text-sm">
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-3 w-3 text-red-400" />
                                   <span className="font-medium text-stone-300">Fin</span>
@@ -384,7 +384,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                   {isLoaded && coords && (
                     <div className="overflow-hidden rounded-md border border-stone-800">
                       <GoogleMap
-                        mapContainerStyle={{ width: '100%', height: '220px' }}
+                        mapContainerStyle={{ width: '100%', height: '160px' }}
                         center={coords}
                         zoom={14}
                         options={{
@@ -418,11 +418,11 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
               {Array.isArray(event.stock_entrada) && event.stock_entrada.length > 0 && (
                 <div className="space-y-2 rounded-md border-1 bg-stone-900 bg-opacity-60 p-2">
                   <h3 className="text-sm font-semibold text-stone-200">Tipos de entradas</h3>
-                  <ul className="mt-1 grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <ul className="mt-1 grid grid-cols-1 gap-2">
                     {event.stock_entrada.map((stock) => (
                       <li
                         key={stock.stockid}
-                        className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-sm text-stone-200"
+                        className="rounded-md border border-stone-700 bg-stone-800/60 p-2 text-xs sm:text-sm text-stone-200"
                       >
                         <div className="flex items-center justify-between">
                           <div>
@@ -449,7 +449,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                     <div className="w-full">
                       <div
                         className="relative mx-auto w-full max-w-full overflow-hidden rounded-md border border-stone-800"
-                        style={{ height: 320 }}
+                        style={{ height: '240px' }}
                       >
                         <div
                           className="absolute inset-0"
@@ -533,7 +533,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                     {((event as any).mapa_evento?.sectors || []).length > 0 && (
                       <div className="pt-2">
                         <h4 className="text-xs font-semibold text-stone-400">Precios por sector</h4>
-                        <ul className="mt-1 grid grid-cols-1 gap-1 md:grid-cols-2">
+                        <ul className="mt-1 grid grid-cols-1 gap-1">
                           {(event as any).mapa_evento.sectors.map((s: any) => {
                             const matchingStock = event.stock_entrada?.find(
                               (stock: any) =>

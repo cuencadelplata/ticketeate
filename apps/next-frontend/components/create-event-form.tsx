@@ -430,9 +430,9 @@ export default function CreateEventForm() {
       <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
         <Navbar />
 
-        <div className="mx-auto max-w-5xl space-y-2 px-20 pb-3 pt-10">
-          <div className="grid gap-8 md:grid-cols-[330px,1fr]">
-            <div className="space-y-2">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 pb-3 pt-6 md:px-20 md:pt-10">
+          <div className="grid gap-4 md:gap-8 grid-cols-1 md:grid-cols-[330px,1fr]">
+            <div className="space-y-2 order-2 md:order-1">
               <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
                 <DialogTrigger asChild>
                   <Card
@@ -523,26 +523,26 @@ export default function CreateEventForm() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <input
                   type="text"
                   placeholder="Nombre del evento"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  className="w-full border-none bg-transparent text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
+                  className="w-full border-none bg-transparent text-2xl sm:text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
                 />
 
                 <Dropdown placement="bottom-end" className="bg-stone-900">
                   <DropdownTrigger asChild>
                     <Button
                       size="sm"
-                      className="rounded-md !bg-stone-700 !bg-opacity-60 p-2 px-2 text-sm transition-colors hover:bg-stone-800/50"
+                      className="w-full sm:w-auto rounded-md !bg-stone-700 !bg-opacity-60 p-2 px-2 text-xs sm:text-sm transition-colors hover:bg-stone-800/50 flex-shrink-0"
                       color="primary"
                       variant="faded"
                     >
                       {visibilityOptions[selected].icon}
-                      {visibilityOptions[selected].label}
-                      <ChevronDown className="h-7 w-7" />
+                      <span className="hidden sm:inline">{visibilityOptions[selected].label}</span>
+                      <ChevronDown className="h-5 w-5 sm:h-7 sm:w-7" />
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
@@ -554,7 +554,7 @@ export default function CreateEventForm() {
                         setSelected(selection[0] as 'public' | 'private');
                       }
                     }}
-                    style={{ width: '300px', maxHeight: '350px' }}
+                    style={{ width: '280px', maxHeight: '350px' }}
                     className="bg-stone-900 p-0"
                   >
                     {Object.entries(visibilityOptions).map(
@@ -609,12 +609,12 @@ export default function CreateEventForm() {
                     )}
 
                     <div className="space-y-1 pl-1">
-                      <div className="flex items-center gap-1">
-                        <div className="flex w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1">
+                        <div className="flex w-full sm:w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
                           <Circle className="h-2 w-2 fill-current" />
                           <span className="text-xs text-white">Inicio</span>
                         </div>
-                        <div className="flex flex-1 gap-1">
+                        <div className="flex flex-col sm:flex-row flex-1 gap-1">
                           <DateSelect
                             value={eventDate.startDate}
                             onChange={(date) =>
@@ -626,16 +626,16 @@ export default function CreateEventForm() {
                             onChange={(time) => updateEventDate(eventDate.id, { startTime: time })}
                           />
                         </div>
-                        <div className="w-20 flex-shrink-0" />
+                        <div className="hidden sm:block w-20 flex-shrink-0" />
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1">
+                        <div className="flex w-full sm:w-16 flex-shrink-0 items-center gap-2 text-zinc-400">
                           <Circle className="h-2 w-2 fill-current" />
                           <span className="text-xs text-white">Fin</span>
                         </div>
 
-                        <div className="flex flex-1 gap-1">
+                        <div className="flex flex-col sm:flex-row flex-1 gap-1">
                           <DateSelect
                             value={eventDate.endDate}
                             onChange={(date) =>
@@ -648,32 +648,34 @@ export default function CreateEventForm() {
                           />
                         </div>
 
-                        <Button
-                          size="sm"
-                          onClick={addEventDate}
-                          className="flex-shrink-0 rounded-md !bg-stone-700 !bg-opacity-60 px-2 py-1 text-xs transition-colors hover:bg-stone-800/50"
-                          color="primary"
-                          variant="faded"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-
-                        <div className="flex flex-shrink-0 items-center gap-1">
-                          <button
-                            onClick={() => setMainDate(eventDate.id)}
-                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors ${
-                              eventDate.isMain
-                                ? 'border-orange-500 bg-orange-500'
-                                : 'border-stone-500 hover:border-stone-400'
-                            }`}
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:flex-shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={addEventDate}
+                            className="rounded-md !bg-stone-700 !bg-opacity-60 px-2 py-1 text-xs transition-colors hover:bg-stone-800/50"
+                            color="primary"
+                            variant="faded"
                           >
-                            {eventDate.isMain && (
-                              <Circle className="h-2.5 w-2.5 fill-white text-white" />
-                            )}
-                          </button>
-                          <span className="text-xs text-stone-400">
-                            {eventDate.isMain ? 'Fecha principal' : 'Marcar como principal'}
-                          </span>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+
+                          <div className="flex flex-shrink-0 items-center gap-1">
+                            <button
+                              onClick={() => setMainDate(eventDate.id)}
+                              className={`flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors ${
+                                eventDate.isMain
+                                  ? 'border-orange-500 bg-orange-500'
+                                  : 'border-stone-500 hover:border-stone-400'
+                              }`}
+                            >
+                              {eventDate.isMain && (
+                                <Circle className="h-2.5 w-2.5 fill-white text-white" />
+                              )}
+                            </button>
+                            <span className="text-xs text-stone-400 hidden sm:inline">
+                              {eventDate.isMain ? 'Fecha principal' : 'Marcar como principal'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
