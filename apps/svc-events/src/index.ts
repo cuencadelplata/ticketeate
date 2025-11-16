@@ -5,7 +5,8 @@ import { apiRoutes } from './routes/api';
 import { logger } from './logger';
 import { PUBLIC_ENDPOINTS } from './config/auth';
 
-const app = new Hono();
+// Enable strict: false to handle both /path and /path/ routes
+const app = new Hono({ strict: false });
 
 // Helper to add CORS headers to error responses
 // API Gateway only adds CORS to successful responses, not errors
