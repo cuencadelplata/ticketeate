@@ -34,11 +34,21 @@ inviteRoutes.options('*', (c) => {
 inviteRoutes.use('*', async (c, next) => {
   await next();
   const origin = c.req.header('origin');
-  if (origin && ['https://ticketeate.com.ar', 'https://www.ticketeate.com.ar', 'http://localhost:3000'].includes(origin)) {
+  if (
+    origin &&
+    [
+      'https://ticketeate.com.ar',
+      'https://www.ticketeate.com.ar',
+      'http://localhost:3000',
+    ].includes(origin)
+  ) {
     c.header('Access-Control-Allow-Origin', origin);
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    c.header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Requested-With, Cookie');
+    c.header(
+      'Access-Control-Allow-Headers',
+      'Authorization, Content-Type, X-Requested-With, Cookie',
+    );
   }
 });
 
