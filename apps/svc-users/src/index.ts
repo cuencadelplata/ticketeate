@@ -142,7 +142,12 @@ app.use('*', async (c, next) => {
   const authHeader = c.req.header('Authorization');
   const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
-  console.log('[auth-general] path=%s, authHeader=%s, hasCookie=%s', path, !!authHeader, !!hasCookie);
+  console.log(
+    '[auth-general] path=%s, authHeader=%s, hasCookie=%s',
+    path,
+    !!authHeader,
+    !!hasCookie,
+  );
 
   // Skip OPTIONS requests (CORS preflight) - don't validate auth
   if (c.req.method === 'OPTIONS') {
