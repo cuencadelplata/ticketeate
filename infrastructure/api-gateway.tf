@@ -7,9 +7,15 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "HTTP API Gateway for ${var.project_name} Lambda functions"
 
   cors_configuration {
-    allow_origins = ["https://${var.domain_name}", "http://localhost:3000"]
+    allow_origins = [
+      "https://${var.domain_name}",
+      "https://www.${var.domain_name}",
+      "http://localhost:3000"
+    ]
     allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     allow_headers = ["*"]
+    expose_headers = ["*"]
+    allow_credentials = true
     max_age       = 300
   }
 
