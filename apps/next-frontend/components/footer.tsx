@@ -36,7 +36,7 @@ export const Footer = () => {
           {/* Columna 1: Brand y estado */}
           <div className="space-y-6">
             <div className="flex items-center space-x-1">
-              <Image src="/wordmark-light.png" alt="Ticketeate" width={130} height={35} />
+              <Image src="/wordmark-light-alt.png" alt="Ticketeate" width={130} height={35} />
             </div>
             <p className="text-stone-300 text-sm leading-relaxed">
               La plataforma más completa para crear tus eventos, gestionar y vender entradas.

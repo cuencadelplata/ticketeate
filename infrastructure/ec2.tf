@@ -235,3 +235,44 @@ resource "aws_instance" "redis" {
     }
   )
 }
+
+# Elastic IPs for Next.js instances
+resource "aws_eip" "nextjs_1" {
+  instance = aws_instance.nextjs_1.id
+  domain   = "vpc"
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "${var.project_name}-nextjs-1-eip-${var.environment}"
+      Environment = var.environment
+    }
+  )
+}
+
+resource "aws_eip" "nextjs_2" {
+  instance = aws_instance.nextjs_2.id
+  domain   = "vpc"
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "${var.project_name}-nextjs-2-eip-${var.environment}"
+      Environment = var.environment
+    }
+  )
+}
+
+# Elastic IP for Nginx (optional but recommended)
+resource "aws_eip" "nginx" {
+  instance = aws_instance.nginx.id
+  domain   = "vpc"
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "${var.project_name}-nginx-eip-${var.environment}"
+      Environment = var.environment
+    }
+  )
+}
