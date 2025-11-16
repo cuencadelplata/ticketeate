@@ -1,13 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/config';
-
-interface Invitado {
-  id: string;
-  nombre: string;
-  email: string;
-  estado: string;
-  fechaEnvio?: string;
-}
 
 interface EventStats {
   totalInvitados: number;

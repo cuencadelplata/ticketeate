@@ -9,14 +9,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Mail, Plus, Trash2, Send, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Invitado {
-  id: string;
-  nombre: string;
-  email: string;
-  estado: 'pendiente' | 'enviado' | 'reclamado';
-  fechaEnvio?: string;
-}
-
 export default function InvitadosPage() {
   const params = useParams();
   const eventId = params.id as string;
@@ -111,7 +103,7 @@ export default function InvitadosPage() {
     }
   };
 
-  const handleEliminarInvitado = async (invitadoId: string) => {
+  const handleEliminarInvitado = async () => {
     try {
       // Aquí iría un DELETE a la API si es necesario
       toast.success('Invitado eliminado');

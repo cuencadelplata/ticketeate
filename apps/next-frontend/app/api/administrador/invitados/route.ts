@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { webcrypto as crypto } from 'crypto';
 
 // GET: Obtener lista de invitados de un evento
 export async function GET(request: NextRequest) {

@@ -63,11 +63,6 @@ export default function UserNav() {
   const isOrganizer = userRole === 'ORGANIZADOR';
   const isCollaborator = userRole === 'COLABORADOR';
   const isProducer = userRole === 'PRODUCER';
-  const isOrganizerOrAbove = [
-    userRole === 'ORGANIZADOR',
-    userRole === 'COLABORADOR',
-    userRole === 'PRODUCER',
-  ].some((v) => v);
 
   const handleSignOut = async () => {
     try {

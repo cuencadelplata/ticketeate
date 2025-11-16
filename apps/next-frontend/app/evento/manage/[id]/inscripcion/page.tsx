@@ -4,16 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useRouter, useParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
-import {
-  Users,
-  Loader2,
-  Search,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  Download,
-  Mail,
-} from 'lucide-react';
+import { Users, Loader2, Search, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 

@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  CheckCircle,
-  QrCode,
-  AlertCircle,
-  Loader2,
-  Calendar,
-  MapPin,
-  Search,
-  Users,
-} from 'lucide-react';
+import { CheckCircle, QrCode, AlertCircle, Loader2, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Inscripcion {
@@ -29,7 +20,6 @@ interface ScannerFreeEventProps {
 
 export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const [manualCode, setManualCode] = useState('');
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [estadisticas, setEstadisticas] = useState({
     totalInscritos: 0,

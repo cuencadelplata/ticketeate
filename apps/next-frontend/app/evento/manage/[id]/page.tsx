@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { useEvent } from '@/hooks/use-events';
 import { useEventStats } from '@/hooks/use-event-stats';
 import { Navbar } from '@/components/navbar';
-import { Calendar, MapPin, Users, Settings, BarChart3, Eye, Gift, UserCheck } from 'lucide-react';
+import { Calendar, MapPin, Users, Eye, Gift, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -105,12 +105,7 @@ export default function ManageEventoPage({ params }: { params: Promise<{ id: str
   } = useViewCount(id);
 
   // Hook para obtener estadísticas de invitados e inscriptos
-  const {
-    data: stats,
-    isLoading: isLoadingStats,
-    error: statsError,
-    isError: isStatsError,
-  } = useEventStats(id);
+  const { data: stats, isLoading: isLoadingStats } = useEventStats(id);
 
   // Manejar errores
   if (error) {
