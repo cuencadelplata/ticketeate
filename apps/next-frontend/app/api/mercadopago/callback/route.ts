@@ -1,7 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
-import { Buffer } from 'buffer';
-import jwt from 'jsonwebtoken';
+
+/**
+ * Intercambia el authorization code por un access token
+ * Implementa el flujo "Authorization Code" según OAuth 2.0 de Mercado Pago
+ * @see https://developers.mercadopago.com/es/docs/advanced-payments/oauth/authorization-code
+ */
+async function exchangeCodeForToken(
+  code: string,
+  codeVerifier: string,
+): Promise<{
+  access_token: string;
+  refresh_token: string;
+  user_id: string;
+  expires_in: number;
+}> {
+  const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
+  const clientSecret = process.env.MERCADO_PAGO_CLIENT_SECRET;
+  const redirectUri = process.env.MERCADO_PAGO_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    throw new Error('Configuración de Mercado Pago incompleta');
+  }
+
+  const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'ticketeate/1.0',
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri,
+      // PKCE: incluir el code_verifier
+      code_verifier: codeVerifier,
+    }),
+  });
+
+  if (!tokenResponse.ok) {
+    const errorText = await tokenResponse.text();
+    console.error('[OAuth Callback] Token exchange failed:', {
+      status: tokenResponse.status,
+      statusText: tokenResponse.statusText,
+      body: errorText,
+    });
+    throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
+  }
+
+  const tokenData = await tokenResponse.json();
+
+  // Validar que la respuesta tenga los campos requeridos
+  if (!tokenData.access_token || !tokenData.refresh_token || !tokenData.user_id) {
+    throw new Error('Invalid token response from Mercado Pago');
+  }
+
+  return {
+    access_token: tokenData.access_token,
+    refresh_token: tokenData.refresh_token,
+    user_id: tokenData.user_id,
+    expires_in: tokenData.expires_in || 21600, // 6 horas por defecto
+  };
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,118 +71,126 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
 
+    // Manejo de errores de OAuth de Mercado Pago
     if (error) {
-      console.error('Error de OAuth:', error);
+      console.error('[OAuth Callback] OAuth error from Mercado Pago:', {
+        error,
+        error_description: errorDescription,
+      });
+
+      const errorMap: Record<string, string> = {
+        access_denied: 'El usuario canceló la autorización',
+        invalid_scope: 'Permisos requeridos inválidos',
+        server_error: 'Error en el servidor de Mercado Pago',
+        temporarily_unavailable: 'Mercado Pago no disponible temporalmente',
+      };
+
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=oauth_error`,
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=oauth_error&message=${encodeURIComponent(errorMap[error] || 'Error desconocido')}`,
       );
     }
 
+    // Validar parámetros requeridos
     if (!code || !state) {
+      console.error('[OAuth Callback] Missing required parameters:', {
+        hasCode: !!code,
+        hasState: !!state,
+      });
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=missing_params`,
       );
     }
 
-    // Decodificar state para obtener userId
-    let userId: string;
-    try {
-      const decodedState = JSON.parse(Buffer.from(state, 'base64').toString());
-      userId = decodedState.userId;
-    } catch {
+    // Obtener cookies para validar state y code_verifier (PKCE)
+    const cookieCodeVerifier = request.cookies.get('oauth_code_verifier')?.value;
+    const cookieState = request.cookies.get('oauth_state')?.value;
+    const cookieUserId = request.cookies.get('oauth_user_id')?.value;
+
+    // Validar state para protección CSRF
+    if (!cookieState || state !== cookieState) {
+      console.error('[OAuth Callback] State validation failed:', {
+        hasState: !!cookieState,
+        stateMatch: state === cookieState,
+      });
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=invalid_state`,
       );
     }
 
-    // Intercambiar code por access token
-    const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: process.env.MERCADOPAGO_CLIENT_ID,
-        client_secret: process.env.MERCADOPAGO_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: process.env.MERCADOPAGO_REDIRECT_URI,
-      }),
-    });
+    // Validar que tengamos el code_verifier (PKCE)
+    if (!cookieCodeVerifier) {
+      console.error('[OAuth Callback] Missing code verifier for PKCE');
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=invalid_pkce`,
+      );
+    }
 
-    if (!tokenResponse.ok) {
-      console.error('Error obteniendo token:', await tokenResponse.text());
+    if (!cookieUserId) {
+      console.error('[OAuth Callback] Missing user ID from cookie');
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=invalid_session`,
+      );
+    }
+
+    // Intercambiar code por access token
+    let tokenData: Awaited<ReturnType<typeof exchangeCodeForToken>>;
+    try {
+      tokenData = await exchangeCodeForToken(code, cookieCodeVerifier);
+      console.log('[OAuth Callback] Token exchange successful:', {
+        userId: tokenData.user_id,
+        expiresIn: tokenData.expires_in,
+      });
+    } catch (tokenError) {
+      console.error('[OAuth Callback] Token exchange error:', tokenError);
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=token_error`,
       );
     }
 
-    const tokenData = await tokenResponse.json();
-    const { access_token, refresh_token, user_id, expires_in } = tokenData;
-
-    // Calcular fecha de expiración
-    const expiresAt = new Date(Date.now() + expires_in * 1000);
+    // Calcular fecha de expiración del token
+    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
     // Actualizar usuario en la base de datos
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        wallet_linked: true,
-        wallet_provider: 'mercado_pago',
-        mercado_pago_user_id: user_id,
-        mercado_pago_access_token: access_token,
-        mercado_pago_refresh_token: refresh_token,
-        mercado_pago_token_expires_at: expiresAt,
-        updatedAt: new Date(),
-      },
-    });
-
-    // Crear JWT token para comunicarse con svc-users (si es necesario)
-    const jwtPayload = {
-      id: userId,
-      iat: Math.floor(Date.now() / 1000),
-    };
-    const jwtToken = jwt.sign(jwtPayload, process.env.BETTER_AUTH_SECRET!, {
-      issuer: process.env.JWT_ISSUER,
-      audience: process.env.JWT_AUDIENCE,
-      expiresIn: '1h',
-    });
-
-    // Llamar al endpoint de svc-users para confirmar la vinculación
-    // En desarrollo: http://localhost:3003
-    // En producción: https://api.ticketeate.com.ar/production (mismo puerto que svc-events)
-    let usersApiUrl = process.env.USERS_API_URL;
-    if (!usersApiUrl) {
-      if (process.env.NODE_ENV === 'production') {
-        usersApiUrl = 'https://api.ticketeate.com.ar/production';
-      } else {
-        usersApiUrl = 'http://localhost:3003';
-      }
-    }
-
     try {
-      await fetch(`${usersApiUrl}/api/wallet/confirm-link`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jwtToken}`,
-        },
-        body: JSON.stringify({
-          mercado_pago_user_id: user_id,
+      await prisma.user.update({
+        where: { id: cookieUserId },
+        data: {
+          wallet_linked: true,
           wallet_provider: 'mercado_pago',
-        }),
+          mercado_pago_user_id: tokenData.user_id,
+          mercado_pago_access_token: tokenData.access_token,
+          mercado_pago_refresh_token: tokenData.refresh_token,
+          mercado_pago_token_expires_at: expiresAt,
+          updatedAt: new Date(),
+        },
       });
-    } catch (err) {
-      console.error('Error notificando a svc-users:', err);
-      // No fallar si la notificación no llega, ya que la BD ya fue actualizada
+
+      console.log('[OAuth Callback] User updated successfully:', {
+        userId: cookieUserId,
+        mercadoPagoUserId: tokenData.user_id,
+      });
+    } catch (dbError) {
+      console.error('[OAuth Callback] Database update error:', dbError);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=db_error`,
+      );
     }
 
-    return NextResponse.redirect(
+    // Preparar respuesta con redirección exitosa
+    const response = NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?success=wallet_linked`,
     );
+
+    // Limpiar cookies de OAuth
+    response.cookies.delete('oauth_code_verifier');
+    response.cookies.delete('oauth_state');
+    response.cookies.delete('oauth_user_id');
+
+    return response;
   } catch (error) {
-    console.error('Error en callback de OAuth:', error);
+    console.error('[OAuth Callback] Unexpected error:', error);
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=callback_error`,
     );
