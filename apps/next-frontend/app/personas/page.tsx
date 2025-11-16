@@ -112,7 +112,7 @@ export default function PersonasPage() {
       <div className="max-w-7xl mx-auto pt-8 md:pt-16">
         {/* Title */}
         <div className="text-center mb-12 md:mb-24">
-          <h1 className="text-3xl md:text-5xl lg:text-7xl bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent mb-4 md:mb-6 pb-2 font-instrument-serif">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent mb-4 md:mb-6 pb-2 font-instrument-serif">
             Personas
             <br />
             detrás de Ticketeate
