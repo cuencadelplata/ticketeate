@@ -110,11 +110,7 @@ export default function UserNav() {
         <DropdownMenu
           aria-label="User menu"
           className="p-2 bg-stone-950 rounded-lg"
-          disabledKeys={[
-            ...(isRegularUser ? ['dashboard', 'settings', 'new_project'] : []),
-            ...(isOrganizer || isCollaborator || isProducer ? ['my_purchases', 'my_events'] : []),
-            ...(isRegularUser || isOrganizer || isProducer ? ['scanner'] : []),
-          ]}
+          disabledKeys={[]}
           itemClasses={{
             base: [
               'rounded-md',
@@ -160,30 +156,40 @@ export default function UserNav() {
               </div>
             </DropdownItem>
 
-            <DropdownItem key="my_purchases" href="/mi-cuenta/compras">
-              Mis Compras
-            </DropdownItem>
-            <DropdownItem key="my_events" href="/mi-cuenta/inscripciones">
-              Mis Inscripciones
-            </DropdownItem>
+            {isRegularUser ? (
+              <>
+                <DropdownItem key="my_purchases" href="/mi-cuenta/compras">
+                  Mis Compras
+                </DropdownItem>
+                <DropdownItem key="my_events" href="/mi-cuenta/inscripciones">
+                  Mis Inscripciones
+                </DropdownItem>
+              </>
+            ) : null}
 
-            <DropdownItem key="scanner" href="/colaborador/scanner">
-              Escanear Entradas
-            </DropdownItem>
+            {isCollaborator ? (
+              <DropdownItem key="scanner" href="/colaborador/scanner">
+                Escanear Entradas
+              </DropdownItem>
+            ) : null}
 
-            <DropdownItem key="dashboard" href="/eventos">
-              Mis Eventos
-            </DropdownItem>
-            <DropdownItem key="settings" href="/configuracion">
-              Configuración
-            </DropdownItem>
-            <DropdownItem
-              key="new_project"
-              href="/crear"
-              endContent={<PlusIcon className="text-large" />}
-            >
-              Crear Evento
-            </DropdownItem>
+            {isOrganizer || isProducer ? (
+              <>
+                <DropdownItem key="dashboard" href="/eventos">
+                  Mis Eventos
+                </DropdownItem>
+                <DropdownItem key="settings" href="/configuracion">
+                  Configuración
+                </DropdownItem>
+                <DropdownItem
+                  key="new_project"
+                  href="/crear"
+                  endContent={<PlusIcon className="text-large" />}
+                >
+                  Crear Evento
+                </DropdownItem>
+              </>
+            ) : null}
           </DropdownSection>
 
           <DropdownSection showDivider aria-label="Preferences">

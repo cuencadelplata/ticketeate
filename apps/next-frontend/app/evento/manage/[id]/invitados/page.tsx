@@ -136,7 +136,10 @@ export default function InvitadosPage() {
           <Navbar />
         </div>
         <div className="flex items-center justify-center p-6">
-          <div className="animate-spin">Cargando...</div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-700 border-t-blue-500"></div>
+            <p className="text-stone-400">Cargando...</p>
+          </div>
         </div>
       </div>
     );
