@@ -7,6 +7,26 @@ import { apiRoutes } from './routes/api';
 import { logger } from './logger';
 import { PUBLIC_ENDPOINTS } from './config/auth';
 
+// Helper to add CORS headers to error responses
+// API Gateway only adds CORS to successful responses, not errors
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = [
+    'https://ticketeate.com.ar',
+    'https://www.ticketeate.com.ar',
+    'http://localhost:3000',
+  ];
+
+  const corsOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Requested-With, Cookie',
+  };
+};
+
 // Custom JWT middleware using shared secret (same as frontend)
 async function jwtMiddleware(c: Context, next: Next) {
   try {
@@ -20,7 +40,12 @@ async function jwtMiddleware(c: Context, next: Next) {
     const authHeader = c.req.header('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'Missing or invalid Authorization header' }, 401);
+      const origin = c.req.header('origin');
+      return c.json(
+        { error: 'Missing or invalid Authorization header' },
+        401,
+        getCorsHeaders(origin),
+      );
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -43,7 +68,8 @@ async function jwtMiddleware(c: Context, next: Next) {
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('JWT Middleware - JWT verification failed:', error);
-    return c.json({ error: 'Invalid token' }, 401);
+    const origin = c.req.header('origin');
+    return c.json({ error: 'Invalid token' }, 401, getCorsHeaders(origin));
   }
 }
 
@@ -93,7 +119,8 @@ app.use('*', async (c, next) => {
 
     // Require either Authorization header or valid session cookie
     if (!authHeader && !hasCookie) {
-      return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
+      const origin = c.req.header('origin');
+      return c.json({ error: 'Unauthorized: Missing authentication' }, 401, getCorsHeaders(origin));
     }
   }
 
@@ -173,7 +200,8 @@ app.route('/production/api', apiRoutes);
 
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not Found' }, 404);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Not Found' }, 404, getCorsHeaders(origin));
 });
 
 // Error handler
@@ -183,7 +211,8 @@ app.onError((err, c) => {
     method: c.req.method,
     error: err instanceof Error ? err.message : String(err),
   });
-  return c.json({ error: 'Internal Server Error' }, 500);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Internal Server Error' }, 500, getCorsHeaders(origin));
 });
 
 export default app;

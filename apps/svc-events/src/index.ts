@@ -7,6 +7,26 @@ import { PUBLIC_ENDPOINTS } from './config/auth';
 
 const app = new Hono();
 
+// Helper to add CORS headers to error responses
+// API Gateway only adds CORS to successful responses, not errors
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = [
+    'https://ticketeate.com.ar',
+    'https://www.ticketeate.com.ar',
+    'http://localhost:3000',
+  ];
+
+  const corsOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Requested-With, Cookie',
+  };
+};
+
 // CORS middleware - Only apply in development (not behind API Gateway)
 // In production, API Gateway handles CORS headers
 if (process.env.NODE_ENV !== 'production') {
@@ -46,7 +66,8 @@ app.use('*', async (c, next) => {
 
     // Require either Authorization header or valid session cookie
     if (!authHeader && !hasCookie) {
-      return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
+      const origin = c.req.header('origin');
+      return c.json({ error: 'Unauthorized: Missing authentication' }, 401, getCorsHeaders(origin));
     }
   }
 
@@ -109,7 +130,8 @@ app.route('/production/api', apiRoutes);
 
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not Found' }, 404);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Not Found' }, 404, getCorsHeaders(origin));
 });
 
 // Error handler
@@ -119,7 +141,8 @@ app.onError((err, c) => {
     method: c.req.method,
     error: err instanceof Error ? err.message : String(err),
   });
-  return c.json({ error: 'Internal Server Error' }, 500);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Internal Server Error' }, 500, getCorsHeaders(origin));
 });
 
 export default app;
