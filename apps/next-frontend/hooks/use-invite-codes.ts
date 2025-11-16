@@ -40,7 +40,7 @@ interface UseInviteCodeResponse {
   error?: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_EVENTS_URL || 'http://localhost:3001/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // Helper function to get JWT token
 async function getAuthHeaders() {

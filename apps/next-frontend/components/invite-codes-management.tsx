@@ -17,7 +17,7 @@ interface InviteCodesManagementProps {
 export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) {
   const [showForm, setShowForm] = useState(false);
   const [customCode, setCustomCode] = useState('');
-  const [maxUsos, setMaxUsos] = useState('999999');
+  const [maxUsos, setMaxUsos] = useState('10');
   const [expirationDays, setExpirationDays] = useState('30');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
           toast.success(`Código "${data.codigo}" generado exitosamente`);
           setShowForm(false);
           setCustomCode('');
-          setMaxUsos('999999');
+          setMaxUsos('10');
           setExpirationDays('30');
           refetch();
         },
