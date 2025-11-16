@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
 import { QueueModal } from '@/components/queue-modal';
+import { FreeEventSignupModal } from '@/components/free-event-signup-modal';
 import type { Event } from '@/types/events';
 
 interface EventoContentProps {
@@ -57,6 +58,10 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
   const [displayAddress, setDisplayAddress] = useState<string | null>(null);
   const [showQueueModal, setShowQueueModal] = useState(false);
   const [showExpiredMessage, setShowExpiredMessage] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+
+  // Detectar si el evento es gratis
+  const isEventFree = event?.stock_entrada?.every((stock) => Number(stock.precio) === 0) ?? false;
 
   // Obtener userId de la sesión de Better-Auth
   const { data: session } = useSession();
@@ -120,9 +125,15 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
     }
   }, [id, event, countViewMutation]); // Agregamos countViewMutation a las dependencias
 
-  // Función para manejar el clic en "Comprar Entradas"
+  // Función para manejar el clic en "Comprar Entradas" o "Inscribirse"
   const handleComprarEntradas = async () => {
     if (!id) return;
+
+    // Si es evento gratis, mostrar modal de inscripción
+    if (isEventFree) {
+      setShowSignupModal(true);
+      return;
+    }
 
     // Verificar que el usuario esté autenticado
     if (!userId) {
@@ -579,7 +590,7 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                   onClick={handleComprarEntradas}
                   className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 transition-colors"
                 >
-                  Comprar Entradas
+                  {isEventFree ? 'Inscribirse' : 'Comprar Entradas'}
                 </button>
               </div>
             </div>
@@ -595,6 +606,19 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
           userId={userId}
           eventTitle={event?.titulo || 'Evento'}
           onEnterPurchase={handleEnterPurchase}
+        />
+      )}
+
+      {showSignupModal && (
+        <FreeEventSignupModal
+          isOpen={showSignupModal}
+          onClose={() => setShowSignupModal(false)}
+          eventId={id || ''}
+          eventTitle={event?.titulo || 'Evento'}
+          onSuccess={() => {
+            // Opcional: Recargar la página o mostrar un mensaje de éxito
+            console.log('Inscripción exitosa');
+          }}
         />
       )}
     </main>
