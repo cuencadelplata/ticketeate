@@ -95,9 +95,9 @@ async function jwtMiddleware(c: Context, next: Next) {
       issuer: frontendUrl,
       audience: frontendUrl,
       algorithms: ['HS256'], // Specify algorithm
-    });
+    }) as Record<string, unknown>;
 
-    console.log('[jwtMiddleware] JWT verified successfully. userId=%s', payload.id);
+    console.log('[jwtMiddleware] JWT verified successfully. userId=%s', (payload as any).id);
 
     // Store JWT payload in context
     c.set('jwtPayload', payload);
