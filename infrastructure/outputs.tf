@@ -6,8 +6,8 @@ output "nginx_instance_id" {
 }
 
 output "nginx_public_ip" {
-  description = "Public IP of Nginx instance"
-  value       = aws_instance.nginx.public_ip
+  description = "Public IP of Nginx instance (Elastic IP)"
+  value       = aws_eip.nginx.public_ip
 }
 
 output "nginx_private_ip" {
@@ -16,8 +16,8 @@ output "nginx_private_ip" {
 }
 
 output "nextjs_1_public_ip" {
-  description = "Public IP of Next.js instance 1"
-  value       = aws_instance.nextjs_1.public_ip
+  description = "Public IP of Next.js instance 1 (Elastic IP)"
+  value       = aws_eip.nextjs_1.public_ip
 }
 
 output "nextjs_1_private_ip" {
@@ -26,8 +26,8 @@ output "nextjs_1_private_ip" {
 }
 
 output "nextjs_2_public_ip" {
-  description = "Public IP of Next.js instance 2"
-  value       = aws_instance.nextjs_2.public_ip
+  description = "Public IP of Next.js instance 2 (Elastic IP)"
+  value       = aws_eip.nextjs_2.public_ip
 }
 
 output "nextjs_2_private_ip" {
@@ -82,9 +82,9 @@ output "ecr_repository_urls" {
 output "ssh_commands" {
   description = "SSH commands to connect to instances"
   value = {
-    nginx    = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nginx.public_ip}"
-    nextjs_1 = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nextjs_1.public_ip}"
-    nextjs_2 = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nextjs_2.public_ip}"
+    nginx    = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nginx.public_ip}"
+    nextjs_1 = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nextjs_1.public_ip}"
+    nextjs_2 = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nextjs_2.public_ip}"
     redis    = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.redis.private_ip}"
   }
 }
