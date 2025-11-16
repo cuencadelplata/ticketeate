@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.3](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.2...svc-users-v1.5.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* remove /production from custom domain URL ([7d3e808](https://github.com/cuencadelplata/ticketeate/commit/7d3e808e23177fc7fe64752c06ff25e98db0881c))
+* remove /production from custom domain URL ([#152](https://github.com/cuencadelplata/ticketeate/issues/152)) ([afc1854](https://github.com/cuencadelplata/ticketeate/commit/afc1854429e52c48da0e06c65faf2e0931daeae1))
+
 ## [1.5.2](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.1...svc-users-v1.5.2) (2025-11-16)
 
 
