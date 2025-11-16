@@ -5,6 +5,55 @@ Todas las versiones notables de **redis-service** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.3](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.3.2...redis-service-v1.3.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* apply jwtMiddleware to both api and production paths ([aa9c889](https://github.com/cuencadelplata/ticketeate/commit/aa9c8892245f9ea066409a9674632db1e6c104a0))
+* apply jwtMiddleware to both api and production paths ([#163](https://github.com/cuencadelplata/ticketeate/issues/163)) ([313f414](https://github.com/cuencadelplata/ticketeate/commit/313f414f28fa110dc14d6233cffa793231848f49))
+* cast JWT payload to Record string unknown to satisfy TypeScript ([9e7a360](https://github.com/cuencadelplata/ticketeate/commit/9e7a360eabf26fe06746836f0ba8ba37f3e4a2e9))
+
+## [1.3.2](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.3.1...redis-service-v1.3.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* add /api/wallet routes to API Gateway for svc-users ([08b1e44](https://github.com/cuencadelplata/ticketeate/commit/08b1e44ddfb742f6e04b4440aa1bf92dfe918d8c))
+* add /api/wallet routes to API Gateway for svc-users ([#159](https://github.com/cuencadelplata/ticketeate/issues/159)) ([4a1fa38](https://github.com/cuencadelplata/ticketeate/commit/4a1fa38daae866facd2a2f40ff4874fd9b0ece8e))
+* explicit OPTIONS handler with CORS headers and 200 status ([b0809e8](https://github.com/cuencadelplata/ticketeate/commit/b0809e8e92992c2a42c22e465bc68809ca8dd8bc))
+* explicit OPTIONS handler with CORS headers and 200 status ([#158](https://github.com/cuencadelplata/ticketeate/issues/158)) ([ac264d1](https://github.com/cuencadelplata/ticketeate/commit/ac264d18038632d825cbc9318fca8160d4ec83a2))
+* standardize JWT issuer/audience to https://ticketeate.com.ar in production ([98473e2](https://github.com/cuencadelplata/ticketeate/commit/98473e29f94e439ca85e67de46fdbb3474d8d0f2))
+
+## [1.3.1](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.3.0...redis-service-v1.3.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* add CORS headers to all error responses ([ee0eef0](https://github.com/cuencadelplata/ticketeate/commit/ee0eef037a8dbc79c4b6fbb2e724dba5fd7dd086))
+* add CORS headers to all error responses ([#155](https://github.com/cuencadelplata/ticketeate/issues/155)) ([66d3b5b](https://github.com/cuencadelplata/ticketeate/commit/66d3b5b3fa6ea600ab208a01f4038fa46156eb70))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([77976ea](https://github.com/cuencadelplata/ticketeate/commit/77976eacf9a2cbe9311d751b77503d1dd093244a))
+* add exact routes to API Gateway for /api/events, /api/users, etc ([#157](https://github.com/cuencadelplata/ticketeate/issues/157)) ([41f01ef](https://github.com/cuencadelplata/ticketeate/commit/41f01ef6e13801a8d4208a8d7a70c04b65a7e0fe))
+* enable strict:false in Hono to handle routes with/without traili… ([#156](https://github.com/cuencadelplata/ticketeate/issues/156)) ([ed3f52d](https://github.com/cuencadelplata/ticketeate/commit/ed3f52d2f98265ade96243b5f41f85f552dda2ac))
+* enable strict:false in Hono to handle routes with/without trailing slash ([5c278a1](https://github.com/cuencadelplata/ticketeate/commit/5c278a1524c0c823830a569f17953601eec6f0fa))
+* remove /production from custom domain URL ([7d3e808](https://github.com/cuencadelplata/ticketeate/commit/7d3e808e23177fc7fe64752c06ff25e98db0881c))
+* remove /production from custom domain URL ([#152](https://github.com/cuencadelplata/ticketeate/issues/152)) ([afc1854](https://github.com/cuencadelplata/ticketeate/commit/afc1854429e52c48da0e06c65faf2e0931daeae1))
+* skip OPTIONS requests in auth middleware for CORS preflight ([d04ca32](https://github.com/cuencadelplata/ticketeate/commit/d04ca324e59bf43449fc52dc5f9f2460780b4462))
+* support custom domain routes in Lambda auth middleware ([49c2f74](https://github.com/cuencadelplata/ticketeate/commit/49c2f74c96e3cca2082a0b8a1716290b5e24f7cc))
+* support custom domain routes in Lambda auth middleware ([#153](https://github.com/cuencadelplata/ticketeate/issues/153)) ([bd130be](https://github.com/cuencadelplata/ticketeate/commit/bd130be0eaa4c52bccb8e402b8262ceebb232076))
+* update CORS headers and GitHub Actions IPs ([75f052f](https://github.com/cuencadelplata/ticketeate/commit/75f052f370619d7b02c932c365c1235db3e950ec))
+* update CORS headers and GitHub Actions IPs ([#150](https://github.com/cuencadelplata/ticketeate/issues/150)) ([5eb7c1f](https://github.com/cuencadelplata/ticketeate/commit/5eb7c1f06b6afaba734b1427d613413c5c6ba0e9))
+* update nextjs-2 EC2 IP address ([#146](https://github.com/cuencadelplata/ticketeate/issues/146)) ([9ef7169](https://github.com/cuencadelplata/ticketeate/commit/9ef716959ca2d4de5943df0939b26e29dca1141f))
+* update nextjs-2 EC2 IP address to 18.217.216.210 ([c082fe9](https://github.com/cuencadelplata/ticketeate/commit/c082fe9ba65e16c4f3aeed5b3aab75710d053da8))
+
+# [1.3.0](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.2.4...redis-service-v1.3.0) (2025-11-15)
+
+
+### Features
+
+* **svc-users:** mp oauth link ([#135](https://github.com/cuencadelplata/ticketeate/issues/135)) ([8ece996](https://github.com/cuencadelplata/ticketeate/commit/8ece99694e3a334c64e45d1491b5806a34bad0dd))
+* **svc-users:** mp oauth link ([ef83ec4](https://github.com/cuencadelplata/ticketeate/commit/ef83ec47af7aecbf16931839ab3af894aced4821))
+
 ## [1.2.4](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.2.3...redis-service-v1.2.4) (2025-11-14)
 
 

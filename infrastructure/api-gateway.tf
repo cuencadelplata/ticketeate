@@ -7,9 +7,24 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "HTTP API Gateway for ${var.project_name} Lambda functions"
 
   cors_configuration {
-    allow_origins = ["https://${var.domain_name}", "http://localhost:3000"]
+    allow_origins = [
+      "https://${var.domain_name}",
+      "https://www.${var.domain_name}",
+      "http://localhost:3000"
+    ]
     allow_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
-    allow_headers = ["*"]
+    allow_headers = [
+      "authorization",
+      "content-type",
+      "x-requested-with",
+      "cookie",
+      "accept",
+      "origin",
+      "cache-control",
+      "x-api-key"
+    ]
+    expose_headers = ["content-type", "x-total-count"]
+    allow_credentials = true
     max_age       = 300
   }
 
@@ -119,13 +134,43 @@ resource "aws_apigatewayv2_integration" "svc_checkout" {
 }
 
 # Routes for svc-users
+# Route for exact /api/users path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_users_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/users"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
+# Route for /api/users/* paths
 resource "aws_apigatewayv2_route" "svc_users" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/users/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
 }
 
+# Route for exact /api/wallet path
+resource "aws_apigatewayv2_route" "svc_wallet_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/wallet"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
+# Route for /api/wallet/* paths
+resource "aws_apigatewayv2_route" "svc_wallet" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/wallet/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_users.id}"
+}
+
 # Routes for svc-events
+# Route for exact /api/events path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_events_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/events"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_events.id}"
+}
+
+# Route for /api/events/* paths
 resource "aws_apigatewayv2_route" "svc_events" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/events/{proxy+}"
@@ -133,6 +178,14 @@ resource "aws_apigatewayv2_route" "svc_events" {
 }
 
 # Routes for svc-producers
+# Route for exact /api/producers path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_producers_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/producers"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_producers.id}"
+}
+
+# Route for /api/producers/* paths
 resource "aws_apigatewayv2_route" "svc_producers" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/producers/{proxy+}"
@@ -140,20 +193,27 @@ resource "aws_apigatewayv2_route" "svc_producers" {
 }
 
 # Routes for svc-checkout
+# Route for exact /api/checkout path (without trailing segments)
+resource "aws_apigatewayv2_route" "svc_checkout_root" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "ANY /api/checkout"
+  target    = "integrations/${aws_apigatewayv2_integration.svc_checkout.id}"
+}
+
+# Route for /api/checkout/* paths
 resource "aws_apigatewayv2_route" "svc_checkout" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "ANY /api/checkout/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.svc_checkout.id}"
 }
 
-# Custom domain (optional - requires ACM certificate)
-# Uncomment and configure when ready to use custom domain
-/*
+# Custom domain for API Gateway
 resource "aws_apigatewayv2_domain_name" "main" {
   domain_name = "api.${var.domain_name}"
 
   domain_name_configuration {
-    certificate_arn = var.acm_certificate_arn
+    # Using existing certificate
+    certificate_arn = "arn:aws:acm:us-east-2:665352994810:certificate/ce1aaef5-cb3a-46fe-bcfe-6a1cf5ddd6b4"
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
@@ -172,4 +232,3 @@ resource "aws_apigatewayv2_api_mapping" "main" {
   domain_name = aws_apigatewayv2_domain_name.main.id
   stage       = aws_apigatewayv2_stage.main.id
 }
-*/

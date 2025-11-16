@@ -1,6 +1,6 @@
 import { Hono, Context } from 'hono';
-import { cors } from 'hono/cors';
 import { config } from 'dotenv';
+import { prisma } from '@repo/db';
 
 config();
 export const wallet = new Hono();
@@ -13,37 +13,44 @@ function getJwtPayload(c: Context) {
 // Almacenamiento simple en memoria para billeteras mock (solo para desarrollo)
 const mockWallets = new Map<string, { wallet_linked: boolean; wallet_provider: string }>();
 
-// CORS para permitir Authorization y cookies (credenciales)
-wallet.use(
-  '*',
-  cors({
-    origin: (origin) => origin ?? '*',
-    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
-    exposeHeaders: ['*'],
-    credentials: true,
-    maxAge: 86400,
-  }),
-);
-
 // Get wallet status
 wallet.get('/', async (c) => {
   const jwtPayload = getJwtPayload(c);
+  console.log('[wallet.get /] jwtPayload=%s', JSON.stringify(jwtPayload));
+
   if (!jwtPayload?.id) {
+    console.error('[wallet.get /] REJECTING: Missing userId in payload');
     return c.json({ error: 'Usuario no autenticado' }, 401);
   }
 
-  // Verificar si hay una billetera mock para este usuario
-  const mockWallet = mockWallets.get(jwtPayload.id);
-  if (mockWallet) {
-    return c.json(mockWallet);
-  }
+  try {
+    // Primero verificar si hay una billetera mock para este usuario
+    const mockWallet = mockWallets.get(jwtPayload.id);
+    if (mockWallet) {
+      return c.json(mockWallet);
+    }
 
-  // Si no hay billetera mock, retornar estado por defecto
-  return c.json({
-    wallet_linked: false,
-    wallet_provider: null,
-  });
+    // Consultar la base de datos
+    const user = await prisma.user.findUnique({
+      where: { id: jwtPayload.id },
+      select: {
+        wallet_linked: true,
+        wallet_provider: true,
+      },
+    });
+
+    if (!user) {
+      return c.json({ error: 'Usuario no encontrado' }, 404);
+    }
+
+    return c.json({
+      wallet_linked: user.wallet_linked || false,
+      wallet_provider: user.wallet_provider || null,
+    });
+  } catch (error) {
+    console.error('Error obteniendo estado de billetera:', error);
+    return c.json({ error: 'Error al obtener estado de billetera' }, 500);
+  }
 });
 
 // Link wallet (Mercado Pago real o mock)
@@ -66,13 +73,13 @@ wallet.post('/link', async (c) => {
       mockWallets.set(jwtPayload.id, mockWallet);
       return c.json(mockWallet);
     } else {
-      // Para Mercado Pago real, aquí iría la lógica de OAuth
-      return c.json({
-        wallet_linked: true,
-        wallet_provider: 'mercado_pago',
-      });
+      // Para Mercado Pago real, debería ser manejado por el callback
+      // Este endpoint no debería ser llamado para mercado_pago real
+      // El flujo real es: OAuth redirect -> callback que actualiza la DB
+      return c.json({ error: 'Usa el flujo OAuth para vincular Mercado Pago' }, 400);
     }
   } catch (error) {
+    console.error('Error al vincular billetera:', error);
     return c.json({ error: 'Error al procesar la solicitud' }, 400);
   }
 });
@@ -84,23 +91,82 @@ wallet.post('/unlink', async (c) => {
     return c.json({ error: 'Usuario no autenticado' }, 401);
   }
 
-  // Si es una billetera mock, eliminarla del almacenamiento en memoria
-  if (mockWallets.has(jwtPayload.id)) {
-    mockWallets.delete(jwtPayload.id);
-    return c.json({
-      wallet_linked: false,
-      wallet_provider: null,
-    });
-  }
+  try {
+    // Si es una billetera mock, eliminarla del almacenamiento en memoria
+    if (mockWallets.has(jwtPayload.id)) {
+      mockWallets.delete(jwtPayload.id);
+      return c.json({
+        wallet_linked: false,
+        wallet_provider: null,
+      });
+    }
 
-  // Para billeteras reales, aquí iría la lógica de desvinculación
-  return c.json({
-    wallet_linked: false,
-    wallet_provider: null,
-  });
+    // Para billeteras reales en la base de datos
+    const user = await prisma.user.update({
+      where: { id: jwtPayload.id },
+      data: {
+        wallet_linked: false,
+        wallet_provider: null,
+        mercado_pago_user_id: null,
+        mercado_pago_access_token: null,
+        mercado_pago_refresh_token: null,
+        mercado_pago_token_expires_at: null,
+      },
+      select: {
+        wallet_linked: true,
+        wallet_provider: true,
+      },
+    });
+
+    return c.json({
+      wallet_linked: user.wallet_linked || false,
+      wallet_provider: user.wallet_provider || null,
+    });
+  } catch (error) {
+    console.error('Error al desvincular billetera:', error);
+    return c.json({ error: 'Error al desvincular billetera' }, 500);
+  }
 });
 
-// Endpoint para simular pagos (solo para desarrollo)
+// Confirm wallet link (called from callback)
+wallet.post('/confirm-link', async (c) => {
+  const jwtPayload = getJwtPayload(c);
+  if (!jwtPayload?.id) {
+    return c.json({ error: 'Usuario no autenticado' }, 401);
+  }
+
+  try {
+    const body = await c.req.json();
+    const { wallet_provider } = body;
+
+    if (wallet_provider !== 'mercado_pago') {
+      return c.json({ error: 'Proveedor de billetera no válido' }, 400);
+    }
+
+    // Simplemente confirmar que la billetera fue vinculada
+    const user = await prisma.user.findUnique({
+      where: { id: jwtPayload.id },
+      select: {
+        wallet_linked: true,
+        wallet_provider: true,
+      },
+    });
+
+    if (!user) {
+      return c.json({ error: 'Usuario no encontrado' }, 404);
+    }
+
+    return c.json({
+      success: true,
+      wallet_linked: user.wallet_linked,
+      wallet_provider: user.wallet_provider,
+    });
+  } catch (error) {
+    console.error('Error confirmando vinculación de billetera:', error);
+    return c.json({ error: 'Error al confirmar vinculación' }, 500);
+  }
+});
+
 wallet.post('/simulate-payment', async (c) => {
   const jwtPayload = getJwtPayload(c);
   if (!jwtPayload?.id) {

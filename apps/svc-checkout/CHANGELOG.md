@@ -5,6 +5,50 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.4](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.3...svc-checkout-v1.4.4) (2025-11-16)
+
+
+### Bug Fixes
+
+* add CORS headers to all error responses ([ee0eef0](https://github.com/cuencadelplata/ticketeate/commit/ee0eef037a8dbc79c4b6fbb2e724dba5fd7dd086))
+* add CORS headers to all error responses ([#155](https://github.com/cuencadelplata/ticketeate/issues/155)) ([66d3b5b](https://github.com/cuencadelplata/ticketeate/commit/66d3b5b3fa6ea600ab208a01f4038fa46156eb70))
+* enable strict:false in Hono to handle routes with/without traili… ([#156](https://github.com/cuencadelplata/ticketeate/issues/156)) ([ed3f52d](https://github.com/cuencadelplata/ticketeate/commit/ed3f52d2f98265ade96243b5f41f85f552dda2ac))
+* enable strict:false in Hono to handle routes with/without trailing slash ([5c278a1](https://github.com/cuencadelplata/ticketeate/commit/5c278a1524c0c823830a569f17953601eec6f0fa))
+
+## [1.4.3](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.2...svc-checkout-v1.4.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* remove /production from custom domain URL ([7d3e808](https://github.com/cuencadelplata/ticketeate/commit/7d3e808e23177fc7fe64752c06ff25e98db0881c))
+* remove /production from custom domain URL ([#152](https://github.com/cuencadelplata/ticketeate/issues/152)) ([afc1854](https://github.com/cuencadelplata/ticketeate/commit/afc1854429e52c48da0e06c65faf2e0931daeae1))
+* support custom domain routes in Lambda auth middleware ([49c2f74](https://github.com/cuencadelplata/ticketeate/commit/49c2f74c96e3cca2082a0b8a1716290b5e24f7cc))
+* support custom domain routes in Lambda auth middleware ([#153](https://github.com/cuencadelplata/ticketeate/issues/153)) ([bd130be](https://github.com/cuencadelplata/ticketeate/commit/bd130be0eaa4c52bccb8e402b8262ceebb232076))
+
+## [1.4.2](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.1...svc-checkout-v1.4.2) (2025-11-16)
+
+
+### Bug Fixes
+
+* update CORS headers and GitHub Actions IPs ([75f052f](https://github.com/cuencadelplata/ticketeate/commit/75f052f370619d7b02c932c365c1235db3e950ec))
+* update CORS headers and GitHub Actions IPs ([#150](https://github.com/cuencadelplata/ticketeate/issues/150)) ([5eb7c1f](https://github.com/cuencadelplata/ticketeate/commit/5eb7c1f06b6afaba734b1427d613413c5c6ba0e9))
+
+## [1.4.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.0...svc-checkout-v1.4.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* update nextjs-2 EC2 IP address ([#146](https://github.com/cuencadelplata/ticketeate/issues/146)) ([9ef7169](https://github.com/cuencadelplata/ticketeate/commit/9ef716959ca2d4de5943df0939b26e29dca1141f))
+* update nextjs-2 EC2 IP address to 18.217.216.210 ([c082fe9](https://github.com/cuencadelplata/ticketeate/commit/c082fe9ba65e16c4f3aeed5b3aab75710d053da8))
+
+# [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.9...svc-checkout-v1.4.0) (2025-11-15)
+
+
+### Features
+
+* **svc-users:** mp oauth link ([#135](https://github.com/cuencadelplata/ticketeate/issues/135)) ([8ece996](https://github.com/cuencadelplata/ticketeate/commit/8ece99694e3a334c64e45d1491b5806a34bad0dd))
+* **svc-users:** mp oauth link ([ef83ec4](https://github.com/cuencadelplata/ticketeate/commit/ef83ec47af7aecbf16931839ab3af894aced4821))
+
 ## [1.3.9](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.3.8...svc-checkout-v1.3.9) (2025-11-14)
 
 

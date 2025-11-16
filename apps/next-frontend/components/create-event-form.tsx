@@ -430,8 +430,8 @@ export default function CreateEventForm() {
       <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
         <Navbar />
 
-        <div className="mx-auto max-w-5xl space-y-2 px-20 pb-3 pt-10">
-          <div className="grid gap-8 md:grid-cols-[330px,1fr]">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 md:px-20 pb-3 pt-6 md:pt-10">
+          <div className="grid gap-4 md:gap-8 md:grid-cols-[330px,1fr]">
             <div className="space-y-2">
               <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
                 <DialogTrigger asChild>
@@ -523,13 +523,13 @@ export default function CreateEventForm() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                 <input
                   type="text"
                   placeholder="Nombre del evento"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  className="w-full border-none bg-transparent text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
+                  className="w-full border-none bg-transparent text-2xl md:text-3xl font-normal text-stone-100 placeholder-stone-200 outline-none focus:ring-0"
                 />
 
                 <Dropdown placement="bottom-end" className="bg-stone-900">

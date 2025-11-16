@@ -1,0 +1,289 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  BarChart3,
+  CheckCircle,
+  Clock,
+  QrCode,
+  AlertCircle,
+  Loader2,
+  Calendar,
+  MapPin,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  useGetTicketStats,
+  useScanTicket,
+  useGetScannedTickets,
+  useGetEventInfo,
+} from '@/hooks/use-scanner';
+
+interface ScannerProps {
+  eventoid: string;
+}
+
+// Componente para manejar escaneo con cámara (usando un input de tipo file para captura de QR)
+export function QRScanner({ eventoid }: ScannerProps) {
+  const [manualCode, setManualCode] = useState('');
+  const [lastScanned, setLastScanned] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    data: stats,
+    refetch: refetchStats,
+    isLoading: loadingStats,
+  } = useGetTicketStats(eventoid);
+  const { mutate: scanTicket, isPending: scanning } = useScanTicket();
+  const { data: scannedTickets, refetch: refetchScanned } = useGetScannedTickets(eventoid);
+  const { data: eventInfo, isLoading: loadingEvent } = useGetEventInfo(eventoid);
+
+  useEffect(() => {
+    // Auto-focus en el input para que escanee automáticamente
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  const handleScan = (code: string) => {
+    if (!code.trim()) return;
+
+    setLastScanned(code);
+    setManualCode('');
+
+    scanTicket(
+      { eventoid, codigoQr: code },
+      {
+        onSuccess: (result) => {
+          toast.success(result.message || 'Ticket escaneado correctamente');
+          refetchStats();
+          refetchScanned();
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Error al escanear');
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        },
+      },
+    );
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualCode.trim()) {
+      handleScan(manualCode);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-12 pt-24">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <QrCode size={32} className="text-orange-500" />
+            <h1 className="text-3xl font-bold">Scanner de Entradas</h1>
+          </div>
+          <p className="text-stone-400">Escanea códigos QR para validar entradas</p>
+        </div>
+
+        {/* Evento Info */}
+        {loadingEvent ? (
+          <div className="mb-8 rounded-lg border border-stone-700 bg-stone-800/50 p-6">
+            <Loader2 size={24} className="animate-spin text-orange-500" />
+          </div>
+        ) : eventInfo ? (
+          <div className="mb-8 rounded-lg border border-orange-500/30 bg-orange-500/10 p-6">
+            <h2 className="text-xl font-bold text-white mb-4">{eventInfo.titulo}</h2>
+            <div className="space-y-2 text-orange-100">
+              {eventInfo.fechas_evento && eventInfo.fechas_evento.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Calendar size={18} className="text-orange-400" />
+                  <span>
+                    {new Date(eventInfo.fechas_evento[0].fecha_hora).toLocaleDateString('es-ES', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              )}
+              {eventInfo.ubicacion && (
+                <div className="flex items-center gap-2">
+                  <MapPin size={18} className="text-orange-400" />
+                  <span>{eventInfo.ubicacion}</span>
+                </div>
+              )}
+              {eventInfo.descripcion && (
+                <p className="text-sm pt-2 text-orange-200">{eventInfo.descripcion}</p>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {loadingStats ? (
+            <div className="md:col-span-3 flex items-center justify-center py-8">
+              <Loader2 size={32} className="animate-spin text-orange-500" />
+            </div>
+          ) : (
+            <>
+              {/* Total */}
+              <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-stone-400 text-sm font-medium">TOTAL</span>
+                  <BarChart3 size={20} className="text-orange-500" />
+                </div>
+                <div className="text-4xl font-bold">{stats?.totalTickets || 0}</div>
+                <p className="text-stone-500 text-sm mt-2">Entradas totales</p>
+              </div>
+
+              {/* Escaneados */}
+              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-green-400 text-sm font-medium">ESCANEADOS</span>
+                  <CheckCircle size={20} className="text-green-500" />
+                </div>
+                <div className="text-4xl font-bold text-green-400">
+                  {stats?.scannedTickets || 0}
+                </div>
+                <p className="text-green-400/60 text-sm mt-2">
+                  {stats?.percentage || 0}% completado
+                </p>
+              </div>
+
+              {/* Por Escanear */}
+              <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-orange-400 text-sm font-medium">POR ESCANEAR</span>
+                  <Clock size={20} className="text-orange-500" />
+                </div>
+                <div className="text-4xl font-bold text-orange-400">
+                  {stats?.pendingTickets || 0}
+                </div>
+                <p className="text-orange-400/60 text-sm mt-2">Entradas pendientes</p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Progress Bar */}
+        {stats && (
+          <div className="mb-8 rounded-lg border border-stone-700 bg-stone-800/50 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-stone-300 font-medium">Progreso</span>
+              <span className="text-orange-400 font-semibold">{stats.percentage}%</span>
+            </div>
+            <div className="w-full h-3 bg-stone-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-500"
+                style={{ width: `${stats.percentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Scanner Input */}
+        <div className="mb-8 rounded-lg border border-stone-700 bg-stone-800/50 p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <QrCode size={24} className="text-orange-500" />
+            Escanear Entrada
+          </h2>
+
+          {/* Hidden input for barcode scanner */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={manualCode}
+            onChange={(e) => setManualCode(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleManualSubmit(e as any);
+              }
+            }}
+            placeholder="Escanea un código QR o ingresa manualmente"
+            className="w-full rounded-lg border border-stone-600 bg-stone-900 px-4 py-3 text-white placeholder-stone-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 mb-4"
+          />
+
+          <button
+            onClick={handleManualSubmit}
+            disabled={scanning || !manualCode.trim()}
+            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+          >
+            {scanning ? (
+              <>
+                <Loader2 size={20} className="animate-spin" />
+                Procesando...
+              </>
+            ) : (
+              <>
+                <QrCode size={20} />
+                Validar Entrada
+              </>
+            )}
+          </button>
+
+          {lastScanned && (
+            <div className="mt-4 p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+              <p className="text-green-400 text-sm">
+                <CheckCircle size={16} className="inline mr-2" />
+                Último código escaneado: <span className="font-mono font-bold">{lastScanned}</span>
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Últimas Entradas Escaneadas */}
+        <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <CheckCircle size={24} className="text-green-500" />
+            Últimas Entradas Escaneadas
+          </h2>
+
+          {!scannedTickets || scannedTickets.length === 0 ? (
+            <div className="text-center py-8 text-stone-400">
+              <AlertCircle size={32} className="mx-auto mb-2 opacity-50" />
+              <p>Sin entradas escaneadas aún</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {scannedTickets.slice(0, 10).map((ticket) => (
+                <div
+                  key={ticket.entradaid}
+                  className="flex items-center justify-between p-3 rounded-lg bg-stone-900/50 border border-stone-700 hover:border-stone-600"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={18} className="text-green-500" />
+                    <div>
+                      <p className="text-white font-mono text-sm">{ticket.codigo_qr}</p>
+                      <p className="text-stone-400 text-xs">
+                        {ticket.usuario?.name || 'Usuario desconocido'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-green-400 font-semibold">✓ Válida</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Info Box */}
+        <div className="mt-8 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4 text-blue-300 text-sm">
+          <p>
+            💡 <strong>Consejo:</strong> Mantenga enfocado el campo de escaneo. Los códigos se
+            procesarán automáticamente al escanearlos.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

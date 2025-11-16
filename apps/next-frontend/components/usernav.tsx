@@ -39,6 +39,21 @@ export const PlusIcon = (props: any) => {
   );
 };
 
+const getRoleDisplayName = (role?: string): string => {
+  switch (role) {
+    case 'ORGANIZADOR':
+      return 'Organizador';
+    case 'COLABORADOR':
+      return 'Colaborador';
+    case 'USUARIO':
+      return 'Usuario';
+    case 'PRODUCER':
+      return 'Productor';
+    default:
+      return 'Usuario';
+  }
+};
+
 export default function UserNav() {
   const { data: session, isPending } = useSession();
   const isAuthenticated = !!session;
@@ -89,7 +104,7 @@ export default function UserNav() {
         </DropdownTrigger>
         <DropdownMenu
           aria-label="User menu"
-          className="p-2"
+          className="p-2 bg-stone-950 rounded-lg"
           disabledKeys={['profile']}
           itemClasses={{
             base: [
@@ -130,7 +145,7 @@ export default function UserNav() {
                     {session?.user.name || session?.user.email}
                   </p>
                   <p className="text-xs text-default-500">
-                    {(session as any)?.role === 'PRODUCER' ? 'Productor' : 'Cliente'}
+                    {getRoleDisplayName((session?.user as any)?.role)}
                   </p>
                 </div>
               </div>

@@ -1,10 +1,137 @@
 import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { Context, Next } from 'hono';
+import jwt from 'jsonwebtoken';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
 import { PUBLIC_ENDPOINTS } from './config/auth';
 
-const app = new Hono();
+// Helper to add CORS headers to error responses
+// API Gateway only adds CORS to successful responses, not errors
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = [
+    'https://ticketeate.com.ar',
+    'https://www.ticketeate.com.ar',
+    'http://localhost:3000',
+  ];
+
+  const corsOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Requested-With, Cookie',
+  };
+};
+
+// Custom JWT middleware using shared secret (same as frontend)
+async function jwtMiddleware(c: Context, next: Next) {
+  try {
+    const path = c.req.path;
+    const allHeaders = c.req.header();
+
+    // Log all headers for debugging
+    console.log(
+      '[jwtMiddleware DEBUG] path=%s, headers keys=%s',
+      path,
+      Object.keys(allHeaders).join(','),
+    );
+
+    // Skip JWT validation only for exact public endpoints (not subroutes)
+    if (PUBLIC_ENDPOINTS.includes(path)) {
+      return next();
+    }
+
+    const authHeader = c.req.header('Authorization');
+    const hasCookie = c.req.header('cookie')?.includes('better_auth');
+
+    console.log(
+      '[jwtMiddleware DEBUG] authHeader present=%s, hasCookie=%s',
+      !!authHeader,
+      !!hasCookie,
+    );
+
+    // If no Authorization header but has cookie, allow to proceed
+    // The cookie-based auth was already validated by the previous middleware
+    if (!authHeader && hasCookie) {
+      console.log('[jwtMiddleware] Using cookie-based auth, skipping JWT');
+      return await next();
+    }
+
+    // If has Authorization header, validate JWT
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      const origin = c.req.header('origin');
+      console.log(
+        '[jwtMiddleware] REJECTING: Missing or invalid Authorization header. authHeader=%s',
+        authHeader,
+      );
+      return c.json(
+        { error: 'Missing or invalid Authorization header' },
+        401,
+        getCorsHeaders(origin),
+      );
+    }
+
+    console.log('[jwtMiddleware] Authorization header found, parsing token...');
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify JWT token using shared secret (same as frontend)
+    const frontendUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://ticketeate.com.ar'
+        : process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    console.log(
+      '[jwtMiddleware] Verifying JWT with issuer=%s, audience=%s',
+      frontendUrl,
+      frontendUrl,
+    );
+
+    const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
+      issuer: frontendUrl,
+      audience: frontendUrl,
+      algorithms: ['HS256'], // Specify algorithm
+    }) as Record<string, unknown>;
+
+    console.log('[jwtMiddleware] JWT verified successfully. userId=%s', (payload as any).id);
+
+    // Store JWT payload in context
+    c.set('jwtPayload', payload);
+
+    await next();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(
+      '[jwtMiddleware] JWT verification FAILED:',
+      error instanceof Error ? error.message : String(error),
+    );
+    const origin = c.req.header('origin');
+    return c.json({ error: 'Invalid token' }, 401, getCorsHeaders(origin));
+  }
+}
+
+// Enable strict: false to handle both /path and /path/ routes
+const app = new Hono({ strict: false });
+
+// CORS middleware - Only apply in development (not behind API Gateway)
+// In production, API Gateway handles CORS headers
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => origin ?? '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      exposeHeaders: ['*'],
+      credentials: true,
+      maxAge: 86400,
+    }),
+  );
+}
 
 // Middleware
 app.use('*', honoLogger());
@@ -12,6 +139,20 @@ app.use('*', honoLogger());
 // Authentication middleware for protected endpoints
 app.use('*', async (c, next) => {
   const path = c.req.path;
+  const authHeader = c.req.header('Authorization');
+  const hasCookie = c.req.header('cookie')?.includes('better_auth');
+
+  console.log(
+    '[auth-general] path=%s, authHeader=%s, hasCookie=%s',
+    path,
+    !!authHeader,
+    !!hasCookie,
+  );
+
+  // Skip OPTIONS requests (CORS preflight) - don't validate auth
+  if (c.req.method === 'OPTIONS') {
+    return await next();
+  }
 
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
@@ -19,26 +160,35 @@ app.use('*', async (c, next) => {
   }
 
   // For protected endpoints, require authentication
-  // In production, the frontend should have a valid session cookie from better-auth
-  // If no Authorization header and no valid session cookie, the request is unauthorized
-  if (path.startsWith('/production') && !path.startsWith('/production/health')) {
+  // Check both /production prefix (direct AWS URL) and without it (custom domain)
+  const isProtectedPath = path.startsWith('/production/api') || path.startsWith('/api');
+  const isHealthCheck = path.endsWith('/health');
+
+  if (isProtectedPath && !isHealthCheck) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
     // Require either Authorization header or valid session cookie
     if (!authHeader && !hasCookie) {
-      return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
+      const origin = c.req.header('origin');
+      return c.json({ error: 'Unauthorized: Missing authentication' }, 401, getCorsHeaders(origin));
     }
   }
 
   return next();
 });
 
+// JWT Authentication middleware for protected API routes
+// Must match both /api/* and /production/api/* patterns
+app.use('/api/*', jwtMiddleware);
+app.use('/production/api/*', jwtMiddleware);
+
 // Handle OPTIONS requests (preflight) for all routes
 // This is needed for tests and any direct calls to Hono
 // The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
 app.options('*', (c) => {
-  return c.text('');
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
 });
 
 // Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
@@ -104,7 +254,8 @@ app.route('/production/api', apiRoutes);
 
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not Found' }, 404);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Not Found' }, 404, getCorsHeaders(origin));
 });
 
 // Error handler
@@ -114,7 +265,8 @@ app.onError((err, c) => {
     method: c.req.method,
     error: err instanceof Error ? err.message : String(err),
   });
-  return c.json({ error: 'Internal Server Error' }, 500);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Internal Server Error' }, 500, getCorsHeaders(origin));
 });
 
 export default app;

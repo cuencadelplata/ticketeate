@@ -1,31 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { SimpleDeploysList } from '@/components/simple-deploys-list';
-import { GitBranch, Monitor, LogOut, User, Server } from 'lucide-react';
+import { GitBranch, Server } from 'lucide-react';
 
 export function SimplifiedAdminDashboard() {
   const [activeTab, setActiveTab] = useState('deploys');
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
-      router.refresh();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">

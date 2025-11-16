@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { NextConfig } from 'next';
 import {
   publicRoutes,
   authRoutes,
@@ -18,6 +17,17 @@ function isRouteMatch(pathname: string, routes: string[]): boolean {
   });
 }
 
+function hasValidSession(request: NextRequest): boolean {
+  // Better-auth usa __Secure-better-auth.session_token en producción
+  // También puede variar en desarrollo, así que revisamos múltiples posibilidades
+  const sessionCookie =
+    request.cookies.get('__Secure-better-auth.session_token')?.value ||
+    request.cookies.get('better-auth.session_token')?.value ||
+    request.cookies.get('authToken')?.value;
+
+  return !!sessionCookie;
+}
+
 export default function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -26,9 +36,17 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Obtener la sesión del request (better-auth la establece en las cookies)
-  const sessionCookie = request.cookies.get('better-auth.session_token')?.value;
-  const isLoggedIn = !!sessionCookie;
+  // Permitir acceso a assets estáticos
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname.match(/\.(jpg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i)
+  ) {
+    return NextResponse.next();
+  }
+
+  // Verificar si tiene sesión válida
+  const isLoggedIn = hasValidSession(request);
 
   const isPublicRoute = isRouteMatch(pathname, publicRoutes);
   const isAuthRoute = isRouteMatch(pathname, authRoutes);

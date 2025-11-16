@@ -23,10 +23,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [role, setRole] = useState<Role>(defaultRole);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [otp, setOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
   const [resendingOtp, setResendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0); // Segundos restantes para reenviar
   const [formData, setFormData] = useState({
@@ -64,6 +66,12 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     }
   }, [session, sp, router, showOtpVerification]);
 
+  // Validar email con regex más robusto
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length >= 5;
+  };
+
   // Funciones helper para manejo del formulario
   const updateFormData = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,7 +99,8 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
   // Detectar automáticamente si es login o registro cuando cambia el email
   const handleEmailChange = async (newEmail: string) => {
     updateFormData('email', newEmail);
-    if (newEmail.includes('@') && newEmail.includes('.')) {
+    // Solo hacer check si el email es válido y completo
+    if (isValidEmail(newEmail)) {
       const exists = await checkUserExists(newEmail);
       setTab(exists ? 'login' : 'register');
     }
@@ -307,7 +316,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       return;
     }
 
-    setLoading(true);
+    setOtpLoading(true);
     setErr(null);
 
     try {
@@ -336,9 +345,10 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       // Esperar un momento para que la sesión se actualice
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // La redirección se manejará automáticamente por el useEffect
-      // que detectará la sesión con emailVerified: true
-      setShowOtpVerification(false);
+      // Forzar recarga para que Better Auth refresque la sesión completamente
+      // Esto es necesario porque asignamos un rol en /api/auth/assign-role
+      // y Better Auth necesita regenerar los tokens con el nuevo rol
+      window.location.href = roleToPath(role);
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       let errorMessage = 'Código incorrecto o expirado';
@@ -349,7 +359,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
       showError(errorMessage);
     } finally {
-      setLoading(false);
+      setOtpLoading(false);
     }
   };
 
@@ -430,7 +440,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   placeholder="123456"
                   maxLength={6}
                   className="w-full rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-center text-2xl font-bold tracking-widest text-white outline-none focus:border-orange-500"
-                  disabled={loading}
+                  disabled={otpLoading}
                   autoComplete="off"
                 />
                 <p className="mt-2 text-xs text-stone-500">El código expira en 10 minutos</p>
@@ -444,10 +454,10 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
               <button
                 type="submit"
-                disabled={loading || otp.length !== 6}
+                disabled={otpLoading || otp.length !== 6}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-3 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {otpLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Verificando...
@@ -725,7 +735,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
               <button
                 type="button"
                 onClick={async () => {
-                  setLoading(true);
+                  setGoogleLoading(true);
                   setErr(null);
                   try {
                     await signIn.social({ provider: 'google' });
@@ -733,13 +743,13 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                     console.error('Google sign-in failed:', error);
                     showError('Error al iniciar sesión con Google');
                   } finally {
-                    setLoading(false);
+                    setGoogleLoading(false);
                   }
                 }}
-                disabled={loading}
+                disabled={googleLoading || loading}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 py-2 text-sm font-medium text-stone-100 hover:bg-stone-700 disabled:opacity-60"
               >
-                {loading ? (
+                {googleLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <svg className="h-4 w-4" viewBox="0 0 24 24">

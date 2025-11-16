@@ -28,6 +28,7 @@ export default function AuthModal({
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [role, setRole] = useState<Role>(defaultRole);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,6 +41,12 @@ export default function AuthModal({
   const showError = (message: string) => {
     console.log('Setting error:', message);
     setErr(message);
+  };
+
+  // Validar email con regex más robusto
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length >= 5;
   };
 
   useEffect(() => {
@@ -82,7 +89,8 @@ export default function AuthModal({
   // Detectar automáticamente si es login o registro cuando cambia el email
   const handleEmailChange = async (newEmail: string) => {
     updateFormData('email', newEmail);
-    if (newEmail.includes('@') && newEmail.includes('.')) {
+    // Solo hacer check si el email es válido y completo
+    if (isValidEmail(newEmail)) {
       const exists = await checkUserExists(newEmail);
       setTab(exists ? 'login' : 'register');
     }
@@ -205,6 +213,12 @@ export default function AuthModal({
           throw new Error(j?.error || 'No se pudo asignar el rol');
         }
       }
+
+      // Esperar un poco para que Better Auth refresque la sesión después del cambio de rol
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Forzar una recarga completa de la página para que Better Auth refresque tokens
+      window.location.reload();
     } catch (e: any) {
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 
@@ -253,7 +267,7 @@ export default function AuthModal({
     formData.password.length >= 6 &&
     (!inviteRequired || formData.inviteCode.trim());
 
-  const disableSubmit = loading || !isFormValid;
+  const disableSubmit = loading || googleLoading || !isFormValid;
 
   return (
     <Dialog
@@ -399,7 +413,7 @@ export default function AuthModal({
               )}
 
               <button
-                disabled={disableSubmit}
+                disabled={disableSubmit || googleLoading}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -450,7 +464,7 @@ export default function AuthModal({
               </div>
 
               <button
-                disabled={disableSubmit}
+                disabled={disableSubmit || googleLoading}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-60"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -481,7 +495,7 @@ export default function AuthModal({
             <button
               type="button"
               onClick={async () => {
-                setLoading(true);
+                setGoogleLoading(true);
                 setErr(null);
                 try {
                   await signIn.social({ provider: 'google' });
@@ -489,13 +503,13 @@ export default function AuthModal({
                   console.error('Google sign-in failed:', error);
                   showError('Error al iniciar sesión con Google');
                 } finally {
-                  setLoading(false);
+                  setGoogleLoading(false);
                 }
               }}
-              disabled={loading}
+              disabled={googleLoading || loading}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-stone-700 bg-stone-800 py-2 text-sm font-medium text-stone-100 hover:bg-stone-700 disabled:opacity-60"
             >
-              {loading ? (
+              {googleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <svg className="h-4 w-4" viewBox="0 0 24 24">

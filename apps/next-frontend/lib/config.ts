@@ -12,9 +12,9 @@ function getApiBaseUrl(): string {
 
   // En el servidor (SSR), intentar detectar el entorno
   if (typeof window === 'undefined') {
-    // En producción, usar el custom domain de la API
+    // En producción, usar el custom domain de la API (sin /production porque el stage ya está mapeado)
     if (process.env.NODE_ENV === 'production') {
-      return 'https://api.ticketeate.com.ar/production';
+      return 'https://api.ticketeate.com.ar';
     }
     // En desarrollo local, usar localhost
     return 'http://localhost:3001';
@@ -29,9 +29,9 @@ function getApiBaseUrl(): string {
     return 'http://localhost:3001';
   }
 
-  // En producción en ticketeate.com.ar, usar api.ticketeate.com.ar
+  // En producción en ticketeate.com.ar, usar api.ticketeate.com.ar (sin /production)
   if (hostname === 'ticketeate.com.ar' || hostname === 'www.ticketeate.com.ar') {
-    return 'https://api.ticketeate.com.ar/production';
+    return 'https://api.ticketeate.com.ar';
   }
 
   // Para otros dominios, asumir que usan la API en el mismo dominio
@@ -41,7 +41,7 @@ function getApiBaseUrl(): string {
 // url hono
 export const API_BASE_URL = getApiBaseUrl();
 export const USERS_API_BASE_URL =
-  process.env.NEXT_PUBLIC_USERS_API_URL || API_BASE_URL.replace(':3001', ':3003');
+  process.env.NEXT_PUBLIC_USERS_API_URL || API_BASE_URL.replace(':3001', ':3002');
 
 // Endpoints de la API
 export const API_ENDPOINTS = {

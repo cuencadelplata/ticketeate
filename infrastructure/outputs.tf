@@ -6,8 +6,8 @@ output "nginx_instance_id" {
 }
 
 output "nginx_public_ip" {
-  description = "Public IP of Nginx instance"
-  value       = aws_instance.nginx.public_ip
+  description = "Public IP of Nginx instance (Elastic IP)"
+  value       = aws_eip.nginx.public_ip
 }
 
 output "nginx_private_ip" {
@@ -16,8 +16,8 @@ output "nginx_private_ip" {
 }
 
 output "nextjs_1_public_ip" {
-  description = "Public IP of Next.js instance 1"
-  value       = aws_instance.nextjs_1.public_ip
+  description = "Public IP of Next.js instance 1 (Elastic IP)"
+  value       = aws_eip.nextjs_1.public_ip
 }
 
 output "nextjs_1_private_ip" {
@@ -26,8 +26,8 @@ output "nextjs_1_private_ip" {
 }
 
 output "nextjs_2_public_ip" {
-  description = "Public IP of Next.js instance 2"
-  value       = aws_instance.nextjs_2.public_ip
+  description = "Public IP of Next.js instance 2 (Elastic IP)"
+  value       = aws_eip.nextjs_2.public_ip
 }
 
 output "nextjs_2_private_ip" {
@@ -58,11 +58,21 @@ output "lambda_function_names" {
 output "api_gateway_urls" {
   description = "API Gateway URLs"
   value = {
-    base_url  = aws_apigatewayv2_stage.main.invoke_url
-    users     = "${aws_apigatewayv2_stage.main.invoke_url}/api/users"
-    events    = "${aws_apigatewayv2_stage.main.invoke_url}/api/events"
-    producers = "${aws_apigatewayv2_stage.main.invoke_url}/api/producers"
-    checkout  = "${aws_apigatewayv2_stage.main.invoke_url}/api/checkout"
+    base_url       = aws_apigatewayv2_stage.main.invoke_url
+    custom_domain  = "https://api.${var.domain_name}/production"
+    users          = "${aws_apigatewayv2_stage.main.invoke_url}/api/users"
+    events         = "${aws_apigatewayv2_stage.main.invoke_url}/api/events"
+    producers      = "${aws_apigatewayv2_stage.main.invoke_url}/api/producers"
+    checkout       = "${aws_apigatewayv2_stage.main.invoke_url}/api/checkout"
+  }
+}
+
+output "api_gateway_custom_domain" {
+  description = "Custom domain configuration for API Gateway"
+  value = {
+    domain_name = aws_apigatewayv2_domain_name.main.domain_name
+    target_domain_name = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name
+    hosted_zone_id = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].hosted_zone_id
   }
 }
 
@@ -82,9 +92,9 @@ output "ecr_repository_urls" {
 output "ssh_commands" {
   description = "SSH commands to connect to instances"
   value = {
-    nginx    = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nginx.public_ip}"
-    nextjs_1 = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nextjs_1.public_ip}"
-    nextjs_2 = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.nextjs_2.public_ip}"
+    nginx    = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nginx.public_ip}"
+    nextjs_1 = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nextjs_1.public_ip}"
+    nextjs_2 = "ssh -i ${var.key_name}.pem ubuntu@${aws_eip.nextjs_2.public_ip}"
     redis    = "ssh -i ${var.key_name}.pem ubuntu@${aws_instance.redis.private_ip}"
   }
 }
@@ -106,18 +116,28 @@ output "deployment_summary" {
     - Redis: ${aws_instance.redis.private_ip} (private)
   
   ⚡ Lambda APIs:
+    - Custom Domain: https://api.${var.domain_name}/production
     - Base URL: ${aws_apigatewayv2_stage.main.invoke_url}
     - Users: ${aws_apigatewayv2_stage.main.invoke_url}/api/users
     - Events: ${aws_apigatewayv2_stage.main.invoke_url}/api/events
     - Producers: ${aws_apigatewayv2_stage.main.invoke_url}/api/producers
     - Checkout: ${aws_apigatewayv2_stage.main.invoke_url}/api/checkout
   
+  🌐 DNS Configuration Required:
+    Add CNAME record: api.${var.domain_name} → ${aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name}
+  
+  🔐 ACM Certificate Validation:
+    Certificate must be validated via DNS before custom domain works.
+    Run: terraform output api_certificate_validation_records
+  
   📋 Next Steps:
-    1. Configure DNS: ${var.domain_name} → ${aws_instance.nginx.public_ip}
-    2. Upload environment variables: ./scripts/upload-env-vars.ps1 -Environment production
-    3. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_instance.nginx.public_ip)}
-    4. Deploy Next.js: sudo ~/deploy-nextjs.sh (on each EC2 instance)
-    5. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
+    1. Configure DNS: ${var.domain_name} → ${aws_eip.nginx.public_ip}
+    2. Add DNS validation records for ACM certificate (see above)
+    3. Add CNAME for API: api.${var.domain_name} (see above)
+    4. Upload environment variables: ./scripts/upload-env-vars.ps1 -Environment production
+    5. SSH to Nginx: ${format("ssh -i %s.pem ubuntu@%s", var.key_name, aws_eip.nginx.public_ip)}
+    6. Deploy Next.js: sudo ~/deploy-nextjs.sh (on each EC2 instance)
+    7. Configure SSL with: sudo certbot --nginx -d ${var.domain_name}
   
   📚 Documentation:
     - Environment Variables: infrastructure/docs/ENV_QUICKSTART.md

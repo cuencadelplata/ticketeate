@@ -5,7 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:main": "turbo run dev --filter=@ticketeate/svc-events --filter=ticketeate",
-    "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=Ticketeate",
+    "dev:wallet": "turbo run dev --filter=@ticketeate/svc-events --filter=@ticketeate/svc-users --filter=ticketeate",
     "dev:local": "powershell -File ./dev.ps1",
     "dev:local:bash": "bash ./dev.sh",
     "dev:stop": "powershell -File ./dev.ps1 -StopOnly",

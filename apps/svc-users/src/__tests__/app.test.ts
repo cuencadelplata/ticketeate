@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../app.js';
+import app from '../index.js';
 import jwt from 'jsonwebtoken';
 
 // Mock environment variables

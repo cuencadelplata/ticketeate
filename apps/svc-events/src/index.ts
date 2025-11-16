@@ -1,10 +1,48 @@
 import { Hono } from 'hono';
 import { logger as honoLogger } from 'hono/logger';
+import { cors } from 'hono/cors';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
 import { PUBLIC_ENDPOINTS } from './config/auth';
 
-const app = new Hono();
+// Enable strict: false to handle both /path and /path/ routes
+const app = new Hono({ strict: false });
+
+// Helper to add CORS headers to error responses
+// API Gateway only adds CORS to successful responses, not errors
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = [
+    'https://ticketeate.com.ar',
+    'https://www.ticketeate.com.ar',
+    'http://localhost:3000',
+  ];
+
+  const corsOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Requested-With, Cookie',
+  };
+};
+
+// CORS middleware - Only apply in development (not behind API Gateway)
+// In production, API Gateway handles CORS headers
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => origin ?? '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+      exposeHeaders: ['*'],
+      credentials: true,
+      maxAge: 86400,
+    }),
+  );
+}
 
 // Middleware
 app.use('*', honoLogger());
@@ -13,44 +51,40 @@ app.use('*', honoLogger());
 app.use('*', async (c, next) => {
   const path = c.req.path;
 
+  // Skip validation for OPTIONS requests (CORS preflight)
+  if (c.req.method === 'OPTIONS') {
+    return next();
+  }
+
   // Skip validation for public endpoints
   if (PUBLIC_ENDPOINTS.some((endpoint) => path === endpoint || path.startsWith(endpoint + '/'))) {
     return next();
   }
 
   // For protected endpoints, require authentication
-  // In production, the frontend should have a valid session cookie from better-auth
-  // If no Authorization header and no valid session cookie, the request is unauthorized
-  if (path.startsWith('/production') && !path.startsWith('/production/health')) {
+  // Check both /production prefix (direct AWS URL) and without it (custom domain)
+  const isProtectedPath = path.startsWith('/production/api') || path.startsWith('/api');
+  const isHealthCheck = path.endsWith('/health');
+
+  if (isProtectedPath && !isHealthCheck) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
     // Require either Authorization header or valid session cookie
     if (!authHeader && !hasCookie) {
-      return c.json({ error: 'Unauthorized: Missing authentication' }, 401);
+      const origin = c.req.header('origin');
+      return c.json({ error: 'Unauthorized: Missing authentication' }, 401, getCorsHeaders(origin));
     }
   }
 
   return next();
 });
 
-// Handle OPTIONS requests (preflight) for all routes
-// This is needed for tests and any direct calls to Hono
-// The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
+// Explicit OPTIONS handler for CORS preflight
 app.options('*', (c) => {
-  return c.text('');
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
 });
-
-// Log environment for debugging
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
-
-// Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
-// This is necessary because:
-// 1. Hono CORS middleware sets headers on the Hono Response object
-// 2. @hono/aws-lambda handler returns a plain object, losing those headers
-// 3. API Gateway v2 filters headers if it handles CORS itself
-// 4. Solution: Lambda wrapper sets CORS headers directly on the response object
 
 // Mount routes at both /api and /production/api paths
 // Routes
@@ -67,31 +101,6 @@ app.get('/production', (c) => {
     message: 'Hono Backend API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
-  });
-});
-
-// Debug endpoint to check CORS headers
-app.get('/cors-debug', (c) => {
-  return c.json({
-    origin: c.req.header('Origin'),
-    corsHeaders: {
-      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
-      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
-      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
-      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
-    },
-  });
-});
-
-app.get('/production/cors-debug', (c) => {
-  return c.json({
-    origin: c.req.header('Origin'),
-    corsHeaders: {
-      'Access-Control-Allow-Credentials': c.res.headers.get('Access-Control-Allow-Credentials'),
-      'Access-Control-Allow-Origin': c.res.headers.get('Access-Control-Allow-Origin'),
-      'Access-Control-Allow-Methods': c.res.headers.get('Access-Control-Allow-Methods'),
-      'Access-Control-Allow-Headers': c.res.headers.get('Access-Control-Allow-Headers'),
-    },
   });
 });
 
@@ -133,7 +142,8 @@ app.route('/production/api', apiRoutes);
 
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not Found' }, 404);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Not Found' }, 404, getCorsHeaders(origin));
 });
 
 // Error handler
@@ -143,7 +153,8 @@ app.onError((err, c) => {
     method: c.req.method,
     error: err instanceof Error ? err.message : String(err),
   });
-  return c.json({ error: 'Internal Server Error' }, 500);
+  const origin = c.req.header('origin');
+  return c.json({ error: 'Internal Server Error' }, 500, getCorsHeaders(origin));
 });
 
 export default app;
