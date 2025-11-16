@@ -18,13 +18,14 @@ async function jwtMiddleware(c: Context, next: Next) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify JWT token using shared secret (same as frontend)
-    const jwtIssuer = process.env.JWT_ISSUER || process.env.FRONTEND_URL || 'http://localhost:3000';
-    const jwtAudience =
-      process.env.JWT_AUDIENCE || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://ticketeate.com.ar'
+        : process.env.FRONTEND_URL || 'http://localhost:3000';
 
     const payload = jwt.verify(token, process.env.BETTER_AUTH_SECRET!, {
-      issuer: jwtIssuer,
-      audience: jwtAudience,
+      issuer: frontendUrl,
+      audience: frontendUrl,
       algorithms: ['HS256'], // Specify algorithm
     });
 
