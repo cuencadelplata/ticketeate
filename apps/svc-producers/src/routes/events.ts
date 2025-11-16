@@ -1,5 +1,4 @@
 import { Hono, Context } from 'hono';
-import { cors } from 'hono/cors';
 import { EventService, CreateEventData } from '../services/event-service';
 import { ImageUploadService } from '../services/image-upload';
 import { config } from 'dotenv';
@@ -13,18 +12,8 @@ function getJwtPayload(c: Context) {
   return c.get('jwtPayload');
 }
 
-// CORS para permitir Authorization y cookies (credenciales)
-events.use(
-  '*',
-  cors({
-    origin: (origin) => origin ?? '*',
-    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
-    exposeHeaders: ['*'],
-    credentials: true,
-    maxAge: 86400,
-  }),
-);
+// NOTE: CORS is handled by API Gateway (preflight) and lambda.ts wrapper (response headers)
+// No need for Hono CORS middleware here as it creates conflicts
 
 // POST /api/events - Crear un nuevo evento
 events.post('/', async (c) => {

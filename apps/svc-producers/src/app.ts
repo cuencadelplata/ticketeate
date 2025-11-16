@@ -59,15 +59,19 @@ const corsOrigins = process.env.CORS_ORIGINS
 
 const allowedOrigins = corsOrigins.filter(Boolean);
 
-app.use(
-  '*',
-  cors({
-    origin: allowedOrigins,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  }),
-);
+// CORS middleware - Only apply in development (not behind API Gateway)
+// In production, API Gateway handles CORS headers
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '*',
+    cors({
+      origin: allowedOrigins,
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    }),
+  );
+}
 
 // JWT Authentication middleware for protected routes
 app.use('/api/*', jwtMiddleware);
