@@ -21,7 +21,10 @@ app.use('*', async (c, next) => {
   // For protected endpoints, require authentication
   // In production, the frontend should have a valid session cookie from better-auth
   // If no Authorization header and no valid session cookie, the request is unauthorized
-  if (path.startsWith('/production') && !path.startsWith('/production/health')) {
+  const isProtectedPath = path.startsWith('/production/api') || path.startsWith('/api');
+  const isHealthCheck = path.endsWith('/health');
+
+  if (isProtectedPath && !isHealthCheck) {
     const authHeader = c.req.header('Authorization');
     const hasCookie = c.req.header('cookie')?.includes('better_auth');
 
