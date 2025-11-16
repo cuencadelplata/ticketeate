@@ -86,29 +86,52 @@ export async function POST(request: NextRequest) {
       porcentaje_descuento,
       fecha_expiracion,
       limite_usos,
+      types: {
+        porcentaje_descuento: typeof porcentaje_descuento,
+        limite_usos: typeof limite_usos,
+      },
     });
+
+    // Convertir valores a números si es necesario
+    const porcentajeNumero =
+      typeof porcentaje_descuento === 'string'
+        ? parseFloat(porcentaje_descuento)
+        : porcentaje_descuento;
+    const limitesNumero = typeof limite_usos === 'string' ? parseInt(limite_usos, 10) : limite_usos;
 
     // Validar campos requeridos (sin usar operadores falsy que fallan con 0)
     if (
       !eventId ||
       !codigo ||
-      porcentaje_descuento === undefined ||
-      porcentaje_descuento === null ||
+      porcentajeNumero === undefined ||
+      porcentajeNumero === null ||
+      isNaN(porcentajeNumero) ||
       !fecha_expiracion ||
-      limite_usos === undefined ||
-      limite_usos === null
+      limitesNumero === undefined ||
+      limitesNumero === null ||
+      isNaN(limitesNumero)
     ) {
       console.error('[Cupones API POST] Validación fallida:', {
         eventId: !!eventId,
         codigo: !!codigo,
-        porcentaje_descuento,
+        porcentajeNumero,
         fecha_expiracion: !!fecha_expiracion,
-        limite_usos,
+        limitesNumero,
       });
       return NextResponse.json(
         {
-          error: 'Faltan campos requeridos',
-          received: { eventId, codigo, porcentaje_descuento, fecha_expiracion, limite_usos },
+          error: 'Faltan campos requeridos o tienen tipos inválidos',
+          received: {
+            eventId,
+            codigo,
+            porcentaje_descuento,
+            fecha_expiracion,
+            limite_usos,
+          },
+          parsed: {
+            porcentajeNumero,
+            limitesNumero,
+          },
         },
         { status: 400 },
       );
@@ -147,9 +170,9 @@ export async function POST(request: NextRequest) {
       data: {
         eventoid: eventId,
         codigo: codigo.toUpperCase(),
-        porcentaje_descuento: parseFloat(String(porcentaje_descuento)),
+        porcentaje_descuento: porcentajeNumero,
         fecha_expiracion: new Date(fecha_expiracion),
-        limite_usos: parseInt(String(limite_usos), 10),
+        limite_usos: limitesNumero,
         estado: 'ACTIVO',
         updated_by: session.user.id,
         // usos_actuales y is_active tienen valores por defecto en el schema

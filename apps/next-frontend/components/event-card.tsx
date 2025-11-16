@@ -77,10 +77,10 @@ export function EventCard({
         </div>
 
         {/* Contenido de la card */}
-        <div className="p-4 flex flex-col flex-grow">
+        <div className="p-4 flex flex-col flex-grow min-h-[140px]">
           {/* Categoría pequeña */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 line-clamp-1">
               {category}
             </span>
           </div>

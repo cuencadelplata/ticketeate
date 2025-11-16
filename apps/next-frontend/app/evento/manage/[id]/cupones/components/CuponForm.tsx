@@ -34,8 +34,21 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
         },
   });
 
+  const handleFormSubmit = (data: any) => {
+    // Asegurar que los valores numéricos sean números, no strings
+    const processedData = {
+      ...data,
+      porcentaje_descuento: Number(data.porcentaje_descuento),
+      limite_usos: Number(data.limite_usos),
+    };
+    onSubmit(processedData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-card border rounded-lg p-6 shadow-sm">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="bg-card border rounded-lg p-6 shadow-sm"
+    >
       <h3 className="text-xl font-semibold mb-4">{cupon ? 'Editar Cupón' : 'Crear Nuevo Cupón'}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -75,6 +88,7 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
             step="0.01"
             {...register('porcentaje_descuento', {
               required: 'El porcentaje es requerido',
+              valueAsNumber: true,
               min: {
                 value: 1,
                 message: 'Mínimo 1%',
@@ -120,6 +134,7 @@ export default function CuponForm({ cupon, onSubmit, onCancel, isLoading }: Cupo
             type="number"
             {...register('limite_usos', {
               required: 'El límite de usos es requerido',
+              valueAsNumber: true,
               min: {
                 value: 1,
                 message: 'Mínimo 1 uso',
