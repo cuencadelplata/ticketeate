@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-users** serán documentadas en este archiv
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.6](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.5...svc-users-v1.5.6) (2025-11-16)
+
+
+### Bug Fixes
+
+* **mercado-pago:** add environment variables to runner stage for runtime access ([7fe975b](https://github.com/cuencadelplata/ticketeate/commit/7fe975b940d83c48df2fcb9d0a2fe18ebfc0e0fb))
+
 ## [1.5.5](https://github.com/cuencadelplata/ticketeate/compare/svc-users-v1.5.4...svc-users-v1.5.5) (2025-11-16)
 
 
