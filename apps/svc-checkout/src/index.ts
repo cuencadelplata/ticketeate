@@ -65,10 +65,9 @@ app.use('*', async (c, next) => {
 });
 
 // Handle OPTIONS requests (preflight) for all routes
-// This is needed for tests and any direct calls to Hono
-// The Lambda wrapper also handles OPTIONS, but this ensures Hono handles it too
 app.options('*', (c) => {
-  return c.text('');
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
 });
 
 // Note: CORS is handled 100% by the Lambda handler wrapper (lambda.ts)
