@@ -31,6 +31,9 @@ ENV NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY:-place
 ENV RESEND_API_KEY=build-time-placeholder-resend-key
 ENV GOOGLE_CLIENT_ID=build-time-placeholder-google-client-id
 ENV GOOGLE_CLIENT_SECRET=build-time-placeholder-google-client-secret
+ENV MERCADO_PAGO_CLIENT_ID=placeholder-mp-client-id
+ENV MERCADO_PAGO_CLIENT_SECRET=placeholder-mp-client-secret
+ENV MERCADO_PAGO_REDIRECT_URI=http://localhost:3000/configuracion
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV DIRECT_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV UPSTASH_REDIS_REST_URL=https://placeholder.upstash.io
@@ -88,6 +91,16 @@ COPY --from=builder /app/apps/next-frontend/.next ./apps/next-frontend/.next
 COPY --from=builder /app/apps/next-frontend/public ./apps/next-frontend/public
 COPY --from=builder /app/apps/next-frontend/package.json ./apps/next-frontend/
 COPY --from=builder /app/apps/next-frontend/next.config.mjs ./apps/next-frontend/
+
+# Set runtime environment variables with placeholders
+# These will be overridden by Parameter Store values at runtime via docker run -e
+ENV MERCADO_PAGO_CLIENT_ID=placeholder-mp-client-id
+ENV MERCADO_PAGO_CLIENT_SECRET=placeholder-mp-client-secret
+ENV MERCADO_PAGO_REDIRECT_URI=http://localhost:3000/configuracion
+ENV BETTER_AUTH_SECRET=placeholder-auth-secret
+ENV RESEND_API_KEY=placeholder-resend-key
+ENV GOOGLE_CLIENT_ID=placeholder-google-client-id
+ENV GOOGLE_CLIENT_SECRET=placeholder-google-client-secret
 
 # Install all dependencies first (including dev) to generate Prisma client
 RUN pnpm install --frozen-lockfile
