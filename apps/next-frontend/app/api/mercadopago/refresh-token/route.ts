@@ -11,8 +11,8 @@ async function refreshAccessToken(refreshToken: string): Promise<{
   access_token: string;
   expires_in: number;
 }> {
-  const clientId = process.env.MERCADO_PAGO_CLIENT_ID;
-  const clientSecret = process.env.MERCADO_PAGO_CLIENT_SECRET;
+  const clientId = process.env.MERCADOPAGO_CLIENT_ID;
+  const clientSecret = process.env.MERCADOPAGO_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     throw new Error('Configuración de Mercado Pago incompleta');
