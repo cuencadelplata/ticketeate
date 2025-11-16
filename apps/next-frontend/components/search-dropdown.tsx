@@ -78,7 +78,7 @@ export function SearchDropdown() {
 
     setFilteredEvents(filtered.slice(0, 8)); // Limitar a 8 resultados
     setIsOpen(filtered.length > 0);
-  }, [searchQuery, searchEvents]);
+  }, [searchQuery]);
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {

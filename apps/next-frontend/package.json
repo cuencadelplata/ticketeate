@@ -104,6 +104,7 @@
     "resend": "^6.4.2",
     "sonner": "^1.7.4",
     "supabase": "^2.58.5",
+    "swagger-ui-react": "^5.30.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.180.0",
