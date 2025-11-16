@@ -5,6 +5,13 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.5.0...svc-checkout-v1.5.1) (2025-11-16)
+
+
+### Bug Fixes
+
+* **mercadopago:** use MERCADOPAGO_ env var names to match parameter store ([7fd3708](https://github.com/cuencadelplata/ticketeate/commit/7fd37088fc111b9b7b239c5b1a06cd0e8f595c01))
+
 # [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.4.4...svc-checkout-v1.5.0) (2025-11-16)
 
 
