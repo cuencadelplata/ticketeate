@@ -5,6 +5,21 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.6.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.5.1...svc-checkout-v1.6.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* **next-frontend:** add MERCADOPAGO_WEBHOOK_SECRET to docker build args and github workflow ([e84a926](https://github.com/cuencadelplata/ticketeate/commit/e84a926ebbc9fad66ec596c22a193c8444b2acc1))
+* **mercadopago:** correct OAuth client ([#176](https://github.com/cuencadelplata/ticketeate/issues/176)) ([5913340](https://github.com/cuencadelplata/ticketeate/commit/5913340611f4ef0bcdfb947b51c96ea06650b934))
+* **mercadopago:** correct OAuth client credentials ([5b7173e](https://github.com/cuencadelplata/ticketeate/commit/5b7173ed06b99da03664c1d216305eb1a0a18008))
+* CORS handling for invite-codes endpoint - add OPTIONS method check ([c2cfdeb](https://github.com/cuencadelplata/ticketeate/commit/c2cfdeb4631a44023004da8439f789d60eadb36b))
+
+
+### Features
+
+* **mercadopago:** implement OAuth 2.0 with PKCE, token refresh, and comprehensive documentation ([0edec7d](https://github.com/cuencadelplata/ticketeate/commit/0edec7db2ad84a53d83b4bd2403cc0f59486ece3))
+
 ## [1.5.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.5.0...svc-checkout-v1.5.1) (2025-11-16)
 
 
