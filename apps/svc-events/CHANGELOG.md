@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.3](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.4.2...svc-events-v1.4.3) (2025-11-16)
+
+
+### Bug Fixes
+
+* ensure Authorization header is correctly passed to fetch requests ([59431b3](https://github.com/cuencadelplata/ticketeate/commit/59431b3486289af6b25c2ee346406f6915934613))
+* ensure Authorization header is correctly passed to fetch requests ([#166](https://github.com/cuencadelplata/ticketeate/issues/166)) ([08e7077](https://github.com/cuencadelplata/ticketeate/commit/08e70776e75bdf2e2f4a2dcad851735d903755ca))
+
 ## [1.4.2](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.4.1...svc-events-v1.4.2) (2025-11-16)
 
 
