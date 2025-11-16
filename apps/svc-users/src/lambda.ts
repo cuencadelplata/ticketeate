@@ -4,6 +4,16 @@ import app from './index';
 const honoHandler = handle(app);
 
 export const handler = async (event: any, context: any) => {
+  // Log raw event for debugging
+  console.log(
+    '[lambda.handler DEBUG] event.headers keys:',
+    Object.keys(event.headers || {}).join(','),
+  );
+  console.log(
+    '[lambda.handler DEBUG] Authorization header:',
+    event.headers?.authorization || event.headers?.Authorization || 'NOT FOUND',
+  );
+
   const response = await honoHandler(event, context);
 
   // Agregar headers CORS a todas las respuestas
