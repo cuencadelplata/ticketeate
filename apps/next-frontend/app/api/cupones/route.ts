@@ -160,7 +160,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error al crear cupón:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    const errorDetails = error instanceof Error ? { message: error.message, stack: error.stack } : error;
+    const errorDetails =
+      error instanceof Error ? { message: error.message, stack: error.stack } : error;
     return NextResponse.json(
       { error: 'Error al crear cupón', details: errorDetails },
       { status: 500 },

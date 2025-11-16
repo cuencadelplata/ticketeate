@@ -25,7 +25,7 @@ function Navbar() {
   const isLoading = isPending;
   const pathname = usePathname();
   const userRole = (session?.user as any)?.role;
-  
+
   // Memoizar el valor de canCreateEvents para evitar re-renderizados innecesarios
   const canCreateEvents = useMemo(() => {
     return !isAuthenticated || userRole === 'ORGANIZADOR' || userRole === 'PRODUCER';
