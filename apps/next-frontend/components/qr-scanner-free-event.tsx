@@ -212,10 +212,12 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   };
 
   const handleScan = async (codigo: string) => {
-    if (!codigo.trim()) return;
+    const normalizedCode = codigo.trim().toUpperCase();
+    if (!normalizedCode) return;
 
     setManualCode('');
     setScanning(true);
+    setShowCameraModal(false);
 
     try {
       const response = await fetch('/api/validar-qr', {
@@ -223,7 +225,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId: eventoid,
-          codigo: codigo.trim(),
+          codigo: normalizedCode,
         }),
       });
 
@@ -243,8 +245,6 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
           } else {
             toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
           }
-          // Cerrar modal de cámara después de escaneo exitoso
-          setShowCameraModal(false);
         }
         // Recargar la lista (sin mostrar errores si falla)
         try {

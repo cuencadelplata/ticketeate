@@ -64,7 +64,7 @@ export default function ScannerPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          codigo: inviteCodeInput.trim().toUpperCase(),
+          codigo: inviteCodeInput.trim(),
         }),
       });
 
@@ -75,14 +75,12 @@ export default function ScannerPage() {
         return;
       }
 
-      toast.success('¡Código validado! Uniendo al evento...');
+      toast.success(data.message || '¡Código validado! Uniendo al evento...');
       setInviteCodeInput('');
       setShowCodeModal(false);
 
       // Recargar eventos después de usar el código
-      setTimeout(() => {
-        loadEventos();
-      }, 1500);
+      await loadEventos();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al validar código');
     } finally {

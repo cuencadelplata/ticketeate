@@ -268,7 +268,6 @@ export async function POST(request: NextRequest) {
     const buyerEmail = metadata.buyer_email || payment.payer?.email;
     const buyerNombre = metadata.buyer_nombre || payment.payer?.first_name || '';
     const sellerId = metadata.seller_id;
-    const sellerMpUserId = metadata.seller_mp_user_id;
 
     if (!eventId) {
       console.error('[MP Webhook] ❌ No eventId in payment metadata');
@@ -301,7 +300,16 @@ export async function POST(request: NextRequest) {
     };
 
     const newStatus = statusMap[payment.status] || 'unknown';
-    const isPaid = payment.status === 'approved';
+    const isApproved = payment.status === 'approved';
+    const isPending = payment.status === 'pending';
+    const acceptPending = process.env.MP_WEBHOOK_ACCEPT_PENDING === 'true';
+    const shouldProcessPayment = isApproved || (acceptPending && isPending);
+
+    if (acceptPending && isPending) {
+      console.log('[MP Webhook] ⚠️ Pending payment accepted for ticket creation (testing mode).');
+    }
+
+    const effectiveStatus = shouldProcessPayment ? 'approved' : newStatus;
 
     // Actualizar la orden en la BD si existe
     const existingOrder = await prisma.mercadopago_orders.findFirst({
@@ -314,10 +322,10 @@ export async function POST(request: NextRequest) {
       await prisma.mercadopago_orders.update({
         where: { id: existingOrder.id },
         data: {
-          status: newStatus,
+          status: effectiveStatus,
           payment_id: payment.id.toString(),
           merchant_order_id: payment.order?.id?.toString() || null,
-          paid_at: isPaid ? new Date() : null,
+          paid_at: shouldProcessPayment ? new Date() : null,
           updated_at: new Date(),
         },
       });
@@ -326,8 +334,9 @@ export async function POST(request: NextRequest) {
         orderId: existingOrder.id,
         preferenceId: existingOrder.preference_id,
         oldStatus: existingOrder.status,
-        newStatus,
-        isPaid,
+        newStatus: effectiveStatus,
+        shouldProcessPayment,
+        paymentStatus: payment.status,
       });
     } else {
       console.warn('[MP Webhook] ⚠️  Order not found in database for external_reference:', {
@@ -335,13 +344,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Lógica cuando el pago es aprobado
-    if (isPaid) {
-      console.log('[MP Webhook] 🎉 Payment APPROVED - Creating tickets:', {
+    // Lógica cuando el pago está listo para generar tickets
+    if (shouldProcessPayment) {
+      console.log('[MP Webhook] 🎉 Payment ready for ticket generation:', {
         eventId,
         sellerId,
         amount: payment.transaction_amount,
         buyerEmail,
+        paymentStatus: payment.status,
+        acceptedPending: acceptPending && isPending,
       });
 
       try {
@@ -353,8 +364,8 @@ export async function POST(request: NextRequest) {
             {
               received: true,
               orderId: existingOrder?.id,
-              status: newStatus,
-              isPaid,
+              status: effectiveStatus,
+              isPaid: shouldProcessPayment,
               error: 'No preference_id',
             },
             { status: 200 },
@@ -385,10 +396,10 @@ export async function POST(request: NextRequest) {
               : String(createTicketsError),
           stack: createTicketsError instanceof Error ? createTicketsError.stack : undefined,
         });
-        // No fallar la request - el pago ya se procesó correctamente
+        // No fallar la request - el pago ya se procesó correctamente o se aceptó por testing
       }
     } else {
-      console.log('[MP Webhook] ⏳ Payment not approved yet:', {
+      console.log('[MP Webhook] ⏳ Payment not ready for tickets yet:', {
         paymentStatus: payment.status,
         externalReference: payment.external_reference,
       });
@@ -397,8 +408,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         received: true,
-        status: newStatus,
-        isPaid,
+        status: effectiveStatus,
+        isPaid: shouldProcessPayment,
+        acceptedPending: acceptPending && isPending,
         eventId,
       },
       { status: 200 },

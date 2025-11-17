@@ -11,10 +11,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Código de invitación requerido' }, { status: 400 });
     }
 
+    const normalizedCode = codigo.trim().toUpperCase();
+
     // Buscar el código en la base de datos
     const inviteCode = await prisma.invite_codes.findFirst({
       where: {
-        codigo: codigo.trim().toUpperCase(),
+        codigo: normalizedCode,
         estado: 'ACTIVO',
         fecha_expiracion: {
           gt: new Date(),
@@ -47,11 +49,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      valid: true,
-      eventoid: inviteCode.eventoid,
-      titulo: evento?.titulo,
-    });
+    return NextResponse.json(
+      {
+        valid: true,
+        eventoid: inviteCode.eventoid,
+        titulo: evento?.titulo ?? null,
+        descripcion: evento?.descripcion ?? null,
+        usos_totales: inviteCode.usos_totales,
+        usos_max: inviteCode.usos_max,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('Error validating invite code:', error);
     return NextResponse.json({ error: 'Error validando código de invitación' }, { status: 500 });

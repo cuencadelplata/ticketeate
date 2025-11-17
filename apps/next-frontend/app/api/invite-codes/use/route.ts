@@ -21,10 +21,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Código de invitación requerido' }, { status: 400 });
     }
 
+    const normalizedCode = codigo.trim().toUpperCase();
+
     // Buscar el código de invitación
     const inviteCode = await prisma.invite_codes.findFirst({
       where: {
-        codigo: codigo.trim().toUpperCase(),
+        codigo: normalizedCode,
         estado: 'ACTIVO',
         fecha_expiracion: {
           gt: new Date(),
@@ -48,12 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si el usuario ya es colaborador de este evento
-    const existingColaborador = await prisma.colaborador_eventos.findUnique({
+    const existingColaborador = await prisma.colaborador_eventos.findFirst({
       where: {
-        eventoid_usuarioid: {
-          eventoid: inviteCode.eventoid,
-          usuarioid: session.user.id,
-        },
+        eventoid: inviteCode.eventoid,
+        usuarioid: session.user.id,
       },
     });
 
@@ -61,31 +61,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ya eres colaborador de este evento' }, { status: 400 });
     }
 
-    // Crear el registro de colaborador
-    const newColaborador = await prisma.colaborador_eventos.create({
-      data: {
-        eventoid: inviteCode.eventoid,
-        usuarioid: session.user.id,
-        invite_code_used: codigo.trim().toUpperCase(),
-      },
-    });
-
-    // Incrementar el contador de usos del código de invitación
-    await prisma.invite_codes.update({
-      where: { codigoid: inviteCode.codigoid },
-      data: {
-        usos_totales: {
-          increment: 1,
+    const [newColaborador, updatedInviteCode, evento] = await prisma.$transaction([
+      prisma.colaborador_eventos.create({
+        data: {
+          eventoid: inviteCode.eventoid,
+          usuarioid: session.user.id,
+          invite_code_used: normalizedCode,
         },
-      },
-    });
+      }),
+      prisma.invite_codes.update({
+        where: { codigoid: inviteCode.codigoid },
+        data: {
+          usos_totales: {
+            increment: 1,
+          },
+        },
+      }),
+      prisma.eventos.findUnique({
+        where: { eventoid: inviteCode.eventoid },
+        select: {
+          eventoid: true,
+          titulo: true,
+        },
+      }),
+    ]);
 
-    return NextResponse.json({
-      success: true,
-      message: '¡Código validado! Ahora eres colaborador del evento',
-      eventoid: inviteCode.eventoid,
-      colaborador_evento_id: newColaborador.colaborador_evento_id,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: '¡Código validado! Ahora eres colaborador del evento',
+        eventoid: inviteCode.eventoid,
+        evento: evento ?? null,
+        colaborador_evento_id: newColaborador.colaborador_evento_id,
+        usos_totales: updatedInviteCode.usos_totales,
+        usos_max: updatedInviteCode.usos_max,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('Error using invite code:', error);
     return NextResponse.json({ error: 'Error al validar código de invitación' }, { status: 500 });
