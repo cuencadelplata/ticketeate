@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Copy, Trash2, Plus, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,14 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
   const { mutate: createInviteCode, isPending: isCreating } = useCreateInviteCode();
   const { data: inviteCodes, isLoading: isLoadingCodes, refetch } = useGetInviteCodes(eventoid);
   const { mutate: deactivateCode, isPending: isDeactivating } = useDeactivateInviteCode();
-  const { data: colaboradores } = useGetColaboradores(eventoid);
+  const { data: colaboradores, refetch: refetchColaboradores } =
+    useGetColaboradores(eventoid);
+
+  // Forzar refetch al montar el componente o cambiar eventoid
+  useEffect(() => {
+    refetch();
+    refetchColaboradores();
+  }, [eventoid, refetch, refetchColaboradores]);
 
   const handleGenerateCode = () => {
     const fecha_expiracion = new Date();

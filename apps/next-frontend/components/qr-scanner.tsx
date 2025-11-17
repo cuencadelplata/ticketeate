@@ -10,6 +10,7 @@ import {
   Loader2,
   Calendar,
   MapPin,
+  Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -17,6 +18,7 @@ import {
   useScanTicket,
   useGetScannedTickets,
   useGetEventInfo,
+  useGetUnscanedTickets,
 } from '@/hooks/use-scanner';
 
 interface ScannerProps {
@@ -27,6 +29,7 @@ interface ScannerProps {
 export function QRScanner({ eventoid }: ScannerProps) {
   const [manualCode, setManualCode] = useState('');
   const [lastScanned, setLastScanned] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -36,6 +39,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
   } = useGetTicketStats(eventoid);
   const { mutate: scanTicket, isPending: scanning } = useScanTicket();
   const { data: scannedTickets, refetch: refetchScanned } = useGetScannedTickets(eventoid);
+  const { data: unscanedTickets } = useGetUnscanedTickets(eventoid);
   const { data: eventInfo, isLoading: loadingEvent } = useGetEventInfo(eventoid);
 
   useEffect(() => {
@@ -243,35 +247,119 @@ export function QRScanner({ eventoid }: ScannerProps) {
 
         {/* Últimas Entradas Escaneadas */}
         <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <CheckCircle size={24} className="text-green-500" />
-            Últimas Entradas Escaneadas
-          </h2>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 size={24} className="text-blue-500" />
+              Inscritos al Evento
+            </h2>
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-500 w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar por nombre o email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-stone-900 border border-stone-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-stone-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+              />
+            </div>
+          </div>
 
-          {!scannedTickets || scannedTickets.length === 0 ? (
-            <div className="text-center py-8 text-stone-400">
-              <AlertCircle size={32} className="mx-auto mb-2 opacity-50" />
-              <p>Sin entradas escaneadas aún</p>
+          {!scannedTickets || !unscanedTickets ? (
+            <div className="text-center py-8">
+              <Loader2 size={32} className="animate-spin text-orange-500 mx-auto" />
             </div>
           ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {scannedTickets.slice(0, 10).map((ticket) => (
-                <div
-                  key={ticket.entradaid}
-                  className="flex items-center justify-between p-3 rounded-lg bg-stone-900/50 border border-stone-700 hover:border-stone-600"
-                >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle size={18} className="text-green-500" />
-                    <div>
-                      <p className="text-white font-mono text-sm">{ticket.codigo_qr}</p>
-                      <p className="text-stone-400 text-xs">
-                        {ticket.usuario?.name || 'Usuario desconocido'}
-                      </p>
-                    </div>
+            <div className="space-y-6">
+              {/* Validados */}
+              {scannedTickets.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-green-400 mb-4 flex items-center gap-2">
+                    <CheckCircle size={20} />
+                    Validados ({scannedTickets.length})
+                  </h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {scannedTickets
+                      .filter(
+                        (t) =>
+                          !searchTerm ||
+                          t.usuario?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          t.usuario?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+                      )
+                      .map((ticket) => (
+                        <div
+                          key={ticket.entradaid}
+                          className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 flex items-center justify-between"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium text-green-300">
+                              {ticket.usuario?.name || 'Usuario desconocido'}
+                            </p>
+                            <p className="text-sm text-green-300/70">
+                              {ticket.usuario?.email || ticket.codigo_qr}
+                            </p>
+                          </div>
+                          <CheckCircle size={20} className="text-green-500" />
+                        </div>
+                      ))}
                   </div>
-                  <span className="text-xs text-green-400 font-semibold">✓ Válida</span>
                 </div>
-              ))}
+              )}
+
+              {/* Pendientes */}
+              {unscanedTickets.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-orange-400 mb-4 flex items-center gap-2">
+                    <AlertCircle size={20} />
+                    Pendientes ({unscanedTickets.length})
+                  </h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {unscanedTickets
+                      .filter(
+                        (t) =>
+                          !searchTerm ||
+                          t.usuario?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          t.usuario?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+                      )
+                      .map((ticket) => (
+                        <div
+                          key={ticket.entradaid}
+                          className="rounded-lg border border-stone-700 bg-stone-800/50 p-3 flex items-center justify-between hover:border-orange-500/50"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium text-white">
+                              {ticket.usuario?.name || 'Usuario desconocido'}
+                            </p>
+                            <p className="text-sm text-stone-400">
+                              {ticket.usuario?.email || ticket.codigo_qr}
+                            </p>
+                          </div>
+                          <AlertCircle size={20} className="text-orange-500" />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {scannedTickets.length === 0 && unscanedTickets.length === 0 && (
+                <div className="text-center py-8 text-stone-400">
+                  <AlertCircle size={32} className="mx-auto mb-2 opacity-50" />
+                  <p>Sin inscritos aún</p>
+                </div>
+              )}
             </div>
           )}
         </div>
