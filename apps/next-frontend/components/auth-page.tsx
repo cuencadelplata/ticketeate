@@ -9,6 +9,7 @@ import {
   sendVerificationOTP,
   verifyEmail,
   emailOtp,
+  authClient,
 } from '@/lib/auth-client';
 import { roleToPath } from '@/lib/role-redirect';
 import Link from 'next/link';
@@ -330,6 +331,14 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       // La sesión se actualiza automáticamente a través de useSession()
       // AccessPageContent detectará emailVerified=true y redirigirá
       console.log('Email verificado exitosamente');
+
+      // Pequeño delay para asegurar que Better Auth procese completamente la sesión
+      // Especialmente importante para cuando se acaba de asignar un rol
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Hacer un refresh de la sesión para sincronizar el rol
+      await authClient.getSession();
+
       setShowOtpVerification(false);
       setOtp('');
     } catch (error: any) {
