@@ -8,31 +8,9 @@ export function generateQRCode(): string {
 }
 
 /**
- * Crea los datos del QR en formato JSON
- */
-export function createQRData(params: {
-  inscripcionid: string;
-  eventoid: string;
-  codigo: string;
-  nombre: string;
-  correo: string;
-}): string {
-  return JSON.stringify({
-    inscripcionid: params.inscripcionid,
-    eventoid: params.eventoid,
-    codigo: params.codigo,
-    nombre: params.nombre,
-    correo: params.correo,
-    timestamp: new Date().toISOString(),
-  });
-}
-
-/**
- * Genera un data URL de QR usando qr-code.js
- * Devuelve la URL para generar el QR con una API externa
+ * Genera un data URL de QR usando una API pública
  */
 export function getQRCodeURL(data: string): string {
   const encoded = encodeURIComponent(data);
-  // Usar QR Code API gratuita
   return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
 }
