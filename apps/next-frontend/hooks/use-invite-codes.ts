@@ -259,7 +259,7 @@ export function useGetColaboradores(eventoid: string) {
 export function useValidateInviteCode() {
   return useMutation({
     mutationFn: async (codigo: string) => {
-      const response = await fetch(`${API_BASE}/invite-codes/validate`, {
+      const response = await fetch(`/api/invite-codes/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -281,7 +281,7 @@ export function useUseInviteCode() {
   return useMutation({
     mutationFn: async (codigo: string) => {
       const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/invite-codes/use`, {
+      const response = await fetch(`/api/invite-codes/use`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ codigo }),
@@ -302,11 +302,7 @@ export function useGetMyEvent() {
   return useQuery({
     queryKey: ['myEvent'],
     queryFn: async () => {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/invite-codes/my-event`, {
-        headers,
-        credentials: 'include',
-      });
+      const response = await fetch(`/api/colaborador/mis-eventos`);
 
       if (!response.ok) {
         const error = await response.json();

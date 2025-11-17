@@ -24,10 +24,12 @@ export default function CompraExitosaContent() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
         {loading ? (
-          <div className="flex justify-center">
-            <div className="animate-spin">
-              <CheckCircle size={64} className="text-green-500" />
+          <div className="flex flex-col items-center justify-center">
+            <div className="relative w-16 h-16 mb-4">
+              <div className="absolute inset-0 border-4 border-green-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-transparent border-t-green-500 rounded-full animate-spin"></div>
             </div>
+            <p className="text-gray-600">Procesando tu compra...</p>
           </div>
         ) : (
           <>
@@ -40,11 +42,11 @@ export default function CompraExitosaContent() {
             {paymentId && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
                 <p className="text-sm text-gray-600 mb-1">ID de Pago:</p>
-                <p className="font-mono text-sm text-gray-900">{paymentId}</p>
+                <p className="font-mono text-sm text-gray-900 break-all">{paymentId}</p>
                 {externalReference && (
                   <>
                     <p className="text-sm text-gray-600 mb-1 mt-3">Referencia:</p>
-                    <p className="font-mono text-sm text-gray-900">{externalReference}</p>
+                    <p className="font-mono text-sm text-gray-900 break-all">{externalReference}</p>
                   </>
                 )}
               </div>

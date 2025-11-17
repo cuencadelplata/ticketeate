@@ -38,41 +38,78 @@ function generateQRCode(): string {
 /**
  * Crea las entradas (reservas y códigos QR) cuando un pago es aprobado
  */
-async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail?: string) {
+async function createOrderTickets(
+  metadata: Record<string, any>,
+  preferenceDetails: any,
+  sellerId: string,
+) {
   if (!preferenceDetails?.items || preferenceDetails.items.length === 0) {
     console.warn('[MP Webhook] Preference has no items');
     return;
   }
 
-  // Obtener al comprador (por email si es disponible, o buscar si existe)
+  // Obtener al comprador desde la metadata
+  const buyerEmail = metadata.buyer_email;
+  const eventId = metadata.event_id;
+  const cantidad = metadata.cantidad;
+  const sector = metadata.sector;
+
+  if (!eventId) {
+    console.error('[MP Webhook] No eventId in metadata');
+    return;
+  }
+
+  console.log('[MP Webhook] Creating tickets with metadata:', {
+    eventId,
+    buyerEmail,
+    cantidad,
+    sector,
+  });
+
+  // Obtener al comprador por email
   let buyer = null;
   if (buyerEmail) {
     buyer = await prisma.user.findUnique({
       where: { email: buyerEmail },
+      select: { id: true, name: true, email: true },
     });
-  }
-
-  // Buscar al evento desde los metadatos
-  const eventId = order.metadata?.eventId;
-  if (!eventId) {
-    console.error('[MP Webhook] No eventId in order metadata');
-    return;
+    console.log('[MP Webhook] Buyer lookup:', {
+      email: buyerEmail,
+      found: !!buyer,
+      buyerId: buyer?.id,
+    });
   }
 
   // Para cada item en la preferencia, crear las reservas y entradas
   for (const item of preferenceDetails.items) {
     try {
-      // Obtener el stock de entradas para esta categoría
-      const stockEntry = await prisma.stock_entrada.findFirst({
+      // Obtener el stock de entradas - buscar por nombre del item
+      let stockEntry = await prisma.stock_entrada.findFirst({
         where: {
           eventoid: eventId,
-          nombre: item.title, // Simplificado - en prod deberías pasar el stock ID
+          // El nombre debería coincidir con el título del item
+          // En este caso: "Nombre del evento - sector"
         },
+        orderBy: { stockid: 'asc' },
       });
 
       if (!stockEntry) {
-        console.warn('[MP Webhook] Stock entry not found for item:', item.title);
-        continue;
+        console.warn('[MP Webhook] Stock entry not found for event:', {
+          eventId,
+          itemTitle: item.title,
+        });
+        // Intentar obtener cualquier stock disponible para este evento
+        const fallbackStock = await prisma.stock_entrada.findFirst({
+          where: { eventoid: eventId },
+          orderBy: { stockid: 'asc' },
+        });
+
+        if (!fallbackStock) {
+          console.error('[MP Webhook] No stock entries found for event:', eventId);
+          continue;
+        }
+
+        stockEntry = fallbackStock;
       }
 
       // Crear la reserva
@@ -88,8 +125,8 @@ async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail
         continue;
       }
 
-      // Si no hay buyer, crear un guest user o usar anonymous
-      const usuarioId = buyer?.id || order.seller_id; // Fallback al vendedor si no hay buyer
+      // Usuario de la reserva: el comprador si existe, sino crear un registro temporal
+      const usuarioId = buyer?.id || metadata.buyer_id;
 
       await prisma.reservas.create({
         data: {
@@ -105,6 +142,13 @@ async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail
         },
       });
 
+      console.log('[MP Webhook] Reserva created:', {
+        reservaId,
+        usuarioId,
+        eventId,
+        cantidad: item.quantity,
+      });
+
       // Crear las entradas individuales con códigos QR
       const entradas = [];
       for (let i = 0; i < item.quantity; i++) {
@@ -118,7 +162,7 @@ async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail
           estado: 'VALIDA',
           version: 1,
           is_active: true,
-          updated_by: order.seller_id,
+          updated_by: sellerId,
         });
       }
 
@@ -129,16 +173,17 @@ async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail
           skipDuplicates: true,
         });
 
-        console.log('[MP Webhook] Created tickets:', {
+        console.log('[MP Webhook] ✅ Created tickets:', {
           reservaId,
           entradaCount: entradas.length,
           eventId,
+          buyerEmail,
         });
       }
     } catch (itemError) {
       console.error('[MP Webhook] Error creating ticket for item:', {
         item: item.title,
-        error: itemError,
+        error: itemError instanceof Error ? itemError.message : String(itemError),
       });
       // Continuar con el siguiente item
     }
@@ -156,87 +201,118 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
 
-    console.log('[MP Webhook] Notification received:', {
-      timestamp: new Date().toISOString(),
-      body: JSON.stringify(body, null, 2),
-    });
+    console.log('[MP Webhook] ===== NOTIFICATION RECEIVED =====');
+    console.log('[MP Webhook] Body:', JSON.stringify(body, null, 2));
 
     const { type, action, data } = body;
 
+    console.log('[MP Webhook] Processing:', {
+      type,
+      action,
+      paymentId: data?.id,
+      timestamp: new Date().toISOString(),
+    });
+
     // MercadoPago envía diferentes tipos de notificaciones
-    // Nos interesan: "payment" y "merchant_order"
-    if (type === 'payment' || action === 'payment.created' || action === 'payment.updated') {
-      const paymentId = data?.id;
+    // Nos interesan: type=payment (cuando el estado cambia)
+    // action puede ser: payment.created (pending), payment.updated (cambios de estado)
+    if (type !== 'payment') {
+      console.log('[MP Webhook] ⚠️  Ignoring notification - type:', type);
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
 
-      if (!paymentId) {
-        console.error('[MP Webhook] Missing payment ID');
-        return NextResponse.json({ error: 'Missing payment ID' }, { status: 400 });
-      }
+    const paymentId = data?.id;
 
-      // Obtener detalles del pago desde la API de MercadoPago
-      const platformAccessToken = process.env.MP_PLATFORM_ACCESS_TOKEN;
-      if (!platformAccessToken) {
-        console.error('[MP Webhook] MP_PLATFORM_ACCESS_TOKEN not configured');
-        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-      }
+    if (!paymentId) {
+      console.error('[MP Webhook] ❌ Missing payment ID');
+      return NextResponse.json({ error: 'Missing payment ID' }, { status: 400 });
+    }
 
-      const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${platformAccessToken}`,
-        },
+    // Obtener detalles del pago desde la API de MercadoPago
+    const platformAccessToken = process.env.MP_PLATFORM_ACCESS_TOKEN;
+    if (!platformAccessToken) {
+      console.error('[MP Webhook] ❌ MP_PLATFORM_ACCESS_TOKEN not configured');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    console.log('[MP Webhook] Fetching payment details from MP API...');
+    const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${platformAccessToken}`,
+      },
+    });
+
+    if (!paymentResponse.ok) {
+      const errorText = await paymentResponse.text();
+      console.error('[MP Webhook] ❌ Error fetching payment:', {
+        status: paymentResponse.status,
+        body: errorText,
       });
+      return NextResponse.json({ error: 'Error fetching payment' }, { status: 500 });
+    }
 
-      if (!paymentResponse.ok) {
-        const errorText = await paymentResponse.text();
-        console.error('[MP Webhook] Error fetching payment:', {
-          status: paymentResponse.status,
-          body: errorText,
-        });
-        return NextResponse.json({ error: 'Error fetching payment' }, { status: 500 });
-      }
+    const payment = await paymentResponse.json();
 
-      const payment = await paymentResponse.json();
+    console.log('[MP Webhook] Payment details fetched:', {
+      id: payment.id,
+      status: payment.status,
+      external_reference: payment.external_reference,
+      transaction_amount: payment.transaction_amount,
+      payer_email: payment.payer?.email,
+      metadata: payment.metadata,
+    });
 
-      console.log('[MP Webhook] Payment details:', {
-        id: payment.id,
-        status: payment.status,
+    // Extraer metadata directamente del pago
+    const metadata = payment.metadata || {};
+    const eventId = metadata.event_id;
+    const buyerEmail = metadata.buyer_email || payment.payer?.email;
+    const buyerNombre = metadata.buyer_nombre || payment.payer?.first_name || '';
+    const sellerId = metadata.seller_id;
+    const sellerMpUserId = metadata.seller_mp_user_id;
+
+    if (!eventId) {
+      console.error('[MP Webhook] ❌ No eventId in payment metadata');
+      return NextResponse.json({ error: 'Missing eventId' }, { status: 400 });
+    }
+
+    if (!sellerId) {
+      console.error('[MP Webhook] ❌ No sellerId in payment metadata');
+      return NextResponse.json({ error: 'Missing sellerId' }, { status: 400 });
+    }
+
+    console.log('[MP Webhook] Metadata extracted:', {
+      eventId,
+      buyerEmail,
+      buyerNombre,
+      sellerId,
+      cantidad: metadata.cantidad,
+      sector: metadata.sector,
+    });
+
+    // Actualizar estado de la orden según el estado del pago
+    const statusMap: Record<string, string> = {
+      approved: 'approved',
+      pending: 'pending',
+      in_process: 'processing',
+      rejected: 'rejected',
+      cancelled: 'cancelled',
+      refunded: 'refunded',
+      charged_back: 'charged_back',
+    };
+
+    const newStatus = statusMap[payment.status] || 'unknown';
+    const isPaid = payment.status === 'approved';
+
+    // Actualizar la orden en la BD si existe
+    const existingOrder = await prisma.mercadopago_orders.findFirst({
+      where: {
         external_reference: payment.external_reference,
-        transaction_amount: payment.transaction_amount,
-        marketplace_fee: payment.fee_details?.find((f: any) => f.type === 'marketplace_fee')
-          ?.amount,
-      });
+      },
+    });
 
-      // Buscar la orden en nuestra base de datos
-      const order = await prisma.mercadopago_orders.findFirst({
-        where: {
-          external_reference: payment.external_reference,
-        },
-      });
-
-      if (!order) {
-        console.warn('[MP Webhook] Order not found for external_reference:', {
-          external_reference: payment.external_reference,
-        });
-        // No fallar - puede ser una notificación válida para una orden que no guardamos
-        return NextResponse.json({ received: true }, { status: 200 });
-      }
-
-      // Actualizar estado de la orden según el estado del pago
-      const statusMap: Record<string, string> = {
-        approved: 'approved',
-        pending: 'pending',
-        in_process: 'processing',
-        rejected: 'rejected',
-        cancelled: 'cancelled',
-        refunded: 'refunded',
-        charged_back: 'charged_back',
-      };
-
-      const newStatus = statusMap[payment.status] || 'unknown';
-      const isPaid = payment.status === 'approved';
-
+    if (existingOrder) {
       await prisma.mercadopago_orders.update({
-        where: { id: order.id },
+        where: { id: existingOrder.id },
         data: {
           status: newStatus,
           payment_id: payment.id.toString(),
@@ -246,59 +322,93 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log('[MP Webhook] Order updated:', {
-        orderId: order.id,
-        preferenceId: order.preference_id,
+      console.log('[MP Webhook] Order status updated:', {
+        orderId: existingOrder.id,
+        preferenceId: existingOrder.preference_id,
+        oldStatus: existingOrder.status,
         newStatus,
         isPaid,
-        paymentId: payment.id,
       });
-
-      // Lógica cuando el pago es aprobado
-      if (isPaid) {
-        console.log('[MP Webhook] Payment approved - Processing order:', {
-          sellerId: order.seller_id,
-          amount: order.amount,
-          marketplaceFee: order.marketplace_fee,
-          netAmount: Number(order.amount) - Number(order.marketplace_fee),
-        });
-
-        try {
-          // Obtener los detalles de la preferencia para las entradas
-          const preferenceDetails = await getPreferenceDetails(order.preference_id);
-
-          if (preferenceDetails) {
-            // Crear las entradas/reservas para el comprador
-            await createOrderTickets(order, preferenceDetails, payment.payer?.email);
-
-            console.log('[MP Webhook] Tickets created successfully for order:', {
-              orderId: order.id,
-              externalReference: order.external_reference,
-            });
-          }
-        } catch (createTicketsError) {
-          console.error('[MP Webhook] Error creating tickets:', createTicketsError);
-          // No fallar la request - el pago ya se procesó correctamente
-        }
-      }
-
-      return NextResponse.json(
-        {
-          received: true,
-          orderId: order.id,
-          status: newStatus,
-        },
-        { status: 200 },
-      );
+    } else {
+      console.warn('[MP Webhook] ⚠️  Order not found in database for external_reference:', {
+        external_reference: payment.external_reference,
+      });
     }
 
-    // Para otros tipos de notificaciones, simplemente confirmar recepción
-    console.log('[MP Webhook] Unhandled notification type:', { type, action });
-    return NextResponse.json({ received: true }, { status: 200 });
+    // Lógica cuando el pago es aprobado
+    if (isPaid) {
+      console.log('[MP Webhook] 🎉 Payment APPROVED - Creating tickets:', {
+        eventId,
+        sellerId,
+        amount: payment.transaction_amount,
+        buyerEmail,
+      });
+
+      try {
+        // Obtener los detalles de la preferencia para las entradas
+        const preferenceId = existingOrder?.preference_id;
+        if (!preferenceId) {
+          console.error('[MP Webhook] ❌ No preference_id found');
+          return NextResponse.json(
+            {
+              received: true,
+              orderId: existingOrder?.id,
+              status: newStatus,
+              isPaid,
+              error: 'No preference_id',
+            },
+            { status: 200 },
+          );
+        }
+
+        console.log('[MP Webhook] Fetching preference details:', preferenceId);
+        const preferenceDetails = await getPreferenceDetails(preferenceId);
+
+        if (preferenceDetails) {
+          console.log('[MP Webhook] Preference details received, creating tickets...');
+          // Crear las entradas/reservas para el comprador
+          await createOrderTickets(metadata, preferenceDetails, sellerId);
+
+          console.log('[MP Webhook] ✅ TICKETS CREATED SUCCESSFULLY:', {
+            orderId: existingOrder?.id,
+            externalReference: payment.external_reference,
+            eventId,
+          });
+        } else {
+          console.warn('[MP Webhook] ⚠️  Could not get preference details');
+        }
+      } catch (createTicketsError) {
+        console.error('[MP Webhook] ❌ Error creating tickets:', {
+          error:
+            createTicketsError instanceof Error
+              ? createTicketsError.message
+              : String(createTicketsError),
+          stack: createTicketsError instanceof Error ? createTicketsError.stack : undefined,
+        });
+        // No fallar la request - el pago ya se procesó correctamente
+      }
+    } else {
+      console.log('[MP Webhook] ⏳ Payment not approved yet:', {
+        paymentStatus: payment.status,
+        externalReference: payment.external_reference,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        received: true,
+        status: newStatus,
+        isPaid,
+        eventId,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error('[MP Webhook] Unexpected error:', error);
+    console.error('[MP Webhook] ❌ Unexpected error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     // Importante: Siempre retornar 200 para evitar que MercadoPago reintente indefinidamente
-    // si el error no es recuperable
     return NextResponse.json(
       {
         received: true,
