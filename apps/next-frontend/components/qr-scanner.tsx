@@ -80,8 +80,7 @@ function CameraScannerModal({ isOpen, onClose, onScan }: CameraScannerModalProps
 
         setIsScanning(true);
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Error al acceder a la cámara';
+        const errorMessage = err instanceof Error ? err.message : 'Error al acceder a la cámara';
         setError(errorMessage);
         console.error('Camera error:', err);
       }
@@ -427,7 +426,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
               <BarChart3 size={24} className="text-blue-500" />
               Inscritos al Evento
             </h2>
-            
+
             {/* Search Bar */}
             <div className="relative">
               <svg
