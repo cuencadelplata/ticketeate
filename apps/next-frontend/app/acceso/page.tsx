@@ -15,7 +15,5 @@ export default async function AccessPage() {
     redirect(target);
   }
 
-  return (
-    <SignUpPageContent />
-  );
+  return <SignUpPageContent />;
 }

@@ -229,7 +229,7 @@ export async function GET(request: NextRequest) {
     // Actualizar usuario en la base de datos
     try {
       console.log('[OAuth Callback] Starting prisma.user.update...');
-      
+
       const updatedUser = await prisma.user.update({
         where: { id: cookieUserId },
         data: {

@@ -88,7 +88,7 @@ export async function PUT(
 ): Promise<NextResponse> {
   try {
     console.log('[EVENTOS PUT] Iniciando actualización de evento');
-    
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -100,10 +100,10 @@ export async function PUT(
 
     const userId = session.user.id;
     console.log('[EVENTOS PUT] Usuario ID:', userId);
-    
+
     const { id: eventId } = await params;
     console.log('[EVENTOS PUT] Event ID:', eventId);
-    
+
     let body;
     try {
       body = await request.json();
@@ -111,17 +111,24 @@ export async function PUT(
     } catch (jsonError) {
       console.error('[EVENTOS PUT] Error parseando JSON:', jsonError);
       return NextResponse.json(
-        { error: 'Invalid JSON in request body', details: jsonError instanceof Error ? jsonError.message : String(jsonError) },
+        {
+          error: 'Invalid JSON in request body',
+          details: jsonError instanceof Error ? jsonError.message : String(jsonError),
+        },
         { status: 400 },
       );
     }
-    
+
     const { titulo, descripcion, ubicacion, estado } = body;
     console.log('[EVENTOS PUT] Campos recibidos:', { titulo, descripcion, ubicacion, estado });
 
     // Validar longitudes máximas
     if (titulo && typeof titulo === 'string' && titulo.length > 200) {
-      console.log('[EVENTOS PUT] ❌ Título demasiado largo:', titulo.length, 'caracteres (máx 200)');
+      console.log(
+        '[EVENTOS PUT] ❌ Título demasiado largo:',
+        titulo.length,
+        'caracteres (máx 200)',
+      );
       return NextResponse.json(
         { error: 'El título no puede exceder 200 caracteres' },
         { status: 400 },
@@ -129,7 +136,11 @@ export async function PUT(
     }
 
     if (ubicacion && typeof ubicacion === 'string' && ubicacion.length > 255) {
-      console.log('[EVENTOS PUT] ❌ Ubicación demasiado larga:', ubicacion.length, 'caracteres (máx 255)');
+      console.log(
+        '[EVENTOS PUT] ❌ Ubicación demasiado larga:',
+        ubicacion.length,
+        'caracteres (máx 255)',
+      );
       return NextResponse.json(
         { error: 'La ubicación no puede exceder 255 caracteres' },
         { status: 400 },
@@ -156,7 +167,12 @@ export async function PUT(
 
     // Verificar que el usuario sea el creador del evento
     if (eventoActual.creadorid !== userId) {
-      console.log('[EVENTOS PUT] Acceso denegado. Creador:', eventoActual.creadorid, 'Usuario:', userId);
+      console.log(
+        '[EVENTOS PUT] Acceso denegado. Creador:',
+        eventoActual.creadorid,
+        'Usuario:',
+        userId,
+      );
       return NextResponse.json({ error: 'No autorizado para editar este evento' }, { status: 403 });
     }
     console.log('[EVENTOS PUT] Usuario autorizado para editar');
@@ -238,27 +254,51 @@ export async function PUT(
 
     // Remover campos con valor undefined
     const updateData = Object.fromEntries(
-      Object.entries(camposActualizar).filter(([_, v]) => v !== undefined)
+      Object.entries(camposActualizar).filter(([_, v]) => v !== undefined),
     );
 
     console.log('[EVENTOS PUT] Actualizando evento en BD...');
     console.log('[EVENTOS PUT] Datos finales para update:', JSON.stringify(updateData, null, 2));
     console.log('[EVENTOS PUT] Claves en updateData:', Object.keys(updateData));
-    console.log('[EVENTOS PUT] Tipos de valores:', Object.entries(updateData).map(([k, v]) => `${k}: ${typeof v}`));
-    
+    console.log(
+      '[EVENTOS PUT] Tipos de valores:',
+      Object.entries(updateData).map(([k, v]) => `${k}: ${typeof v}`),
+    );
+
     // Validar que no haya valores problemáticos
     for (const [key, value] of Object.entries(updateData)) {
       if (typeof value === 'object' && !(value instanceof Date)) {
         console.log(`[EVENTOS PUT] ⚠️ Campo ${key} es un objeto:`, value);
       }
     }
-    
+
     // Update sin include - solo update
-    const eventoActualizado = await prisma.eventos.update({
-      where: { eventoid: eventId },
-      data: updateData,
-    });
-    console.log('[EVENTOS PUT] Evento actualizado exitosamente');
+    // Usar raw SQL para evitar el bug de Prisma con 'new'
+    console.log('[EVENTOS PUT] 📍 Ejecutando update con SQL raw...');
+
+    try {
+      // Construir el UPDATE dinámicamente basado en los campos que cambiaron
+      const setClause = Object.keys(updateData)
+        .map((key, index) => `${key} = $${index + 1}`)
+        .join(', ');
+      const values = Object.values(updateData);
+      values.push(eventId); // Agregar eventId al final para el WHERE
+
+      const sql = `UPDATE eventos SET ${setClause} WHERE eventoid = $${values.length}`;
+      console.log('[EVENTOS PUT] 📍 SQL:', sql);
+      console.log('[EVENTOS PUT] 📍 Values:', values.length, 'parámetros');
+
+      await prisma.$executeRawUnsafe(sql, ...values);
+      console.log('[EVENTOS PUT] ✅ Evento actualizado con raw SQL');
+    } catch (rawError) {
+      console.log('[EVENTOS PUT] ❌ Raw SQL falló:', rawError);
+      // Fallback a Prisma normal
+      const eventoActualizado = await prisma.eventos.update({
+        where: { eventoid: eventId },
+        data: updateData,
+      });
+      console.log('[EVENTOS PUT] ✅ Evento actualizado con Prisma');
+    }
 
     // Obtener el evento actualizado con todas sus relaciones en una query separada
     console.log('[EVENTOS PUT] Obteniendo evento actualizado con relaciones...');
@@ -367,7 +407,7 @@ export async function DELETE(
 ): Promise<NextResponse> {
   try {
     console.log('[EVENTOS DELETE] 📍 Iniciando soft delete...');
-    
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -380,7 +420,12 @@ export async function DELETE(
     const userId = session.user.id;
     const { id: eventId } = await params;
     console.log('[EVENTOS DELETE] 📍 Usuario:', userId, 'Evento:', eventId);
-    console.log('[EVENTOS DELETE] 📍 Validando userId - Type:', typeof userId, 'Length:', userId?.length);
+    console.log(
+      '[EVENTOS DELETE] 📍 Validando userId - Type:',
+      typeof userId,
+      'Length:',
+      userId?.length,
+    );
 
     // Obtener el evento actual
     console.log('[EVENTOS DELETE] 📍 Buscando evento en BD...');
@@ -408,18 +453,30 @@ export async function DELETE(
       );
     }
 
-    // Realizar soft delete - Solo los campos necesarios
+    // Realizar soft delete - Usando raw query para evitar problemas de Prisma
     console.log('[EVENTOS DELETE] 📍 Actualizando evento con soft delete...');
     const deleteData = {
       deleted_at: new Date(),
       is_active: false,
     };
     console.log('[EVENTOS DELETE] 📍 Data para delete:', JSON.stringify(deleteData, null, 2));
-    
-    await prisma.eventos.update({
-      where: { eventoid: eventId },
-      data: deleteData,
-    });
+
+    // Usar raw SQL para evitar el bug de Prisma con 'new'
+    try {
+      await prisma.$executeRawUnsafe(
+        `UPDATE eventos SET deleted_at = $1, is_active = $2 WHERE eventoid = $3`,
+        new Date(),
+        false,
+        eventId,
+      );
+      console.log('[EVENTOS DELETE] ✅ Evento actualizado con raw SQL');
+    } catch (rawError) {
+      console.log('[EVENTOS DELETE] ❌ Raw SQL falló, intentando con Prisma normal:', rawError);
+      await prisma.eventos.update({
+        where: { eventoid: eventId },
+        data: deleteData,
+      });
+    }
     console.log('[EVENTOS DELETE] ✅ Evento actualizado');
 
     // Registrar la eliminación en evento_modificaciones
