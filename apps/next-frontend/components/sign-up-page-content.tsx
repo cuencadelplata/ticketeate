@@ -47,6 +47,7 @@ export function SignUpPageContent() {
     return null;
   }
 
-  // Si no hay sesión o no está verificado, mostrar formulario de registro
-  return <AuthPage defaultTab="register" defaultRole="USUARIO" />;
+  // Si no hay sesión o no está verificado, mostrar formulario con detección automática
+  // defaultTab y defaultRole se omiten para permitir detección automática
+  return <AuthPage />;
 }
