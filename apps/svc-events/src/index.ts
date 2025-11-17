@@ -3,11 +3,13 @@ import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { apiRoutes } from './routes/api';
 import { logger } from './logger';
+import { telemetryMiddleware } from './middleware/telemetry';
 
 const app = new Hono();
 
 // Middleware
 app.use('*', honoLogger());
+app.use('*', telemetryMiddleware);
 app.use(
   '*',
   cors({

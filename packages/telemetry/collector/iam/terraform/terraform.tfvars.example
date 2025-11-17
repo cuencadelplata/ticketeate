@@ -1,0 +1,20 @@
+# Example terraform variables for the ADOT collector IAM module
+# Copy this file to `terraform.tfvars` and fill in the values before running `terraform apply`.
+
+region = "us-east-1"
+
+# OIDC provider ARN for your EKS cluster (must be created/enabled). Example:
+# arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE
+oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.REGION.amazonaws.com/id/EXAMPLE"
+
+# OIDC provider URL (include https://). Example:
+# https://oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE
+oidc_provider_url = "https://oidc.eks.REGION.amazonaws.com/id/EXAMPLE"
+
+# Kubernetes service account that the collector will use
+service_account_namespace = "aws-otel"
+service_account_name = "adot-collector"
+
+# Optional overrides
+policy_name = "TicketeateTelemetryPolicy"
+role_name   = "adot-collector-role"

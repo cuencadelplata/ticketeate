@@ -1,0 +1,46 @@
+## Example Helm values for ADOT Collector (example only)
+# This file shows a minimal configuration to accept OTLP and export metrics/traces to CloudWatch
+# Use with the official AWS Distro for OpenTelemetry Helm chart or the upstream OpenTelemetry Collector Helm chart
+
+serviceAccount:
+  create: true
+  # Replace with the IRSA role ARN produced by the terraform module if using EKS/IRSA
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::<ACCOUNT_ID>:role/ADOT-Collector-Role"
+
+service:
+  type: ClusterIP
+
+receivers:
+  otlp:
+    protocols:
+      http: {}
+      grpc: {}
+
+exporters:
+  awsemf: {}
+  awsemf/metrics:
+    namespace: "Ticketeate"
+
+processors:
+  batch: {}
+
+pipelines:
+  traces:
+    receivers: [otlp]
+    processors: [batch]
+    exporters: [awsemf]
+  metrics:
+    receivers: [otlp]
+    processors: [batch]
+    exporters: [awsemf]
+
+env:
+  # Optional: override OTLP endpoint, sampling, etc.
+  - name: AWS_REGION
+    value: us-east-1
+
+# Notes:
+# - The 'awsemf' exporter sends metrics to CloudWatch via EMF. Depending on your ADOT/collector build,
+#   you may need to enable specific exporter extensions or use the awscloudwatch exporter provided by AWS.
+# - Replace the service account annotation role ARN with the output from the terraform IAM module.

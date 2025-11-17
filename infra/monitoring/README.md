@@ -23,3 +23,22 @@ docker compose -f infra/monitoring/docker-compose.monitoring.yml up -d
 Notas:
 - Las aplicaciones que inicialicen `@ticketeate/telemetry` con `ENABLE_PROMETHEUS=true` arrancarán un servidor local en el puerto 9464 por defecto y expondrán `/metrics`.
 - Puedes cambiar `PROMETHEUS_PORT` en el env de cada servicio si necesitas otro puerto.
+
+Requisito adicional para que las métricas funcionen
+-----------------------------------------------
+Además de activar `ENABLE_PROMETHEUS`, asegúrate de que cada servicio monte el middleware de telemetría para capturar métricas de aplicación. Los servicios `svc-checkout` y `svc-events` deben usar `telemetryMiddleware` (ya está incorporado en el código de esta rama). Ejemplo para desarrollo:
+
+```powershell
+# 1) Levanta Prometheus + Grafana
+docker compose -f infra/monitoring/docker-compose.monitoring.yml up -d
+
+# 2) En la terminal del servicio (ejemplo svc-checkout)
+$env:ENABLE_PROMETHEUS = 'true'
+cd C:\Projects\ticketeate\apps\svc-checkout
+pnpm dev
+
+# 3) Verifica el endpoint de metrics
+# http://localhost:9464/metrics
+```
+
+Si usas contenedores para los servicios, exporta la variable `ENABLE_PROMETHEUS=true` en el contenedor o en la tarea del servicio, y expón el puerto `9464` para que Prometheus lo scrapee.
