@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
 
         if (newState) {
           stateChanges.push({
-            stateventid: crypto.randomUUID(),
+            stateventid: randomUUID(),
             eventoid: evento.eventoid,
             Estado: newState,
             usuarioid: evento.creadorid,

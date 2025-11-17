@@ -165,7 +165,6 @@ export default function ComoEmpezarPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {features.map((feature, index) => {
-              const Icon = feature.icon;
               return (
                 <motion.div
                   key={index}

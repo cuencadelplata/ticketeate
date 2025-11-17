@@ -7,7 +7,7 @@ import { prisma } from '@repo/db';
  * GET /api/user/inscripciones
  * Obtiene todas las inscripciones del usuario autenticado
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

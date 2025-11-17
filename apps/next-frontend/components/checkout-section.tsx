@@ -38,7 +38,6 @@ export function CheckoutSection({
   const { data: session } = useSession();
   const createPreference = useCreateMarketplacePreference();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCart, setShowCart] = useState(false);
 
   const addToCart = (categoryId: string, categoryName: string, price: number) => {
     setCart((prev) => {
@@ -50,7 +49,6 @@ export function CheckoutSection({
       }
       return [...prev, { categoryId, categoryName, price, quantity: 1 }];
     });
-    setShowCart(true);
   };
 
   const removeFromCart = (categoryId: string) => {

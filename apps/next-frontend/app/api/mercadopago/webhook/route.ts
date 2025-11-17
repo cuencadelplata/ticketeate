@@ -91,7 +91,7 @@ async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail
       // Si no hay buyer, crear un guest user o usar anonymous
       const usuarioId = buyer?.id || order.seller_id; // Fallback al vendedor si no hay buyer
 
-      const reserva = await prisma.reservas.create({
+      await prisma.reservas.create({
         data: {
           reservaid: reservaId,
           usuarioid: usuarioId,

@@ -8,7 +8,7 @@ import { useUserInscripciones } from '@/hooks/use-user-inscripciones';
 import Link from 'next/link';
 
 export default function InscripcionesPage() {
-  const { data: session, isPending: sessionLoading } = useSession();
+  const { isPending: sessionLoading } = useSession();
   const { data: inscripciones = [], isLoading, error } = useUserInscripciones();
 
   const getStatusColor = (status: string) => {

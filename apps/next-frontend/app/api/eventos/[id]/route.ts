@@ -176,7 +176,7 @@ export async function PUT(
     camposActualizar.version = (eventoActual.version || 1) + 1;
     camposActualizar.updated_by = userId;
 
-    const eventoActualizado = await prisma.eventos.update({
+    await prisma.eventos.update({
       where: { eventoid: eventId },
       data: camposActualizar,
       include: {
@@ -302,7 +302,7 @@ export async function DELETE(
     }
 
     // Realizar soft delete
-    const eventoEliminado = await prisma.eventos.update({
+    await prisma.eventos.update({
       where: { eventoid: eventId },
       data: {
         deleted_at: new Date(),
