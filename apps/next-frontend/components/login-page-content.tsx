@@ -5,7 +5,7 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { roleToPath } from '@/lib/role-redirect';
-import AuthPage from '@/components/auth-page';
+import { SignInForm } from '@/components/sign-in-form';
 
 type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
@@ -39,6 +39,6 @@ export function LoginPageContent() {
     return null;
   }
 
-  // Mostrar formulario de login
-  return <AuthPage defaultTab="login" defaultRole="USUARIO" />;
+  // Mostrar formulario de sign in
+  return <SignInForm />;
 }

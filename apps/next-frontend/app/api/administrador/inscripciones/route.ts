@@ -50,15 +50,18 @@ export async function GET(request: NextRequest) {
             validado: true,
             fecha_validacion: true,
           },
+          take: 1,
         },
       },
       orderBy: { fecha_inscripcion: 'desc' },
     });
 
+    console.log(`📍 Inscripciones para evento ${eventId}:`, inscripciones.length);
+
     // Calcular estadísticas
     const totalInscritos = inscripciones.length;
     const validados = inscripciones.filter(
-      (i: any) => i.codigos_qr.length > 0 && i.codigos_qr[0].validado,
+      (i: any) => i.codigos_qr && i.codigos_qr.length > 0 && i.codigos_qr[0].validado,
     ).length;
     const pendientes = totalInscritos - validados;
 
@@ -68,9 +71,10 @@ export async function GET(request: NextRequest) {
       nombre: i.nombre,
       correo: i.correo,
       fecha_inscripcion: i.fecha_inscripcion,
-      codigoQR: i.codigos_qr[0]?.codigo || null,
-      validado: i.codigos_qr.length > 0 && i.codigos_qr[0].validado,
-      fecha_validacion: i.codigos_qr[0]?.fecha_validacion || null,
+      codigoQR: i.codigos_qr && i.codigos_qr.length > 0 ? i.codigos_qr[0].codigo : null,
+      validado: i.codigos_qr && i.codigos_qr.length > 0 && i.codigos_qr[0].validado,
+      fecha_validacion:
+        i.codigos_qr && i.codigos_qr.length > 0 ? i.codigos_qr[0].fecha_validacion : null,
     }));
 
     return NextResponse.json(

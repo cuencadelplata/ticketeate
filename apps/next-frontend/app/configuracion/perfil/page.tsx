@@ -3,14 +3,18 @@
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Loader2, User, Mail, Calendar, Shield } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, Shield, Check, X } from 'lucide-react';
 import AvatarUpload from '@/components/avatar-upload';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function ConfiguracionPerfil() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -21,6 +25,47 @@ export default function ConfiguracionPerfil() {
       router.push('/sign-in');
     }
   }, [session, isPending, router, mounted]);
+
+  useEffect(() => {
+    if (session?.user?.name) {
+      setNameValue(session.user.name);
+    }
+  }, [session?.user?.name]);
+
+  const handleSaveName = async () => {
+    if (!nameValue.trim()) {
+      toast.error('El nombre no puede estar vacío');
+      return;
+    }
+
+    if (nameValue === session?.user?.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameValue.trim() }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al guardar');
+      }
+
+      toast.success('Nombre actualizado correctamente');
+      setIsEditingName(false);
+      // Recargar sesión
+      window.location.reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al guardar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (isPending || !mounted) {
     return (
@@ -73,9 +118,45 @@ export default function ConfiguracionPerfil() {
                   <User className="h-4 w-4 text-orange-500" />
                   Nombre
                 </label>
-                <div className="rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-stone-100">
-                  {user.name || 'Sin nombre'}
-                </div>
+                {isEditingName ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      className="flex-1 rounded-lg border border-orange-500 bg-stone-800 px-4 py-3 text-stone-100 outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Tu nombre"
+                      maxLength={255}
+                    />
+                    <button
+                      onClick={handleSaveName}
+                      disabled={isSaving}
+                      className="rounded-lg bg-green-600 p-3 text-white hover:bg-green-700 disabled:opacity-50 transition-all"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingName(false);
+                        setNameValue(user.name || '');
+                      }}
+                      className="rounded-lg bg-stone-700 p-3 text-white hover:bg-stone-600 transition-all"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => setIsEditingName(true)}
+                    className="cursor-pointer rounded-lg border border-stone-700 bg-stone-800 px-4 py-3 text-stone-100 hover:border-orange-500 hover:bg-stone-700/50 transition-all"
+                  >
+                    {user.name || 'Sin nombre'} (click para editar)
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

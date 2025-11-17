@@ -5,7 +5,7 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { roleToPath } from '@/lib/role-redirect';
-import AuthPage from '@/components/auth-page';
+import { SignUpForm } from '@/components/sign-up-form';
 
 type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
@@ -39,6 +39,6 @@ export function RegisterPageContent() {
     return null;
   }
 
-  // Mostrar formulario de registro con detección automática de rol
-  return <AuthPage defaultTab="register" defaultRole="USUARIO" />;
+  // Mostrar formulario de sign up
+  return <SignUpForm />;
 }

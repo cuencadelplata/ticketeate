@@ -229,15 +229,17 @@ export function QRScanner({ eventoid }: ScannerProps) {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 overflow-y-auto">
-      <div className="max-w-4xl mx-auto">
+    <div className="h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-3 md:p-6 overflow-y-auto">
+      <div className="max-w-full md:max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <QrCode size={32} className="text-orange-500" />
-            <h1 className="text-3xl font-bold">Scanner de Entradas</h1>
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <QrCode size={24} className="text-orange-500" />
+            <h1 className="text-xl md:text-3xl font-bold">Scanner de Entradas</h1>
           </div>
-          <p className="text-stone-400">Escanea códigos QR para validar entradas</p>
+          <p className="text-sm md:text-base text-stone-400">
+            Escanea códigos QR para validar entradas
+          </p>
         </div>
 
         {/* Evento Info */}
@@ -246,13 +248,15 @@ export function QRScanner({ eventoid }: ScannerProps) {
             <Loader2 size={24} className="animate-spin text-orange-500" />
           </div>
         ) : eventInfo ? (
-          <div className="mb-8 rounded-lg border border-orange-500/30 bg-orange-500/10 p-6">
-            <h2 className="text-xl font-bold text-white mb-4">{eventInfo.titulo}</h2>
-            <div className="space-y-2 text-orange-100">
+          <div className="mb-6 rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-4">
+              {eventInfo.titulo}
+            </h2>
+            <div className="space-y-1 md:space-y-2 text-sm md:text-base text-orange-100">
               {eventInfo.fechas_evento && eventInfo.fechas_evento.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <Calendar size={18} className="text-orange-400" />
-                  <span>
+                  <Calendar size={16} className="text-orange-400 flex-shrink-0" />
+                  <span className="text-xs md:text-sm">
                     {new Date(eventInfo.fechas_evento[0].fecha_hora).toLocaleDateString('es-ES', {
                       weekday: 'long',
                       year: 'numeric',
@@ -278,7 +282,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
         ) : null}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6">
           {loadingStats ? (
             <div className="md:col-span-3 flex items-center justify-center py-8">
               <Loader2 size={32} className="animate-spin text-orange-500" />
@@ -286,39 +290,41 @@ export function QRScanner({ eventoid }: ScannerProps) {
           ) : (
             <>
               {/* Total */}
-              <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-6">
+              <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-3 md:p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-stone-400 text-sm font-medium">TOTAL</span>
-                  <BarChart3 size={20} className="text-orange-500" />
+                  <span className="text-stone-400 text-xs md:text-sm font-medium">TOTAL</span>
+                  <BarChart3 size={16} className="text-orange-500" />
                 </div>
-                <div className="text-4xl font-bold">{stats?.totalTickets || 0}</div>
-                <p className="text-stone-500 text-sm mt-2">Entradas totales</p>
+                <div className="text-2xl md:text-4xl font-bold">{stats?.totalTickets || 0}</div>
+                <p className="text-stone-500 text-xs md:text-sm mt-1">Entradas totales</p>
               </div>
 
               {/* Escaneados */}
-              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6">
+              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 md:p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-green-400 text-sm font-medium">ESCANEADOS</span>
-                  <CheckCircle size={20} className="text-green-500" />
+                  <span className="text-green-400 text-xs md:text-sm font-medium">ESCANEADOS</span>
+                  <CheckCircle size={16} className="text-green-500" />
                 </div>
-                <div className="text-4xl font-bold text-green-400">
+                <div className="text-2xl md:text-4xl font-bold text-green-400">
                   {stats?.scannedTickets || 0}
                 </div>
-                <p className="text-green-400/60 text-sm mt-2">
+                <p className="text-green-400/60 text-xs md:text-sm mt-1">
                   {stats?.percentage || 0}% completado
                 </p>
               </div>
 
               {/* Por Escanear */}
-              <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-6">
+              <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 md:p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-orange-400 text-sm font-medium">POR ESCANEAR</span>
-                  <Clock size={20} className="text-orange-500" />
+                  <span className="text-orange-400 text-xs md:text-sm font-medium">
+                    POR ESCANEAR
+                  </span>
+                  <Clock size={16} className="text-orange-500" />
                 </div>
-                <div className="text-4xl font-bold text-orange-400">
+                <div className="text-2xl md:text-4xl font-bold text-orange-400">
                   {stats?.pendingTickets || 0}
                 </div>
-                <p className="text-orange-400/60 text-sm mt-2">Entradas pendientes</p>
+                <p className="text-orange-400/60 text-xs md:text-sm mt-1">Entradas pendientes</p>
               </div>
             </>
           )}
@@ -326,12 +332,14 @@ export function QRScanner({ eventoid }: ScannerProps) {
 
         {/* Progress Bar */}
         {stats && (
-          <div className="mb-8 rounded-lg border border-stone-700 bg-stone-800/50 p-4">
+          <div className="mb-6 rounded-lg border border-stone-700 bg-stone-800/50 p-3 md:p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-stone-300 font-medium">Progreso</span>
-              <span className="text-orange-400 font-semibold">{stats.percentage}%</span>
+              <span className="text-sm md:text-base text-stone-300 font-medium">Progreso</span>
+              <span className="text-orange-400 font-semibold text-sm md:text-base">
+                {stats.percentage}%
+              </span>
             </div>
-            <div className="w-full h-3 bg-stone-700 rounded-full overflow-hidden">
+            <div className="w-full h-2 md:h-3 bg-stone-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-500 to-orange-400 transition-all duration-500"
                 style={{ width: `${stats.percentage}%` }}
@@ -341,9 +349,9 @@ export function QRScanner({ eventoid }: ScannerProps) {
         )}
 
         {/* Scanner Input */}
-        <div className="mb-8 rounded-lg border border-stone-700 bg-stone-800/50 p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <QrCode size={24} className="text-orange-500" />
+        <div className="mb-6 rounded-lg border border-stone-700 bg-stone-800/50 p-3 md:p-6">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+            <QrCode size={20} className="text-orange-500" />
             Escanear Entrada
           </h2>
 
@@ -359,19 +367,19 @@ export function QRScanner({ eventoid }: ScannerProps) {
               }
             }}
             placeholder="Escanea un código QR o ingresa manualmente"
-            className="w-full rounded-lg border border-stone-600 bg-stone-900 px-4 py-3 text-white placeholder-stone-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 mb-4"
+            className="w-full rounded-lg border border-stone-600 bg-stone-900 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-white placeholder-stone-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 mb-3 md:mb-4"
           />
 
           <div className="flex gap-2">
             <button
               onClick={() => setShowCameraModal(true)}
               disabled={scanning}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 md:gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-stone-700 px-2 md:px-6 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base text-white transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -383,21 +391,24 @@ export function QRScanner({ eventoid }: ScannerProps) {
                 <path d="M6 4v6h6V4" />
                 <path d="M16 4v10h6V4" />
               </svg>
-              Abrir Cámara
+              <span className="hidden md:inline">Abrir Cámara</span>
+              <span className="md:hidden">Cámara</span>
             </button>
             <button
               onClick={handleManualSubmit}
               disabled={scanning || !manualCode.trim()}
-              className="flex-1 flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 md:gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-stone-700 px-2 md:px-6 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base text-white transition-colors"
             >
               {scanning ? (
                 <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Procesando...
+                  <Loader2 size={16} className="animate-spin" />
+                  <span className="hidden md:inline">Procesando...</span>
+                  <span className="md:hidden text-xs">...</span>
                 </>
               ) : (
                 <>
-                  <QrCode size={20} />
+                  <QrCode size={16} />
+                  <span className="hidden md:inline">Validar</span>
                   Validar
                 </>
               )}
@@ -415,17 +426,17 @@ export function QRScanner({ eventoid }: ScannerProps) {
         </div>
 
         {/* Últimas Entradas Escaneadas */}
-        <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <BarChart3 size={24} className="text-blue-500" />
+        <div className="rounded-lg border border-stone-700 bg-stone-800/50 p-3 md:p-6">
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+              <BarChart3 size={20} className="text-blue-500" />
               Inscritos al Evento
             </h2>
 
             {/* Search Bar */}
             <div className="relative">
               <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-500 w-5 h-5"
+                className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-stone-500 w-4 md:w-5 h-4 md:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -442,7 +453,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
                 placeholder="Buscar por nombre o email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-stone-900 border border-stone-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-stone-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                className="w-full bg-stone-900 border border-stone-600 rounded-lg pl-8 md:pl-10 pr-3 md:pr-4 py-2 md:py-3 text-sm md:text-base text-white placeholder-stone-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
           </div>
@@ -471,17 +482,17 @@ export function QRScanner({ eventoid }: ScannerProps) {
                       .map((ticket) => (
                         <div
                           key={ticket.entradaid}
-                          className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 flex items-center justify-between"
+                          className="rounded-lg border border-green-500/30 bg-green-500/10 p-2 md:p-3 flex items-center justify-between gap-2"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium text-green-300">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-green-300 text-sm md:text-base truncate">
                               {ticket.usuario?.name || 'Usuario desconocido'}
                             </p>
-                            <p className="text-sm text-green-300/70">
+                            <p className="text-xs md:text-sm text-green-300/70 truncate">
                               {ticket.usuario?.email || ticket.codigo_qr}
                             </p>
                           </div>
-                          <CheckCircle size={20} className="text-green-500" />
+                          <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
                         </div>
                       ))}
                   </div>
@@ -491,8 +502,8 @@ export function QRScanner({ eventoid }: ScannerProps) {
               {/* Pendientes */}
               {unscanedTickets.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-orange-400 mb-4 flex items-center gap-2">
-                    <AlertCircle size={20} />
+                  <h3 className="text-base md:text-lg font-semibold text-orange-400 mb-2 md:mb-4 flex items-center gap-2">
+                    <AlertCircle size={18} />
                     Pendientes ({unscanedTickets.length})
                   </h3>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -506,17 +517,17 @@ export function QRScanner({ eventoid }: ScannerProps) {
                       .map((ticket) => (
                         <div
                           key={ticket.entradaid}
-                          className="rounded-lg border border-stone-700 bg-stone-800/50 p-3 flex items-center justify-between hover:border-orange-500/50"
+                          className="rounded-lg border border-stone-700 bg-stone-800/50 p-2 md:p-3 flex items-center justify-between gap-2 hover:border-orange-500/50"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium text-white">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-white text-sm md:text-base truncate">
                               {ticket.usuario?.name || 'Usuario desconocido'}
                             </p>
-                            <p className="text-sm text-stone-400">
+                            <p className="text-xs md:text-sm text-stone-400 truncate">
                               {ticket.usuario?.email || ticket.codigo_qr}
                             </p>
                           </div>
-                          <AlertCircle size={20} className="text-orange-500" />
+                          <AlertCircle size={18} className="text-orange-500 flex-shrink-0" />
                         </div>
                       ))}
                   </div>
@@ -525,7 +536,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
 
               {scannedTickets.length === 0 && unscanedTickets.length === 0 && (
                 <div className="text-center py-8 text-stone-400">
-                  <AlertCircle size={32} className="mx-auto mb-2 opacity-50" />
+                  <AlertCircle size={24} className="mx-auto mb-2 opacity-50" />
                   <p>Sin inscritos aún</p>
                 </div>
               )}
@@ -534,7 +545,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
         </div>
 
         {/* Info Box */}
-        <div className="mt-8 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4 text-blue-300 text-sm">
+        <div className="mt-6 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-blue-300 text-xs md:text-sm">
           <p>
             💡 <strong>Consejo:</strong> Mantenga enfocado el campo de escaneo. Los códigos se
             procesarán automáticamente al escanearlos.

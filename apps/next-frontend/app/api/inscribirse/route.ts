@@ -119,14 +119,30 @@ async function createSignup({
     });
 
     // Crear registro de código QR
-    const codigoRegistro = await prisma.codigos_qr.create({
-      data: {
-        inscripcionid: inscripcion.inscripcionid,
-        eventoid: eventId,
-        codigo: codigoQR,
-        datos_qr: datosQR,
-      },
-    });
+    let codigoRegistro;
+    try {
+      codigoRegistro = await prisma.codigos_qr.create({
+        data: {
+          inscripcionid: inscripcion.inscripcionid,
+          eventoid: eventId,
+          codigo: codigoQR,
+          datos_qr: datosQR,
+        },
+      });
+    } catch (qrError) {
+      console.error('Error creando código QR:', qrError);
+      // Si falla la creación del QR, aún así devolvemos la inscripción pero con error
+      return NextResponse.json(
+        {
+          message: 'Inscripción creada pero hubo error al generar el código QR',
+          data: {
+            inscripcion,
+            error: 'QR generation failed',
+          },
+        },
+        { status: 201 },
+      );
+    }
 
     // Generar URL del QR
     const qrImageUrl = getQRCodeURL(datosQR);

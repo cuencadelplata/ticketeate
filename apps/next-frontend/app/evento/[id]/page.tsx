@@ -57,9 +57,11 @@ async function getEvento(id: string): Promise<Event | null> {
 }
 
 // Generar metadatos dinámicos para Open Graph
-export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const event = await getEvento(id);
 
