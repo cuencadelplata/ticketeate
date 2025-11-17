@@ -550,8 +550,8 @@ export function SignUpForm() {
                   setGoogleLoading(true);
                   setError(null);
                   try {
-                    const { signUp } = await import('@/lib/auth-client');
-                    await signUp.social({ provider: 'google' });
+                    const { signIn } = await import('@/lib/auth-client');
+                    await signIn.social({ provider: 'google' });
                   } catch (error: any) {
                     console.error('Google sign-up failed:', error);
                     const errorMessage = 'Error al crear cuenta con Google';
