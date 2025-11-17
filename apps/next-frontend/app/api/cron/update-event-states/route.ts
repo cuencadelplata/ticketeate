@@ -2,15 +2,29 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const cronSecret = process.env.CRON_SECRET!;
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-// Initialize Supabase client with service role
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase configuration is missing');
+    }
+
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const cronSecret = process.env.CRON_SECRET;
+
     // Verify cron secret
     const secret = request.headers.get('x-cron-secret');
     if (secret !== cronSecret) {
@@ -18,11 +32,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabaseClient = getSupabaseClient();
     console.log('Starting event state update...');
     const now = new Date();
 
     // Fetch all eventos with their states and dates
-    const { data: eventos, error: fetchError } = await supabase.from('eventos').select(
+    const { data: eventosRaw, error: fetchError } = await supabaseClient.from('eventos').select(
       `
         eventoid,
         creadorid,
@@ -37,6 +52,8 @@ export async function POST(request: NextRequest) {
       console.error('Fetch error:', fetchError);
       throw fetchError;
     }
+
+    const eventos = eventosRaw as any[];
 
     console.log(`Processing ${eventos?.length || 0} eventos`);
 
@@ -67,7 +84,7 @@ export async function POST(request: NextRequest) {
         if (evento.fechas_evento && evento.fechas_evento.length > 0) {
           const dates = evento.fechas_evento
             .map((f: any) => new Date(f.fecha_fin || f.fecha_hora))
-            .filter((d) => !isNaN(d.getTime()));
+            .filter((d: Date) => !isNaN(d.getTime()));
           if (dates.length > 0) {
             finalDate = dates.reduce((max: Date, d: Date) => (d > max ? d : max));
           }
@@ -125,7 +142,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert all state changes
-    const { error: insertError } = await supabase.from('evento_estado').insert(stateChanges);
+    const { error: insertError } = await supabaseClient
+      .from('evento_estado')
+      .insert(stateChanges as any);
 
     if (insertError) {
       console.error('Insert error:', insertError);
