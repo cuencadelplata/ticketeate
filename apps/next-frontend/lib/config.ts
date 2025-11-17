@@ -40,8 +40,6 @@ function getApiBaseUrl(): string {
 
 // url hono
 export const API_BASE_URL = getApiBaseUrl();
-export const USERS_API_BASE_URL =
-  process.env.NEXT_PUBLIC_USERS_API_URL || API_BASE_URL.replace(':3001', ':3002');
 
 // Endpoints de la API
 export const API_ENDPOINTS = {
@@ -49,9 +47,9 @@ export const API_ENDPOINTS = {
   uploadImage: `${API_BASE_URL}/api/events/upload-image`,
   allEvents: `${API_BASE_URL}/api/events/all`,
   publicEventById: (id: string) => `${API_BASE_URL}/api/events/public/${id}`,
-  wallet: `${USERS_API_BASE_URL}/api/wallet`,
-  walletLink: `${USERS_API_BASE_URL}/api/wallet/link`,
-  walletUnlink: `${USERS_API_BASE_URL}/api/wallet/unlink`,
+  wallet: '/api/wallet',
+  walletLink: '/api/wallet/link',
+  walletUnlink: '/api/wallet/unlink',
 } as const;
 
 // Configuración de Cloudinary

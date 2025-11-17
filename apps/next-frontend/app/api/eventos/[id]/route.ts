@@ -4,6 +4,15 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@repo/db';
 import { randomUUID } from 'crypto';
 
+function generateId() {
+  try {
+    return randomUUID();
+  } catch (e) {
+    // Fallback para entornos donde crypto no está disponible
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+}
+
 /**
  * GET /api/eventos/[id]
  * Obtiene información detallada de un evento específico (admin)
@@ -78,20 +87,57 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    console.log('[EVENTOS PUT] Iniciando actualización de evento');
+    
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
     if (!session?.user?.id) {
+      console.log('[EVENTOS PUT] Usuario no autenticado');
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const userId = session.user.id;
+    console.log('[EVENTOS PUT] Usuario ID:', userId);
+    
     const { id: eventId } = await params;
-    const body = await request.json();
+    console.log('[EVENTOS PUT] Event ID:', eventId);
+    
+    let body;
+    try {
+      body = await request.json();
+      console.log('[EVENTOS PUT] Body recibido:', body);
+    } catch (jsonError) {
+      console.error('[EVENTOS PUT] Error parseando JSON:', jsonError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body', details: jsonError instanceof Error ? jsonError.message : String(jsonError) },
+        { status: 400 },
+      );
+    }
+    
     const { titulo, descripcion, ubicacion, estado } = body;
+    console.log('[EVENTOS PUT] Campos recibidos:', { titulo, descripcion, ubicacion, estado });
+
+    // Validar longitudes máximas
+    if (titulo && typeof titulo === 'string' && titulo.length > 200) {
+      console.log('[EVENTOS PUT] ❌ Título demasiado largo:', titulo.length, 'caracteres (máx 200)');
+      return NextResponse.json(
+        { error: 'El título no puede exceder 200 caracteres' },
+        { status: 400 },
+      );
+    }
+
+    if (ubicacion && typeof ubicacion === 'string' && ubicacion.length > 255) {
+      console.log('[EVENTOS PUT] ❌ Ubicación demasiado larga:', ubicacion.length, 'caracteres (máx 255)');
+      return NextResponse.json(
+        { error: 'La ubicación no puede exceder 255 caracteres' },
+        { status: 400 },
+      );
+    }
 
     // Obtener el evento actual para comparar cambios
+    console.log('[EVENTOS PUT] Buscando evento con ID:', eventId);
     const eventoActual = await prisma.eventos.findUnique({
       where: { eventoid: eventId },
       include: {
@@ -101,15 +147,19 @@ export async function PUT(
         },
       },
     });
+    console.log('[EVENTOS PUT] Evento encontrado:', eventoActual ? 'Sí' : 'No');
 
     if (!eventoActual) {
+      console.log('[EVENTOS PUT] Evento no encontrado con ID:', eventId);
       return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 });
     }
 
     // Verificar que el usuario sea el creador del evento
     if (eventoActual.creadorid !== userId) {
+      console.log('[EVENTOS PUT] Acceso denegado. Creador:', eventoActual.creadorid, 'Usuario:', userId);
       return NextResponse.json({ error: 'No autorizado para editar este evento' }, { status: 403 });
     }
+    console.log('[EVENTOS PUT] Usuario autorizado para editar');
 
     // Validar que al menos un campo esté siendo actualizado
     const camposActualizar: any = {};
@@ -119,12 +169,19 @@ export async function PUT(
       valorNuevo: string | null;
     }> = [];
 
+    // Función auxiliar para truncar valores largos
+    const truncarValor = (valor: string | null | undefined, maxLength = 500): string | null => {
+      if (!valor) return null;
+      if (typeof valor !== 'string') return String(valor);
+      return valor.length > maxLength ? valor.substring(0, maxLength) + '...' : valor;
+    };
+
     if (titulo !== undefined && titulo !== eventoActual.titulo) {
       camposActualizar.titulo = titulo;
       camposModificados.push({
         campo: 'titulo',
-        valorAnterior: eventoActual.titulo,
-        valorNuevo: titulo,
+        valorAnterior: truncarValor(eventoActual.titulo),
+        valorNuevo: truncarValor(titulo),
       });
     }
 
@@ -132,8 +189,8 @@ export async function PUT(
       camposActualizar.descripcion = descripcion;
       camposModificados.push({
         campo: 'descripcion',
-        valorAnterior: eventoActual.descripcion,
-        valorNuevo: descripcion,
+        valorAnterior: truncarValor(eventoActual.descripcion),
+        valorNuevo: truncarValor(descripcion),
       });
     }
 
@@ -141,8 +198,8 @@ export async function PUT(
       camposActualizar.ubicacion = ubicacion;
       camposModificados.push({
         campo: 'ubicacion',
-        valorAnterior: eventoActual.ubicacion,
-        valorNuevo: ubicacion,
+        valorAnterior: truncarValor(eventoActual.ubicacion),
+        valorNuevo: truncarValor(ubicacion),
       });
     }
 
@@ -165,43 +222,55 @@ export async function PUT(
 
     // Si no hay cambios, retornar el evento sin modificar
     if (Object.keys(camposActualizar).length === 0 && !estado) {
+      console.log('[EVENTOS PUT] No hay cambios para actualizar');
       return NextResponse.json(
         { event: eventoActual, message: 'No hay cambios para actualizar' },
         { status: 200 },
       );
     }
 
-    // Actualizar el evento
+    console.log('[EVENTOS PUT] Campos a actualizar:', camposActualizar);
+
+    // Actualizar el evento - Filtrar undefined values
     camposActualizar.fecha_cambio = new Date();
     camposActualizar.version = (eventoActual.version || 1) + 1;
     camposActualizar.updated_by = userId;
 
-    await prisma.eventos.update({
+    // Remover campos con valor undefined
+    const updateData = Object.fromEntries(
+      Object.entries(camposActualizar).filter(([_, v]) => v !== undefined)
+    );
+
+    console.log('[EVENTOS PUT] Actualizando evento en BD...');
+    console.log('[EVENTOS PUT] Datos finales para update:', JSON.stringify(updateData, null, 2));
+    console.log('[EVENTOS PUT] Claves en updateData:', Object.keys(updateData));
+    console.log('[EVENTOS PUT] Tipos de valores:', Object.entries(updateData).map(([k, v]) => `${k}: ${typeof v}`));
+    
+    // Validar que no haya valores problemáticos
+    for (const [key, value] of Object.entries(updateData)) {
+      if (typeof value === 'object' && !(value instanceof Date)) {
+        console.log(`[EVENTOS PUT] ⚠️ Campo ${key} es un objeto:`, value);
+      }
+    }
+    
+    // Update sin include - solo update
+    const eventoActualizado = await prisma.eventos.update({
       where: { eventoid: eventId },
-      data: camposActualizar,
-      include: {
-        stock_entrada: true,
-        fechas_evento: true,
-        imagenes_evento: true,
-        evento_estado: {
-          orderBy: { fecha_de_cambio: 'desc' },
-          take: 1,
-        },
-        evento_categorias: {
-          include: {
-            categoriaevento: true,
-          },
-        },
-      },
+      data: updateData,
     });
+    console.log('[EVENTOS PUT] Evento actualizado exitosamente');
+
+    // Obtener el evento actualizado con todas sus relaciones en una query separada
+    console.log('[EVENTOS PUT] Obteniendo evento actualizado con relaciones...');
 
     // Registrar los cambios en evento_modificaciones
     if (camposModificados.length > 0) {
+      console.log('[EVENTOS PUT] Registrando', camposModificados.length, 'modificaciones');
       await Promise.all(
         camposModificados.map((mod) =>
           prisma.evento_modificaciones.create({
             data: {
-              modificacionid: randomUUID(),
+              modificacionid: generateId(),
               eventoid: eventId,
               campo_modificado: mod.campo,
               valor_anterior: mod.valorAnterior,
@@ -212,22 +281,26 @@ export async function PUT(
           }),
         ),
       );
+      console.log('[EVENTOS PUT] Modificaciones registradas exitosamente');
     }
 
     // Actualizar estado del evento si se proporciona
     if (estado) {
+      console.log('[EVENTOS PUT] Registrando cambio de estado:', estado);
       await prisma.evento_estado.create({
         data: {
-          stateventid: randomUUID(),
+          stateventid: generateId(),
           eventoid: eventId,
           Estado: estado,
           usuarioid: userId,
           fecha_de_cambio: new Date(),
         },
       });
+      console.log('[EVENTOS PUT] Estado actualizado exitosamente');
     }
 
     // Obtener el evento actualizado con todas sus relaciones
+    console.log('[EVENTOS PUT] Obteniendo evento actualizado...');
     const eventoConRelaciones = await prisma.eventos.findUnique({
       where: { eventoid: eventId },
       include: {
@@ -249,6 +322,7 @@ export async function PUT(
         },
       },
     });
+    console.log('[EVENTOS PUT] Evento finalizado, retornando respuesta');
 
     return NextResponse.json(
       {
@@ -259,8 +333,27 @@ export async function PUT(
       { status: 200 },
     );
   } catch (error) {
-    console.error('[EVENTOS PUT] Error actualizando evento:', error);
-    return NextResponse.json({ error: 'Error al actualizar evento' }, { status: 500 });
+    console.error('[EVENTOS PUT] ❌ Error actualizando evento:', error);
+    if (error instanceof Error) {
+      console.error('[EVENTOS PUT] ❌ Detalles del error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+    // Log adicional para Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      console.error('[EVENTOS PUT] ❌ Prisma error code:', (error as any).code);
+      console.error('[EVENTOS PUT] ❌ Prisma error meta:', (error as any).meta);
+    }
+    return NextResponse.json(
+      {
+        error: 'Error al actualizar evento',
+        details: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.name : typeof error,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -273,49 +366,67 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    console.log('[EVENTOS DELETE] 📍 Iniciando soft delete...');
+    
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
     if (!session?.user?.id) {
+      console.log('[EVENTOS DELETE] ❌ No autorizado - sin sesión');
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const userId = session.user.id;
     const { id: eventId } = await params;
+    console.log('[EVENTOS DELETE] 📍 Usuario:', userId, 'Evento:', eventId);
+    console.log('[EVENTOS DELETE] 📍 Validando userId - Type:', typeof userId, 'Length:', userId?.length);
 
     // Obtener el evento actual
+    console.log('[EVENTOS DELETE] 📍 Buscando evento en BD...');
     const evento = await prisma.eventos.findUnique({
       where: { eventoid: eventId },
     });
 
     if (!evento) {
+      console.log('[EVENTOS DELETE] ❌ Evento no encontrado:', eventId);
       return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 });
     }
 
+    console.log('[EVENTOS DELETE] ✅ Evento encontrado:', {
+      eventoid: evento.eventoid,
+      creadorid: evento.creadorid,
+      is_active: evento.is_active,
+    });
+
     // Verificar que el usuario sea el creador del evento
     if (evento.creadorid !== userId) {
+      console.log('[EVENTOS DELETE] ❌ No autorizado - usuario no es creador');
       return NextResponse.json(
         { error: 'No autorizado para eliminar este evento' },
         { status: 403 },
       );
     }
 
-    // Realizar soft delete
+    // Realizar soft delete - Solo los campos necesarios
+    console.log('[EVENTOS DELETE] 📍 Actualizando evento con soft delete...');
+    const deleteData = {
+      deleted_at: new Date(),
+      is_active: false,
+    };
+    console.log('[EVENTOS DELETE] 📍 Data para delete:', JSON.stringify(deleteData, null, 2));
+    
     await prisma.eventos.update({
       where: { eventoid: eventId },
-      data: {
-        deleted_at: new Date(),
-        is_active: false,
-        updated_by: userId,
-        version: (evento.version || 1) + 1,
-      },
+      data: deleteData,
     });
+    console.log('[EVENTOS DELETE] ✅ Evento actualizado');
 
     // Registrar la eliminación en evento_modificaciones
+    console.log('[EVENTOS DELETE] 📍 Creando registro de modificación...');
     await prisma.evento_modificaciones.create({
       data: {
-        modificacionid: randomUUID(),
+        modificacionid: generateId(),
         eventoid: eventId,
         campo_modificado: 'estado',
         valor_anterior: 'ACTIVO',
@@ -324,7 +435,9 @@ export async function DELETE(
         fecha_modificacion: new Date(),
       },
     });
+    console.log('[EVENTOS DELETE] ✅ Registro de modificación creado');
 
+    console.log('[EVENTOS DELETE] ✅ Soft delete completado exitosamente');
     return NextResponse.json(
       {
         message: 'Evento eliminado correctamente',
@@ -333,7 +446,26 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
-    console.error('[EVENTOS DELETE] Error eliminando evento:', error);
-    return NextResponse.json({ error: 'Error al eliminar evento' }, { status: 500 });
+    console.error('[EVENTOS DELETE] ❌ Error eliminando evento:', error);
+    if (error instanceof Error) {
+      console.error('[EVENTOS DELETE] ❌ Detalles del error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
+    // Log adicional para Prisma errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      console.error('[EVENTOS DELETE] ❌ Prisma error code:', (error as any).code);
+      console.error('[EVENTOS DELETE] ❌ Prisma error meta:', (error as any).meta);
+    }
+    return NextResponse.json(
+      {
+        error: 'Error al eliminar evento',
+        details: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.name : typeof error,
+      },
+      { status: 500 },
+    );
   }
 }
