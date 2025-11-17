@@ -4,6 +4,10 @@ import { QRScanner } from '@/components/qr-scanner';
 import { QRScannerFreeEvent } from '@/components/qr-scanner-free-event';
 import { InviteCodeModal } from '@/components/invite-code-modal';
 import { useRoleProtection } from '@/hooks/use-role-protection';
+import {
+  useGetMyColaboradorEvents,
+  useUseColaboradorInviteCode,
+} from '@/hooks/use-colaborador-eventos';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -12,43 +16,26 @@ import { toast } from 'sonner';
 export default function ScannerPage() {
   const { isProtected, isLoading: sessionLoading } = useRoleProtection(['COLABORADOR']);
   const router = useRouter();
-  const [eventos, setEventos] = useState<any[]>([]);
-  const [eventInfo, setEventInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [inviteCodeInput, setInviteCodeInput] = useState('');
-  const [isUsingCode, setIsUsingCode] = useState(false);
 
-  // Cargar eventos del colaborador
+  const {
+    data: eventosData,
+    isLoading: eventosLoading,
+    error: eventosError,
+  } = useGetMyColaboradorEvents();
+
+  const useInviteCodeMutation = useUseColaboradorInviteCode();
+  const eventos = eventosData ?? [];
+  const eventInfo = eventos[0] ?? null;
+  const isUsingCode = useInviteCodeMutation.isPending;
+  const isEventosLoading = eventosLoading && !eventosData;
+
   useEffect(() => {
-    loadEventos();
-  }, []);
-
-  const loadEventos = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/colaborador/mis-eventos');
-
-      if (!response.ok) {
-        console.error('Error loading eventos:', response.statusText);
-        return;
-      }
-
-      const data = await response.json();
-      console.log('📍 Eventos del colaborador:', data.eventos);
-      setEventos(data.eventos || []);
-
-      // Cargar info del primer evento
-      if (data.eventos && data.eventos.length > 0) {
-        setEventInfo(data.eventos[0]);
-      }
-    } catch (error) {
-      console.error('Error loading eventos:', error);
-      toast.error('Error al cargar los eventos');
-    } finally {
-      setLoading(false);
+    if (eventosError instanceof Error) {
+      toast.error(eventosError.message);
     }
-  };
+  }, [eventosError]);
 
   const handleUseInviteCode = async () => {
     if (!inviteCodeInput.trim()) {
@@ -56,35 +43,14 @@ export default function ScannerPage() {
       return;
     }
 
-    setIsUsingCode(true);
     try {
-      const response = await fetch('/api/invite-codes/use', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          codigo: inviteCodeInput.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.error || 'Error al validar código');
-        return;
-      }
+      const data = await useInviteCodeMutation.mutateAsync(inviteCodeInput.trim());
 
       toast.success(data.message || '¡Código validado! Uniendo al evento...');
       setInviteCodeInput('');
       setShowCodeModal(false);
-
-      // Recargar eventos después de usar el código
-      await loadEventos();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al validar código');
-    } finally {
-      setIsUsingCode(false);
     }
   };
 
@@ -102,7 +68,7 @@ export default function ScannerPage() {
   }
 
   // Verificar que el colaborador tiene un evento asignado
-  if (loading) {
+  if (isEventosLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 flex items-center justify-center">
         <Loader2 size={40} className="animate-spin text-orange-500" />
