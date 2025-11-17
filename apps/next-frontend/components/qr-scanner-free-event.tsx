@@ -202,24 +202,24 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   }, []);
 
   const handleScan = async (codigo: string) => {
-    const trimmedCode = codigo.trim();
-    if (!trimmedCode || isProcessingScanRef.current) {
+    const normalizedCode = codigo.trim().toUpperCase();
+    if (!normalizedCode || isProcessingScanRef.current) {
       return;
     }
 
     const now = Date.now();
     const lastScan = lastScanRef.current;
-    if (lastScan && lastScan.code === trimmedCode && now - lastScan.timestamp < 2000) {
+    if (lastScan && lastScan.code === normalizedCode && now - lastScan.timestamp < 5000) {
       return;
     }
-    lastScanRef.current = { code: trimmedCode, timestamp: now };
+    lastScanRef.current = { code: normalizedCode, timestamp: now };
 
     isProcessingScanRef.current = true;
 
     setManualCode('');
 
     try {
-      const data = await validateQrMutation.mutateAsync(trimmedCode);
+      const data = await validateQrMutation.mutateAsync(normalizedCode);
 
       if (data?.data?.validado) {
         const esYaValidado = data.message?.includes('ya fue validado');
@@ -236,6 +236,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al validar código QR';
       toast.error(message);
+      lastScanRef.current = { code: normalizedCode, timestamp: Date.now() }; // evitar reintentos instantáneos
     } finally {
       isProcessingScanRef.current = false;
       if (inputRef.current) {
