@@ -170,6 +170,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const isProcessingScanRef = useRef(false);
   const lastScanRef = useRef<{ code: string; timestamp: number } | null>(null);
+  const lastToastRef = useRef<{ code: string; type: 'success' | 'already' | 'error' } | null>(null);
 
   const {
     data: scannerData,
@@ -207,6 +208,10 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
       return;
     }
 
+    if (lastToastRef.current && lastToastRef.current.code !== normalizedCode) {
+      lastToastRef.current = null;
+    }
+
     const now = Date.now();
     const lastScan = lastScanRef.current;
     if (lastScan && lastScan.code === normalizedCode && now - lastScan.timestamp < 5000) {
@@ -225,17 +230,44 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
         const esYaValidado = data.message?.includes('ya fue validado');
 
         if (esYaValidado) {
-          toast.info(
-            `⚠️ ${data.data.inscripcion.nombre} - Ya validado el ${new Date(data.data.fecha_validacion || '').toLocaleString('es-AR')}`,
-          );
+          if (
+            !(
+              lastToastRef.current &&
+              lastToastRef.current.code === normalizedCode &&
+              lastToastRef.current.type === 'already'
+            )
+          ) {
+            toast.info(
+              `⚠️ ${data.data.inscripcion.nombre} - Ya validado el ${new Date(data.data.fecha_validacion || '').toLocaleString('es-AR')}`,
+            );
+            lastToastRef.current = { code: normalizedCode, type: 'already' };
+          }
         } else {
-          toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
+          if (
+            !(
+              lastToastRef.current &&
+              lastToastRef.current.code === normalizedCode &&
+              lastToastRef.current.type === 'success'
+            )
+          ) {
+            toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
+            lastToastRef.current = { code: normalizedCode, type: 'success' };
+          }
         }
         setShowCameraModal(false);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al validar código QR';
-      toast.error(message);
+      if (
+        !(
+          lastToastRef.current &&
+          lastToastRef.current.code === normalizedCode &&
+          lastToastRef.current.type === 'error'
+        )
+      ) {
+        toast.error(message);
+        lastToastRef.current = { code: normalizedCode, type: 'error' };
+      }
       lastScanRef.current = { code: normalizedCode, timestamp: Date.now() }; // evitar reintentos instantáneos
     } finally {
       isProcessingScanRef.current = false;
@@ -249,6 +281,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
     e.preventDefault();
     if (manualCode.trim()) {
       lastScanRef.current = null;
+      lastToastRef.current = null;
       handleScan(manualCode);
     }
   };

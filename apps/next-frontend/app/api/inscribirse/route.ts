@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
 import { Resend } from 'resend';
-import { generateQRCode, createQRData, getQRCodeURL } from '@/lib/qr-utils';
+import { generateQRCode, getQRCodeURL } from '@/lib/qr-utils';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -108,15 +108,8 @@ async function createSignup({
       },
     });
 
-    // Generar código QR
+    // Generar código QR simple (mismo formato que los QRs de cortesía)
     const codigoQR = generateQRCode();
-    const datosQR = createQRData({
-      inscripcionid: inscripcion.inscripcionid,
-      eventoid: eventId,
-      codigo: codigoQR,
-      nombre,
-      correo,
-    });
 
     // Crear registro de código QR
     let codigoRegistro;
@@ -126,7 +119,7 @@ async function createSignup({
           inscripcionid: inscripcion.inscripcionid,
           eventoid: eventId,
           codigo: codigoQR,
-          datos_qr: datosQR,
+          datos_qr: codigoQR,
         },
       });
     } catch (qrError) {
@@ -144,8 +137,8 @@ async function createSignup({
       );
     }
 
-    // Generar URL del QR
-    const qrImageUrl = getQRCodeURL(datosQR);
+    // Generar URL del QR (contenido simple)
+    const qrImageUrl = getQRCodeURL(codigoQR);
 
     // Enviar email con QR
     try {
