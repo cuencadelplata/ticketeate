@@ -5,6 +5,21 @@ Todas las versiones notables de **svc-events** serán documentadas en este archi
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.6.0...svc-events-v1.7.0) (2025-11-17)
+
+
+### Bug Fixes
+
+* stop auto-refetching and ensure scanned tickets update ([e968833](https://github.com/cuencadelplata/ticketeate/commit/e968833e91e1b9fd54ddd1f8c396f1ac830192b0))
+* use correct API URL and allow public access to event details ([55fa3ef](https://github.com/cuencadelplata/ticketeate/commit/55fa3ef36759b9f9cbf1c8718b96920b735926c0))
+* use correct API URL and allow public access to event details ([#182](https://github.com/cuencadelplata/ticketeate/issues/182)) ([f417522](https://github.com/cuencadelplata/ticketeate/commit/f4175225faee325cdf2ab2cedf75dacc442091fa))
+
+
+### Features
+
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([#183](https://github.com/cuencadelplata/ticketeate/issues/183)) ([0a63bdd](https://github.com/cuencadelplata/ticketeate/commit/0a63bddada936d256f84b261eb32c39fc3854686))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([c47b1c2](https://github.com/cuencadelplata/ticketeate/commit/c47b1c22ba9459a27c74cf7a3e4200a88ce57b08))
+
 # [1.6.0](https://github.com/cuencadelplata/ticketeate/compare/svc-events-v1.5.0...svc-events-v1.6.0) (2025-11-17)
 
 
