@@ -1,0 +1,91 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1629986628661,
+  "links": [],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Compras - Total",
+      "targets": [
+        { "expr": "sum(ticketeate_purchases_total) or sum(ticketeate.purchases)", "legendFormat": "total" }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Compras por minuto",
+      "targets": [
+        { "expr": "rate(ticketeate_purchases_total[1m]) or rate(ticketeate.purchases[1m])", "legendFormat": "per_min" }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Tiempo de procesamiento - p50/p95/p99 (ms)",
+      "targets": [
+        { "expr": "histogram_quantile(0.5, sum(rate(ticketeate_processing_time_bucket[5m])) by (le)) * 1000", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(ticketeate_processing_time_bucket[5m])) by (le)) * 1000", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(ticketeate_processing_time_bucket[5m])) by (le)) * 1000", "legendFormat": "p99" }
+      ],
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Longitud de cola (por servicio)",
+      "targets": [
+        { "expr": "sum by (service)(ticketeate_queue_length)", "legendFormat": "{{service}}" }
+      ],
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Usuarios activos",
+      "targets": [
+        { "expr": "ticketeate_active_users", "legendFormat": "active_users" }
+      ],
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU % por servicio",
+      "targets": [
+        { "expr": "avg by (service)(process_cpu_seconds_total) * 100", "legendFormat": "{{service}}" }
+      ],
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 6 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memoria Heap usada (MB)",
+      "targets": [
+        { "expr": "avg by (service)(process_resident_memory_bytes) / 1024 / 1024", "legendFormat": "{{service}}" }
+      ],
+      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Compras totales (stat)",
+      "targets": [{ "expr": "sum(ticketeate_purchases_total) or sum(ticketeate.purchases)", "refId": "A" }],
+      "gridPos": { "x": 12, "y": 18, "w": 6, "h": 4 }
+    },
+    {
+      "type": "gauge",
+      "title": "Queue Length (current)",
+      "targets": [{ "expr": "sum(ticketeate_queue_length)", "refId": "A" }],
+      "gridPos": { "x": 18, "y": 18, "w": 6, "h": 4 }
+    }
+  ],
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": ["telemetry"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Ticketeate Full Observability",
+  "uid": "ticketeate-full",
+  "version": 1
+}
