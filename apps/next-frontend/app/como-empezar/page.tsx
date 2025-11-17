@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { NavbarHome } from '@/components/navbar-main';
 import { Footer } from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
