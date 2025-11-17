@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle, QrCode, AlertCircle, Loader2, Search, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Html5Qrcode } from 'html5-qrcode';
+import { useFreeEventInscripciones, useValidateFreeEventQr } from '@/hooks/use-free-event-scanner';
 
 interface Inscripcion {
   id: string;
@@ -164,22 +165,34 @@ function CameraScannerModal({ isOpen, onClose, onScan }: CameraScannerModalProps
 
 export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const [manualCode, setManualCode] = useState('');
-  const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
-  const [estadisticas, setEstadisticas] = useState({
-    totalInscritos: 0,
-    validados: 0,
-    pendientes: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [scanning, setScanning] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCameraModal, setShowCameraModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isProcessingScanRef = useRef(false);
+  const lastScanRef = useRef<{ code: string; timestamp: number } | null>(null);
 
-  // Cargar inscripciones al montar
+  const {
+    data: scannerData,
+    isLoading: isScannerLoading,
+    error: scannerError,
+  } = useFreeEventInscripciones(eventoid);
+
+  const validateQrMutation = useValidateFreeEventQr(eventoid);
+  const scanning = validateQrMutation.isPending;
+
+  const estadisticas = scannerData?.estadisticas ?? {
+    totalInscritos: 0,
+    validados: 0,
+    pendientes: 0,
+  };
+  const inscripciones = scannerData?.inscripciones ?? [];
+  const isInitialLoading = isScannerLoading && !scannerData;
+
   useEffect(() => {
-    loadInscripciones();
-  }, [eventoid]);
+    if (scannerError instanceof Error) {
+      toast.error(scannerError.message);
+    }
+  }, [scannerError]);
 
   // Auto-focus en el input
   useEffect(() => {
@@ -188,76 +201,43 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
     }
   }, []);
 
-  const loadInscripciones = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/validar-qr?eventId=${eventoid}`);
-
-      if (!response.ok) {
-        console.error('Error al cargar inscripciones:', response.status);
-        return;
-      }
-
-      const data = await response.json();
-      console.log('🔍 Scanner: Data recibida del servidor:', data);
-      console.log('🔍 Scanner: Inscripciones:', data.data.inscripciones);
-
-      setInscripciones(data.data.inscripciones);
-      setEstadisticas(data.data.estadisticas);
-    } catch (error) {
-      console.error('Error al cargar inscripciones:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleScan = async (codigo: string) => {
-    const normalizedCode = codigo.trim().toUpperCase();
-    if (!normalizedCode) return;
+    const trimmedCode = codigo.trim();
+    if (!trimmedCode || isProcessingScanRef.current) {
+      return;
+    }
+
+    const now = Date.now();
+    const lastScan = lastScanRef.current;
+    if (lastScan && lastScan.code === trimmedCode && now - lastScan.timestamp < 2000) {
+      return;
+    }
+    lastScanRef.current = { code: trimmedCode, timestamp: now };
+
+    isProcessingScanRef.current = true;
 
     setManualCode('');
-    setScanning(true);
-    setShowCameraModal(false);
 
     try {
-      const response = await fetch('/api/validar-qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: eventoid,
-          codigo: normalizedCode,
-        }),
-      });
+      const data = await validateQrMutation.mutateAsync(trimmedCode);
 
-      const data = await response.json();
+      if (data?.data?.validado) {
+        const esYaValidado = data.message?.includes('ya fue validado');
 
-      if (!response.ok) {
-        toast.error(data.message || 'Error al validar código');
-      } else {
-        if (data.data.validado) {
-          // Verificar si ya estaba validado o es la primera vez
-          const esYaValidado = data.message && data.message.includes('ya fue validado');
-
-          if (esYaValidado) {
-            toast.info(
-              `⚠️ ${data.data.inscripcion.nombre} - Ya validado el ${new Date(data.data.fecha_validacion).toLocaleString('es-AR')}`,
-            );
-          } else {
-            toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
-          }
+        if (esYaValidado) {
+          toast.info(
+            `⚠️ ${data.data.inscripcion.nombre} - Ya validado el ${new Date(data.data.fecha_validacion || '').toLocaleString('es-AR')}`,
+          );
+        } else {
+          toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
         }
-        // Recargar la lista (sin mostrar errores si falla)
-        try {
-          await loadInscripciones();
-        } catch (error) {
-          console.error('Error reloading inscripciones:', error);
-        }
+        setShowCameraModal(false);
       }
     } catch (error) {
-      toast.error('Error al validar código QR');
-      console.error(error);
+      const message = error instanceof Error ? error.message : 'Error al validar código QR';
+      toast.error(message);
     } finally {
-      setScanning(false);
+      isProcessingScanRef.current = false;
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -267,6 +247,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (manualCode.trim()) {
+      lastScanRef.current = null;
       handleScan(manualCode);
     }
   };
@@ -279,12 +260,6 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
 
   const inscripcionesValidadas = filteredInscripciones.filter((i) => i.validado);
   const inscripcionesPendientes = filteredInscripciones.filter((i) => !i.validado);
-
-  console.log('🔍 Scanner: Total inscripciones:', inscripciones.length);
-  console.log('🔍 Scanner: Filtradas:', filteredInscripciones.length);
-  console.log('🔍 Scanner: Validadas:', inscripcionesValidadas.length);
-  console.log('🔍 Scanner: Pendientes:', inscripcionesPendientes.length);
-  console.log('🔍 Scanner: searchTerm:', searchTerm);
 
   return (
     <div className="h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-3 md:p-6 lg:md:p-12 overflow-y-auto">
@@ -406,7 +381,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
         </div>
 
         {/* Inscripciones List */}
-        {loading ? (
+        {isInitialLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={32} className="animate-spin text-blue-500" />
           </div>
@@ -481,7 +456,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
               </div>
             )}
 
-            {filteredInscripciones.length === 0 && !loading && (
+            {filteredInscripciones.length === 0 && !isInitialLoading && (
               <div className="text-center py-8 md:py-12">
                 <AlertCircle size={32} className="mx-auto text-stone-500 mb-2 md:mb-4" />
                 <p className="text-xs md:text-sm text-stone-400">

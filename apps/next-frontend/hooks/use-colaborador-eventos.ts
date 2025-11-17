@@ -1,4 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+interface UseInviteCodeResponse {
+  success: boolean;
+  message?: string;
+  eventoid?: string;
+  colaborador_evento_id?: string;
+}
 
 export function useGetMyColaboradorEvents() {
   return useQuery({
@@ -15,6 +22,33 @@ export function useGetMyColaboradorEvents() {
 
       const data = await response.json();
       return data.eventos;
+    },
+  });
+}
+
+export function useUseColaboradorInviteCode() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UseInviteCodeResponse, Error, string>({
+    mutationFn: async (codigo: string) => {
+      const response = await fetch('/api/invite-codes/use', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ codigo }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al validar código');
+      }
+
+      return data as UseInviteCodeResponse;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myColaboradorEvents'] });
     },
   });
 }
