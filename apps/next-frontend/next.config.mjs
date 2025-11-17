@@ -1,4 +1,6 @@
 import withMDX from '@next/mdx'
+import fs from 'fs';
+import path from 'path';
 
 const nextMDX = withMDX({
   extension: /\.mdx?$/,
@@ -43,6 +45,9 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@repo/ui'],
+  },
+  onDemandEntries: {
+    maxInactiveAge: 1000 * 60 * 60 * 24,
   },
 };
 

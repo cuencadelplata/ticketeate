@@ -82,11 +82,6 @@ const features = [
 export default function ComoEmpezarPage() {
   return (
     <main className="min-h-screen bg-stone-50 dark:bg-stone-900">
-      {/* Navbar */}
-      <Suspense fallback={<div className="h-16" />}>
-        <NavbarHome />
-      </Suspense>
-
       {/* Hero Section */}
       <section className="pt-24 pb-12 px-4 sm:px-6 bg-gradient-to-br from-orange-50 via-stone-50 to-white dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">
         <div className="mx-auto max-w-6xl">
