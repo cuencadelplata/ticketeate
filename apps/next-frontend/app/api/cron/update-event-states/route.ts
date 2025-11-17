@@ -11,11 +11,11 @@ function getSupabaseClient() {
   if (!supabase) {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase configuration is missing');
     }
-    
+
     supabase = createClient(supabaseUrl, supabaseServiceKey);
   }
   return supabase;
@@ -24,7 +24,7 @@ function getSupabaseClient() {
 export async function POST(request: NextRequest) {
   try {
     const cronSecret = process.env.CRON_SECRET;
-    
+
     // Verify cron secret
     const secret = request.headers.get('x-cron-secret');
     if (secret !== cronSecret) {
