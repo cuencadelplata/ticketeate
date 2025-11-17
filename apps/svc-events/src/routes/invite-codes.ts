@@ -5,6 +5,53 @@ import { logger } from '../logger';
 
 const inviteRoutes = new Hono();
 
+// Helper to add CORS headers to responses
+const getCorsHeaders = (origin?: string) => {
+  const allowedOrigins = [
+    'https://ticketeate.com.ar',
+    'https://www.ticketeate.com.ar',
+    'http://localhost:3000',
+  ];
+
+  const corsOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : 'https://ticketeate.com.ar';
+
+  return {
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Requested-With, Cookie',
+  };
+};
+
+// OPTIONS handler for CORS preflight
+inviteRoutes.options('*', (c) => {
+  const origin = c.req.header('origin');
+  return c.text('', 200, getCorsHeaders(origin));
+});
+
+// Middleware to add CORS headers to all responses
+inviteRoutes.use('*', async (c, next) => {
+  await next();
+  const origin = c.req.header('origin');
+  if (
+    origin &&
+    [
+      'https://ticketeate.com.ar',
+      'https://www.ticketeate.com.ar',
+      'http://localhost:3000',
+    ].includes(origin)
+  ) {
+    c.header('Access-Control-Allow-Origin', origin);
+    c.header('Access-Control-Allow-Credentials', 'true');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    c.header(
+      'Access-Control-Allow-Headers',
+      'Authorization, Content-Type, X-Requested-With, Cookie',
+    );
+  }
+});
+
 // POST /api/invite-codes/validate - Validar código de invitación (público para registro)
 inviteRoutes.post('/validate', async (c) => {
   try {

@@ -53,7 +53,8 @@ export default function proxy(request: NextRequest) {
   const isProtectedRoute = isRouteMatch(pathname, protectedRoutes);
 
   // Si intenta acceder a ruta de auth pero ya está logueado, redirigir a home
-  if (isAuthRoute && isLoggedIn) {
+  // EXCEPTO /acceso que maneja su propia redirección según el rol
+  if (isAuthRoute && isLoggedIn && pathname !== '/acceso') {
     return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, request.url));
   }
 

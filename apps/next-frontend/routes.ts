@@ -10,6 +10,7 @@ export const publicRoutes: string[] = [
 
 // Rutas de autenticación - solo accesibles sin sesión
 export const authRoutes: string[] = [
+  '/acceso',
   '/sign-in',
   '/sign-up',
   '/forgot-password',
