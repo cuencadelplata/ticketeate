@@ -1,4 +1,4 @@
-import { db } from '@ticketeate/db';
+import { prisma } from '@repo/db';
 
 export const dynamic = 'force-dynamic';
 
