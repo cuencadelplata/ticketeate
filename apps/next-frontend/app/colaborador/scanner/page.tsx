@@ -2,6 +2,7 @@
 
 import { QRScanner } from '@/components/qr-scanner';
 import { QRScannerFreeEvent } from '@/components/qr-scanner-free-event';
+import { InviteCodeModal } from '@/components/invite-code-modal';
 import { useRoleProtection } from '@/hooks/use-role-protection';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -14,6 +15,9 @@ export default function ScannerPage() {
   const [eventos, setEventos] = useState<any[]>([]);
   const [eventInfo, setEventInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [isUsingCode, setIsUsingCode] = useState(false);
 
   // Cargar eventos del colaborador
   useEffect(() => {
@@ -46,6 +50,46 @@ export default function ScannerPage() {
     }
   };
 
+  const handleUseInviteCode = async () => {
+    if (!inviteCodeInput.trim()) {
+      toast.error('Por favor ingresa un código de invitación');
+      return;
+    }
+
+    setIsUsingCode(true);
+    try {
+      const response = await fetch('/api/administrador/invitados/usar-codigo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          codigo: inviteCodeInput.trim().toUpperCase(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || 'Error al validar código');
+        return;
+      }
+
+      toast.success('¡Código validado! Uniendo al evento...');
+      setInviteCodeInput('');
+      setShowCodeModal(false);
+
+      // Recargar eventos después de usar el código
+      setTimeout(() => {
+        loadEventos();
+      }, 1500);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al validar código');
+    } finally {
+      setIsUsingCode(false);
+    }
+  };
+
   // Detectar si el evento es gratis
   const isEventFree = eventInfo?.stock_entrada?.every((stock: any) => Number(stock.precio) === 0);
 
@@ -70,21 +114,43 @@ export default function ScannerPage() {
 
   if (!eventos || eventos.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 flex items-center justify-center text-white">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Sin Evento Asignado</h1>
-          <p className="text-stone-400 mb-8">
-            No tienes un evento asignado como colaborador. Por favor, contacta al organizador del
-            evento.
-          </p>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-3 bg-stone-700 hover:bg-stone-600 rounded-lg font-semibold transition-colors"
-          >
-            Volver al inicio
-          </button>
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 flex items-center justify-center text-white">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Sin Evento Asignado</h1>
+            <p className="text-stone-400 mb-8">
+              No tienes un evento asignado como colaborador. Ingresa un código de invitación o
+              contacta al organizador del evento.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setShowCodeModal(true)}
+                className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-semibold transition-colors"
+              >
+                Ingresar Código de Invitación
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="px-6 py-3 bg-stone-700 hover:bg-stone-600 rounded-lg font-semibold transition-colors"
+              >
+                Volver al inicio
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <InviteCodeModal
+          isOpen={showCodeModal}
+          onClose={() => {
+            setShowCodeModal(false);
+            setInviteCodeInput('');
+          }}
+          onSubmit={handleUseInviteCode}
+          codeValue={inviteCodeInput}
+          onCodeChange={setInviteCodeInput}
+          isLoading={isUsingCode}
+        />
+      </>
     );
   }
 
