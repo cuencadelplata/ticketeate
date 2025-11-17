@@ -82,24 +82,27 @@ export async function GET(request: NextRequest) {
     });
 
     // Formatear respuesta
-    const formattedTickets = tickets.map((ticket) => ({
-      id: ticket.entradaid,
-      reservaId: ticket.reservas[0]?.reservaid,
-      qrCode: ticket.codigo_qr,
-      status: ticket.estado,
-      event: {
-        id: ticket.reservas[0]?.eventos.eventoid,
-        title: ticket.reservas[0]?.eventos.titulo,
-        location: ticket.reservas[0]?.eventos.ubicacion,
-        date: ticket.reservas[0]?.fechas_evento.fecha_hora.toISOString(),
-      },
-      category: {
-        name: ticket.reservas[0]?.stock_entrada.nombre,
-        price: Number(ticket.reservas[0]?.stock_entrada.precio || 0) / 100,
-      },
-      createdAt: ticket.updated_at.toISOString(),
-      usedAt: ticket.updated_at.toISOString(), // cuando fue validada
-    }));
+    const formattedTickets = tickets.map((ticket) => {
+      const reserva = Array.isArray(ticket.reservas) ? ticket.reservas[0] : ticket.reservas;
+      return {
+        id: ticket.entradaid,
+        reservaId: reserva?.reservaid,
+        qrCode: ticket.codigo_qr,
+        status: ticket.estado,
+        event: {
+          id: reserva?.eventos.eventoid,
+          title: reserva?.eventos.titulo,
+          location: reserva?.eventos.ubicacion,
+          date: reserva?.fechas_evento.fecha_hora.toISOString(),
+        },
+        category: {
+          name: reserva?.stock_entrada.nombre,
+          price: Number(reserva?.stock_entrada.precio || 0) / 100,
+        },
+        createdAt: ticket.updated_at.toISOString(),
+        usedAt: ticket.updated_at.toISOString(), // cuando fue validada
+      };
+    });
 
     return NextResponse.json({
       buyer: {
