@@ -201,30 +201,105 @@ export function useUpdateEvent() {
       const data = await res.json();
       return data.event;
     },
+    onMutate: async ({ id, eventData }) => {
+      console.log('[useUpdateEvent] onMutate - Actualizando caché optimista para evento:', id);
+
+      // Cancelar queries que puedan conflictuar
+      await queryClient.cancelQueries({ queryKey: ['events'] });
+      await queryClient.cancelQueries({ queryKey: ['all-events'] });
+      await queryClient.cancelQueries({ queryKey: ['events', id] });
+
+      // Guardar snapshot anterior por si hay rollback
+      const previousEvents = queryClient.getQueryData<Event[]>(['events']);
+      const previousAllEvents = queryClient.getQueryData<Event[]>(['all-events']);
+      const previousEvent = queryClient.getQueryData<Event>(['events', id]);
+
+      // Actualizar caché optimista en la lista de eventos
+      queryClient.setQueryData(['events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map((e) =>
+          e.eventoid === id
+            ? {
+                ...e,
+                ...eventData,
+                // Si actualiza estado, también actualizar evento_estado
+                ...(eventData.estado
+                  ? {
+                      evento_estado: [
+                        {
+                          Estado: eventData.estado,
+                          fecha_de_cambio: new Date(),
+                        },
+                      ],
+                    }
+                  : {}),
+              }
+            : e,
+        );
+      });
+
+      queryClient.setQueryData(['all-events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map((e) =>
+          e.eventoid === id
+            ? {
+                ...e,
+                ...eventData,
+                ...(eventData.estado
+                  ? {
+                      evento_estado: [
+                        {
+                          Estado: eventData.estado,
+                          fecha_de_cambio: new Date(),
+                        },
+                      ],
+                    }
+                  : {}),
+              }
+            : e,
+        );
+      });
+
+      return { previousEvents, previousAllEvents, previousEvent };
+    },
     onSuccess: async (updatedEvent) => {
-      // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', updatedEvent.eventoid] });
+      console.log('[useUpdateEvent] onSuccess - Evento actualizado:', updatedEvent.eventoid);
 
-      // Forzar refetch inmediato de las queries principales
-      queryClient.refetchQueries({ queryKey: ['events'] });
+      // Actualizar con los datos reales del servidor
+      queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
 
-      // Revalidar ISR on-demand para esta página específica
-      try {
-        await fetch('/api/revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eventId: updatedEvent.eventoid,
-            // No enviamos secret desde el cliente por seguridad
-          }),
-        });
-      } catch (error) {
-        console.error('Error revalidating ISR:', error);
-        // No lanzar error, el cache eventualmente se actualizará
+      // Invalidar para refetch de datos frescos
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
+      await queryClient.invalidateQueries({ queryKey: ['all-events'] });
+
+      console.log('[useUpdateEvent] Iniciando refetch de datos frescos...');
+
+      // Esperar a que terminen los refetches
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['events'] }),
+        queryClient.refetchQueries({ queryKey: ['all-events'] }),
+      ]);
+
+      console.log('[useUpdateEvent] Refetch completado');
+
+      // Revalidar ISR on-demand (no esperamos)
+      fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: updatedEvent.eventoid }),
+      }).catch((error) => {
+        console.error('[useUpdateEvent] Error revalidating ISR:', error);
+      });
+    },
+    onError: async (error, variables, context) => {
+      console.error('[useUpdateEvent] Error - Revirtiendo caché:', error);
+
+      // Revertir a datos anteriores en caso de error
+      if (context) {
+        queryClient.setQueryData(['events'], context.previousEvents);
+        queryClient.setQueryData(['all-events'], context.previousAllEvents);
+        queryClient.setQueryData(['events', variables.id], context.previousEvent);
       }
-      queryClient.refetchQueries({ queryKey: ['all-events'] });
     },
   });
 }
@@ -253,28 +328,64 @@ export function useDeleteEvent() {
         throw new Error(msg);
       }
     },
+    onMutate: async (deletedId) => {
+      console.log('[useDeleteEvent] onMutate - Removiendo evento del caché:', deletedId);
+
+      // Cancelar queries que puedan conflictuar
+      await queryClient.cancelQueries({ queryKey: ['events'] });
+      await queryClient.cancelQueries({ queryKey: ['all-events'] });
+
+      // Guardar snapshot anterior por si hay rollback
+      const previousEvents = queryClient.getQueryData<Event[]>(['events']);
+      const previousAllEvents = queryClient.getQueryData<Event[]>(['all-events']);
+
+      // Remover el evento del caché de forma optimista
+      queryClient.setQueryData(['events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.filter((e) => e.eventoid !== deletedId);
+      });
+
+      queryClient.setQueryData(['all-events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.filter((e) => e.eventoid !== deletedId);
+      });
+
+      return { previousEvents, previousAllEvents };
+    },
     onSuccess: async (_, deletedId) => {
-      // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      queryClient.invalidateQueries({ queryKey: ['events', deletedId] });
+      console.log('[useDeleteEvent] onSuccess - Evento eliminado:', deletedId);
 
-      // Forzar refetch inmediato de las queries principales
-      queryClient.refetchQueries({ queryKey: ['events'] });
-      queryClient.refetchQueries({ queryKey: ['all-events'] });
+      // Invalidar queries
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
+      await queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      await queryClient.invalidateQueries({ queryKey: ['events', deletedId] });
 
-      // Revalidar ISR on-demand (tanto el evento eliminado como la lista)
-      try {
-        await fetch('/api/revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eventId: deletedId,
-            // No enviamos secret desde el cliente por seguridad
-          }),
-        });
-      } catch (error) {
-        console.error('Error revalidating ISR:', error);
+      console.log('[useDeleteEvent] Iniciando refetch de datos frescos...');
+
+      // Esperar a que terminen los refetches
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['events'] }),
+        queryClient.refetchQueries({ queryKey: ['all-events'] }),
+      ]);
+
+      console.log('[useDeleteEvent] Refetch completado');
+
+      // Revalidar ISR on-demand (no esperamos)
+      fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: deletedId }),
+      }).catch((error) => {
+        console.error('[useDeleteEvent] Error revalidating ISR:', error);
+      });
+    },
+    onError: async (error, deletedId, context) => {
+      console.error('[useDeleteEvent] Error - Revirtiendo caché:', error);
+
+      // Revertir a datos anteriores en caso de error
+      if (context) {
+        queryClient.setQueryData(['events'], context.previousEvents);
+        queryClient.setQueryData(['all-events'], context.previousAllEvents);
       }
     },
   });

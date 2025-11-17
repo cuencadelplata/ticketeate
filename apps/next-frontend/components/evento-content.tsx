@@ -10,6 +10,7 @@ import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Image from 'next/image';
 import { QueueModal } from '@/components/queue-modal';
 import { FreeEventSignupModal } from '@/components/free-event-signup-modal';
+import { EventAttendeesList } from '@/components/event-attendees-list';
 import type { Event } from '@/types/events';
 
 interface EventoContentProps {
@@ -313,6 +314,11 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
                   </div>
                 </div>
               )}
+
+              {/* Asistentes del evento */}
+              <div className="rounded-lg border-1 border-stone-700/50 bg-stone-800/30 p-4">
+                <EventAttendeesList eventId={id || event.eventoid} maxDisplay={4} />
+              </div>
             </div>
 
             <div className="space-y-4 order-3 md:order-2">

@@ -444,19 +444,27 @@ export function CheckoutProvider({ children, eventId }: CheckoutProviderProps) {
     try {
       // Mercado Pago
       if (metodo === 'mercado_pago') {
+        const external_reference = `order_${selectedEvent.eventoid}_${idUsuario}_${Date.now()}`;
         const prefRes = await fetch('/api/mercadopago/create-preference', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
-            title: `${selectedEvent.titulo} - ${sector || 'General'}`,
-            quantity: cantidad,
-            unit_price: precioUnitario,
-            currency: 'ARS',
+            items: [
+              {
+                title: `${selectedEvent.titulo} - ${sector || 'General'}`,
+                quantity: cantidad,
+                unit_price: precioUnitario,
+                currency_id: 'ARS',
+              },
+            ],
+            external_reference,
             metadata: {
               eventoid: selectedEvent.eventoid,
               usuarioid: idUsuario,
               cantidad,
               sector,
+              buyerId: idUsuario,
             },
           }),
         });
