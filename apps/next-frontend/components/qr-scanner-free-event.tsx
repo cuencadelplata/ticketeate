@@ -202,7 +202,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   }, []);
 
   const handleScan = async (codigo: string) => {
-    const normalizedCode = codigo.trim().toUpperCase();
+    const normalizedCode = codigo.trim().toLowerCase();
     if (!normalizedCode || isProcessingScanRef.current) {
       return;
     }
