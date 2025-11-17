@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.7.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.7.0...svc-checkout-v1.7.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* Add missing headers import and fix lint errors ([258b6eb](https://github.com/cuencadelplata/ticketeate/commit/258b6eb0222c4e1dbe6691a055a111c14a6f543d))
+* Add missing headers import and fix lint errors ([#196](https://github.com/cuencadelplata/ticketeate/issues/196)) ([a94599b](https://github.com/cuencadelplata/ticketeate/commit/a94599b123a08b0be5a4233a748534b9020ccc5d))
+
 # [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.6.1...svc-checkout-v1.7.0) (2025-11-17)
 
 
