@@ -5,6 +5,36 @@ Todas las versiones notables de **redis-service** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.4.0...redis-service-v1.5.0) (2025-11-17)
+
+
+### Bug Fixes
+
+* add API Gateway routes for /api/invite-codes endpoints ([3133db4](https://github.com/cuencadelplata/ticketeate/commit/3133db498619721e2880c92a39218c3b97732265))
+* add CORS headers and OPTIONS handler to invite-codes routes ([17825e2](https://github.com/cuencadelplata/ticketeate/commit/17825e2ed3310d3060292ceb224703e7cb2eaea6))
+* add CORS headers and OPTIONS handler to invite-codes routes ([#181](https://github.com/cuencadelplata/ticketeate/issues/181)) ([158ee41](https://github.com/cuencadelplata/ticketeate/commit/158ee41c1fa510b5af61c211105e08f01df08a9b))
+* **next-frontend:** add MERCADOPAGO_WEBHOOK_SECRET to docker build args and github workflow ([e84a926](https://github.com/cuencadelplata/ticketeate/commit/e84a926ebbc9fad66ec596c22a193c8444b2acc1))
+* avoid constant refetches on scanner page and add attendee list ([46b3ca3](https://github.com/cuencadelplata/ticketeate/commit/46b3ca35e7f2d600e52470dafbb9300788fdc850))
+* correct API_BASE URL construction in invite-codes hook ([0af5a55](https://github.com/cuencadelplata/ticketeate/commit/0af5a55978e1e81f6adef2ed40dd3e3f0f6bce66))
+* correct API_BASE URL construction in invite-codes hook  ([#177](https://github.com/cuencadelplata/ticketeate/issues/177)) ([b7d985f](https://github.com/cuencadelplata/ticketeate/commit/b7d985f3fab91b2d8eb50fb1b7de59f9b2e063d6))
+* **mercadopago:** correct OAuth client ([#176](https://github.com/cuencadelplata/ticketeate/issues/176)) ([5913340](https://github.com/cuencadelplata/ticketeate/commit/5913340611f4ef0bcdfb947b51c96ea06650b934))
+* **mercadopago:** correct OAuth client credentials ([5b7173e](https://github.com/cuencadelplata/ticketeate/commit/5b7173ed06b99da03664c1d216305eb1a0a18008))
+* CORS handling for invite-codes endpoint - add OPTIONS method check ([c2cfdeb](https://github.com/cuencadelplata/ticketeate/commit/c2cfdeb4631a44023004da8439f789d60eadb36b))
+* remove invalid html5-qrcode configuration option ([367e04f](https://github.com/cuencadelplata/ticketeate/commit/367e04fafc26080a4534e9d1d82ffbd6a7f6766b))
+* stop auto-refetching and ensure scanned tickets update ([e968833](https://github.com/cuencadelplata/ticketeate/commit/e968833e91e1b9fd54ddd1f8c396f1ac830192b0))
+* use correct API URL and allow public access to event details ([55fa3ef](https://github.com/cuencadelplata/ticketeate/commit/55fa3ef36759b9f9cbf1c8718b96920b735926c0))
+* use correct API URL and allow public access to event details ([#182](https://github.com/cuencadelplata/ticketeate/issues/182)) ([f417522](https://github.com/cuencadelplata/ticketeate/commit/f4175225faee325cdf2ab2cedf75dacc442091fa))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([#179](https://github.com/cuencadelplata/ticketeate/issues/179)) ([217497e](https://github.com/cuencadelplata/ticketeate/commit/217497e6c2bf82a68cc0db80089cf40827db0c45))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([8391b52](https://github.com/cuencadelplata/ticketeate/commit/8391b521d617450581df4dfbabaf85b76648b5a5))
+
+
+### Features
+
+* add camera QR scanning to scanner page ([28d97ce](https://github.com/cuencadelplata/ticketeate/commit/28d97ce5d5dda9b28e30feddd8a730fc77211a0a))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([#183](https://github.com/cuencadelplata/ticketeate/issues/183)) ([0a63bdd](https://github.com/cuencadelplata/ticketeate/commit/0a63bddada936d256f84b261eb32c39fc3854686))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([c47b1c2](https://github.com/cuencadelplata/ticketeate/commit/c47b1c22ba9459a27c74cf7a3e4200a88ce57b08))
+* **mercadopago:** implement OAuth 2.0 with PKCE, token refresh, and comprehensive documentation ([0edec7d](https://github.com/cuencadelplata/ticketeate/commit/0edec7db2ad84a53d83b4bd2403cc0f59486ece3))
+
 # [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/redis-service-v1.3.3...redis-service-v1.4.0) (2025-11-16)
 
 
