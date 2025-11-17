@@ -3,35 +3,13 @@
 import { useSession } from '@/lib/auth-client';
 import { Navbar } from '@/components/navbar';
 import { Calendar, MapPin, QrCode, CheckCircle, Clock } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-
-interface Inscription {
-  id: string;
-  eventTitle: string;
-  eventDate: string;
-  eventLocation: string;
-  qrCode: string;
-  inscriptionDate: string;
-  status: 'validated' | 'pending' | 'cancelled';
-}
+import { useUserInscripciones } from '@/hooks/use-user-inscripciones';
+import Link from 'next/link';
 
 export default function InscripcionesPage() {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [inscriptions] = useState<Inscription[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (sessionLoading) return;
-
-    if (!session?.user) {
-      window.location.href = '/';
-      return;
-    }
-
-    // TODO: Cargar las inscripciones del usuario desde la API
-    setIsLoading(false);
-  }, [session, sessionLoading]);
+  const { data: inscripciones = [], isLoading, error } = useUserInscripciones();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -83,6 +61,23 @@ export default function InscripcionesPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <div className="pb-4">
+          <Navbar />
+        </div>
+        <div className="p-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="rounded-lg border border-red-700 bg-red-900/30 p-6 text-center">
+              <p className="text-red-400">Error al cargar las inscripciones: {error.message}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="pb-4">
@@ -103,67 +98,120 @@ export default function InscripcionesPage() {
           </div>
 
           {/* Contenido */}
-          {inscriptions.length === 0 ? (
+          {inscripciones.length === 0 ? (
             <div className="rounded-lg border border-stone-700 bg-stone-900/50 p-12 text-center">
               <QrCode className="mx-auto mb-4 h-12 w-12 text-stone-500" />
               <h3 className="mb-2 text-lg font-medium text-stone-300">No tienes inscripciones</h3>
-              <p className="text-stone-400 mb-6">
-                Aún no te has inscrito en ningún evento gratuito
-              </p>
-              <a
-                href="/"
+              <p className="text-stone-400 mb-6">Aún no te has inscrito en ningún evento</p>
+              <Link
+                href="/descubrir"
                 className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition-colors"
               >
                 Explorar eventos
-              </a>
+              </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {inscriptions.map((inscription) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {inscripciones.map((inscripcion) => (
                 <div
-                  key={inscription.id}
-                  className="rounded-lg border border-stone-700 bg-stone-900/30 p-6 hover:bg-stone-900/50 transition-colors overflow-hidden"
+                  key={inscripcion.inscripcionid}
+                  className="rounded-lg border border-stone-700 bg-stone-900/30 overflow-hidden hover:border-stone-600 hover:bg-stone-900/50 transition-all"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium text-white mb-3">
-                        {inscription.eventTitle}
-                      </h3>
-                      <div className="space-y-2 text-sm text-stone-400">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 flex-shrink-0" />
-                          {new Date(inscription.eventDate).toLocaleDateString('es-AR')}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 flex-shrink-0" />
-                          {inscription.eventLocation}
-                        </div>
+                  {/* Imagen del evento */}
+                  {inscripcion.eventImage && (
+                    <div className="relative h-40 w-full overflow-hidden bg-stone-800">
+                      <img
+                        src={inscripcion.eventImage}
+                        alt={inscripcion.eventTitle}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute top-0 right-0 m-3">
+                        <span
+                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${getStatusColor(
+                            inscripcion.status,
+                          )}`}
+                        >
+                          {getStatusIcon(inscripcion.status)}
+                          {getStatusLabel(inscripcion.status)}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(inscription.status)}
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${getStatusColor(
-                          inscription.status,
-                        )}`}
+                  )}
+
+                  <div className="p-6">
+                    {/* Título y estado */}
+                    <div className="mb-4">
+                      <Link
+                        href={`/evento/manage/${inscripcion.eventid}`}
+                        className="block hover:text-orange-500 transition-colors"
                       >
-                        {getStatusLabel(inscription.status)}
+                        <h3 className="text-lg font-semibold text-white mb-3 hover:text-orange-400">
+                          {inscripcion.eventTitle}
+                        </h3>
+                      </Link>
+                      {!inscripcion.eventImage && (
+                        <span
+                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            inscripcion.status,
+                          )}`}
+                        >
+                          {getStatusIcon(inscripcion.status)}
+                          {getStatusLabel(inscripcion.status)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Información del evento */}
+                    <div className="space-y-2 text-sm text-stone-400 mb-4">
+                      {inscripcion.eventDate && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 flex-shrink-0" />
+                          <span>
+                            {new Date(inscripcion.eventDate).toLocaleDateString('es-AR', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                      )}
+                      {inscripcion.eventLocation && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 flex-shrink-0" />
+                          <span>{inscripcion.eventLocation}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* QR Code */}
+                    {inscripcion.qrCode && (
+                      <div className="bg-stone-950 rounded p-3 mb-4 flex justify-center">
+                        <div className="bg-white p-2 rounded">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
+                              inscripcion.qrData || inscripcion.qrCode,
+                            )}`}
+                            alt="QR Code"
+                            className="w-24 h-24"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer con fechas */}
+                    <div className="flex items-center justify-between text-xs text-stone-500 pt-3 border-t border-stone-700">
+                      <span>
+                        Registrado:{' '}
+                        {new Date(inscripcion.inscriptionDate).toLocaleDateString('es-AR')}
                       </span>
+                      {inscripcion.qrValidated && inscripcion.qrValidationDate && (
+                        <span className="text-green-400">
+                          Validado:{' '}
+                          {new Date(inscripcion.qrValidationDate).toLocaleDateString('es-AR')}
+                        </span>
+                      )}
                     </div>
-                  </div>
-
-                  {/* QR Code Display */}
-                  <div className="bg-stone-950 rounded p-3 mb-4">
-                    <div className="bg-white p-2 rounded flex justify-center">
-                      <img src={inscription.qrCode} alt="QR Code" className="w-32 h-32" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-stone-500 pt-3 border-t border-stone-700">
-                    <span>
-                      Registrado:{' '}
-                      {new Date(inscription.inscriptionDate).toLocaleDateString('es-AR')}
-                    </span>
                   </div>
                 </div>
               ))}

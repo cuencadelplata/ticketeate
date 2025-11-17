@@ -77,28 +77,28 @@ export function EventCard({
         </div>
 
         {/* Contenido de la card */}
-        <div className="p-4 flex flex-col flex-grow min-h-[140px]">
+        <div className="p-4 flex flex-col flex-grow">
           {/* Categoría pequeña */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 h-5">
             <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 line-clamp-1">
               {category}
             </span>
           </div>
 
           {/* Título */}
-          <h3 className="text-base font-semibold text-stone-900 dark:text-white line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+          <h3 className="text-base font-semibold text-stone-900 dark:text-white line-clamp-2 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors h-14">
             {title}
           </h3>
 
           {/* Fecha del evento */}
-          <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-stone-400 mb-2">
+          <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-stone-400 mb-2 h-6">
             <Calendar className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <span className="line-clamp-1">{date}</span>
           </div>
 
           {/* Ubicación */}
           {category2 && (
-            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-stone-400">
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-stone-400 h-6">
               <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span className="line-clamp-1">{category2}</span>
             </div>

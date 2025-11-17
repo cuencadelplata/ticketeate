@@ -128,6 +128,26 @@ resource "aws_security_group" "redis" {
     security_groups = [aws_security_group.lambda.id]
   }
 
+  # Redis port from within VPC (for Supabase and internal services)
+  ingress {
+    description = "Redis port from VPC CIDR"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  # Redis port from external (Supabase) - restrict to Supabase IPs if possible
+  # Supabase uses dynamic IPs, so for now allow from anywhere
+  # TODO: Restrict to specific Supabase IP ranges once confirmed
+  ingress {
+    description = "Redis port from Supabase Edge Functions"
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # SSH for tunneling
   ingress {
     description = "SSH from specific IPs"

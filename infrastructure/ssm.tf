@@ -187,6 +187,7 @@ locals {
     REDIS_HOST                     = aws_instance.redis.private_ip
     REDIS_PORT                     = "6379"
     REDIS_URL                      = "redis://:ticketeate123@${aws_instance.redis.private_ip}:6379"
+    REDIS_PASSWORD                 = "ticketeate123"
   }
 
   # Environment variables específicas para Next.js (públicas)

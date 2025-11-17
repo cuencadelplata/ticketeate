@@ -13,6 +13,8 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { roleToPath } from '@/lib/role-redirect';
 
 type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
@@ -28,6 +30,7 @@ const OTP_ROLE_SELECTION_KEY = 'ticketeate:auth:selectedRole';
 
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const { data: session } = useSession();
+  const router = useRouter();
   const showOtpBySessionRef = useRef(false);
   const pendingRoleRef = useRef<{ role: Role; inviteCode?: string } | null>(null);
 
@@ -441,12 +444,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Hacer un refresh de la sesión para sincronizar el rol
-      await authClient.getSession();
+      const refreshedSession = await authClient.getSession();
 
       // Limpiar la bandera de OTP
       clearOtpState();
       setShowOtpVerification(false);
       setOtp('');
+
+      const finalRole = (refreshedSession?.user as any)?.role as Role | undefined;
+      const redirectTarget = roleToPath(finalRole);
+      router.replace(redirectTarget);
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       let errorMessage = 'Código incorrecto o expirado';

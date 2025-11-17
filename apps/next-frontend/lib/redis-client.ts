@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import type { RedisOptions } from 'ioredis';
 import { REDIS_CONFIG } from './config';
 
 export interface QueuePosition {
@@ -26,8 +27,97 @@ export interface ReservationData {
 class RedisClient {
   private client: Redis;
 
-  constructor(url: string) {
-    this.client = new Redis(url);
+  constructor(url: string, password?: string) {
+    const connectionString = url || 'redis://localhost:6379';
+    const options: RedisOptions = {
+      maxRetriesPerRequest: 5,
+      enableOfflineQueue: true,
+    };
+
+    if (password) {
+      options.password = password;
+    }
+
+    if (connectionString.startsWith('rediss://')) {
+      options.tls = {};
+    }
+
+    this.client = new Redis(connectionString, options);
+  }
+
+  getClient(): Redis {
+    return this.client;
+  }
+
+  async get(key: string): Promise<string | null> {
+    try {
+      return await this.client.get(key);
+    } catch (error) {
+      console.error('Redis GET error:', error);
+      return null;
+    }
+  }
+
+  async mget(keys: string[]): Promise<Array<string | null>> {
+    try {
+      if (keys.length === 0) {
+        return [];
+      }
+      return (await this.client.mget(...keys)) as Array<string | null>;
+    } catch (error) {
+      console.error('Redis MGET error:', error);
+      return keys.map(() => null);
+    }
+  }
+
+  async set(key: string, value: string, ex?: number): Promise<boolean> {
+    try {
+      if (typeof ex === 'number') {
+        await this.client.set(key, value, 'EX', ex);
+      } else {
+        await this.client.set(key, value);
+      }
+      return true;
+    } catch (error) {
+      console.error('Redis SET error:', error);
+      return false;
+    }
+  }
+
+  async incr(key: string): Promise<number | null> {
+    try {
+      return await this.client.incr(key);
+    } catch (error) {
+      console.error('Redis INCR error:', error);
+      return null;
+    }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    try {
+      return (await this.client.exists(key)) === 1;
+    } catch (error) {
+      console.error('Redis EXISTS error:', error);
+      return false;
+    }
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    try {
+      return await this.client.keys(pattern);
+    } catch (error) {
+      console.error('Redis KEYS error:', error);
+      return [];
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      return (await this.client.del(key)) > 0;
+    } catch (error) {
+      console.error('Redis DEL error:', error);
+      return false;
+    }
   }
 
   // Script Lua para unirse a la cola
@@ -404,4 +494,4 @@ class RedisClient {
 }
 
 // Instancia singleton del cliente Redis
-export const redisClient = new RedisClient(REDIS_CONFIG.url);
+export const redisClient = new RedisClient(REDIS_CONFIG.url, REDIS_CONFIG.password);

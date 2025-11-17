@@ -6,6 +6,10 @@ export const publicRoutes: string[] = [
   '/productoras',
   '/descubrir/*',
   '/evento/*', // Ver detalles de eventos públicos
+  '/como-empezar',
+  '/precios',
+  '/terms',
+  '/privacy',
 ];
 
 // Rutas de autenticación - solo accesibles sin sesión

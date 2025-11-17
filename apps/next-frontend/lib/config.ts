@@ -62,8 +62,29 @@ export const CLOUDINARY_CONFIG = {
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
 } as const;
 
-// Configuración de Redis (local con ioredis)
+// Helper para construir la URL de Redis cuando solo se provee host/port
+function buildRedisUrl(): string {
+  if (process.env.REDIS_URL) {
+    return process.env.REDIS_URL;
+  }
+
+  if (process.env.REDIS_HOST) {
+    const authPart = process.env.REDIS_PASSWORD ? `:${process.env.REDIS_PASSWORD}@` : '';
+    const port = process.env.REDIS_PORT || '6379';
+    return `redis://${authPart}${process.env.REDIS_HOST}:${port}`;
+  }
+
+  return 'redis://default:localpassword@localhost:6379';
+}
+
+const redisUrl = buildRedisUrl();
+
+// Configuración de Redis (instancia en EC2 o local)
 export const REDIS_CONFIG = {
-  url: process.env.REDIS_URL || 'redis://default:localpassword@localhost:6379',
-  token: process.env.REDIS_PASSWORD || process.env.REDIS_TOKEN,
+  url: redisUrl,
+  password: process.env.REDIS_PASSWORD || process.env.REDIS_TOKEN,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : undefined,
+  restUrl: process.env.UPSTASH_REDIS_REST_URL,
+  restToken: process.env.UPSTASH_REDIS_REST_TOKEN,
 } as const;
