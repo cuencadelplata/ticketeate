@@ -31,7 +31,8 @@ export function InviteCodesManagement({ eventoid }: InviteCodesManagementProps) 
   const { mutate: createInviteCode, isPending: isCreating } = useCreateInviteCode();
   const { data: inviteCodes, isLoading: isLoadingCodes, refetch } = useGetInviteCodes(eventoid);
   const { mutate: deactivateCode, isPending: isDeactivating } = useDeactivateInviteCode();
-  const { data: colaboradores, refetch: refetchColaboradores } = useGetColaboradores(eventoid);
+  const { data: colaboradores, refetch: refetchColaboradores } =
+    useGetColaboradores(eventoid);
 
   // Forzar refetch al montar el componente o cambiar eventoid
   useEffect(() => {
