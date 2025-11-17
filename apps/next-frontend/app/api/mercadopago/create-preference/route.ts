@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     }
 
     // El organizador se obtiene del metadata (eventId)
-    const eventId = metadata?.eventoid;
+    const eventId = metadata?.event_id;
     if (!eventId) {
-      return NextResponse.json({ error: 'Se requiere eventoid en metadata' }, { status: 400 });
+      return NextResponse.json({ error: 'Se requiere event_id en metadata' }, { status: 400 });
     }
 
     // Obtener el evento y su organizador
