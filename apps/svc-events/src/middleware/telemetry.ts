@@ -15,15 +15,34 @@ const cloudWatch = new CloudWatchMetrics({
 // Middleware para monitorear colas y usuarios activos
 export const telemetryMiddleware = async (c, next) => {
   const start = Date.now();
+  const startCpu = process.cpuUsage();
 
   try {
     await next();
   } finally {
     const duration = Date.now() - start;
 
+    // Calcular uso de recursos
+    const endCpu = process.cpuUsage(startCpu);
+    const endMemory = process.memoryUsage();
+    const cpuMicros = endCpu.user + endCpu.system; // microsegundos
+    const cpuPercent = Math.round((cpuMicros / (duration * 1000)) * 100);
+
     // Registrar tiempo de respuesta
     telemetry.recordProcessingTime(duration);
     await cloudWatch.recordProcessingTime(duration);
+
+    // Registrar métricas del sistema
+    try {
+      await cloudWatch.recordCpuUsage(cpuPercent);
+    } catch (e) {
+      // ignore
+    }
+    try {
+      await cloudWatch.recordMemoryUsage(Math.round(endMemory.heapUsed / 1024 / 1024));
+    } catch (e) {
+      // ignore
+    }
 
     // Si la ruta es para verificar la cola
     if (c.req.path.includes('/queue/status')) {

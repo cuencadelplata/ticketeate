@@ -31,6 +31,10 @@ app.use(
   }),
 );
 
+// Telemetry middleware
+import { telemetryMiddleware } from './middleware/telemetry';
+app.use('*', telemetryMiddleware);
+
 // Routes
 app.get('/', (c) => {
   return c.json({
