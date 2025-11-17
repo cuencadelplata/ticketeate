@@ -99,6 +99,7 @@ COPY --from=builder /app/apps/next-frontend/.next ./apps/next-frontend/.next
 COPY --from=builder /app/apps/next-frontend/public ./apps/next-frontend/public
 COPY --from=builder /app/apps/next-frontend/package.json ./apps/next-frontend/
 COPY --from=builder /app/apps/next-frontend/next.config.mjs ./apps/next-frontend/
+COPY --from=builder /app/apps/next-frontend/content ./apps/next-frontend/content
 
 # Set runtime environment variables with placeholders
 # These will be overridden by Parameter Store values at runtime via docker run -e
