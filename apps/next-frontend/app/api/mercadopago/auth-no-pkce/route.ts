@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     const redirectUri = process.env.MERCADOPAGO_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
-      console.error(
-        '[OAuth Auth No PKCE] Missing configuration:',
-        { clientId: !!clientId, redirectUri: !!redirectUri },
-      );
+      console.error('[OAuth Auth No PKCE] Missing configuration:', {
+        clientId: !!clientId,
+        redirectUri: !!redirectUri,
+      });
       return NextResponse.json(
         { error: 'Configuración de Mercado Pago incompleta' },
         { status: 500 },
@@ -85,9 +85,6 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('[OAuth Auth No PKCE] Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
