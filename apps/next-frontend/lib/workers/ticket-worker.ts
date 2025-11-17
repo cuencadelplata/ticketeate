@@ -16,6 +16,7 @@ import {
   recoverStalledJobs,
   cleanupOldJobs,
 } from '../services/ticket-queue';
+import { createCriticalCircuitBreaker } from '../circuit-breaker';
 
 const WORKER_CONFIG = {
   pollIntervalMs: parseInt(process.env.TICKET_WORKER_POLL_INTERVAL || '5000', 10),
@@ -27,6 +28,31 @@ const WORKER_CONFIG = {
 let isRunning = false;
 let activeJobs = 0;
 
+// Circuit breaker para envío de emails (operación crítica)
+const emailSendBreaker = createCriticalCircuitBreaker(
+  async (url: string, options: RequestInit): Promise<Response> => {
+    const response = await fetch(url, options);
+
+    // Considerar errores HTTP 5xx como fallos del servicio
+    if (response.status >= 500 && response.status < 600) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    if (!response.ok) {
+      // Intentar obtener el error del body
+      try {
+        const error = await response.json();
+        throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
+      } catch {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    }
+
+    return response;
+  },
+  'email-send',
+);
+
 /**
  * Procesar un job de comprobante
  */
@@ -34,8 +60,9 @@ async function processJob(jobId: string, job: any): Promise<void> {
   console.log(`[TicketWorker] Processing job ${jobId}...`);
 
   try {
-    // Llamar al API de envío de email
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/tickets/send-email`, {
+    // Llamar al API de envío de email a través del circuit breaker
+    const emailUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/tickets/send-email`;
+    const response = await emailSendBreaker.fire(emailUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,21 +76,22 @@ async function processJob(jobId: string, job: any): Promise<void> {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to send email');
-    }
-
     const result = await response.json();
     console.log(`[TicketWorker] Job ${jobId} completed. Email ID: ${result.emailId}`);
 
     // Marcar como completado
     await markJobCompleted(jobId);
   } catch (error: any) {
-    console.error(`[TicketWorker] Job ${jobId} failed:`, error.message);
+    // El circuit breaker puede rechazar la llamada si está abierto
+    const errorMessage =
+      error.code === 'ECIRCUITOPEN'
+        ? 'Email service temporarily unavailable (circuit breaker open)'
+        : error.message || 'Failed to send email';
+
+    console.error(`[TicketWorker] Job ${jobId} failed:`, errorMessage);
 
     // Marcar como fallido (con retry si es posible)
-    await markJobFailed(jobId, error.message, true);
+    await markJobFailed(jobId, errorMessage, true);
   }
 }
 
