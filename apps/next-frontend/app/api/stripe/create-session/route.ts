@@ -11,10 +11,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan campos' }, { status: 400 });
     }
 
-    const secret =
-      process.env.STRIPE_SECRET_KEY;
-    const publishableKey =
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const secret = process.env.STRIPE_SECRET_KEY;
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (!secret || !publishableKey) {
       return NextResponse.json({ error: 'Stripe keys no configuradas' }, { status: 500 });
     }
