@@ -7,7 +7,7 @@
 make demo-manual
 
 # 2. Verificar que los contenedores están corriendo
-docker ps --filter "name=ticketeate-demo-"
+docker ps --filter "name=ticketeate-"
 ```
 
 ---
@@ -16,7 +16,7 @@ docker ps --filter "name=ticketeate-demo-"
 
 ### Terminal 1 - Monitor (Copiar completo)
 ```bash
-watch -n 1 'docker ps --filter "name=ticketeate-demo-" --format "table {{.Names}}\t{{.Status}}" | sort'
+watch -n 1 'docker ps --filter "name=ticketeate-" --format "table {{.Names}}\t{{.Status}}" | sort'
 ```
 
 ### Terminal 2 - Peticiones HTTP (Copiar completo)
@@ -38,23 +38,23 @@ done
 
 #### Escenario 1: Un servicio
 ```bash
-docker stop ticketeate-demo-frontend-1
+docker stop ticketeate-frontend-1
 # Esperar 5 segundos, observar Terminal 2
-docker start ticketeate-demo-frontend-1
+docker start ticketeate-frontend-1
 ```
 
 #### Escenario 2: Tres servicios
 ```bash
-docker stop ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-demo-events-1
+docker stop ticketeate-frontend-1 ticketeate-checkout-1 ticketeate-events-1
 # Esperar 5 segundos, observar Terminal 2
-docker start ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-demo-events-1
+docker start ticketeate-frontend-1 ticketeate-checkout-1 ticketeate-events-1
 ```
 
 #### Escenario 3: Todas las réplicas 1
 ```bash
-docker stop ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-demo-events-1 ticketeate-demo-producers-1 ticketeate-demo-users-1
+docker stop ticketeate-frontend-1 ticketeate-checkout-1 ticketeate-events-1 ticketeate-producers-1 ticketeate-users-1
 # Esperar 5 segundos, observar Terminal 2
-docker start ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-demo-events-1 ticketeate-demo-producers-1 ticketeate-demo-users-1
+docker start ticketeate-frontend-1 ticketeate-checkout-1 ticketeate-events-1 ticketeate-producers-1 ticketeate-users-1
 ```
 
 ---
@@ -73,7 +73,7 @@ docker start ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-de
 
 ### Demo Escenario 1 (1 min)
 ```bash
-docker stop ticketeate-demo-frontend-1
+docker stop ticketeate-frontend-1
 ```
 > "Acabé de apagar el Frontend réplica 1.
 > Observen Terminal 1: el contenedor está caído.
@@ -81,13 +81,13 @@ docker stop ticketeate-demo-frontend-1
 > NGINX detectó la falla y redirigió a la réplica 2."
 
 ```bash
-docker start ticketeate-demo-frontend-1
+docker start ticketeate-frontend-1
 ```
 > "Y puedo restaurarlo cuando quiera."
 
 ### Demo Escenario 2 (1 min)
 ```bash
-docker stop ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-demo-events-1
+docker stop ticketeate-frontend-1 ticketeate-checkout-1 ticketeate-events-1
 ```
 > "Ahora apago 3 servicios simultáneamente.
 > El sistema aún funciona al 100%.
@@ -109,9 +109,9 @@ docker stop ticketeate-demo-frontend-1 ticketeate-demo-checkout-1 ticketeate-dem
 Ctrl+C
 
 # Limpiar contenedores
-docker stop $(docker ps -q --filter "name=ticketeate-demo-")
-docker rm $(docker ps -aq --filter "name=ticketeate-demo-")
-docker network rm ticketeate-demo-network
+docker stop $(docker ps -q --filter "name=ticketeate-")
+docker rm $(docker ps -aq --filter "name=ticketeate-")
+docker network rm ticketeate-network
 ```
 
 ---
@@ -120,17 +120,17 @@ docker network rm ticketeate-demo-network
 
 ### Ver configuración NGINX
 ```bash
-docker exec ticketeate-demo-nginx cat /etc/nginx/conf.d/default.conf | grep -A 3 "upstream"
+docker exec ticketeate-nginx cat /etc/nginx/conf.d/default.conf | grep -A 3 "upstream"
 ```
 
 ### Ver logs de balanceo
 ```bash
-docker logs ticketeate-demo-nginx --tail 20
+docker logs ticketeate-nginx --tail 20
 ```
 
 ### Ver estadísticas
 ```bash
-docker stats --filter "name=ticketeate-demo-" --no-stream
+docker stats --filter "name=ticketeate-" --no-stream
 ```
 
 ---
@@ -150,7 +150,7 @@ docker stats --filter "name=ticketeate-demo-" --no-stream
 
 ## ✅ Checklist Pre-Demo
 
-- [ ] Contenedores corriendo: `docker ps --filter "name=ticketeate-demo-"`
+- [ ] Contenedores corriendo: `docker ps --filter "name=ticketeate-"`
 - [ ] Puerto responde: `curl http://localhost:8080`
 - [ ] 3 terminales abiertas
 - [ ] Esta cheatsheet impresa o en pantalla secundaria

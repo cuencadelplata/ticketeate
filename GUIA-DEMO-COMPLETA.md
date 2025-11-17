@@ -63,23 +63,23 @@ Esta opción es **ideal para mostrar en vivo al profesor** cómo funciona la alt
 ### 📺 Terminal 1: Monitor de Contenedores
 
 ```bash
-watch -n 1 'docker ps --filter "name=ticketeate-demo-" --format "table {{.Names}}\t{{.Status}}" | sort'
+watch -n 1 'docker ps --filter "name=ticketeate-" --format "table {{.Names}}\t{{.Status}}" | sort'
 ```
 
 **Verás en tiempo real:**
 ```
 NAMES                           STATUS
-ticketeate-demo-checkout-1      Up 2 minutes
-ticketeate-demo-checkout-2      Up 2 minutes
-ticketeate-demo-events-1        Up 2 minutes
-ticketeate-demo-events-2        Up 2 minutes
-ticketeate-demo-frontend-1      Up 2 minutes
-ticketeate-demo-frontend-2      Up 2 minutes
-ticketeate-demo-nginx           Up 2 minutes
-ticketeate-demo-producers-1     Up 2 minutes
-ticketeate-demo-producers-2     Up 2 minutes
-ticketeate-demo-users-1         Up 2 minutes
-ticketeate-demo-users-2         Up 2 minutes
+ticketeate-checkout-1      Up 2 minutes
+ticketeate-checkout-2      Up 2 minutes
+ticketeate-events-1        Up 2 minutes
+ticketeate-events-2        Up 2 minutes
+ticketeate-frontend-1      Up 2 minutes
+ticketeate-frontend-2      Up 2 minutes
+ticketeate-nginx           Up 2 minutes
+ticketeate-producers-1     Up 2 minutes
+ticketeate-producers-2     Up 2 minutes
+ticketeate-users-1         Up 2 minutes
+ticketeate-users-2         Up 2 minutes
 ```
 
 ---
@@ -121,7 +121,7 @@ done
 **Escenario 1: Apagar Frontend Réplica 1**
 
 ```bash
-docker stop ticketeate-demo-frontend-1
+docker stop ticketeate-frontend-1
 ```
 
 **Observa:**
@@ -132,7 +132,7 @@ docker stop ticketeate-demo-frontend-1
 
 **Restaurar:**
 ```bash
-docker start ticketeate-demo-frontend-1
+docker start ticketeate-frontend-1
 ```
 
 ---
@@ -140,9 +140,9 @@ docker start ticketeate-demo-frontend-1
 **Escenario 2: Apagar múltiples réplicas simultáneamente**
 
 ```bash
-docker stop ticketeate-demo-frontend-1
-docker stop ticketeate-demo-checkout-1
-docker stop ticketeate-demo-events-1
+docker stop ticketeate-frontend-1
+docker stop ticketeate-checkout-1
+docker stop ticketeate-events-1
 ```
 
 **Observa:**
@@ -151,9 +151,9 @@ docker stop ticketeate-demo-events-1
 
 **Restaurar:**
 ```bash
-docker start ticketeate-demo-frontend-1
-docker start ticketeate-demo-checkout-1
-docker start ticketeate-demo-events-1
+docker start ticketeate-frontend-1
+docker start ticketeate-checkout-1
+docker start ticketeate-events-1
 ```
 
 ---
@@ -162,24 +162,24 @@ docker start ticketeate-demo-events-1
 
 ```bash
 # Checkout Service
-docker stop ticketeate-demo-checkout-1
+docker stop ticketeate-checkout-1
 sleep 3
-docker start ticketeate-demo-checkout-1
+docker start ticketeate-checkout-1
 
 # Events Service
-docker stop ticketeate-demo-events-1
+docker stop ticketeate-events-1
 sleep 3
-docker start ticketeate-demo-events-1
+docker start ticketeate-events-1
 
 # Producers Service
-docker stop ticketeate-demo-producers-1
+docker stop ticketeate-producers-1
 sleep 3
-docker start ticketeate-demo-producers-1
+docker start ticketeate-producers-1
 
 # Users Service
-docker stop ticketeate-demo-users-1
+docker stop ticketeate-users-1
 sleep 3
-docker start ticketeate-demo-users-1
+docker start ticketeate-users-1
 ```
 
 ---
@@ -188,22 +188,22 @@ docker start ticketeate-demo-users-1
 
 ### Ver todos los contenedores
 ```bash
-docker ps --filter "name=ticketeate-demo-"
+docker ps --filter "name=ticketeate-"
 ```
 
 ### Ver logs de NGINX (muestra el load balancing)
 ```bash
-docker logs -f ticketeate-demo-nginx
+docker logs -f ticketeate-nginx
 ```
 
 ### Estadísticas de recursos
 ```bash
-docker stats --filter "name=ticketeate-demo-"
+docker stats --filter "name=ticketeate-"
 ```
 
 ### Inspeccionar configuración de NGINX
 ```bash
-docker exec ticketeate-demo-nginx cat /etc/nginx/conf.d/default.conf
+docker exec ticketeate-nginx cat /etc/nginx/conf.d/default.conf
 ```
 
 ---
@@ -212,23 +212,23 @@ docker exec ticketeate-demo-nginx cat /etc/nginx/conf.d/default.conf
 
 ```bash
 # Parar todos los contenedores
-docker stop $(docker ps -q --filter "name=ticketeate-demo-")
+docker stop $(docker ps -q --filter "name=ticketeate-")
 
 # Eliminar todos los contenedores
-docker rm $(docker ps -aq --filter "name=ticketeate-demo-")
+docker rm $(docker ps -aq --filter "name=ticketeate-")
 
 # Eliminar la red
-docker network rm ticketeate-demo-network
+docker network rm ticketeate-network
 
 # Limpiar archivo temporal de configuración
-rm /tmp/nginx-ticketeate-demo.conf
+rm /tmp/nginx-ticketeate.conf
 ```
 
 O usar el comando rápido:
 ```bash
-docker stop $(docker ps -q --filter "name=ticketeate-demo-") && \
-docker rm $(docker ps -aq --filter "name=ticketeate-demo-") && \
-docker network rm ticketeate-demo-network
+docker stop $(docker ps -q --filter "name=ticketeate-") && \
+docker rm $(docker ps -aq --filter "name=ticketeate-") && \
+docker network rm ticketeate-network
 ```
 
 ---
@@ -310,13 +310,13 @@ kill -9 <PID>
 
 ### Error: "network already exists"
 ```bash
-docker network rm ticketeate-demo-network
+docker network rm ticketeate-network
 ```
 
 ### Los contenedores no responden
 ```bash
 # Verificar logs
-docker logs ticketeate-demo-nginx
+docker logs ticketeate-nginx
 
 # Reiniciar todo
 ./scripts/demo-ha-completo.sh

@@ -191,7 +191,7 @@ readinessProbe:
 
 ```
 [Apagar servicio]
-docker stop ticketeate-demo-frontend-1
+docker stop ticketeate-frontend-1
 
 [Mientras ves FAIL-OK-FAIL-OK]
 "Observen el patrón: FAIL, OK, FAIL, OK. NGINX está distribuyendo 
@@ -212,7 +212,7 @@ NGINX detectó el fallo automáticamente y excluyó el servidor
 caído del pool."
 
 [Restaurar]
-docker start ticketeate-demo-frontend-1
+docker start ticketeate-frontend-1
 
 "Y cuando lo restauro, NGINX lo vuelve a incluir automáticamente 
 después de que pase el fail_timeout. Todo automático, sin 
@@ -339,7 +339,7 @@ Para lograr **CERO fallos** necesitarías:
 ### 2. Graceful Shutdown
 ```bash
 # Dar tiempo al servicio para terminar peticiones
-docker stop --time=10 ticketeate-demo-frontend-1
+docker stop --time=10 ticketeate-frontend-1
 ```
 
 ### 3. Connection Draining en NGINX
@@ -382,7 +382,7 @@ upstream frontend {
 
 ```
 [Apagar servicio]
-docker stop ticketeate-demo-frontend-1
+docker stop ticketeate-frontend-1
 
 [Mientras ves los FAIL]
 "Ven estos FAIL? Son las últimas peticiones que intentaron llegar 
