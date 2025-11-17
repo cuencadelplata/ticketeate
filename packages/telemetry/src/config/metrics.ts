@@ -9,7 +9,13 @@ import {
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 export function initMetrics(serviceName: string) {
-  const enablePrometheus = process.env.ENABLE_PROMETHEUS === 'true' || process.env.OTEL_EXPORTER === 'prometheus';
+  // Default behavior: use Prometheus unless explicitly enabling CloudWatch
+  // Priority: explicit ENABLE_PROMETHEUS=true -> Prometheus
+  //           else if ENABLE_CLOUDWATCH=true -> use CloudWatch/OTLP
+  //           otherwise default to Prometheus for local/development
+  const explicitProm = process.env.ENABLE_PROMETHEUS === 'true';
+  const explicitCloudWatch = process.env.ENABLE_CLOUDWATCH === 'true';
+  const enablePrometheus = explicitProm || (!explicitCloudWatch && process.env.ENABLE_PROMETHEUS !== 'false');
 
   let metricExporter: any;
   const prometheusPort = Number(process.env.PROMETHEUS_PORT || '9464');
@@ -33,13 +39,21 @@ export function initMetrics(serviceName: string) {
     }),
   });
 
-  // If Prometheus exporter is used, it handles collection; still register reader to keep consistency
-  meterProvider.addMetricReader(
-    new PeriodicExportingMetricReader({
-      exporter: metricExporter,
-      exportIntervalMillis: 1000,
-    }),
-  );
+  // Register metric reader correctly depending on exporter type.
+  // - PrometheusExporter already implements MetricReader and starts an HTTP server,
+  //   so add it directly to the MeterProvider.
+  // - OTLPMetricExporter should be wrapped with a PeriodicExportingMetricReader.
+  if (enablePrometheus && metricExporter instanceof PrometheusExporter) {
+    // Prometheus exporter is itself a MetricReader
+    meterProvider.addMetricReader(metricExporter);
+  } else {
+    meterProvider.addMetricReader(
+      new PeriodicExportingMetricReader({
+        exporter: metricExporter,
+        exportIntervalMillis: 1000,
+      }),
+    );
+  }
 
   metrics.setGlobalMeterProvider(meterProvider);
 

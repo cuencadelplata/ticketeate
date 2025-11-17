@@ -30,18 +30,24 @@ export const telemetryMiddleware = async (c, next) => {
 
     // Registrar tiempo de respuesta
     telemetry.recordProcessingTime(duration);
-    await cloudWatch.recordProcessingTime(duration);
+    if (process.env.ENABLE_CLOUDWATCH === 'true') {
+      try {
+        await cloudWatch.recordProcessingTime(duration);
+      } catch (err) {
+        console.error('CloudWatch recordProcessingTime error', err);
+      }
 
-    // Registrar métricas del sistema
-    try {
-      await cloudWatch.recordCpuUsage(cpuPercent);
-    } catch (e) {
-      // ignore
-    }
-    try {
-      await cloudWatch.recordMemoryUsage(Math.round(endMemory.heapUsed / 1024 / 1024));
-    } catch (e) {
-      // ignore
+      // Registrar métricas del sistema
+      try {
+        await cloudWatch.recordCpuUsage(cpuPercent);
+      } catch (err) {
+        console.error('CloudWatch recordCpuUsage error', err);
+      }
+      try {
+        await cloudWatch.recordMemoryUsage(Math.round(endMemory.heapUsed / 1024 / 1024));
+      } catch (err) {
+        console.error('CloudWatch recordMemoryUsage error', err);
+      }
     }
 
     // Si la ruta es para verificar la cola
@@ -53,9 +59,16 @@ export const telemetryMiddleware = async (c, next) => {
 
     // Monitorear usuarios activos
     if (c.req.path.includes('/events') && c.res.status === 200) {
-      const activeUsers = await getActiveUsers(); // Implementar esta función según tu lógica
+      // Placeholder: intenta leer del response o usar lógica de servicio
+      const activeUsers = c.res.body?.activeUsers || 0;
       telemetry.updateActiveUsers(activeUsers);
-      await cloudWatch.recordActiveUsers(activeUsers);
+      if (process.env.ENABLE_CLOUDWATCH === 'true') {
+        try {
+          await cloudWatch.recordActiveUsers(activeUsers);
+        } catch (err) {
+          console.error('CloudWatch recordActiveUsers error', err);
+        }
+      }
     }
   }
 };

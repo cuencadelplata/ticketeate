@@ -29,25 +29,41 @@ export const telemetryMiddleware = async (c, next) => {
 
     // Registrar tiempo de respuesta
     telemetry.recordProcessingTime(duration);
-    await cloudWatch.recordProcessingTime(duration);
+      if (process.env.ENABLE_CLOUDWATCH === 'true') {
+        try {
+          await cloudWatch.recordProcessingTime(duration);
+        } catch (err) {
+          console.error('CloudWatch recordProcessingTime error', err);
+        }
+      }
 
     // Registrar métricas del sistema
     try {
-      await cloudWatch.recordCpuUsage(cpuPercent);
+        if (process.env.ENABLE_CLOUDWATCH === 'true') {
+          await cloudWatch.recordCpuUsage(cpuPercent);
+        }
     } catch (e) {
-      // ignore
+        console.error('CloudWatch recordCpuUsage error', e);
     }
     try {
-      await cloudWatch.recordMemoryUsage(Math.round(endMemory.heapUsed / 1024 / 1024));
+        if (process.env.ENABLE_CLOUDWATCH === 'true') {
+          await cloudWatch.recordMemoryUsage(Math.round(endMemory.heapUsed / 1024 / 1024));
+        }
     } catch (e) {
-      // ignore
+        console.error('CloudWatch recordMemoryUsage error', e);
     }
 
     // Si es una compra exitosa
     if (c.req.path.includes('/purchase') && c.res.status === 200) {
       const amount = c.req.body?.amount || 0;
       telemetry.recordPurchase(amount);
-      await cloudWatch.recordPurchase(amount);
+      if (process.env.ENABLE_CLOUDWATCH === 'true') {
+        try {
+          await cloudWatch.recordPurchase(amount);
+        } catch (err) {
+          console.error('CloudWatch recordPurchase error', err);
+        }
+      }
     }
   }
 };
