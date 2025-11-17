@@ -75,6 +75,8 @@ export function useEvents() {
       }
     },
     retry: 1,
+    // Configuración para asegurar que los cambios se reflejen en la UI
+    staleTime: 0, // Los datos son stale inmediatamente (permite refetch rápido)
   });
 }
 
@@ -88,8 +90,7 @@ export function useAllEvents() {
       const data: GetAllEventsResponse = await res.json();
       return data.events || [];
     },
-    staleTime: 60 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: 0, // Sin cache, siempre considerados stale para permitir updates rápidos
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
   });
@@ -214,73 +215,111 @@ export function useUpdateEvent() {
       const previousAllEvents = queryClient.getQueryData<Event[]>(['all-events']);
       const previousEvent = queryClient.getQueryData<Event>(['events', id]);
 
+      console.log('[useUpdateEvent] Datos anteriores guardados, actualizando caché...');
+
       // Actualizar caché optimista en la lista de eventos
       queryClient.setQueryData(['events'], (oldData: Event[] | undefined) => {
-        if (!oldData) return oldData;
-        return oldData.map((e) =>
-          e.eventoid === id
-            ? {
-                ...e,
-                ...eventData,
-                // Si actualiza estado, también actualizar evento_estado
-                ...(eventData.estado
-                  ? {
-                      evento_estado: [
-                        {
-                          Estado: eventData.estado,
-                          fecha_de_cambio: new Date(),
-                        },
-                      ],
-                    }
-                  : {}),
-              }
-            : e,
-        );
+        if (!oldData) {
+          console.log('[useUpdateEvent] No hay datos anteriores en caché');
+          return oldData;
+        }
+        const newData = oldData.map((e) => {
+          if (e.eventoid === id) {
+            const updated = {
+              ...e,
+              titulo: eventData.titulo ?? e.titulo,
+              descripcion: eventData.descripcion ?? e.descripcion,
+              ubicacion: eventData.ubicacion ?? e.ubicacion,
+              // Si actualiza estado, también actualizar evento_estado
+              ...(eventData.estado
+                ? {
+                    evento_estado: [
+                      {
+                        stateventid: `temp-${Date.now()}`,
+                        Estado: eventData.estado,
+                        fecha_de_cambio: new Date().toISOString(),
+                        usuarioid: e.creadorid,
+                      },
+                    ],
+                  }
+                : {}),
+            };
+            console.log(
+              '[useUpdateEvent] Evento actualizado optimistamente:',
+              updated.eventoid,
+              updated,
+            );
+            return updated;
+          }
+          return e;
+        });
+        console.log('[useUpdateEvent] Nueva lista de eventos:', newData.length, 'items');
+        return newData;
       });
 
       queryClient.setQueryData(['all-events'], (oldData: Event[] | undefined) => {
         if (!oldData) return oldData;
-        return oldData.map((e) =>
-          e.eventoid === id
-            ? {
-                ...e,
-                ...eventData,
-                ...(eventData.estado
-                  ? {
-                      evento_estado: [
-                        {
-                          Estado: eventData.estado,
-                          fecha_de_cambio: new Date(),
-                        },
-                      ],
-                    }
-                  : {}),
-              }
-            : e,
-        );
+        return oldData.map((e) => {
+          if (e.eventoid === id) {
+            return {
+              ...e,
+              titulo: eventData.titulo ?? e.titulo,
+              descripcion: eventData.descripcion ?? e.descripcion,
+              ubicacion: eventData.ubicacion ?? e.ubicacion,
+              ...(eventData.estado
+                ? {
+                    evento_estado: [
+                      {
+                        stateventid: `temp-${Date.now()}`,
+                        Estado: eventData.estado,
+                        fecha_de_cambio: new Date().toISOString(),
+                        usuarioid: e.creadorid,
+                      },
+                    ],
+                  }
+                : {}),
+            };
+          }
+          return e;
+        });
       });
 
+      console.log('[useUpdateEvent] Caché actualizado, retornando snapshot');
       return { previousEvents, previousAllEvents, previousEvent };
     },
     onSuccess: async (updatedEvent) => {
-      console.log('[useUpdateEvent] onSuccess - Evento actualizado:', updatedEvent.eventoid);
+      console.log(
+        '[useUpdateEvent] onSuccess - Evento actualizado en servidor:',
+        updatedEvent.eventoid,
+      );
 
-      // Actualizar con los datos reales del servidor
+      // Actualizar con los datos reales del servidor en ambas queries
+      console.log('[useUpdateEvent] Actualizando caché con datos del servidor...');
+
       queryClient.setQueryData(['events', updatedEvent.eventoid], updatedEvent);
 
-      // Invalidar para refetch de datos frescos
-      await queryClient.invalidateQueries({ queryKey: ['events'] });
-      await queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      // Actualizar también en las listas para asegurar consistencia
+      queryClient.setQueryData(['events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map((e) => (e.eventoid === updatedEvent.eventoid ? updatedEvent : e));
+      });
 
-      console.log('[useUpdateEvent] Iniciando refetch de datos frescos...');
+      queryClient.setQueryData(['all-events'], (oldData: Event[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map((e) => (e.eventoid === updatedEvent.eventoid ? updatedEvent : e));
+      });
 
-      // Esperar a que terminen los refetches
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['events'] }),
-        queryClient.refetchQueries({ queryKey: ['all-events'] }),
-      ]);
+      console.log('[useUpdateEvent] Caché actualizado con datos del servidor');
 
-      console.log('[useUpdateEvent] Refetch completado');
+      // Invalidar para refetch de datos frescos (pero NO ESPERAR)
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
+
+      console.log('[useUpdateEvent] Iniciando refetch en background...');
+
+      // Iniciar refetch en background sin bloquear (NO ESPERAMOS)
+      queryClient.refetchQueries({ queryKey: ['events'] });
+      queryClient.refetchQueries({ queryKey: ['all-events'] });
 
       // Revalidar ISR on-demand (no esperamos)
       fetch('/api/revalidate', {
@@ -339,36 +378,52 @@ export function useDeleteEvent() {
       const previousEvents = queryClient.getQueryData<Event[]>(['events']);
       const previousAllEvents = queryClient.getQueryData<Event[]>(['all-events']);
 
+      console.log('[useDeleteEvent] Datos anteriores guardados, removiendo del caché...');
+
       // Remover el evento del caché de forma optimista
       queryClient.setQueryData(['events'], (oldData: Event[] | undefined) => {
-        if (!oldData) return oldData;
-        return oldData.filter((e) => e.eventoid !== deletedId);
+        if (!oldData) {
+          console.log('[useDeleteEvent] No hay datos anteriores en caché');
+          return oldData;
+        }
+        const newData = oldData.filter((e) => e.eventoid !== deletedId);
+        console.log(
+          '[useDeleteEvent] Evento removido, lista ahora tiene:',
+          newData.length,
+          'items',
+        );
+        return newData;
       });
 
       queryClient.setQueryData(['all-events'], (oldData: Event[] | undefined) => {
         if (!oldData) return oldData;
-        return oldData.filter((e) => e.eventoid !== deletedId);
+        const newData = oldData.filter((e) => e.eventoid !== deletedId);
+        console.log(
+          '[useDeleteEvent] Evento removido de all-events, lista ahora tiene:',
+          newData.length,
+          'items',
+        );
+        return newData;
       });
 
+      console.log('[useDeleteEvent] Caché actualizado, retornando snapshot');
       return { previousEvents, previousAllEvents };
     },
     onSuccess: async (_, deletedId) => {
       console.log('[useDeleteEvent] onSuccess - Evento eliminado:', deletedId);
 
       // Invalidar queries
-      await queryClient.invalidateQueries({ queryKey: ['events'] });
-      await queryClient.invalidateQueries({ queryKey: ['all-events'] });
-      await queryClient.invalidateQueries({ queryKey: ['events', deletedId] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events', deletedId] });
 
-      console.log('[useDeleteEvent] Iniciando refetch de datos frescos...');
+      console.log(
+        '[useDeleteEvent] Evento removido de caché, refetch en background (no bloqueamos)...',
+      );
 
-      // Esperar a que terminen los refetches
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['events'] }),
-        queryClient.refetchQueries({ queryKey: ['all-events'] }),
-      ]);
-
-      console.log('[useDeleteEvent] Refetch completado');
+      // Iniciar refetch en background sin bloquear (NO ESPERAMOS)
+      queryClient.refetchQueries({ queryKey: ['events'] });
+      queryClient.refetchQueries({ queryKey: ['all-events'] });
 
       // Revalidar ISR on-demand (no esperamos)
       fetch('/api/revalidate', {

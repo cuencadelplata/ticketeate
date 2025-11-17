@@ -237,7 +237,17 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
     undefined;
 
   return (
-    <main className="min-h-screen py-16">
+    <main
+      style={
+        coverImage
+          ? { backgroundImage: `url(${coverImage})` }
+          : { background: 'linear-gradient(to bottom, rgb(16, 15, 15), rgb(23, 23, 23))' }
+      }
+      className="min-h-screen py-16 bg-cover bg-center"
+    >
+      {/* Background blur overlay */}
+      <div className="fixed left-0 top-0 w-full h-screen backdrop-blur-lg bg-black/30 pointer-events-none z-0" />
+
       {/* Banner de reserva temporal */}
       {isReserved && isReservationActive(id) && timeLeft > 0 && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-yellow-100 to-orange-100 border-b-2 border-yellow-400 shadow-lg">
@@ -256,15 +266,6 @@ export function EventoContent({ event, eventId }: EventoContentProps) {
             </div>
           </div>
         </div>
-      )}
-
-      {coverImage ? (
-        <div
-          style={{ backgroundImage: `url(${coverImage})` }}
-          className="fixed left-0 top-0 z-5 h-full w-full bg-cover bg-center opacity-30 blur-lg filter"
-        />
-      ) : (
-        <div className="fixed left-0 top-0 z-5 h-full w-full bg-gradient-to-b from-neutral-950 to-neutral-900" />
       )}
 
       <div

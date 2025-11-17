@@ -45,9 +45,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Se requiere external_reference' }, { status: 400 });
     }
 
-    // Obtener datos del organizador (vendedor)
+    // El organizador se obtiene del metadata (eventId)
+    const eventId = metadata?.eventoid;
+    if (!eventId) {
+      return NextResponse.json({ error: 'Se requiere eventoid en metadata' }, { status: 400 });
+    }
+
+    // Obtener el evento y su organizador
+    const event = await prisma.eventos.findUnique({
+      where: { eventoid: eventId },
+      select: {
+        creadorid: true,
+        titulo: true,
+      },
+    });
+
+    if (!event) {
+      return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 });
+    }
+
+    // Obtener datos del organizador (vendedor) - NO del usuario autenticado
     const seller = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: event.creadorid },
       select: {
         id: true,
         mercado_pago_user_id: true,
@@ -58,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     if (!seller || !seller.wallet_linked || !seller.mercado_pago_access_token) {
       return NextResponse.json(
-        { error: 'Debe vincular su cuenta de Mercado Pago primero' },
+        { error: 'El organizador debe vincular su cuenta de Mercado Pago' },
         { status: 403 },
       );
     }
@@ -170,13 +189,21 @@ export async function POST(request: NextRequest) {
           amount: total,
           marketplace_fee: marketplaceFee,
           status: 'pending',
-          metadata: metadata || {},
+          metadata: {
+            ...metadata,
+            seller_id: seller.id,
+            buyer_id: session.user.id,
+            event_id: eventId,
+            marketplace_fee: marketplaceFee,
+          },
         },
       });
 
       console.log('[Create Preference] Order saved to database:', {
         preferenceId: preferenceData.id,
         external_reference,
+        sellerId: seller.id,
+        buyerId: session.user.id,
       });
     } catch (dbError) {
       console.error('[Create Preference] Error saving order to database:', dbError);

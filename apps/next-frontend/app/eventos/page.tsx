@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Calendar,
   MapPin,
@@ -245,6 +245,15 @@ export default function EventosPage() {
   const { data: events = [], isLoading: loading } = useEvents();
   const deleteEventMutation = useDeleteEvent();
   const updateEventMutation = useUpdateEvent();
+
+  // Log para debuggear cambios de data
+  useEffect(() => {
+    console.log('[EventosPage] Data de eventos cambió, total eventos:', events.length);
+    console.log(
+      '[EventosPage] Eventos:',
+      events.map((e) => ({ id: e.eventoid, titulo: e.titulo })),
+    );
+  }, [events]);
 
   // filter events
   const proximosEvents = events.filter((event) => !isEventPast(event));

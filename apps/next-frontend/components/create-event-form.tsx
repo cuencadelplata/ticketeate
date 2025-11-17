@@ -417,20 +417,21 @@ export default function CreateEventForm() {
   }
 
   return (
-    <>
-      {eventImages.length > 0 ? (
-        <div
-          style={{ backgroundImage: `url(${eventImages[0]})` }}
-          className="fixed left-0 top-0 z-10 h-full w-full bg-cover bg-center opacity-30 blur-lg filter"
-        />
-      ) : (
-        <div className="fixed left-0 top-0 z-10 h-full w-full bg-gradient-to-b from-neutral-950 to-neutral-900" />
-      )}
+    <div
+      style={
+        eventImages.length > 0
+          ? { backgroundImage: `url(${eventImages[0]})` }
+          : { background: 'linear-gradient(to bottom, rgb(16, 15, 15), rgb(23, 23, 23))' }
+      }
+      className="min-h-screen bg-cover bg-center"
+    >
+      {/* Background blur overlay */}
+      <div className="fixed left-0 top-0 w-full h-screen backdrop-blur-lg bg-black/60 pointer-events-none z-0" />
 
-      <div className="relative z-20 min-h-screen overflow-hidden text-zinc-200 transition-all duration-500">
+      <div className="relative z-20 min-h-screen text-zinc-200 transition-all duration-500">
         <Navbar />
 
-        <div className="mx-auto max-w-5xl space-y-2 px-4 md:px-20 pb-3 pt-6 md:pt-10">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 md:px-20 pb-24 pt-6 md:pt-10">
           <div className="grid gap-4 md:gap-8 md:grid-cols-[330px,1fr]">
             <div className="space-y-2">
               <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
@@ -824,7 +825,7 @@ export default function CreateEventForm() {
               <Button
                 onClick={handleCreateEvent}
                 size="md"
-                className="w-full rounded-lg bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg pb-6 bg-white py-3 text-base font-medium text-black shadow-lg hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={createEventMutation.isPending || !session}
               >
                 {!session
@@ -837,6 +838,6 @@ export default function CreateEventForm() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
