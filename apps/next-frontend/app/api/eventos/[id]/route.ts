@@ -434,6 +434,7 @@ export async function DELETE(
         ubicacion: eventoActual.ubicacion,
         creadorid: eventoActual.creadorid,
         mapa_evento: eventoActual.mapa_evento || {},
+        views: eventoActual.views,
         version: eventoActual.version,
         changed_at: new Date(),
         changed_by: userId,

@@ -33,7 +33,7 @@ function getRawPostContent(slug: string): string {
     const possiblePaths = [
       path.join(process.cwd(), `content/blog/${slug}.mdx`),
       path.join(process.cwd(), `apps/next-frontend/content/blog/${slug}.mdx`),
-      path.resolve(__dirname, `../content/blog/${slug}.mdx`),
+      path.join(process.cwd(), `../content/blog/${slug}.mdx`),
     ];
 
     let content = '';
