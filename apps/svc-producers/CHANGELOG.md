@@ -5,6 +5,14 @@ Todas las versiones notables de **svc-producers** serán documentadas en este ar
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.5.0](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.4.0...svc-producers-v1.5.0) (2025-11-17)
+
+
+### Features
+
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([#183](https://github.com/cuencadelplata/ticketeate/issues/183)) ([0a63bdd](https://github.com/cuencadelplata/ticketeate/commit/0a63bddada936d256f84b261eb32c39fc3854686))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([c47b1c2](https://github.com/cuencadelplata/ticketeate/commit/c47b1c22ba9459a27c74cf7a3e4200a88ce57b08))
+
 # [1.4.0](https://github.com/cuencadelplata/ticketeate/compare/svc-producers-v1.3.0...svc-producers-v1.4.0) (2025-11-17)
 
 
