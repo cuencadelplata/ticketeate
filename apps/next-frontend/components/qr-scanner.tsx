@@ -49,11 +49,7 @@ function CameraScannerModal({ isOpen, onClose, onScan }: CameraScannerModalProps
         if (!videoRef.current) return;
 
         // Create Html5Qrcode instance
-        const qrcodeInstance = new Html5Qrcode('qr-video-container', {
-          experimentalFeatures: {
-            useBarcoderEngine: false,
-          },
-        });
+        const qrcodeInstance = new Html5Qrcode('qr-video-container');
 
         html5QrcodeRef.current = qrcodeInstance;
 

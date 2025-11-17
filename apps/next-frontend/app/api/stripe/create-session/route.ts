@@ -12,11 +12,9 @@ export async function POST(request: NextRequest) {
     }
 
     const secret =
-      process.env.STRIPE_SECRET_KEY ||
-      'sk_test_51SFKVXHNhtfc3l4tBkwh0k9zxH1bU4YnKuFPF9ELGO6Y742SrmHtM1tWbKNmAOJHwZS1U1FQmI37dZY6Eh1pfSPo00Xilv8ndI';
+      process.env.STRIPE_SECRET_KEY;
     const publishableKey =
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-      'pk_test_51SFKVXHNhtfc3l4tJCy8rz4F8zHANx6pwc4hXeGsyMJP8ts098KCKN2AfGCLUdHVqqYyuUIpq1BOzhVQkwob8Ihx00onYuGaUz';
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (!secret || !publishableKey) {
       return NextResponse.json({ error: 'Stripe keys no configuradas' }, { status: 500 });
     }
