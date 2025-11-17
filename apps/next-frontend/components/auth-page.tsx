@@ -451,7 +451,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       setShowOtpVerification(false);
       setOtp('');
 
-      const finalRole = (refreshedSession?.user as any)?.role as Role | undefined;
+      const finalRole = (refreshedSession?.data?.user as any)?.role as Role | undefined;
       const redirectTarget = roleToPath(finalRole);
       router.replace(redirectTarget);
     } catch (error: any) {

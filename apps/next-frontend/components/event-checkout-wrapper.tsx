@@ -24,7 +24,7 @@ export function EventCheckoutWrapper({ event }: EventCheckoutWrapperProps) {
   }));
 
   // Obtener datos del organizador
-  const organizerName = event.user?.name || 'Organizador';
+  const organizerName = 'Organizador'; // event.user?.name is not available in Event type
   const organizerId = event.creadorid;
 
   return (
