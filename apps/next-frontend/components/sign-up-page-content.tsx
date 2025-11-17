@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -13,21 +13,38 @@ export function SignUpPageContent() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Limpiar timeout anterior si existe
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // No hacer nada mientras se carga la sesión
-    if (isPending) return;
+    if (isPending || isRedirecting) return;
 
     // Si hay sesión y está verificado, redirigir según el rol
-    if (session && !isRedirecting) {
+    if (session) {
       const user = session.user as any;
       const emailVerified = user?.emailVerified;
 
       if (emailVerified) {
         const userRole = user?.role as Role | undefined;
         const target = roleToPath(userRole);
+
+        console.log('[SignUpPageContent] Redirigiendo:', { target, userRole, emailVerified });
+
         setIsRedirecting(true);
-        router.push(target);
+
+        // Usar replace en lugar de push para evitar que vuelva a esta página
+        redirectTimeoutRef.current = setTimeout(() => {
+          router.replace(target);
+        }, 100);
         return;
       }
     }

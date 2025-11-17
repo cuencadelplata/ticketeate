@@ -167,9 +167,9 @@ locals {
     RESEND_FROM_EMAIL              = data.aws_ssm_parameter.resend_from_email.value
     
     # Mercado Pago
-    MERCADO_PAGO_CLIENT_ID         = data.aws_ssm_parameter.mercadopago_client_id.value
-    MERCADO_PAGO_CLIENT_SECRET     = data.aws_ssm_parameter.mercadopago_client_secret.value
-    MERCADO_PAGO_REDIRECT_URI      = "https://ticketeate.com.ar/configuracion"
+    MERCADOPAGO_CLIENT_ID          = data.aws_ssm_parameter.mercadopago_client_id.value
+    MERCADOPAGO_CLIENT_SECRET      = data.aws_ssm_parameter.mercadopago_client_secret.value
+    MERCADOPAGO_REDIRECT_URI       = "https://ticketeate.com.ar/api/mercadopago/callback"
     MERCADO_PAGO_MOCK              = "false"
     MP_PLATFORM_ACCESS_TOKEN       = data.aws_ssm_parameter.mp_platform_access_token.value
     
