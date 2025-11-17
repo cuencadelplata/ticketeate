@@ -111,10 +111,14 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
-    console.log('[OAuth Callback] Callback initiated:', {
+    console.log('[OAuth Callback] ===== CALLBACK INITIATED =====');
+    console.log('[OAuth Callback] Request URL:', request.url);
+    console.log('[OAuth Callback] Callback parameters:', {
       url: request.url,
       hasCode: !!code,
+      codeLength: code?.length,
       hasState: !!state,
+      stateLength: state?.length,
       hasError: !!error,
       timestamp: new Date().toISOString(),
     });
@@ -192,44 +196,74 @@ export async function GET(request: NextRequest) {
     // Intercambiar code por access token
     let tokenData: Awaited<ReturnType<typeof exchangeCodeForToken>>;
     try {
+      console.log('[OAuth Callback] About to exchange code for token...');
       tokenData = await exchangeCodeForToken(code, cookieCodeVerifier || '');
       console.log('[OAuth Callback] Token exchange successful:', {
         userId: tokenData.user_id,
         expiresIn: tokenData.expires_in,
+        accessTokenLength: tokenData.access_token?.length,
+        refreshTokenLength: tokenData.refresh_token?.length,
       });
     } catch (tokenError) {
-      console.error('[OAuth Callback] Token exchange error:', tokenError);
+      console.error('[OAuth Callback] Token exchange error - FULL DETAILS:', {
+        errorMessage: tokenError instanceof Error ? tokenError.message : String(tokenError),
+        stack: tokenError instanceof Error ? tokenError.stack : undefined,
+        code: code?.substring(0, 30) + '...',
+        hasCodeVerifier: !!cookieCodeVerifier,
+      });
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=token_error`,
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=token_error&details=${encodeURIComponent(tokenError instanceof Error ? tokenError.message : 'Token exchange failed')}`,
       );
     }
 
     // Calcular fecha de expiración del token
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
+    console.log('[OAuth Callback] Preparing user update:', {
+      userId: cookieUserId,
+      mercadoPagoUserId: tokenData.user_id,
+      expiresAt: expiresAt.toISOString(),
+      tokenLength: tokenData.access_token?.length,
+    });
+
     // Actualizar usuario en la base de datos
     try {
-      await prisma.user.update({
+      console.log('[OAuth Callback] Starting prisma.user.update...');
+
+      const updatedUser = await prisma.user.update({
         where: { id: cookieUserId },
         data: {
           wallet_linked: true,
           wallet_provider: 'mercado_pago',
-          mercado_pago_user_id: tokenData.user_id,
+          mercado_pago_user_id: String(tokenData.user_id),
           mercado_pago_access_token: tokenData.access_token,
           mercado_pago_refresh_token: tokenData.refresh_token,
           mercado_pago_token_expires_at: expiresAt,
           updatedAt: new Date(),
         },
+        select: {
+          id: true,
+          wallet_linked: true,
+          wallet_provider: true,
+          mercado_pago_user_id: true,
+        },
       });
 
       console.log('[OAuth Callback] User updated successfully:', {
-        userId: cookieUserId,
-        mercadoPagoUserId: tokenData.user_id,
+        userId: updatedUser.id,
+        walletLinked: updatedUser.wallet_linked,
+        mercadoPagoUserId: updatedUser.mercado_pago_user_id,
       });
     } catch (dbError) {
-      console.error('[OAuth Callback] Database update error:', dbError);
+      console.error('[OAuth Callback] Database update error - FULL DETAILS:', {
+        errorMessage: dbError instanceof Error ? dbError.message : String(dbError),
+        errorCode: (dbError as any)?.code,
+        errorMeta: (dbError as any)?.meta,
+        userId: cookieUserId,
+        stack: dbError instanceof Error ? dbError.stack : undefined,
+      });
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=db_error`,
+        `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=db_error&details=${encodeURIComponent(dbError instanceof Error ? dbError.message : 'Unknown error')}`,
       );
     }
 
