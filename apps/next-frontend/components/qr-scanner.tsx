@@ -10,7 +10,6 @@ import {
   Loader2,
   Calendar,
   MapPin,
-  Search,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';

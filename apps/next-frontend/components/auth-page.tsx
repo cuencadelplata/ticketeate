@@ -7,11 +7,9 @@ import {
   signUp,
   useSession,
   sendVerificationOTP,
-  verifyEmail,
   emailOtp,
   authClient,
 } from '@/lib/auth-client';
-import { roleToPath } from '@/lib/role-redirect';
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -26,6 +24,7 @@ type Props = {
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const { data: session } = useSession();
   const showOtpBySessionRef = useRef(false);
+  const pendingRoleRef = useRef<{ role: Role; inviteCode?: string } | null>(null);
 
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [role, setRole] = useState<Role>(defaultRole);
@@ -208,41 +207,30 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
         throw new Error((result as any)?.error?.message || 'Error al crear la cuenta');
       }
 
-      // Asignar rol según el tipo seleccionado
+      // Guardar rol pendiente para asignarlo luego de la verificación OTP
       if (role === 'COLABORADOR') {
-        // COLABORADOR requiere código de invitación
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, inviteCode: formData.inviteCode }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
+        pendingRoleRef.current = {
+          role,
+          inviteCode: formData.inviteCode.trim(),
+        };
       } else if (role === 'ORGANIZADOR') {
-        // ORGANIZADOR no requiere código
-        const res = await fetch('/api/auth/assign-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error || 'No se pudo asignar el rol');
-        }
+        pendingRoleRef.current = { role };
+      } else {
+        pendingRoleRef.current = null;
       }
-      // USUARIO no requiere asignación de rol adicional - se asigna por defecto en el callback de auth
 
       // Mostrar formulario de verificación OTP en la misma página
       setLoading(false);
       showOtpBySessionRef.current = true; // Marcar que necesitamos mostrar OTP
       setShowOtpVerification(true);
+      setResendCooldown(60);
+      toast.success('Te enviamos un código de verificación. Revisa tu correo.');
 
       // No enviar OTP aquí - ya se envió automáticamente por sendVerificationOnSignUp
       // await sendOtpCode();
       return; // Salir para evitar mostrar error
     } catch (e: any) {
+      pendingRoleRef.current = null;
       const errorMessage = e?.message || e?.error || 'Error al crear la cuenta';
 
       if (
@@ -344,6 +332,33 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       // La sesión se actualiza automáticamente a través de useSession()
       // AccessPageContent detectará emailVerified=true y redirigirá
       console.log('Email verificado exitosamente');
+
+      const roleToAssign = pendingRoleRef.current;
+      if (roleToAssign) {
+        try {
+          const payload: Record<string, string> = { role: roleToAssign.role };
+          if (roleToAssign.role === 'COLABORADOR' && roleToAssign.inviteCode) {
+            payload.inviteCode = roleToAssign.inviteCode;
+          }
+
+          const res = await fetch('/api/auth/assign-role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(j?.error || 'No se pudo asignar el rol');
+          }
+        } catch (roleError: any) {
+          console.error('Error asignando rol luego de verificación:', roleError);
+          toast.error(roleError?.message || 'No se pudo asignar el rol. Contacta soporte.');
+        } finally {
+          pendingRoleRef.current = null;
+        }
+      }
+      pendingRoleRef.current = null;
 
       // Pequeño delay para asegurar que Better Auth procese completamente la sesión
       // Especialmente importante para cuando se acaba de asignar un rol
@@ -494,6 +509,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   setShowOtpVerification(false);
                   setOtp('');
                   setErr(null);
+                  pendingRoleRef.current = null;
                 }}
                 className="w-full text-sm text-stone-400 hover:text-white"
               >

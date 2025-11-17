@@ -13,7 +13,7 @@ export function SignUpPageContent() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Limpiar timeout anterior si existe

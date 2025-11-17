@@ -50,7 +50,7 @@ export default function ScannerPage() {
     }
 
     useInviteCode(inviteCodeInput.trim().toUpperCase(), {
-      onSuccess: (data) => {
+      onSuccess: () => {
         toast.success('¡Código validado! Uniendo al evento...');
         setInviteCodeInput('');
         setShowCodeModal(false);
