@@ -10,7 +10,7 @@ import { randomUUID } from 'crypto';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const session = await auth.api.getSession({
@@ -22,7 +22,7 @@ export async function GET(
     }
 
     const userId = session.user.id;
-    const eventId = params.id;
+    const { id: eventId } = await params;
 
     // Obtener información completa del evento
     const evento = await prisma.eventos.findUnique({
@@ -75,7 +75,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const session = await auth.api.getSession({
@@ -87,7 +87,7 @@ export async function PUT(
     }
 
     const userId = session.user.id;
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const body = await request.json();
     const { titulo, descripcion, ubicacion, estado } = body;
 
@@ -270,7 +270,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const session = await auth.api.getSession({
@@ -282,7 +282,7 @@ export async function DELETE(
     }
 
     const userId = session.user.id;
-    const eventId = params.id;
+    const { id: eventId } = await params;
 
     // Obtener el evento actual
     const evento = await prisma.eventos.findUnique({
