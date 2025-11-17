@@ -97,7 +97,7 @@ export function useGetTicketStats(eventoid: string) {
       };
     },
     enabled: !!eventoid,
-    refetchInterval: 5000, // Refetch cada 5 segundos
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 
@@ -131,6 +131,12 @@ export function useScanTicket() {
       queryClient.invalidateQueries({
         queryKey: ['eventoTickets', variables.eventoid],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['scannedTickets', variables.eventoid],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['unscanedTickets', variables.eventoid],
+      });
     },
   });
 }
@@ -152,7 +158,7 @@ export function useGetScannedTickets(eventoid: string) {
       return data.tickets || [];
     },
     enabled: !!eventoid,
-    refetchInterval: 5000,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 
@@ -173,7 +179,7 @@ export function useGetUnscanedTickets(eventoid: string) {
       return data.tickets || [];
     },
     enabled: !!eventoid,
-    refetchInterval: 5000,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
 
