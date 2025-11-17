@@ -57,9 +57,8 @@ export function useGetEventoTickets(eventoid: string) {
   return useQuery({
     queryKey: ['eventoTickets', eventoid],
     queryFn: async () => {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/events/${eventoid}/tickets`, {
-        headers: authHeaders,
+      const response = await fetch(`/api/scanner/tickets?eventoid=${eventoid}`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -77,9 +76,8 @@ export function useGetTicketStats(eventoid: string) {
   return useQuery({
     queryKey: ['ticketStats', eventoid],
     queryFn: async (): Promise<TicketStats> => {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/events/${eventoid}/stats`, {
-        headers: authHeaders,
+      const response = await fetch(`/api/scanner/stats?eventoid=${eventoid}`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -108,14 +106,13 @@ export function useScanTicket() {
 
   return useMutation({
     mutationFn: async ({ eventoid, codigoQr }: { eventoid: string; codigoQr: string }) => {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/events/${eventoid}/scan`, {
+      const response = await fetch(`/api/scanner/scan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders,
         },
-        body: JSON.stringify({ codigo_qr: codigoQr }),
+        credentials: 'include',
+        body: JSON.stringify({ eventoid, codigo_qr: codigoQr }),
       });
 
       if (!response.ok) {
@@ -147,9 +144,8 @@ export function useGetScannedTickets(eventoid: string) {
   return useQuery({
     queryKey: ['scannedTickets', eventoid],
     queryFn: async (): Promise<Ticket[]> => {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/events/${eventoid}/tickets?estado=USADA`, {
-        headers: authHeaders,
+      const response = await fetch(`/api/scanner/tickets?eventoid=${eventoid}&estado=USADA`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -168,9 +164,8 @@ export function useGetUnscanedTickets(eventoid: string) {
   return useQuery({
     queryKey: ['unscanedTickets', eventoid],
     queryFn: async (): Promise<Ticket[]> => {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/events/${eventoid}/tickets?estado=VALIDA`, {
-        headers: authHeaders,
+      const response = await fetch(`/api/scanner/tickets?eventoid=${eventoid}&estado=VALIDA`, {
+        credentials: 'include',
       });
 
       if (!response.ok) {

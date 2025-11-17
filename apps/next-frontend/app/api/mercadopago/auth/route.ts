@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
       platform_id: 'mp',
     });
 
+    console.log('[OAuth Auth] Full authorization URL:', authUrl.toString());
+
     // Guardar en cookie el code_verifier y state para usar en el callback
     // Usar secure=true, httpOnly=true, sameSite=strict en producción
     const response = NextResponse.redirect(authUrl.toString());

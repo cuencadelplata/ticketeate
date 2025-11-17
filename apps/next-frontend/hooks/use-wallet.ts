@@ -142,3 +142,79 @@ export function useSimulatePayment() {
     },
   });
 }
+
+/**
+ * Hook para crear una preferencia de pago con Marketplace (10% fee)
+ * El organizador debe tener su cuenta de MercadoPago vinculada
+ */
+export function useCreateMarketplacePreference() {
+  return useMutation({
+    mutationFn: async (data: {
+      items: Array<{
+        title: string;
+        quantity: number;
+        unit_price: number;
+        currency_id?: string;
+      }>;
+      external_reference: string;
+      metadata?: Record<string, any>;
+    }) => {
+      console.log('[useCreateMarketplacePreference] Creating preference:', {
+        itemsCount: data.items.length,
+        external_reference: data.external_reference,
+      });
+
+      const response = await fetch('/api/mercadopago/create-preference', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[useCreateMarketplacePreference] Error:', {
+          status: response.status,
+          error: errorData,
+        });
+        throw new Error(errorData.error || 'Error al crear preferencia de pago');
+      }
+
+      const result = await response.json();
+
+      console.log('[useCreateMarketplacePreference] Success:', {
+        preferenceId: result.id,
+        marketplaceFee: result.marketplace_fee,
+        total: result.total,
+      });
+
+      return result;
+    },
+  });
+}
+
+/**
+ * Hook para obtener las órdenes de marketplace del organizador
+ */
+export function useMarketplaceOrders() {
+  const { data: session } = useSession();
+
+  return useQuery({
+    queryKey: ['marketplace-orders'],
+    queryFn: async () => {
+      const response = await fetch('/api/mercadopago/orders', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener órdenes');
+      }
+
+      return response.json();
+    },
+    enabled: !!session?.user?.id,
+  });
+}

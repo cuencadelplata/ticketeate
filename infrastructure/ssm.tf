@@ -46,6 +46,10 @@ data "aws_ssm_parameter" "mercadopago_client_secret" {
   name = "/ticketeate/${var.environment}/mercadopago-client-secret"
 }
 
+data "aws_ssm_parameter" "mp_platform_access_token" {
+  name = "/ticketeate/${var.environment}/mp-platform-access-token"
+}
+
 data "aws_ssm_parameter" "service_auth_secret" {
   name = "/ticketeate/${var.environment}/service-auth-secret"
 }
@@ -167,6 +171,7 @@ locals {
     MERCADO_PAGO_CLIENT_SECRET     = data.aws_ssm_parameter.mercadopago_client_secret.value
     MERCADO_PAGO_REDIRECT_URI      = "https://ticketeate.com.ar/configuracion"
     MERCADO_PAGO_MOCK              = "false"
+    MP_PLATFORM_ACCESS_TOKEN       = data.aws_ssm_parameter.mp_platform_access_token.value
     
     # Supabase
     NEXT_PUBLIC_SUPABASE_URL       = data.aws_ssm_parameter.supabase_url.value
