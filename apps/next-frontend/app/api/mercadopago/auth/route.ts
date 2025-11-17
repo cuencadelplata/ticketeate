@@ -71,9 +71,19 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
+    authUrl.searchParams.set('platform_id', 'mp'); // Requerido según documentación MP
     // PKCE para mayor seguridad
     authUrl.searchParams.set('code_challenge', codeChallenge);
     authUrl.searchParams.set('code_challenge_method', 'S256');
+
+    console.log('[OAuth Auth] Authorization URL parameters:', {
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      has_state: !!state,
+      has_code_challenge: !!codeChallenge,
+      platform_id: 'mp',
+    });
 
     // Guardar en cookie el code_verifier y state para usar en el callback
     // Usar secure=true, httpOnly=true, sameSite=strict en producción

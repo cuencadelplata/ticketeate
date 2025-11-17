@@ -23,7 +23,7 @@ async function exchangeCodeForToken(
     hasClientId: !!clientId,
     hasClientSecret: !!clientSecret,
     hasRedirectUri: !!redirectUri,
-    clientIdLength: clientId?.length,
+    clientId: clientId, // Mostrar completo para debug
     clientSecretLength: clientSecret?.length,
     redirectUri,
   });
@@ -38,16 +38,16 @@ async function exchangeCodeForToken(
     grant_type: 'authorization_code',
     code,
     redirect_uri: redirectUri,
-    code_verifier: codeVerifier,
+    ...(codeVerifier && { code_verifier: codeVerifier }), // Solo incluir si existe
   };
 
   console.log('[OAuth Token Exchange] Request payload:', {
     client_id: clientId,
     client_secret: '***',
     grant_type: payload.grant_type,
-    code,
+    code: code.substring(0, 20) + '...',
     redirect_uri: redirectUri,
-    code_verifier: codeVerifier.substring(0, 10) + '...',
+    has_code_verifier: !!codeVerifier,
   });
 
   const tokenResponse = await fetch('https://api.mercadopago.com/oauth/token', {
@@ -153,12 +153,14 @@ export async function GET(request: NextRequest) {
     const cookieCodeVerifier = request.cookies.get('oauth_code_verifier')?.value;
     const cookieState = request.cookies.get('oauth_state')?.value;
     const cookieUserId = request.cookies.get('oauth_user_id')?.value;
+    const noPkce = request.cookies.get('oauth_no_pkce')?.value === 'true';
 
     console.log('[OAuth Callback] Cookie check:', {
       hasCookieCodeVerifier: !!cookieCodeVerifier,
       hasCookieState: !!cookieState,
       hasCookieUserId: !!cookieUserId,
       stateMatch: state === cookieState,
+      noPkce,
     });
 
     // Validar state para protección CSRF
@@ -172,8 +174,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validar que tengamos el code_verifier (PKCE)
-    if (!cookieCodeVerifier) {
+    // Validar que tengamos el code_verifier (PKCE) - solo si no es modo no-pkce
+    if (!noPkce && !cookieCodeVerifier) {
       console.error('[OAuth Callback] Missing code verifier for PKCE');
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/configuracion?error=invalid_pkce`,
@@ -190,7 +192,7 @@ export async function GET(request: NextRequest) {
     // Intercambiar code por access token
     let tokenData: Awaited<ReturnType<typeof exchangeCodeForToken>>;
     try {
-      tokenData = await exchangeCodeForToken(code, cookieCodeVerifier);
+      tokenData = await exchangeCodeForToken(code, cookieCodeVerifier || '');
       console.log('[OAuth Callback] Token exchange successful:', {
         userId: tokenData.user_id,
         expiresIn: tokenData.expires_in,
@@ -240,6 +242,7 @@ export async function GET(request: NextRequest) {
     response.cookies.delete('oauth_code_verifier');
     response.cookies.delete('oauth_state');
     response.cookies.delete('oauth_user_id');
+    response.cookies.delete('oauth_no_pkce');
 
     return response;
   } catch (error) {
