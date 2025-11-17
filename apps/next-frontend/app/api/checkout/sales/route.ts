@@ -59,9 +59,10 @@ export async function GET(request: NextRequest) {
     // Obtener datos de los eventos para cada orden
     const ordersWithDetails = await Promise.all(
       orders.map(async (order) => {
-        const event = order.metadata?.eventId
+        const metadata = order.metadata as Record<string, any> | null;
+        const event = metadata?.eventId
           ? await prisma.eventos.findUnique({
-              where: { eventoid: order.metadata.eventId as string },
+              where: { eventoid: metadata.eventId as string },
               select: {
                 titulo: true,
                 eventoid: true,
@@ -73,8 +74,8 @@ export async function GET(request: NextRequest) {
           id: order.id,
           preferenceId: order.preference_id,
           externalReference: order.external_reference,
-          buyerId: order.metadata?.buyerId,
-          eventId: order.metadata?.eventId,
+          buyerId: metadata?.buyerId,
+          eventId: metadata?.eventId,
           eventTitle: event?.titulo || 'Evento desconocido',
           amount: Number(order.amount),
           marketplaceFee: Number(order.marketplace_fee),
