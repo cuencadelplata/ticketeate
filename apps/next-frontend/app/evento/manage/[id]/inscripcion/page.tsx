@@ -51,7 +51,7 @@ export default function InscripcionesPage() {
 
     loadInscripciones();
     // Actualizar cada 5 segundos
-    const interval = setInterval(loadInscripciones, 5000);
+    const interval = setInterval(loadInscripciones, 7000);
     return () => clearInterval(interval);
   }, [eventId, userId]);
 
@@ -148,20 +148,6 @@ export default function InscripcionesPage() {
                 </h1>
                 {eventoInfo && <p className="text-stone-400 mt-2">{eventoInfo.titulo}</p>}
               </div>
-              <button
-                onClick={loadInscripciones}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-stone-700 rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Actualizando...
-                  </>
-                ) : (
-                  'Actualizar'
-                )}
-              </button>
             </div>
             <div className="flex gap-2">
               <Link
