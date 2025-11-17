@@ -29,7 +29,7 @@ interface ScanResult {
 }
 
 const getApiBase = () => {
-  return process.env.NEXT_PUBLIC_API_EVENTS_URL || 'http://localhost:3001/api';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 };
 
 // Get auth headers with dynamic JWT token retrieval
