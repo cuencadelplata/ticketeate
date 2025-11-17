@@ -1,5 +1,3 @@
-import { SignUpPageContent } from '@/components/sign-up-page-content';
-
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
@@ -10,10 +8,17 @@ export default async function AccessPage() {
     headers: await headers(),
   });
 
+  // Si tiene sesión verificada, redirigir a su dashboard
   if (session?.user?.emailVerified) {
     const target = roleToPath(session.user.role as AppRole | undefined);
     redirect(target);
   }
 
-  return <SignUpPageContent />;
+  // Si tiene sesión sin verificar (OTP pendiente), ir a registro
+  if (session?.user && !session.user.emailVerified) {
+    redirect('/acceso/register');
+  }
+
+  // Sin sesión, ir a login
+  redirect('/acceso/login');
 }

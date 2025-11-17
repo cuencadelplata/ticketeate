@@ -84,12 +84,16 @@ export default function EventCapacity({
 
   // Sincronizar estados de capacidad
   useEffect(() => {
-    if (capacity && capacity !== '') {
-      setIsUnlimited(false);
-    } else {
-      setIsUnlimited(true);
+    // Solo sincronizar si es evento GRATIS (no pago)
+    // Para eventos pagos, la capacidad viene de los tickets individuales
+    if (!isPaid) {
+      if (capacity && capacity !== '') {
+        setIsUnlimited(false);
+      } else {
+        setIsUnlimited(true);
+      }
     }
-  }, [capacity]);
+  }, [capacity, isPaid]);
 
   // Propagar cambios de tipos de tickets inmediatamente (sin esperar Guardar)
   useEffect(() => {
