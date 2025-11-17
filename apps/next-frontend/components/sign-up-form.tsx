@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Loader2, Lock, ArrowLeft, Mail } from 'lucide-react';
 import { signUp, sendVerificationOTP, emailOtp, authClient } from '@/lib/auth-client';
 import Link from 'next/link';
@@ -238,7 +238,7 @@ export function SignUpForm() {
   };
 
   // Cooldown timer
-  React.useEffect(() => {
+  useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
       return () => clearTimeout(timer);
