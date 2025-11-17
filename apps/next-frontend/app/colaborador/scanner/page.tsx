@@ -58,7 +58,7 @@ export default function ScannerPage() {
 
     setIsUsingCode(true);
     try {
-      const response = await fetch('/api/administrador/invitados/usar-codigo', {
+      const response = await fetch('/api/invite-codes/use', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function ScannerPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.message || 'Error al validar código');
+        toast.error(data.error || 'Error al validar código');
         return;
       }
 

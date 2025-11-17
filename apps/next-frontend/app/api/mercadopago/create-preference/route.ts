@@ -128,7 +128,19 @@ export async function POST(request: NextRequest) {
       },
       auto_return: 'approved',
       metadata: {
-        ...metadata,
+        // Información del evento
+        event_id: metadata?.event_id,
+        event_titulo: metadata?.event_titulo,
+        // Información del comprador
+        buyer_id: metadata?.buyer_id,
+        buyer_email: metadata?.buyer_email,
+        buyer_nombre: metadata?.buyer_nombre,
+        // Información del pedido
+        cantidad: metadata?.cantidad,
+        sector: metadata?.sector,
+        precio_unitario: metadata?.precio_unitario,
+        transaction_id: metadata?.transaction_id,
+        // Información del vendedor/organizador
         seller_id: seller.id,
         seller_mp_user_id: seller.mercado_pago_user_id,
         marketplace_fee: marketplaceFee,
@@ -190,10 +202,17 @@ export async function POST(request: NextRequest) {
           marketplace_fee: marketplaceFee,
           status: 'pending',
           metadata: {
-            ...metadata,
+            event_id: metadata?.event_id,
+            event_titulo: metadata?.event_titulo,
+            buyer_id: metadata?.buyer_id,
+            buyer_email: metadata?.buyer_email,
+            buyer_nombre: metadata?.buyer_nombre,
+            cantidad: metadata?.cantidad,
+            sector: metadata?.sector,
+            precio_unitario: metadata?.precio_unitario,
+            transaction_id: metadata?.transaction_id,
             seller_id: seller.id,
-            buyer_id: session.user.id,
-            event_id: eventId,
+            seller_mp_user_id: seller.mercado_pago_user_id,
             marketplace_fee: marketplaceFee,
           },
         },

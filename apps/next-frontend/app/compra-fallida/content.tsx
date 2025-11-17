@@ -26,13 +26,6 @@ export default function CompraFallidaContent() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Error en la Compra</h1>
         <p className="text-gray-600 mb-6">{getErrorMessage()}</p>
 
-        {paymentId && (
-          <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-            <p className="text-sm text-gray-600 mb-1">ID de Pago:</p>
-            <p className="font-mono text-sm text-gray-900">{paymentId}</p>
-          </div>
-        )}
-
         <div className="space-y-3">
           <button
             onClick={() => router.back()}

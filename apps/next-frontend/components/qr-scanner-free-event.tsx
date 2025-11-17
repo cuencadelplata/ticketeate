@@ -194,7 +194,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
       const response = await fetch(`/api/validar-qr?eventId=${eventoid}`);
 
       if (!response.ok) {
-        toast.error('Error al cargar inscripciones');
+        console.error('Error al cargar inscripciones:', response.status);
         return;
       }
 
@@ -205,8 +205,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
       setInscripciones(data.data.inscripciones);
       setEstadisticas(data.data.estadisticas);
     } catch (error) {
-      toast.error('Error al cargar inscripciones');
-      console.error(error);
+      console.error('Error al cargar inscripciones:', error);
     } finally {
       setLoading(false);
     }
@@ -234,10 +233,25 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
         toast.error(data.message || 'Error al validar código');
       } else {
         if (data.data.validado) {
-          toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
+          // Verificar si ya estaba validado o es la primera vez
+          const esYaValidado = data.message && data.message.includes('ya fue validado');
+
+          if (esYaValidado) {
+            toast.info(
+              `⚠️ ${data.data.inscripcion.nombre} - Ya validado el ${new Date(data.data.fecha_validacion).toLocaleString('es-AR')}`,
+            );
+          } else {
+            toast.success(`✓ ${data.data.inscripcion.nombre} - Entrada validada`);
+          }
+          // Cerrar modal de cámara después de escaneo exitoso
+          setShowCameraModal(false);
         }
-        // Recargar la lista
-        await loadInscripciones();
+        // Recargar la lista (sin mostrar errores si falla)
+        try {
+          await loadInscripciones();
+        } catch (error) {
+          console.error('Error reloading inscripciones:', error);
+        }
       }
     } catch (error) {
       toast.error('Error al validar código QR');
