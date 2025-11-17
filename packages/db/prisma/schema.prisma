@@ -344,6 +344,7 @@ model user {
   colaborador_eventos                colaborador_eventos[]
   inscripciones_evento               inscripciones_evento[]
   codigos_qr                         codigos_qr[]
+  mercadopago_orders                 mercadopago_orders[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -632,5 +633,29 @@ model codigos_qr {
   @@index([eventoid], map: "idx_codigo_qr_evento")
   @@index([codigo], map: "idx_codigo_qr_codigo")
   @@index([validado], map: "idx_codigo_qr_validado")
+}
+
+/// Model for tracking MercadoPago marketplace orders
+model mercadopago_orders {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  preference_id       String    @unique @db.VarChar(255)
+  external_reference  String    @db.VarChar(255)
+  seller_id           String    @db.VarChar(255)
+  seller_mp_user_id   String?   @db.VarChar(255)
+  amount              Decimal   @db.Decimal(10, 2)
+  marketplace_fee     Decimal   @db.Decimal(10, 2)
+  status              String    @default("pending") @db.VarChar(50)
+  payment_id          String?   @db.VarChar(255)
+  merchant_order_id   String?   @db.VarChar(255)
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @updatedAt @db.Timestamptz(6)
+  paid_at             DateTime? @db.Timestamptz(6)
+  metadata            Json?
+  user                user      @relation(fields: [seller_id], references: [id], onDelete: Cascade)
+
+  @@index([seller_id], map: "idx_mp_orders_seller")
+  @@index([external_reference], map: "idx_mp_orders_external_ref")
+  @@index([status], map: "idx_mp_orders_status")
+  @@index([created_at], map: "idx_mp_orders_created_at")
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Loader2, Mail, Lock, UserCircle, ArrowLeft } from 'lucide-react';
 import {
   signIn,
@@ -25,6 +25,7 @@ type Props = {
 
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const { data: session } = useSession();
+  const showOtpBySessionRef = useRef(false);
 
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
   const [role, setRole] = useState<Role>(defaultRole);
@@ -42,6 +43,17 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     password: '',
     inviteCode: '',
   });
+
+  // Sincronizar OTP con la sesión: si hay sesión sin verificar, mantener OTP visible
+  useEffect(() => {
+    if (session) {
+      const emailVerified = (session.user as any)?.emailVerified;
+      // Si está sin verificar y fue por registro, mostrar OTP
+      if (!emailVerified && showOtpBySessionRef.current) {
+        setShowOtpVerification(true);
+      }
+    }
+  }, [session]);
 
   // Función para mostrar errores
   const showError = (message: string) => {
@@ -224,6 +236,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
       // Mostrar formulario de verificación OTP en la misma página
       setLoading(false);
+      showOtpBySessionRef.current = true; // Marcar que necesitamos mostrar OTP
       setShowOtpVerification(true);
 
       // No enviar OTP aquí - ya se envió automáticamente por sendVerificationOnSignUp
@@ -338,6 +351,9 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
       // Hacer un refresh de la sesión para sincronizar el rol
       await authClient.getSession();
+
+      // Limpiar la bandera de OTP
+      showOtpBySessionRef.current = false;
 
       setShowOtpVerification(false);
       setOtp('');

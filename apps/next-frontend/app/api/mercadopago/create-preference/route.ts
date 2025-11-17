@@ -1,98 +1,205 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@repo/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Crea una preferencia de Checkout Pro en Mercado Pago y devuelve la URL para redirigir
+/**
+ * Crea una preferencia de Checkout Pro con Marketplace Fee (10%)
+ * @see https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/integrate-preferences
+ */
 export async function POST(request: NextRequest) {
   try {
+    // Autenticar usuario
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const {
-      title,
-      quantity,
-      unit_price,
-      currency = 'ARS',
+      items,
+      external_reference,
       metadata,
     }: {
-      title: string;
-      quantity: number;
-      unit_price: number;
-      currency?: 'ARS' | 'USD' | 'EUR';
+      items: Array<{
+        title: string;
+        quantity: number;
+        unit_price: number;
+        currency_id?: string;
+      }>;
+      external_reference: string;
       metadata?: Record<string, any>;
     } = body ?? {};
 
-    if (!title || !quantity || !unit_price) {
+    // Validaciones
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Se requiere al menos un item' }, { status: 400 });
+    }
+
+    if (!external_reference) {
+      return NextResponse.json({ error: 'Se requiere external_reference' }, { status: 400 });
+    }
+
+    // Obtener datos del organizador (vendedor)
+    const seller = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        mercado_pago_user_id: true,
+        mercado_pago_access_token: true,
+        wallet_linked: true,
+      },
+    });
+
+    if (!seller || !seller.wallet_linked || !seller.mercado_pago_access_token) {
       return NextResponse.json(
-        { error: 'Faltan campos: title, quantity, unit_price' },
-        { status: 400 },
+        { error: 'Debe vincular su cuenta de Mercado Pago primero' },
+        { status: 403 },
       );
     }
 
-    // Base URL para callback/back_urls
+    // Calcular total y marketplace fee (10%)
+    const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const marketplaceFee = Math.round(total * 0.1 * 100) / 100; // 10% redondeado a 2 decimales
+
+    console.log('[Create Preference] Calculation:', {
+      total,
+      marketplaceFee,
+      feePercentage: '10%',
+      sellerId: seller.id,
+      sellerMpUserId: seller.mercado_pago_user_id,
+    });
+
+    // Base URL para callbacks
     const host =
       request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
     const protocol = request.headers.get('x-forwarded-proto') || 'http';
     const baseUrl = `${protocol}://${host}`;
 
-    const accessToken =
-      process.env.MP_ACCESS_TOKEN ||
-      'APP_USR-2616767994062884-100312-e0656821760e6ecbc6e885cd115f60ab-2609260829';
-    if (!accessToken) {
-      return NextResponse.json({ error: 'MP_ACCESS_TOKEN no configurado' }, { status: 500 });
-    }
-
-    // Mercado Pago Argentina opera en ARS. Si viene USD/EUR, convertimos a ARS
-    const ratesToARS: Record<string, number> = { ARS: 1, USD: 1300, EUR: 1600 };
-    const unitPriceARS = Number((unit_price * (ratesToARS[currency] || 1)).toFixed(2));
-
-    const payload = {
-      items: [
-        {
-          title,
-          quantity,
-          currency_id: 'ARS',
-          unit_price: unitPriceARS,
-        },
-      ],
-      back_urls: {
-        success: `${baseUrl}/compra-exitosa`,
-        failure: `${baseUrl}/compra-fallida`,
-        pending: `${baseUrl}/comprar`,
-      },
-      auto_return: 'approved',
-      notification_url: `${baseUrl}/api/webhook/mp`,
-      metadata: metadata || {},
-    };
-    console.log('MP payload', payload);
-
-    const url = 'https://api.mercadopago.com/checkout/preferences';
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text();
-      console.error('MercadoPago error', resp.status, text);
+    // Token de la plataforma (tu app)
+    const platformAccessToken = process.env.MP_PLATFORM_ACCESS_TOKEN;
+    if (!platformAccessToken) {
+      console.error('[Create Preference] MP_PLATFORM_ACCESS_TOKEN no configurado');
       return NextResponse.json(
-        { error: 'Error al crear preferencia', status: resp.status, detalle: text },
+        { error: 'Configuración de plataforma incompleta' },
         { status: 500 },
       );
     }
 
-    const data = await resp.json();
+    // Crear preference con marketplace_fee
+    const preferencePayload = {
+      items: items.map((item) => ({
+        title: item.title,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        currency_id: item.currency_id || 'ARS',
+      })),
+      external_reference,
+      marketplace_fee: marketplaceFee, // CLAVE: comisión que cobra la plataforma
+      notification_url: `${baseUrl}/api/mercadopago/webhook`,
+      back_urls: {
+        success: `${baseUrl}/compra-exitosa?preference=${external_reference}`,
+        failure: `${baseUrl}/compra-fallida`,
+        pending: `${baseUrl}/compra-pendiente`,
+      },
+      auto_return: 'approved',
+      metadata: {
+        ...metadata,
+        seller_id: seller.id,
+        seller_mp_user_id: seller.mercado_pago_user_id,
+        marketplace_fee: marketplaceFee,
+      },
+    };
+
+    console.log('[Create Preference] Request:', {
+      url: 'https://api.mercadopago.com/checkout/preferences',
+      itemsCount: items.length,
+      total,
+      marketplaceFee,
+      external_reference,
+    });
+
+    // Crear preference con el token de la plataforma
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${platformAccessToken}`,
+      },
+      body: JSON.stringify(preferencePayload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Create Preference] MercadoPago error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+      return NextResponse.json(
+        {
+          error: 'Error al crear preferencia en MercadoPago',
+          status: response.status,
+          details: errorText,
+        },
+        { status: 500 },
+      );
+    }
+
+    const preferenceData = await response.json();
+
+    console.log('[Create Preference] Success:', {
+      preferenceId: preferenceData.id,
+      hasInitPoint: !!preferenceData.init_point,
+      hasSandboxInitPoint: !!preferenceData.sandbox_init_point,
+    });
+
+    // Guardar order en la base de datos para tracking
+    try {
+      await prisma.mercadopago_orders.create({
+        data: {
+          preference_id: preferenceData.id,
+          external_reference,
+          seller_id: seller.id,
+          seller_mp_user_id: seller.mercado_pago_user_id || null,
+          amount: total,
+          marketplace_fee: marketplaceFee,
+          status: 'pending',
+          metadata: metadata || {},
+        },
+      });
+
+      console.log('[Create Preference] Order saved to database:', {
+        preferenceId: preferenceData.id,
+        external_reference,
+      });
+    } catch (dbError) {
+      console.error('[Create Preference] Error saving order to database:', dbError);
+      // No fallar la request si falla el guardado - la preferencia ya se creó
+    }
+
     return NextResponse.json(
-      { id: data.id, init_point: data.init_point, sandbox_init_point: data.sandbox_init_point },
+      {
+        id: preferenceData.id,
+        init_point: preferenceData.init_point,
+        sandbox_init_point: preferenceData.sandbox_init_point,
+        marketplace_fee: marketplaceFee,
+        total,
+      },
       { status: 201 },
     );
-  } catch (e: any) {
-    console.error('MP preference unexpected error', e);
+  } catch (error) {
+    console.error('[Create Preference] Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Error interno', detalle: e?.message || String(e) },
+      {
+        error: 'Error interno al crear preferencia',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     );
   }
