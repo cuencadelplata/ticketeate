@@ -1,39 +1,30 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@repo/db';
 import { auth } from '@/lib/auth';
-import { db } from '@ticketeate/db';
 
 export const dynamic = 'force-dynamic';
 
-interface UseInviteCodeResponse {
-  success: boolean;
-  message: string;
-  eventoid?: string;
-  colaborador_evento_id?: string;
-  error?: string;
-}
-
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: NextRequest) {
   try {
     // Obtener la sesión del usuario
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session || !session.user) {
-      return Response.json({ error: 'Usuario no autenticado' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
 
     const { codigo } = await request.json();
 
     if (!codigo || typeof codigo !== 'string') {
-      return Response.json({ error: 'Código de invitación requerido' }, { status: 400 });
+      return NextResponse.json({ error: 'Código de invitación requerido' }, { status: 400 });
     }
 
-    const codigoTrimmed = codigo.trim().toUpperCase();
-
-    // Buscar el código en la base de datos
-    const inviteCode = await db.invite_codes.findFirst({
+    // Buscar el código de invitación
+    const inviteCode = await prisma.invite_codes.findFirst({
       where: {
-        codigo: codigoTrimmed,
+        codigo: codigo.trim().toUpperCase(),
         estado: 'ACTIVO',
         fecha_expiracion: {
           gt: new Date(),
@@ -42,43 +33,46 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     if (!inviteCode) {
-      return Response.json({ error: 'Código de invitación no válido o expirado' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Código de invitación no válido o expirado' },
+        { status: 404 },
+      );
     }
 
     // Verificar que no ha excedido el máximo de usos
     if (inviteCode.usos_totales >= inviteCode.usos_max) {
-      return Response.json(
+      return NextResponse.json(
         { error: 'Código de invitación ya ha alcanzado el máximo de usos' },
-        { status: 401 },
+        { status: 400 },
       );
     }
 
     // Verificar si el usuario ya es colaborador de este evento
-    const existingColaborador = await db.colaborador_eventos.findFirst({
+    const existingColaborador = await prisma.colaborador_eventos.findUnique({
       where: {
-        eventoid: inviteCode.eventoid,
-        usuarioid: session.user.id,
+        eventoid_usuarioid: {
+          eventoid: inviteCode.eventoid,
+          usuarioid: session.user.id,
+        },
       },
     });
 
     if (existingColaborador) {
-      return Response.json({ error: 'Ya eres colaborador de este evento' }, { status: 400 });
+      return NextResponse.json({ error: 'Ya eres colaborador de este evento' }, { status: 400 });
     }
 
-    // Crear el registro de colaborador_eventos
-    const colaborador = await db.colaborador_eventos.create({
+    // Crear el registro de colaborador
+    const newColaborador = await prisma.colaborador_eventos.create({
       data: {
         eventoid: inviteCode.eventoid,
         usuarioid: session.user.id,
-        invite_code_used: inviteCode.codigoid,
+        invite_code_used: codigo.trim().toUpperCase(),
       },
     });
 
-    // Incrementar el contador de usos del código
-    await db.invite_codes.update({
-      where: {
-        codigoid: inviteCode.codigoid,
-      },
+    // Incrementar el contador de usos del código de invitación
+    await prisma.invite_codes.update({
+      where: { codigoid: inviteCode.codigoid },
       data: {
         usos_totales: {
           increment: 1,
@@ -86,14 +80,14 @@ export async function POST(request: Request): Promise<Response> {
       },
     });
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
-      message: 'Te has registrado como colaborador correctamente',
+      message: '¡Código validado! Ahora eres colaborador del evento',
       eventoid: inviteCode.eventoid,
-      colaborador_evento_id: colaborador.colaborador_evento_id,
-    } as UseInviteCodeResponse);
+      colaborador_evento_id: newColaborador.colaborador_evento_id,
+    });
   } catch (error) {
     console.error('Error using invite code:', error);
-    return Response.json({ error: 'Error al usar código de invitación' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al validar código de invitación' }, { status: 500 });
   }
 }
