@@ -5,6 +5,29 @@ Todas las versiones notables de **svc-checkout** serán documentadas en este arc
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+# [1.7.0](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.6.1...svc-checkout-v1.7.0) (2025-11-17)
+
+
+### Bug Fixes
+
+* add API Gateway routes for /api/invite-codes endpoints ([3133db4](https://github.com/cuencadelplata/ticketeate/commit/3133db498619721e2880c92a39218c3b97732265))
+* add CORS headers and OPTIONS handler to invite-codes routes ([17825e2](https://github.com/cuencadelplata/ticketeate/commit/17825e2ed3310d3060292ceb224703e7cb2eaea6))
+* add CORS headers and OPTIONS handler to invite-codes routes ([#181](https://github.com/cuencadelplata/ticketeate/issues/181)) ([158ee41](https://github.com/cuencadelplata/ticketeate/commit/158ee41c1fa510b5af61c211105e08f01df08a9b))
+* avoid constant refetches on scanner page and add attendee list ([46b3ca3](https://github.com/cuencadelplata/ticketeate/commit/46b3ca35e7f2d600e52470dafbb9300788fdc850))
+* remove invalid html5-qrcode configuration option ([367e04f](https://github.com/cuencadelplata/ticketeate/commit/367e04fafc26080a4534e9d1d82ffbd6a7f6766b))
+* stop auto-refetching and ensure scanned tickets update ([e968833](https://github.com/cuencadelplata/ticketeate/commit/e968833e91e1b9fd54ddd1f8c396f1ac830192b0))
+* use correct API URL and allow public access to event details ([55fa3ef](https://github.com/cuencadelplata/ticketeate/commit/55fa3ef36759b9f9cbf1c8718b96920b735926c0))
+* use correct API URL and allow public access to event details ([#182](https://github.com/cuencadelplata/ticketeate/issues/182)) ([f417522](https://github.com/cuencadelplata/ticketeate/commit/f4175225faee325cdf2ab2cedf75dacc442091fa))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([#179](https://github.com/cuencadelplata/ticketeate/issues/179)) ([217497e](https://github.com/cuencadelplata/ticketeate/commit/217497e6c2bf82a68cc0db80089cf40827db0c45))
+* **mercadopago:** use MERCADOPAGO_* naming to match AWS Parameter Store ([8391b52](https://github.com/cuencadelplata/ticketeate/commit/8391b521d617450581df4dfbabaf85b76648b5a5))
+
+
+### Features
+
+* add camera QR scanning to scanner page ([28d97ce](https://github.com/cuencadelplata/ticketeate/commit/28d97ce5d5dda9b28e30feddd8a730fc77211a0a))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([#183](https://github.com/cuencadelplata/ticketeate/issues/183)) ([0a63bdd](https://github.com/cuencadelplata/ticketeate/commit/0a63bddada936d256f84b261eb32c39fc3854686))
+* **mercadopago:** add platform_id and no-PKCE testing endpoint ([c47b1c2](https://github.com/cuencadelplata/ticketeate/commit/c47b1c22ba9459a27c74cf7a3e4200a88ce57b08))
+
 ## [1.6.1](https://github.com/cuencadelplata/ticketeate/compare/svc-checkout-v1.6.0...svc-checkout-v1.6.1) (2025-11-16)
 
 
