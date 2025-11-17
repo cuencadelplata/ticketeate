@@ -21,6 +21,7 @@ type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 type Props = {
   defaultTab?: 'login' | 'register';
   defaultRole?: Role;
+  hideTabs?: boolean;
 };
 
 const OTP_FLAG_KEY = 'ticketeate:auth:showOtp';
@@ -28,7 +29,11 @@ const OTP_ROLE_KEY = 'ticketeate:auth:pendingRole';
 const OTP_EMAIL_KEY = 'ticketeate:auth:pendingEmail';
 const OTP_ROLE_SELECTION_KEY = 'ticketeate:auth:selectedRole';
 
-export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
+export default function AuthPage({
+  defaultTab = 'login',
+  defaultRole = 'USUARIO',
+  hideTabs = !!defaultTab,
+}: Props) {
   const { data: session } = useSession();
   const router = useRouter();
   const showOtpBySessionRef = useRef(false);
@@ -640,27 +645,31 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
 
         {/* Card */}
         <div className="bg-stone-900 rounded-2xl p-0 overflow-hidden shadow-2xl">
-          {/* Header tabs */}
-          <div className="grid grid-cols-2">
-            <button
-              onClick={() => setTab('login')}
-              className={`py-3 text-sm font-medium ${
-                tab === 'login' ? 'bg-stone-800 text-white' : 'bg-stone-800/50 text-stone-300'
-              }`}
-            >
-              Iniciar sesión
-            </button>
-            <button
-              onClick={() => setTab('register')}
-              className={`py-3 text-sm font-medium ${
-                tab === 'register' ? 'bg-stone-800 text-white' : 'bg-stone-800/50 text-stone-300'
-              }`}
-            >
-              Crear cuenta
-            </button>
-          </div>
+          {/* Header tabs - solo mostrar si no hay defaultTab o hideTabs es false */}
+          {!hideTabs && (
+            <div className="grid grid-cols-2">
+              <button
+                onClick={() => setTab('login')}
+                className={`py-3 text-sm font-medium ${
+                  tab === 'login' ? 'bg-stone-800 text-white' : 'bg-stone-800/50 text-stone-300'
+                }`}
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => setTab('register')}
+                className={`py-3 text-sm font-medium ${
+                  tab === 'register' ? 'bg-stone-800 text-white' : 'bg-stone-800/50 text-stone-300'
+                }`}
+              >
+                Crear cuenta
+              </button>
+            </div>
+          )}
 
-          <div className="px-6 pb-6 pt-4 bg-stone-900 text-stone-100">
+          <div
+            className={`${hideTabs ? 'px-6 pb-6 pt-6' : 'px-6 pb-6 pt-4'} bg-stone-900 text-stone-100`}
+          >
             {/* Error */}
             {err && (
               <div className="mb-4 rounded-lg bg-red-500/15 border border-red-500/50 px-4 py-3 text-sm text-red-200 animate-in fade-in duration-300">
@@ -779,6 +788,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Continuar
                 </button>
+
+                <div className="text-center text-xs text-stone-400">
+                  ¿Ya tienes cuenta?{' '}
+                  <Link
+                    href="/acceso/login"
+                    className="text-orange-400 hover:text-orange-300 font-medium"
+                  >
+                    Inicia sesión aquí
+                  </Link>
+                </div>
               </form>
             )}
 
@@ -829,6 +848,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                 >
                   ¿Olvidaste tu contraseña?
                 </Link>
+
+                <div className="text-center text-xs text-stone-400">
+                  ¿No tienes cuenta?{' '}
+                  <Link
+                    href="/acceso/register"
+                    className="text-orange-400 hover:text-orange-300 font-medium"
+                  >
+                    Crea una aquí
+                  </Link>
+                </div>
               </form>
             )}
 
