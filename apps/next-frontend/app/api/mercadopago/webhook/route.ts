@@ -1,5 +1,149 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
+import crypto from 'crypto';
+
+/**
+ * Obtiene los detalles de una preferencia desde la API de Mercado Pago
+ */
+async function getPreferenceDetails(preferenceId: string) {
+  const platformAccessToken = process.env.MP_PLATFORM_ACCESS_TOKEN;
+  if (!platformAccessToken) {
+    throw new Error('MP_PLATFORM_ACCESS_TOKEN not configured');
+  }
+
+  const response = await fetch(`https://api.mercadopago.com/checkout/preferences/${preferenceId}`, {
+    headers: {
+      Authorization: `Bearer ${platformAccessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.error('[MP Webhook] Error fetching preference:', {
+      status: response.status,
+      preferenceId,
+    });
+    return null;
+  }
+
+  return response.json();
+}
+
+/**
+ * Genera un número aleatorio para el código QR
+ */
+function generateQRCode(): string {
+  return crypto.randomBytes(16).toString('hex').toUpperCase();
+}
+
+/**
+ * Crea las entradas (reservas y códigos QR) cuando un pago es aprobado
+ */
+async function createOrderTickets(order: any, preferenceDetails: any, buyerEmail?: string) {
+  if (!preferenceDetails?.items || preferenceDetails.items.length === 0) {
+    console.warn('[MP Webhook] Preference has no items');
+    return;
+  }
+
+  // Obtener al comprador (por email si es disponible, o buscar si existe)
+  let buyer = null;
+  if (buyerEmail) {
+    buyer = await prisma.user.findUnique({
+      where: { email: buyerEmail },
+    });
+  }
+
+  // Buscar al evento desde los metadatos
+  const eventId = order.metadata?.eventId;
+  if (!eventId) {
+    console.error('[MP Webhook] No eventId in order metadata');
+    return;
+  }
+
+  // Para cada item en la preferencia, crear las reservas y entradas
+  for (const item of preferenceDetails.items) {
+    try {
+      // Obtener el stock de entradas para esta categoría
+      const stockEntry = await prisma.stock_entrada.findFirst({
+        where: {
+          eventoid: eventId,
+          nombre: item.title, // Simplificado - en prod deberías pasar el stock ID
+        },
+      });
+
+      if (!stockEntry) {
+        console.warn('[MP Webhook] Stock entry not found for item:', item.title);
+        continue;
+      }
+
+      // Crear la reserva
+      const reservaId = crypto.randomUUID();
+
+      const fechaEvento = await prisma.fechas_evento.findFirst({
+        where: { eventoid: eventId },
+        orderBy: { fecha_hora: 'asc' },
+      });
+
+      if (!fechaEvento) {
+        console.warn('[MP Webhook] Event date not found for event:', eventId);
+        continue;
+      }
+
+      // Si no hay buyer, crear un guest user o usar anonymous
+      const usuarioId = buyer?.id || order.seller_id; // Fallback al vendedor si no hay buyer
+
+      await prisma.reservas.create({
+        data: {
+          reservaid: reservaId,
+          usuarioid: usuarioId,
+          eventoid: eventId,
+          fechaid: fechaEvento.fechaid,
+          categoriaid: stockEntry.stockid,
+          cantidad: item.quantity,
+          estado: 'CONFIRMADA',
+          version: 1,
+          is_active: true,
+        },
+      });
+
+      // Crear las entradas individuales con códigos QR
+      const entradas = [];
+      for (let i = 0; i < item.quantity; i++) {
+        const entradaId = crypto.randomUUID();
+        const codigoQr = generateQRCode();
+
+        entradas.push({
+          entradaid: entradaId,
+          reservaid: reservaId,
+          codigo_qr: codigoQr,
+          estado: 'VALIDA',
+          version: 1,
+          is_active: true,
+          updated_by: order.seller_id,
+        });
+      }
+
+      // Insertar todas las entradas en batch
+      if (entradas.length > 0) {
+        await prisma.entradas.createMany({
+          data: entradas,
+          skipDuplicates: true,
+        });
+
+        console.log('[MP Webhook] Created tickets:', {
+          reservaId,
+          entradaCount: entradas.length,
+          eventId,
+        });
+      }
+    } catch (itemError) {
+      console.error('[MP Webhook] Error creating ticket for item:', {
+        item: item.title,
+        error: itemError,
+      });
+      // Continuar con el siguiente item
+    }
+  }
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -110,18 +254,32 @@ export async function POST(request: NextRequest) {
         paymentId: payment.id,
       });
 
-      // TODO: Aquí puedes agregar lógica adicional según el estado
-      // Por ejemplo, enviar emails, actualizar tickets, notificar al vendedor, etc.
+      // Lógica cuando el pago es aprobado
       if (isPaid) {
-        console.log('[MP Webhook] Payment approved - add custom logic here:', {
+        console.log('[MP Webhook] Payment approved - Processing order:', {
           sellerId: order.seller_id,
           amount: order.amount,
           marketplaceFee: order.marketplace_fee,
           netAmount: Number(order.amount) - Number(order.marketplace_fee),
         });
 
-        // Ejemplo: Podrías llamar a un servicio para crear las entradas del evento
-        // await createTicketsForOrder(order);
+        try {
+          // Obtener los detalles de la preferencia para las entradas
+          const preferenceDetails = await getPreferenceDetails(order.preference_id);
+
+          if (preferenceDetails) {
+            // Crear las entradas/reservas para el comprador
+            await createOrderTickets(order, preferenceDetails, payment.payer?.email);
+
+            console.log('[MP Webhook] Tickets created successfully for order:', {
+              orderId: order.id,
+              externalReference: order.external_reference,
+            });
+          }
+        } catch (createTicketsError) {
+          console.error('[MP Webhook] Error creating tickets:', createTicketsError);
+          // No fallar la request - el pago ya se procesó correctamente
+        }
       }
 
       return NextResponse.json(

@@ -1,55 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createRedisClient } from '../_shared/redis.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-class RedisClient {
-  private url: string;
-  private token: string;
-
-  constructor(url: string, token: string) {
-    this.url = url;
-    this.token = token;
-  }
-
-  async get(key: string): Promise<string | null> {
-    try {
-      const response = await fetch(`${this.url}/get/${key}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      return data.result;
-    } catch (error) {
-      console.error('Redis GET error:', error);
-      return null;
-    }
-  }
-
-  async keys(pattern: string): Promise<string[]> {
-    try {
-      const response = await fetch(`${this.url}/keys/${pattern}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
-
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      return data.result || [];
-    } catch (error) {
-      console.error('Redis KEYS error:', error);
-      return [];
-    }
-  }
-}
 
 serve(async (req) => {
   // Manejar CORS
@@ -58,49 +13,47 @@ serve(async (req) => {
   }
 
   try {
-    const redisUrl = Deno.env.get('UPSTASH_REDIS_REST_URL');
-    const redisToken = Deno.env.get('UPSTASH_REDIS_REST_TOKEN');
+    const redis = await createRedisClient();
 
-    if (!redisUrl || !redisToken) {
-      return new Response(JSON.stringify({ error: 'Redis not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    try {
+      const viewKeys = await redis.keys('event:*:views');
 
-    const redis = new RedisClient(redisUrl, redisToken);
+      const stats = {
+        pendingSync: viewKeys.length,
+        totalPendingViews: 0,
+        events: [],
+      };
 
-    // Obtener todas las claves de contadores de eventos
-    const viewKeys = await redis.keys('event:*:views');
+      for (const key of viewKeys) {
+        const eventId = key.split(':')[1];
+        const redisCount = await redis.get(key);
 
-    const stats = {
-      pendingSync: viewKeys.length,
-      totalPendingViews: 0,
-      events: [],
-    };
+        if (!redisCount) continue;
 
-    for (const key of viewKeys) {
-      const eventId = key.split(':')[1];
-      const redisCount = await redis.get(key);
+        const count = parseInt(redisCount, 10);
+        if (Number.isNaN(count)) continue;
 
-      if (redisCount) {
-        const count = parseInt(redisCount);
         stats.totalPendingViews += count;
         stats.events.push({
           eventId,
           pendingViews: count,
         });
       }
-    }
 
-    return new Response(JSON.stringify(stats), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      return new Response(JSON.stringify(stats), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } finally {
+      await redis.quit();
+    }
   } catch (error) {
     console.error('Error getting views stats:', error);
+    const isConfigError =
+      error instanceof Error && error.message.includes('Redis connection environment variables');
+
     return new Response(
       JSON.stringify({
-        error: 'Internal server error',
+        error: isConfigError ? 'Redis not configured' : 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

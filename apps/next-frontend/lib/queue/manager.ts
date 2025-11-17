@@ -3,8 +3,8 @@ import type { QueueConfig, QueuePosition, QueueStatus } from './types';
 import { REDIS_KEYS } from './types';
 import { prisma } from '@repo/db';
 
-// Usar el cliente Redis local configurado
-const redis = redisClient['client']; // Acceder al cliente ioredis interno
+// Cliente Redis compartido para la cola
+const redis = redisClient.getClient();
 
 export class QueueManager {
   /**

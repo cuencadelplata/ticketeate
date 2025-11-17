@@ -204,7 +204,7 @@ export function useMarketplaceOrders() {
   return useQuery({
     queryKey: ['marketplace-orders'],
     queryFn: async () => {
-      const response = await fetch('/api/mercadopago/orders', {
+      const response = await fetch('/api/checkout/orders', {
         method: 'GET',
         credentials: 'include',
       });

@@ -180,12 +180,16 @@ export function useUpdateEvent() {
       id: string;
       eventData: Partial<CreateEventData>;
     }): Promise<Event> => {
-      const headers = await getAuthHeaders();
-      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
+      // Usar la ruta API local en lugar del microservicio
+      const res = await fetch(`/api/eventos/${id}`, {
         method: 'PUT',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(eventData),
+        credentials: 'include',
       });
+
       if (!res.ok) {
         let msg = 'Error al actualizar el evento';
         try {
@@ -194,7 +198,8 @@ export function useUpdateEvent() {
         } catch {}
         throw new Error(msg);
       }
-      return res.json();
+      const data = await res.json();
+      return data.event;
     },
     onSuccess: async (updatedEvent) => {
       // Invalidar todas las queries relacionadas con eventos para asegurar datos frescos
@@ -230,11 +235,15 @@ export function useDeleteEvent() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const headers = await getAuthHeaders();
-      const res = await fetchWithApiKey(`${API_ENDPOINTS.events}/${id}`, {
+      // Usar la ruta API local en lugar del microservicio
+      const res = await fetch(`/api/eventos/${id}`, {
         method: 'DELETE',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       });
+
       if (!res.ok) {
         let msg = 'Error al eliminar el evento';
         try {

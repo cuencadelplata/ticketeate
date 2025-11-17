@@ -13,6 +13,8 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { roleToPath } from '@/lib/role-redirect';
 
 type Role = 'USUARIO' | 'ORGANIZADOR' | 'COLABORADOR';
 
@@ -21,8 +23,14 @@ type Props = {
   defaultRole?: Role;
 };
 
+const OTP_FLAG_KEY = 'ticketeate:auth:showOtp';
+const OTP_ROLE_KEY = 'ticketeate:auth:pendingRole';
+const OTP_EMAIL_KEY = 'ticketeate:auth:pendingEmail';
+const OTP_ROLE_SELECTION_KEY = 'ticketeate:auth:selectedRole';
+
 export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO' }: Props) {
   const { data: session } = useSession();
+  const router = useRouter();
   const showOtpBySessionRef = useRef(false);
   const pendingRoleRef = useRef<{ role: Role; inviteCode?: string } | null>(null);
 
@@ -42,6 +50,67 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
     password: '',
     inviteCode: '',
   });
+
+  const clearOtpState = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(OTP_FLAG_KEY);
+      window.sessionStorage.removeItem(OTP_EMAIL_KEY);
+      window.sessionStorage.removeItem(OTP_ROLE_SELECTION_KEY);
+      window.sessionStorage.removeItem(OTP_ROLE_KEY);
+    }
+    showOtpBySessionRef.current = false;
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const shouldShowOtp = window.sessionStorage.getItem(OTP_FLAG_KEY) === 'true';
+    const storedEmail = window.sessionStorage.getItem(OTP_EMAIL_KEY);
+    const storedRole = window.sessionStorage.getItem(OTP_ROLE_SELECTION_KEY) as Role | null;
+    const storedPendingRole = window.sessionStorage.getItem(OTP_ROLE_KEY);
+
+    if (storedPendingRole) {
+      try {
+        const parsed = JSON.parse(storedPendingRole) as {
+          role: Role;
+          inviteCode?: string;
+        };
+
+        if (parsed?.role) {
+          pendingRoleRef.current = parsed;
+        }
+      } catch (error) {
+        console.error('No se pudo restaurar el rol pendiente desde sessionStorage', error);
+        pendingRoleRef.current = null;
+      }
+    }
+
+    if (storedRole && ['USUARIO', 'ORGANIZADOR', 'COLABORADOR'].includes(storedRole)) {
+      setRole(storedRole);
+    }
+
+    if (storedEmail || pendingRoleRef.current?.inviteCode) {
+      const updates: Partial<typeof formData> = {};
+      if (storedEmail) {
+        updates.email = storedEmail;
+      }
+      if (pendingRoleRef.current?.inviteCode) {
+        updates.inviteCode = pendingRoleRef.current.inviteCode;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setFormData((prev) => ({ ...prev, ...updates }));
+      }
+    }
+
+    if (shouldShowOtp) {
+      showOtpBySessionRef.current = true;
+      setTab('register');
+      setShowOtpVerification(true);
+    }
+  }, []);
 
   // Sincronizar OTP con la sesión: si hay sesión sin verificar, mantener OTP visible
   useEffect(() => {
@@ -222,6 +291,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       // Mostrar formulario de verificación OTP en la misma página
       setLoading(false);
       showOtpBySessionRef.current = true; // Marcar que necesitamos mostrar OTP
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(OTP_FLAG_KEY, 'true');
+        window.sessionStorage.setItem(OTP_EMAIL_KEY, formData.email);
+        window.sessionStorage.setItem(OTP_ROLE_SELECTION_KEY, role);
+        if (pendingRoleRef.current) {
+          window.sessionStorage.setItem(OTP_ROLE_KEY, JSON.stringify(pendingRoleRef.current));
+        } else {
+          window.sessionStorage.removeItem(OTP_ROLE_KEY);
+        }
+      }
       setShowOtpVerification(true);
       setResendCooldown(60);
       toast.success('Te enviamos un código de verificación. Revisa tu correo.');
@@ -365,13 +444,16 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Hacer un refresh de la sesión para sincronizar el rol
-      await authClient.getSession();
+      const refreshedSession = await authClient.getSession();
 
       // Limpiar la bandera de OTP
-      showOtpBySessionRef.current = false;
-
+      clearOtpState();
       setShowOtpVerification(false);
       setOtp('');
+
+      const finalRole = (refreshedSession?.user as any)?.role as Role | undefined;
+      const redirectTarget = roleToPath(finalRole);
+      router.replace(redirectTarget);
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       let errorMessage = 'Código incorrecto o expirado';
@@ -509,6 +591,7 @@ export default function AuthPage({ defaultTab = 'login', defaultRole = 'USUARIO'
                   setShowOtpVerification(false);
                   setOtp('');
                   setErr(null);
+                  clearOtpState();
                   pendingRoleRef.current = null;
                 }}
                 className="w-full text-sm text-stone-400 hover:text-white"

@@ -8,7 +8,7 @@
 import { redisClient } from '../redis-client';
 import type { TicketData } from './ticket-generator';
 
-const redis = redisClient['client'];
+const redis = redisClient.getClient();
 
 export interface TicketJob {
   jobId: string;
