@@ -93,7 +93,9 @@ export async function generateMetadata({
   return {
     title: event.titulo,
     description: event.descripcion || `Compra entradas para ${event.titulo} en Ticketeate`,
-    keywords: [category, 'evento', 'entradas', event.ubicacion].filter(Boolean),
+    keywords: [category, 'evento', 'entradas', event.ubicacion].filter((k): k is string =>
+      Boolean(k),
+    ),
     openGraph: {
       title: event.titulo,
       description:
