@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/db';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import telemetry from '@/lib/telemetry';
 
 // Body esperado:
 // {
@@ -14,6 +15,7 @@ import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
+    const start = Date.now();
     console.log('=== INICIANDO API COMPRAR ===');
     const body = await request.json();
     console.log('Body recibido:', body);
@@ -255,9 +257,22 @@ export async function POST(request: NextRequest) {
 
     console.log('Transacción completada exitosamente');
     console.log('Resultado:', resultado);
+    // Registrar métrica: compra procesada y tiempo de procesamiento
+    try {
+      telemetry.recordPurchase(Number(resultado.resumen.monto_total) || 0);
+      telemetry.recordProcessingTime(Date.now() - start);
+    } catch (err) {
+      console.warn('Telemetry error (comprar):', err);
+    }
+
     return NextResponse.json(resultado, { status: 201 });
   } catch (error) {
     console.error('Error en /api/comprar', error);
+    try {
+      telemetry.recordProcessingTime(0);
+    } catch (err) {
+      /* ignore */
+    }
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

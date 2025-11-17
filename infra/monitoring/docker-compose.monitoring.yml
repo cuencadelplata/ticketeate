@@ -41,5 +41,15 @@ services:
       - '14268:14268' # Jaeger collector (HTTP)
     restart: unless-stopped
 
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.44.0
+    container_name: ticketeate_redis_exporter
+    environment:
+      - REDIS_ADDR=redis://host.docker.internal:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-ticketeate123}
+    ports:
+      - '9121:9121'
+    restart: unless-stopped
+
 volumes:
   grafana-data:

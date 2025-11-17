@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisClient } from '@/lib/redis-client';
 import { prisma } from '@repo/db';
+import telemetry from '@/lib/telemetry';
 
 // Endpoint para procesar la cola (worker)
 export async function POST(request: NextRequest) {
   try {
+    const start = Date.now();
     const { eventId } = await request.json();
 
     if (!eventId) {
@@ -45,6 +47,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    try {
+      telemetry.recordProcessingTime(Date.now() - start);
+      telemetry.updateActiveUsers(result.newActiveUsers.length || 0);
+      telemetry.recordQueueLength(result.processed || 0);
+    } catch (err) {
+      console.warn('Telemetry error (queue/process):', err);
+    }
+
     return NextResponse.json({
       success: true,
       processed: result.processed,
@@ -52,6 +62,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error processing queue:', error);
+    try {
+      telemetry.recordProcessingTime(0);
+    } catch (err) {
+      /* ignore */
+    }
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
