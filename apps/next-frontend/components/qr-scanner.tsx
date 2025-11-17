@@ -11,8 +11,10 @@ import {
   Calendar,
   MapPin,
   Search,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
   useGetTicketStats,
   useScanTicket,
@@ -25,11 +27,160 @@ interface ScannerProps {
   eventoid: string;
 }
 
+interface CameraScannerModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onScan: (code: string) => void;
+}
+
+// Component for camera QR scanning modal
+function CameraScannerModal({ isOpen, onClose, onScan }: CameraScannerModalProps) {
+  const videoRef = useRef<HTMLDivElement>(null);
+  const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const startScanning = async () => {
+      try {
+        setError(null);
+        if (!videoRef.current) return;
+
+        // Create Html5Qrcode instance
+        const qrcodeInstance = new Html5Qrcode('qr-video-container', {
+          experimentalFeatures: {
+            useBarcoderEngine: false,
+          },
+        });
+
+        html5QrcodeRef.current = qrcodeInstance;
+
+        // Start scanning
+        await qrcodeInstance.start(
+          { facingMode: 'environment' }, // Use back camera on mobile
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            // On successful scan
+            onScan(decodedText);
+            stopScanning();
+          },
+          (error) => {
+            // Errors are expected during scanning, we can ignore them
+            // Only log critical errors
+            if (!String(error).includes('NotFoundException')) {
+              console.debug('QR Scan error:', error);
+            }
+          },
+        );
+
+        setIsScanning(true);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error al acceder a la cámara';
+        setError(errorMessage);
+        console.error('Camera error:', err);
+      }
+    };
+
+    startScanning();
+
+    return () => {
+      stopScanning();
+    };
+  }, [isOpen, onScan]);
+
+  const stopScanning = async () => {
+    try {
+      if (html5QrcodeRef.current && isScanning) {
+        await html5QrcodeRef.current.stop();
+        html5QrcodeRef.current = null;
+        setIsScanning(false);
+      }
+    } catch (err) {
+      console.error('Error stopping scanner:', err);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="bg-stone-900 rounded-lg border border-stone-700 w-full max-w-md mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-stone-700">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <QrCode size={24} className="text-orange-500" />
+            Escanear QR
+          </h3>
+          <button
+            onClick={() => {
+              onClose();
+              stopScanning();
+            }}
+            className="text-stone-400 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Camera Container */}
+        <div className="relative bg-black">
+          {error ? (
+            <div className="w-full aspect-square flex items-center justify-center">
+              <div className="text-center p-4">
+                <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+                <p className="text-red-400 font-semibold mb-2">{error}</p>
+                <p className="text-stone-400 text-sm mb-4">
+                  Asegúrate de permitir acceso a la cámara en tu navegador
+                </p>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    onClose();
+                  }}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div id="qr-video-container" className="w-full" ref={videoRef} />
+          )}
+
+          {/* Scanning overlay */}
+          {isScanning && !error && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-1/4 border-2 border-orange-500 rounded-lg shadow-lg shadow-orange-500/50" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-1 h-16 bg-orange-500 rounded-full animate-pulse" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-stone-700">
+          <p className="text-stone-400 text-sm text-center">
+            Apunta tu cámara al código QR para escanear
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Componente para manejar escaneo con cámara (usando un input de tipo file para captura de QR)
 export function QRScanner({ eventoid }: ScannerProps) {
   const [manualCode, setManualCode] = useState('');
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -84,7 +235,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-12 pt-24">
+    <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 pt-24">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -217,23 +368,47 @@ export function QRScanner({ eventoid }: ScannerProps) {
             className="w-full rounded-lg border border-stone-600 bg-stone-900 px-4 py-3 text-white placeholder-stone-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 mb-4"
           />
 
-          <button
-            onClick={handleManualSubmit}
-            disabled={scanning || !manualCode.trim()}
-            className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
-          >
-            {scanning ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Procesando...
-              </>
-            ) : (
-              <>
-                <QrCode size={20} />
-                Validar Entrada
-              </>
-            )}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCameraModal(true)}
+              disabled={scanning}
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 8h-8" />
+                <path d="M6 4v6h6V4" />
+                <path d="M16 4v10h6V4" />
+              </svg>
+              Abrir Cámara
+            </button>
+            <button
+              onClick={handleManualSubmit}
+              disabled={scanning || !manualCode.trim()}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-stone-700 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+            >
+              {scanning ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <QrCode size={20} />
+                  Validar
+                </>
+              )}
+            </button>
+          </div>
 
           {lastScanned && (
             <div className="mt-4 p-4 rounded-lg bg-green-500/10 border border-green-500/30">
@@ -371,6 +546,18 @@ export function QRScanner({ eventoid }: ScannerProps) {
             procesarán automáticamente al escanearlos.
           </p>
         </div>
+
+        {/* Camera Modal */}
+        {showCameraModal && (
+          <CameraScannerModal
+            isOpen={showCameraModal}
+            onClose={() => setShowCameraModal(false)}
+            onScan={(code: string) => {
+              handleScan(code);
+              setShowCameraModal(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );
