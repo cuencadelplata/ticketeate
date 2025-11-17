@@ -653,6 +653,7 @@ jobs:
             --build-arg MERCADOPAGO_CLIENT_ID="${MERCADOPAGO_CLIENT_ID}" \
             --build-arg MERCADOPAGO_CLIENT_SECRET="${MERCADOPAGO_CLIENT_SECRET}" \
             --build-arg MERCADOPAGO_REDIRECT_URI="${MERCADOPAGO_REDIRECT_URI}" \
+            --build-arg GROK_API_KEY="${GROK_API_KEY}" \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             .
           

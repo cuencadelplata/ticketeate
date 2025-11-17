@@ -34,25 +34,6 @@ const getApiBase = () => {
     : 'http://localhost:3001/api';
 };
 
-// Get auth headers with dynamic JWT token retrieval
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  try {
-    const response = await fetch('/api/auth/token', {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (response.ok) {
-      const { token } = await response.json();
-      return {
-        Authorization: `Bearer ${token}`,
-      };
-    }
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-  }
-  return {};
-}
-
 export function useGetEventoTickets(eventoid: string) {
   return useQuery({
     queryKey: ['eventoTickets', eventoid],

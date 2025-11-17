@@ -105,6 +105,7 @@ export default function InvitadosPage() {
   };
 
   const handleEliminarInvitado = async (invitadoId: string) => {
+    console.debug('Eliminar invitado pendiente de implementar', invitadoId);
     try {
       // Aquí iría un DELETE a la API si es necesario
       toast.success('Invitado eliminado');

@@ -208,6 +208,8 @@ export function useUpdateCupon() {
       }
     },
     onSettled: (_data, _error, variables) => {
+      void _data;
+      void _error;
       // Pequeño delay para asegurar sincronización del historial
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });
@@ -253,16 +255,15 @@ export function useDeleteCupon() {
 
       return { previousCupones };
     },
-    onSuccess: (_data, { cuponId, eventId }) => {
-      // El cupón ya fue removido optimisticamente, no hacer nada
-      // El refetch en onSettled traerá los datos actualizados
-    },
-    onError: (_err, { eventId }, context) => {
+    onError: (error, { eventId }, context) => {
+      console.error('Error al eliminar cupón:', error);
       if (context?.previousCupones) {
         queryClient.setQueryData(['cupones', eventId], context.previousCupones);
       }
     },
     onSettled: (_data, _error, variables) => {
+      void _data;
+      void _error;
       // Pequeño delay para asegurar sincronización del historial
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['cupones', variables.eventId] });

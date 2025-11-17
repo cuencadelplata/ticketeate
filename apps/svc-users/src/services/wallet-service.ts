@@ -101,8 +101,8 @@ export class WalletService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          client_id: process.env.MERCADO_PAGO_CLIENT_ID,
-          client_secret: process.env.MERCADO_PAGO_CLIENT_SECRET,
+          client_id: process.env.MERCADOPAGO_CLIENT_ID,
+          client_secret: process.env.MERCADOPAGO_CLIENT_SECRET,
           refresh_token: user.mercado_pago_refresh_token,
           grant_type: 'refresh_token',
         }),
