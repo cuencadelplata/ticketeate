@@ -407,9 +407,9 @@ export function QRScanner({ eventoid }: ScannerProps) {
 
           {lastScanned && (
             <div className="mt-4 p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-              <p className="text-green-400 text-sm">
+              <p className="text-green-400 text-sm line-clamp-2">
                 <CheckCircle size={16} className="inline mr-2" />
-                Último código escaneado: <span className="font-mono font-bold">{lastScanned}</span>
+                Código escaneado correctamente
               </p>
             </div>
           )}
