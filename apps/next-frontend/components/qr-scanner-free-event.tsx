@@ -264,7 +264,7 @@ export function QRScannerFreeEvent({ eventoid }: ScannerFreeEventProps) {
   const inscripcionesPendientes = filteredInscripciones.filter((i) => !i.validado);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-3 md:p-12 pt-24">
+    <div className="h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 md:p-12 overflow-y-auto">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">

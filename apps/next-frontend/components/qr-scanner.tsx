@@ -230,7 +230,7 @@ export function QRScanner({ eventoid }: ScannerProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 pt-24">
+    <div className="h-screen bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
